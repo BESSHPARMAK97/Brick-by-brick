@@ -1,0 +1,394 @@
+<title>Brick by brick</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: project card on top → block tabs → floor-by-floor chessboard; apartment opens in a side drawer */
+:root {
+  --bg: #eef0f2;
+  --surface: #ffffff;
+  --fg: #1c2127;
+  --muted: #66707b;
+  --line: #d7dbe0;
+  --cell: #e3e6ea;
+  --accent: #b4472b;
+  --s0: #c9ced5; --s1: #e6a23c; --s2: #3c8dbc; --s3: #2f9e5b; --s4: #d6336c;
+  --display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #15181c; --surface: #1d2126; --fg: #e7eaee; --muted: #98a2ad; --line: #30363d; --cell: #2a2f36;
+  --accent: #e0714f; --s0: #4a525c; --s1: #e0a23f; --s2: #4ba3d6; --s3: #43b873; --s4: #ec5a8a; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #15181c; --surface: #1d2126; --fg: #e7eaee; --muted: #98a2ad; --line: #30363d; --cell: #2a2f36;
+  --accent: #e0714f; --s0: #4a525c; --s1: #e0a23f; --s2: #4ba3d6; --s3: #43b873; --s4: #ec5a8a; color-scheme: dark }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 14px; line-height: 1.45; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 20px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 20px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 700; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+.label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.note { font-size: 12px; color: var(--muted); }
+
+/* top bar */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.logo { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 700; font-size: 15px; }
+.logo-mark { display: grid; grid-template-columns: repeat(3, 9px); gap: 2px; }
+.logo-mark i { height: 6px; background: var(--accent); border-radius: 1px; }
+.logo-mark i:nth-child(4) { grid-column: span 1; transform: translateX(5px); }
+.logo-mark i:nth-child(5) { transform: translateX(5px); }
+.crumbs { font-size: 13px; color: var(--muted); }
+.crumbs b { color: var(--fg); font-weight: 500; }
+
+/* project card */
+.project { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px;
+  display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 24px; }
+.project h1 { font-size: clamp(22px, 3.2vw, 30px); }
+.project .sub { color: var(--muted); margin-top: 4px; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 20px; margin-top: 18px; }
+.facts div { display: grid; gap: 2px; min-width: 0; }
+.facts b { font-weight: 500; }
+.prog-big { display: grid; gap: 10px; align-content: start; }
+.prog-big .pct { font-family: var(--display); font-size: 40px; line-height: 1; }
+.bar { height: 8px; border-radius: 4px; background: var(--cell); overflow: hidden; display: flex; }
+.bar span { display: block; height: 100%; }
+.counts { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+.count { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.dot { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+
+/* controls */
+.controls { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: end; justify-content: space-between; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tab { font: inherit; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--fg);
+  border-radius: 8px; padding: 8px 14px; display: grid; gap: 2px; text-align: left; min-width: 120px; }
+.tab small { color: var(--muted); font-size: 12px; }
+.tab[aria-selected="true"] { border-color: var(--fg); box-shadow: inset 0 0 0 1px var(--fg); }
+.tab:focus-visible, .cell:focus-visible, .btn:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.colorby { display: grid; gap: 4px; }
+select { font: inherit; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); }
+.legend span { display: flex; align-items: center; gap: 6px; }
+
+/* chessboard */
+.board-card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; }
+.board-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; }
+.board-head h2 { font-size: 18px; }
+.board-scroll { overflow-x: auto; padding-bottom: 4px; }
+.board { display: grid; gap: 4px; min-width: max-content; }
+.floor { display: grid; grid-template-columns: 54px auto; gap: 8px; align-items: stretch; }
+.floor-label { display: grid; align-content: center; justify-items: end; padding-right: 4px; border-right: 2px solid var(--line); }
+.floor-label .num { font-size: 15px; font-weight: 500; }
+.floor-label small { font-size: 10px; color: var(--muted); }
+.units { display: flex; gap: 4px; }
+.cell { font: inherit; color: var(--fg); cursor: pointer; width: 78px; min-height: 56px; border-radius: 6px;
+  border: 1px solid transparent; background: var(--cell); padding: 6px 7px; display: grid; align-content: space-between;
+  text-align: left; position: relative; transition: transform .12s ease; }
+.cell:hover { transform: translateY(-1px); border-color: var(--fg); }
+.cell .n { font-family: var(--mono); font-weight: 500; font-size: 13px; }
+.cell .t { font-size: 11px; color: var(--muted); }
+.cell .p { font-family: var(--mono); font-size: 11px; }
+.cell.k { width: 118px; border-style: dashed; border-color: var(--line); }
+.cell.tech { width: 104px; border-style: dashed; border-color: var(--line); }
+.cell.mop { width: 64px; border-style: dashed; border-color: var(--line); }
+.cell.dim { opacity: .35; }
+.cell .flag { position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--s4); }
+.cell.on-dark .t, .cell.on-dark .n, .cell.on-dark .p { color: #fff; }
+
+/* drawer */
+.scrim { position: fixed; inset: 0; background: rgba(10, 12, 15, .4); z-index: 20; }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(560px, 100%); z-index: 21; background: var(--surface);
+  border-left: 1px solid var(--line); overflow-y: auto; display: grid; align-content: start; gap: 18px;
+  padding-top: max(20px, env(safe-area-inset-top, 0px)); padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  padding-left: 20px; padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+.drawer-head { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+.drawer h2 { font-size: 24px; margin-top: 4px; }
+.btn { font: inherit; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 8px; padding: 6px 12px; }
+.chip { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); }
+.specs { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; }
+.specs div { display: grid; gap: 2px; }
+.specs b { font-weight: 500; }
+.nav-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.works { width: 100%; border-collapse: collapse; font-size: 13px; }
+.works th { text-align: left; font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding: 6px 8px 6px 0; border-bottom: 1px solid var(--line); }
+.works td { padding: 9px 8px 9px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.works td small { display: block; color: var(--muted); font-size: 11px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; white-space: nowrap; }
+.table-scroll { overflow-x: auto; }
+
+@media (max-width: 760px) {
+  .project { grid-template-columns: 1fr; }
+  .drawer { border-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .cell { transition: none; } .cell:hover { transform: none; } }
+</style>
+
+<div class="wrap">
+  <header class="topbar">
+    <div class="logo"><span class="logo-mark"><i></i><i></i><i></i><i></i><i></i></span>Brick by brick</div>
+    <div class="crumbs">Проекты › <b id="crumb-project"></b></div>
+  </header>
+
+  <section class="project" aria-label="Карточка проекта">
+    <div>
+      <span class="label">Карточка проекта · пример данных</span>
+      <h1 id="p-name"></h1>
+      <div class="sub" id="p-address"></div>
+      <div class="facts" id="p-facts"></div>
+    </div>
+    <div class="prog-big">
+      <span class="label">Общая готовность работ</span>
+      <div class="pct num" id="p-pct"></div>
+      <div class="bar" id="p-bar"></div>
+      <div class="counts" id="p-counts"></div>
+    </div>
+  </section>
+
+  <div class="controls">
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <div class="colorby">
+      <label class="label" for="colorby">Раскрасить шахматку</label>
+      <select id="colorby"></select>
+    </div>
+  </div>
+
+  <section class="board-card">
+    <div class="board-head">
+      <h2 id="b-title"></h2>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="board-scroll"><div class="board" id="board"></div></div>
+    <div class="note">Нажмите на квартиру, коммерческое или техническое помещение, чтобы открыть список работ. МОП — места общего пользования этажа (лестнично-лифтовой узел, коридор).</div>
+  </section>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-modal="true" role="dialog" aria-labelledby="d-title"></aside>
+
+<script>
+// ---------- справочники ----------
+const STATUS = [
+  { id: 0, name: "Не начато", color: "var(--s0)", w: 0 },
+  { id: 1, name: "В работе", color: "var(--s1)", w: .5 },
+  { id: 2, name: "Выполнено", color: "var(--s2)", w: .9 },
+  { id: 3, name: "Принято технадзором", color: "var(--s3)", w: 1 },
+  { id: 4, name: "Замечания", color: "var(--s4)", w: .8 },
+];
+const WORKS = {
+  apt: [
+    ["Кладка перегородок", "АР", "м²"], ["Установка окон ПВХ", "АР", "шт."], ["Стояки водоснабжения и канализации", "ВК", "п.м."],
+    ["Электромонтаж: разводка", "ЭОМ", "п.м."], ["Радиаторы отопления", "ОВ", "шт."], ["Штукатурка стен", "Отделка", "м²"],
+    ["Стяжка пола", "Отделка", "м²"], ["Входная дверь", "АР", "шт."], ["Шпаклёвка стен", "Отделка", "м²"], ["Установка счётчиков", "ВК", "шт."],
+  ],
+  k: [
+    ["Витражное остекление", "АР", "м²"], ["Электромонтаж: разводка", "ЭОМ", "п.м."], ["Вентиляция", "ОВ", "п.м."],
+    ["Стяжка пола", "Отделка", "м²"], ["Штукатурка стен", "Отделка", "м²"],
+  ],
+  mop: [
+    ["Штукатурка стен", "Отделка", "м²"], ["Плитка пола", "Отделка", "м²"], ["Освещение МОП", "ЭОМ", "шт."], ["Окраска стен", "Отделка", "м²"],
+  ],
+  tech: [
+    ["Гидроизоляция пола", "АР", "м²"], ["Электромонтаж: разводка", "ЭОМ", "п.м."], ["Вентиляция", "ОВ", "п.м."], ["Окраска стен", "Отделка", "м²"],
+  ],
+};
+const CREWS = { "АР": "Бригада №1 (общестрой)", "ВК": "Субподрядчик: ВК", "ЭОМ": "Субподрядчик: электрика", "ОВ": "Субподрядчик: ОВ", "Отделка": "Бригада №3 (отделка)" };
+const ALL_WORK_NAMES = [...new Set(Object.values(WORKS).flat().map(w => w[0]))];
+
+// ---------- генерация примера ----------
+let seed = 7;
+const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const PROJECT = {
+  name: "ЖК «Кереге»",
+  address: "г. Астана, район Есиль · пример объекта",
+  facts: [["Застройщик", "ТОО «Пример Девелопмент»"], ["Генподрядчик", "ТОО «Пример Строй»"], ["Класс жилья", "Комфорт"],
+          ["Отделка", "Предчистовая"], ["Ввод в эксплуатацию", "IV кв. 2027"]],
+  blocks: [],
+};
+const BLOCK_CFG = [
+  { name: "Блок A", floors: 12, perFloor: [1, 1, 2, 2, 3], stage: 9.5 },
+  { name: "Блок B", floors: 9, perFloor: [1, 2, 2, 3], stage: 7 },
+  { name: "Блок C", floors: 12, perFloor: [1, 1, 2, 3, 3, 2], stage: 3.5 },
+];
+const AREA = { 1: [38, 44], 2: [56, 66], 3: [78, 92] };
+function makeWorks(kind, floorNo, floors, stage, qty) {
+  const s = stage - (Math.max(floorNo, 1) - 1) * (stage / floors) * 0.9 + (rnd() - .5) * 1.2;
+  return WORKS[kind].map((w, i) => {
+    let st = i < s - 1.5 ? 3 : i < s - .5 ? 2 : i < s + .4 ? 1 : 0;
+    if (st >= 2 && rnd() < .07) st = 4;
+    const day = 1 + Math.floor(rnd() * 27), mon = 3 + Math.min(7, Math.floor(i * .7 + floorNo * .3));
+    return { name: w[0], section: w[1], unit: w[2], qty: w[2] === "шт." ? Math.max(1, Math.round(qty / 25)) : Math.round(qty * (w[2] === "п.м." ? 1.6 : 2.4)),
+             status: st, crew: CREWS[w[1]], date: st ? `${String(day).padStart(2, "0")}.${String(mon).padStart(2, "0")}.2026` : "—" };
+  });
+}
+let aptNo = 1;
+BLOCK_CFG.forEach((cfg, bi) => {
+  const block = { name: cfg.name, floors: [] };
+  if (bi === 0) {
+    block.floors.push({ no: -1, kind: "Подвал", units: ["ИТП", "Электрощитовая", "Насосная"].map(n => ({ kind: "tech", label: n, area: 18 + Math.round(rnd() * 20), works: makeWorks("tech", 1, cfg.floors, cfg.stage + 1, 30) })) });
+  }
+  for (let f = 1; f <= cfg.floors; f++) {
+    const floor = { no: f, units: [] };
+    if (f === 1 && bi !== 1) {
+      floor.kind = "Коммерция";
+      for (let k = 1; k <= 3; k++) { const a = 60 + Math.round(rnd() * 70); floor.units.push({ kind: "k", label: `К-${bi + 1}.${k}`, area: a, works: makeWorks("k", f, cfg.floors, cfg.stage, a) }); }
+    } else {
+      floor.kind = "Жилой";
+      cfg.perFloor.forEach(r => {
+        const [lo, hi] = AREA[r], a = +(lo + rnd() * (hi - lo)).toFixed(1);
+        floor.units.push({ kind: "apt", label: String(aptNo++), rooms: r, area: a, works: makeWorks("apt", f, cfg.floors, cfg.stage, a) });
+      });
+    }
+    floor.units.push({ kind: "mop", label: "МОП", area: 28, works: makeWorks("mop", f, cfg.floors, cfg.stage - 2, 28) });
+    block.floors.push(floor);
+  }
+  block.floors.reverse();
+  PROJECT.blocks.push(block);
+});
+
+// ---------- расчёты ----------
+const progress = works => works.length ? works.reduce((s, w) => s + STATUS[w.status].w, 0) / works.length : 0;
+const allWorks = units => units.flatMap(u => u.works);
+const blockUnits = b => b.floors.flatMap(f => f.units);
+const pct = x => Math.round(x * 100) + "%";
+const unitTitle = u => ({ apt: `Кв. ${u.label}`, k: `Помещение ${u.label}`, mop: "МОП", tech: u.label })[u.kind];
+const unitType = u => ({ apt: `${u.rooms}-комн. квартира`, k: "Коммерческое", mop: "Места общего пользования", tech: "Техническое" })[u.kind];
+
+// ---------- рендер ----------
+const $ = id => document.getElementById(id);
+let current = 0, colorBy = "progress", openUnit = null;
+
+function statusBar(works, el) {
+  const n = works.length || 1;
+  el.innerHTML = [3, 2, 4, 1].map(s => {
+    const c = works.filter(w => w.status === s).length;
+    return c ? `<span style="width:${c / n * 100}%;background:${STATUS[s].color}" title="${STATUS[s].name}: ${c}"></span>` : "";
+  }).join("");
+}
+
+function renderProject() {
+  const all = PROJECT.blocks.flatMap(blockUnits);
+  const works = allWorks(all);
+  $("crumb-project").textContent = PROJECT.name;
+  $("p-name").textContent = PROJECT.name;
+  $("p-address").textContent = PROJECT.address;
+  const apts = all.filter(u => u.kind === "apt").length, ks = all.filter(u => u.kind === "k").length;
+  $("p-facts").innerHTML = PROJECT.facts.concat([["Блоков", PROJECT.blocks.length], ["Квартир / коммерции", `${apts} / ${ks}`]])
+    .map(([k, v]) => `<div><span class="label">${k}</span><b>${v}</b></div>`).join("");
+  $("p-pct").textContent = pct(progress(works));
+  statusBar(works, $("p-bar"));
+  $("p-counts").innerHTML = [3, 2, 1, 4, 0].map(s =>
+    `<div class="count"><span class="dot" style="background:${STATUS[s].color}"></span>${STATUS[s].name}<span class="num" style="margin-left:auto">${works.filter(w => w.status === s).length}</span></div>`).join("");
+}
+
+function renderTabs() {
+  $("tabs").innerHTML = PROJECT.blocks.map((b, i) => {
+    const units = blockUnits(b);
+    return `<button class="tab" role="tab" aria-selected="${i === current}" data-i="${i}">
+      <b>${b.name}</b><small>${b.floors.filter(f => f.no > 0).length} эт. · ${units.filter(u => u.kind === "apt").length} кв. · ${pct(progress(allWorks(units)))}</small></button>`;
+  }).join("");
+}
+
+function renderSelect() {
+  $("colorby").innerHTML = `<option value="progress">По общей готовности</option><optgroup label="По виду работы">` +
+    ALL_WORK_NAMES.map(n => `<option value="${n}">${n}</option>`).join("") + "</optgroup>";
+}
+
+function renderLegend() {
+  if (colorBy === "progress") {
+    $("legend").innerHTML = `<span><span class="dot" style="background:var(--cell);border:1px solid var(--line)"></span>0%</span>` +
+      [25, 50, 75].map(p => `<span><span class="dot" style="background:color-mix(in oklab, var(--s3) ${p}%, var(--cell))"></span>${p}%</span>`).join("") +
+      `<span><span class="dot" style="background:var(--s3)"></span>100%</span><span><span class="dot" style="background:var(--s4);border-radius:50%"></span>есть замечания</span>`;
+  } else {
+    $("legend").innerHTML = STATUS.map(s => `<span><span class="dot" style="background:${s.color}"></span>${s.name}</span>`).join("") +
+      `<span><span class="dot" style="background:var(--cell);opacity:.4"></span>работа не предусмотрена</span>`;
+  }
+}
+
+function cellStyle(u) {
+  if (colorBy === "progress") {
+    const p = progress(u.works);
+    return { bg: p ? `color-mix(in oklab, var(--s3) ${Math.round(p * 100)}%, var(--cell))` : "var(--cell)", dark: p > .62, dim: false };
+  }
+  const w = u.works.find(x => x.name === colorBy);
+  if (!w) return { bg: "var(--cell)", dim: true };
+  return { bg: w.status ? STATUS[w.status].color : "var(--cell)", dark: w.status >= 2, dim: false };
+}
+
+function renderBoard() {
+  const b = PROJECT.blocks[current];
+  $("b-title").textContent = `${b.name} · шахматка`;
+  $("board").innerHTML = b.floors.map(f => `
+    <div class="floor">
+      <div class="floor-label"><span class="num">${f.no}</span><small>${f.kind}</small></div>
+      <div class="units">${f.units.map((u, ui) => {
+        const s = cellStyle(u), flag = u.works.some(w => w.status === 4);
+        const sub = u.kind === "apt" ? `${u.rooms}к · ${u.area}` : u.kind === "k" ? `${u.area} м²` : u.kind === "tech" ? "тех." : "общ.";
+        return `<button class="cell ${u.kind === "apt" ? "" : u.kind}${s.dim ? " dim" : ""}${s.dark ? " on-dark" : ""}" style="background:${s.bg}"
+          data-f="${f.no}" data-u="${ui}" aria-label="${unitTitle(u)}, этаж ${f.no}, готовность ${pct(progress(u.works))}">
+          ${flag ? '<span class="flag" title="Есть замечания"></span>' : ""}
+          <span class="n">${u.kind === "apt" ? u.label : unitTitle(u)}</span>
+          <span class="t">${sub}</span>
+          <span class="p">${pct(progress(u.works))}</span></button>`;
+      }).join("")}</div>
+    </div>`).join("");
+}
+
+function siblings(f) { return f.units; }
+function openDrawer(floorNo, ui) {
+  const b = PROJECT.blocks[current], f = b.floors.find(x => x.no === floorNo), u = f.units[ui];
+  openUnit = { floorNo, ui };
+  const p = progress(u.works), d = $("drawer");
+  const specs = [["Тип", unitType(u)], ["Этаж", f.no], ["Площадь", `${u.area} м²`]];
+  if (u.kind === "apt") specs.push(["Комнат", u.rooms], ["Отделка", "Предчистовая"]);
+  const idx = b.floors.indexOf(f);
+  d.innerHTML = `
+    <div class="drawer-head">
+      <div>
+        <div class="crumbs">${PROJECT.name} › ${b.name} › Этаж ${f.no}</div>
+        <h2 id="d-title">${unitTitle(u)}</h2>
+      </div>
+      <button class="btn" id="close" aria-label="Закрыть">✕</button>
+    </div>
+    <div class="specs">${specs.map(([k, v]) => `<div><span class="label">${k}</span><b>${v}</b></div>`).join("")}</div>
+    <div style="display:grid;gap:8px">
+      <div style="display:flex;justify-content:space-between"><span class="label">Готовность</span><span class="num">${pct(p)}</span></div>
+      <div class="bar" id="d-bar"></div>
+    </div>
+    <div class="table-scroll"><table class="works">
+      <thead><tr><th>Работа</th><th>Объём</th><th>Статус</th></tr></thead>
+      <tbody>${u.works.map(w => `<tr>
+        <td>${w.name}<small>${w.section} · ${w.crew}</small></td>
+        <td class="num">${w.qty} ${w.unit}</td>
+        <td><span class="pill"><span class="dot" style="background:${STATUS[w.status].color}"></span>${STATUS[w.status].name}</span><small class="num">${w.date}</small></td>
+      </tr>`).join("")}</tbody></table></div>
+    <div class="nav-row">
+      <button class="btn" id="prev" ${ui === 0 ? "disabled" : ""}>← Соседнее</button>
+      <button class="btn" id="next" ${ui === f.units.length - 1 ? "disabled" : ""}>Соседнее →</button>
+      <button class="btn" id="up" ${idx === 0 ? "disabled" : ""}>Этаж выше ↑</button>
+      <button class="btn" id="down" ${idx === b.floors.length - 1 ? "disabled" : ""}>Этаж ниже ↓</button>
+    </div>
+    <div class="note">Пример данных. В рабочей версии здесь будут фото, акты скрытых работ и история изменений статусов.</div>`;
+  statusBar(u.works, $("d-bar"));
+  $("close").onclick = closeDrawer;
+  $("prev").onclick = () => openDrawer(floorNo, ui - 1);
+  $("next").onclick = () => openDrawer(floorNo, ui + 1);
+  const go = j => { const nf = b.floors[j]; openDrawer(nf.no, Math.min(ui, nf.units.length - 1)); };
+  $("up").onclick = () => go(idx - 1);
+  $("down").onclick = () => go(idx + 1);
+  d.hidden = false; $("scrim").hidden = false;
+  $("close").focus();
+}
+function closeDrawer() { $("drawer").hidden = true; $("scrim").hidden = true; openUnit = null; }
+
+$("tabs").addEventListener("click", e => { const t = e.target.closest(".tab"); if (!t) return; current = +t.dataset.i; renderTabs(); renderBoard(); });
+$("board").addEventListener("click", e => { const c = e.target.closest(".cell"); if (c) openDrawer(+c.dataset.f, +c.dataset.u); });
+$("colorby").addEventListener("change", e => { colorBy = e.target.value; renderLegend(); renderBoard(); });
+$("scrim").addEventListener("click", closeDrawer);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && openUnit) closeDrawer(); });
+
+renderProject(); renderTabs(); renderSelect(); renderLegend(); renderBoard();
+</script>
