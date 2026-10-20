@@ -247,7 +247,7 @@ function describeGap(rt: Runtime, ctx: SchedulerContext, from: number, to: numbe
     const info = rt.cal.info(d);
     if (info.capacity > 0) {
       if (capacityOf(rt, ctx, d) <= 0) climateDays++;
-    } else parts.push(`${formatRu(d)} ${info.label.toLowerCase()}`);
+    } else parts.push(`${formatRu(d)} — ${info.label}`);
   }
   if (climateDays) parts.push(`${climateDays} дн. — климатическое ограничение`);
   return parts.slice(0, 6).join('; ') + (parts.length > 6 ? `; … ещё ${parts.length - 6}` : '');
@@ -413,7 +413,7 @@ function collectWarnings(
 ) {
   for (let y = yearOf(start); y <= yearOf(Math.max(start, end - 1)); y++) {
     const info = KZ_HOLIDAYS.yearInfo(y);
-    if (info.status === 'preliminary') out.push({ code: 'calendar-preliminary', severity: 'warning', text: `Календарь ${y} г. — ПРЕДВАРИТЕЛЬНЫЙ: ${info.note ?? ''}` });
+    if (info.status === 'preliminary') out.push({ code: 'calendar-preliminary', severity: 'warning', text: `Календарь ${y} г. — предварительный: ${info.note ?? ''}` });
     else if (info.status === 'rule-only') out.push({ code: 'calendar-rule-only', severity: 'warning', text: `Календарь ${y} г.: учтены только постоянные праздники. ${info.note ?? ''}` });
     else if (info.status === 'secondary') out.push({ code: 'calendar-secondary', severity: 'info', text: `Календарь ${y} г. сверен по вторичным источникам (${info.source}). Для договорных сроков сверьте с adilet.zan.kz.` });
   }
