@@ -63,7 +63,9 @@ export function CalendarView({ app }: ScreenProps) {
           <h2>Погода и климат</h2>
           <p className="small">Долгосрочное планирование — по климатической норме {ASTANA_NORMALS.period} ({ASTANA_NORMALS.source}). Для оперативной корректировки загрузите прогноз: он заменит норму на свои даты и остановит крановые работы при ветре &gt; {input.craneWindLimitMs} м/с.</p>
           <div className="row">
-            <button className="btn primary" onClick={loadForecast}>Загрузить прогноз на 16 дней</button>
+            {import.meta.env.VITE_SANDBOXED === '1'
+              ? <span className="small muted">Загрузка прогноза доступна в локальной версии (в опубликованной странице внешние запросы закрыты).</span>
+              : <button className="btn primary" onClick={loadForecast}>Загрузить прогноз на 16 дней</button>}
             {input.forecast && <button className="btn" onClick={() => setInput((d) => (d.forecast = null))}>Убрать прогноз</button>}
           </div>
           {status && <p className="small" style={{ marginTop: 6 }}>{status}</p>}

@@ -18,6 +18,7 @@ export function Scenarios({ app }: ScreenProps) {
     }
   }, [baseline, other]);
 
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const versions = store.versions(project.id);
   const [va, setVa] = useState<string>('');
   const [vb, setVb] = useState<string>('');
@@ -48,7 +49,12 @@ export function Scenarios({ app }: ScreenProps) {
                     <div className="row">
                       {s.id !== scenario.id && <button className="btn small" onClick={() => { store.setActiveScenario(project.id, s.id); app.refresh(); }}>Сделать активным</button>}
                       <button className="btn small" onClick={() => { const n = store.addScenario(project.id, s.id, `${s.name} — копия`); setCompareId(n.id); app.refresh(); }}>Копировать</button>
-                      {s.id !== baseline.id && <button className="btn small danger" onClick={() => { if (confirm(`Удалить сценарий «${s.name}»?`)) { store.deleteScenario(project.id, s.id); app.refresh(); } }}>Удалить</button>}
+                      {s.id !== baseline.id && (pendingDelete === s.id ? (
+                        <>
+                          <button className="btn small danger" onClick={() => { store.deleteScenario(project.id, s.id); setPendingDelete(null); app.refresh(); }}>Да, удалить</button>
+                          <button className="btn small" onClick={() => setPendingDelete(null)}>Отмена</button>
+                        </>
+                      ) : <button className="btn small danger" onClick={() => setPendingDelete(s.id)}>Удалить</button>)}
                     </div>
                   </td>
                 </tr>

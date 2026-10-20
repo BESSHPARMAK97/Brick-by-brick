@@ -77,7 +77,8 @@ export function App() {
             </div>
           </div>
           <div className="actions">
-            {r && (
+            {r && import.meta.env.VITE_SANDBOXED === '1' && <span className="small muted">Экспорт в Excel/PDF — в локальной версии (npm run dev)</span>}
+            {r && import.meta.env.VITE_SANDBOXED !== '1' && (
               <Suspense fallback={<button className="btn" disabled>Экспорт…</button>}>
                 <ExportMenu result={r} input={input} />
               </Suspense>
