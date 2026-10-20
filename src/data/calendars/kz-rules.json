@@ -1,0 +1,26 @@
+{
+  "jurisdiction": "KZ",
+  "title": "Праздничные дни Республики Казахстан — правила",
+  "legalBasis": "Закон РК «О праздниках в Республике Казахстан» от 13.12.2001 № 267-II (с изм.); Трудовой кодекс РК, ст. 84 (перенос выходного при совпадении с праздничным днём)",
+  "updatedAt": "2026-10-20",
+  "status": "secondary",
+  "statusNote": "Перечень сверен с вторичными источниками (pro1c.kz от 29.06.2026, informburo.kz). Перед использованием в договорных сроках сверить с adilet.zan.kz.",
+  "transferRule": "При совпадении выходного и праздничного дней выходной переносится на следующий после праздничного рабочий день. Религиозные праздники (Православное Рождество, Курбан айт) не переносятся.",
+  "fixedHolidays": [
+    { "month": 1, "day": 1, "name": "Новый год", "transferable": true },
+    { "month": 1, "day": 2, "name": "Новый год", "transferable": true },
+    { "month": 1, "day": 7, "name": "Православное Рождество", "transferable": false },
+    { "month": 3, "day": 8, "name": "Международный женский день", "transferable": true },
+    { "month": 3, "day": 15, "name": "День Конституции", "transferable": true, "sinceYear": 2027, "note": "Перенесён с 30 августа поправкой в Закон о праздниках, вступившей в силу 01.07.2026" },
+    { "month": 3, "day": 21, "name": "Наурыз мейрамы", "transferable": true },
+    { "month": 3, "day": 22, "name": "Наурыз мейрамы", "transferable": true },
+    { "month": 3, "day": 23, "name": "Наурыз мейрамы", "transferable": true },
+    { "month": 5, "day": 1, "name": "Праздник единства народа Казахстана", "transferable": true },
+    { "month": 5, "day": 7, "name": "День защитника Отечества", "transferable": true },
+    { "month": 5, "day": 9, "name": "День Победы", "transferable": true },
+    { "month": 7, "day": 6, "name": "День Столицы", "transferable": true },
+    { "month": 8, "day": 30, "name": "День Конституции", "transferable": true, "untilYear": 2025, "note": "С 01.07.2026 праздник перенесён на 15 марта; в 2026 году 30 августа не является праздником" },
+    { "month": 10, "day": 25, "name": "День Республики", "transferable": true, "sinceYear": 2022 },
+    { "month": 12, "day": 16, "name": "День Независимости", "transferable": true }
+  ]
+}

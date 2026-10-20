@@ -1,0 +1,14 @@
+{
+  "jurisdiction": "KZ",
+  "year": 2028,
+  "status": "preliminary",
+  "updatedAt": "2026-10-20",
+  "sources": [
+    "Рассчитано по правилам Закона о праздниках (kz-rules.json)"
+  ],
+  "statusNote": "ПРЕДВАРИТЕЛЬНО: дата Курбан айта — астрономическая оценка; возможны постановления о переносе.",
+  "religiousHolidays": [
+    { "date": "2028-05-05", "name": "Курбан айт (первый день, оценка)", "status": "preliminary" }
+  ],
+  "decreeTransfers": []
+}

@@ -1,0 +1,34 @@
+{
+  "city": "astana",
+  "cityName": "Астана",
+  "lat": 51.18,
+  "lon": 71.45,
+  "period": "1991–2020",
+  "source": "Pogoda.ru.net (климатические нормы, метеостанция Астана), по таблице статьи «Astana» в Wikipedia, проверено 2026-10-20",
+  "status": "secondary",
+  "note": "Климатическая статистика (средние многолетние). Не является прогнозом погоды на конкретный день.",
+  "monthly": [
+    { "tMax": -10.3, "tMean": -14.5, "tMin": -18.7, "precipMm": 17.8 },
+    { "tMax": -8.8,  "tMean": -13.6, "tMin": -18.0, "precipMm": 16.7 },
+    { "tMax": -1.5,  "tMean": -6.0,  "tMin": -10.4, "precipMm": 20.0 },
+    { "tMax": 12.2,  "tMean": 6.5,   "tMin": 1.2,   "precipMm": 21.7 },
+    { "tMax": 20.9,  "tMean": 14.5,  "tMin": 8.2,   "precipMm": 33.4 },
+    { "tMax": 25.8,  "tMean": 19.6,  "tMin": 13.4,  "precipMm": 40.0 },
+    { "tMax": 26.6,  "tMean": 20.6,  "tMin": 14.9,  "precipMm": 55.8 },
+    { "tMax": 25.5,  "tMean": 19.1,  "tMin": 13.0,  "precipMm": 31.3 },
+    { "tMax": 18.9,  "tMean": 12.6,  "tMin": 6.8,   "precipMm": 20.8 },
+    { "tMax": 10.4,  "tMean": 5.0,   "tMin": 0.5,   "precipMm": 26.0 },
+    { "tMax": -1.3,  "tMean": -5.2,  "tMin": -8.7,  "precipMm": 29.0 },
+    { "tMax": -8.0,  "tMean": -12.0, "tMin": -16.0, "precipMm": 24.8 }
+  ],
+  "strongWindDays": {
+    "status": "missing",
+    "note": "Нет подтверждённой статистики числа дней с ветром выше паспортного ограничения крана. Введите данные Казгидромета, чтобы учесть климатический резерв по ветру.",
+    "values": [null, null, null, null, null, null, null, null, null, null, null, null]
+  },
+  "blizzardDays": {
+    "status": "missing",
+    "note": "Нет подтверждённой статистики дней с бураном. Учитывается через оперативный прогноз или ввод пользователя.",
+    "values": [null, null, null, null, null, null, null, null, null, null, null, null]
+  }
+}

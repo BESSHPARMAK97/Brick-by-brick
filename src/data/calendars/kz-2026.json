@@ -1,0 +1,18 @@
+{
+  "jurisdiction": "KZ",
+  "year": 2026,
+  "status": "secondary",
+  "updatedAt": "2026-10-20",
+  "sources": [
+    "https://pro1c.kz/news/zakonodatelstvo/proizvodstvennyy-kalendar-na-2026-god/ (обновлено 29.06.2026)",
+    "https://informburo.kz/novosti/perenosy-vyxodnyx-i-kurban-ait-v-mae-kalendar-prazdnicnyx-dnei-v-kazaxstane-na-2026-god"
+  ],
+  "statusNote": "Сверено по вторичным источникам; постановлений о переносе рабочих дней (рабочих суббот) в 2026 г. не выявлено.",
+  "religiousHolidays": [
+    { "date": "2026-05-27", "name": "Курбан айт (первый день)", "status": "secondary" }
+  ],
+  "decreeTransfers": [],
+  "expected": {
+    "5/2": ["2026-01-01","2026-01-02","2026-01-07","2026-03-09","2026-03-23","2026-03-24","2026-03-25","2026-05-01","2026-05-07","2026-05-11","2026-05-27","2026-07-06","2026-10-26","2026-12-16"]
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "construction-schedule-engine",
+  "version": "1.0.0",
+  "description": "Universal Construction Schedule Engine — интеллектуальный ГПР",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BESSHPARMAK97/Brick-by-brick.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BESSHPARMAK97/Brick-by-brick/issues"
+  },
+  "homepage": "https://github.com/BESSHPARMAK97/Brick-by-brick#readme",
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "pdfmake": "^0.3.12",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/pdfmake": "^0.3.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.5"
+  },
+  "private": true,
+  "type": "module"
+}
