@@ -4,7 +4,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: project card on top → block tabs → floor-by-floor chessboard; apartment opens in a side drawer */
+/* Layout: project card on top → block tabs → floor-by-floor chessboard; unit opens in a side drawer with editable works */
 :root {
   --bg: #eef0f2;
   --surface: #ffffff;
@@ -13,21 +13,23 @@
   --line: #d7dbe0;
   --cell: #e3e6ea;
   --accent: #b4472b;
+  --warn-bg: #fbeee9;
   --s0: #c9ced5; --s1: #e6a23c; --s2: #3c8dbc; --s3: #2f9e5b; --s4: #d6336c;
   --display: "Unbounded", "Arial Black", system-ui, sans-serif;
   --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #15181c; --surface: #1d2126; --fg: #e7eaee; --muted: #98a2ad; --line: #30363d; --cell: #2a2f36;
+  --bg: #15181c; --surface: #1d2126; --fg: #e7eaee; --muted: #98a2ad; --line: #30363d; --cell: #2a2f36; --warn-bg: #3a2620;
   --accent: #e0714f; --s0: #4a525c; --s1: #e0a23f; --s2: #4ba3d6; --s3: #43b873; --s4: #ec5a8a; color-scheme: dark } }
 :root[data-theme="dark"] {
-  --bg: #15181c; --surface: #1d2126; --fg: #e7eaee; --muted: #98a2ad; --line: #30363d; --cell: #2a2f36;
+  --bg: #15181c; --surface: #1d2126; --fg: #e7eaee; --muted: #98a2ad; --line: #30363d; --cell: #2a2f36; --warn-bg: #3a2620;
   --accent: #e0714f; --s0: #4a525c; --s1: #e0a23f; --s2: #4ba3d6; --s3: #43b873; --s4: #ec5a8a; color-scheme: dark }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 14px; line-height: 1.45; }
-.wrap { max-width: 1240px; margin: 0 auto; padding-block: 20px 48px;
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 20px 96px;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
   display: grid; gap: 20px; }
 h1, h2, h3 { font-family: var(--display); font-weight: 700; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
@@ -35,17 +37,13 @@ h1, h2, h3 { font-family: var(--display); font-weight: 700; margin: 0; text-wrap
 .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .note { font-size: 12px; color: var(--muted); }
 
-/* top bar */
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .logo { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 700; font-size: 15px; }
 .logo-mark { display: grid; grid-template-columns: repeat(3, 9px); gap: 2px; }
 .logo-mark i { height: 6px; background: var(--accent); border-radius: 1px; }
-.logo-mark i:nth-child(4) { grid-column: span 1; transform: translateX(5px); }
-.logo-mark i:nth-child(5) { transform: translateX(5px); }
-.crumbs { font-size: 13px; color: var(--muted); }
-.crumbs b { color: var(--fg); font-weight: 500; }
+.logo-mark i:nth-child(4), .logo-mark i:nth-child(5) { transform: translateX(5px); }
+.who { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
 
-/* project card */
 .project { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px;
   display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 24px; }
 .project h1 { font-size: clamp(22px, 3.2vw, 30px); }
@@ -59,29 +57,31 @@ h1, h2, h3 { font-family: var(--display); font-weight: 700; margin: 0; text-wrap
 .bar span { display: block; height: 100%; }
 .counts { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
 .count { display: flex; align-items: center; gap: 8px; font-size: 13px; }
-.dot { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.dot { width: 10px; height: 10px; border-radius: 3px; flex: none; display: inline-block; }
 
-/* controls */
 .controls { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: end; justify-content: space-between; }
 .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
 .tab { font: inherit; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--fg);
   border-radius: 8px; padding: 8px 14px; display: grid; gap: 2px; text-align: left; min-width: 120px; }
 .tab small { color: var(--muted); font-size: 12px; }
 .tab[aria-selected="true"] { border-color: var(--fg); box-shadow: inset 0 0 0 1px var(--fg); }
-.tab:focus-visible, .cell:focus-visible, .btn:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.colorby { display: grid; gap: 4px; }
-select { font: inherit; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); }
+:is(.tab, .cell, .btn, select, input, .wrow, .floor-label):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.field { display: grid; gap: 4px; }
+select, input { font: inherit; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); min-width: 0; }
+input[type="number"] { font-family: var(--mono); }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); }
 .legend span { display: flex; align-items: center; gap: 6px; }
 
-/* chessboard */
 .board-card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; }
-.board-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; }
+.board-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: center; }
 .board-head h2 { font-size: 18px; }
-.board-scroll { overflow-x: auto; padding-bottom: 4px; }
+.board-tools { display: flex; gap: 8px; flex-wrap: wrap; }
+.board-scroll { overflow-x: auto; padding: 2px 2px 4px; }
 .board { display: grid; gap: 4px; min-width: max-content; }
 .floor { display: grid; grid-template-columns: 54px auto; gap: 8px; align-items: stretch; }
-.floor-label { display: grid; align-content: center; justify-items: end; padding-right: 4px; border-right: 2px solid var(--line); }
+.floor-label { font: inherit; color: var(--fg); background: none; border: 0; border-right: 2px solid var(--line);
+  display: grid; align-content: center; justify-items: end; padding: 0 6px 0 0; }
+.mass .floor-label { cursor: pointer; }
 .floor-label .num { font-size: 15px; font-weight: 500; }
 .floor-label small { font-size: 10px; color: var(--muted); }
 .units { display: flex; gap: 4px; }
@@ -96,33 +96,74 @@ select { font: inherit; padding: 7px 10px; border-radius: 8px; border: 1px solid
 .cell.tech { width: 104px; border-style: dashed; border-color: var(--line); }
 .cell.mop { width: 64px; border-style: dashed; border-color: var(--line); }
 .cell.dim { opacity: .35; }
+.cell.sel { outline: 3px solid var(--fg); outline-offset: 1px; }
 .cell .flag { position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--s4); }
 .cell.on-dark .t, .cell.on-dark .n, .cell.on-dark .p { color: #fff; }
 
-/* drawer */
+.btn { font: inherit; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 8px; padding: 7px 12px; }
+.btn:hover:not(:disabled) { border-color: var(--fg); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn.primary { background: var(--fg); color: var(--surface); border-color: var(--fg); }
+.btn.ok { background: var(--s3); color: #fff; border-color: var(--s3); }
+.btn.bad { color: var(--s4); border-color: var(--s4); }
+.btn[aria-pressed="true"] { background: var(--fg); color: var(--surface); border-color: var(--fg); }
+
+/* drawer + modal */
 .scrim { position: fixed; inset: 0; background: rgba(10, 12, 15, .4); z-index: 20; }
-.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(560px, 100%); z-index: 21; background: var(--surface);
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(600px, 100%); z-index: 21; background: var(--surface);
   border-left: 1px solid var(--line); overflow-y: auto; display: grid; align-content: start; gap: 18px;
   padding-top: max(20px, env(safe-area-inset-top, 0px)); padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
   padding-left: 20px; padding-right: max(20px, env(safe-area-inset-right, 0px)); }
-.drawer-head { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
-.drawer h2 { font-size: 24px; margin-top: 4px; }
-.btn { font: inherit; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 8px; padding: 6px 12px; }
-.chip { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); }
+.modal { position: fixed; z-index: 21; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(760px, calc(100% - 24px));
+  max-height: calc(100% - 48px); overflow-y: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: grid; gap: 16px; }
+.d-head { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+.drawer h2, .modal h2 { font-size: 22px; margin-top: 4px; }
+.crumbs { font-size: 13px; color: var(--muted); }
 .specs { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; }
 .specs div { display: grid; gap: 2px; }
 .specs b { font-weight: 500; }
 .nav-row { display: flex; gap: 8px; flex-wrap: wrap; }
-.works { width: 100%; border-collapse: collapse; font-size: 13px; }
-.works th { text-align: left; font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding: 6px 8px 6px 0; border-bottom: 1px solid var(--line); }
-.works td { padding: 9px 8px 9px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
-.works td small { display: block; color: var(--muted); font-size: 11px; }
 .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; white-space: nowrap; }
-.table-scroll { overflow-x: auto; }
+
+.wlist { display: grid; border-top: 1px solid var(--line); }
+.witem { border-bottom: 1px solid var(--line); }
+.wrow { font: inherit; color: var(--fg); background: none; border: 0; width: 100%; cursor: pointer; text-align: left;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 10px 4px; align-items: center; }
+.wrow:hover { background: var(--bg); }
+.wrow small { color: var(--muted); font-size: 11px; display: block; }
+.wrow .right { display: grid; justify-items: end; gap: 3px; }
+.mini { width: 90px; height: 4px; border-radius: 2px; background: var(--cell); overflow: hidden; }
+.mini span { display: block; height: 100%; background: var(--fg); }
+.editor { background: var(--bg); border-radius: 8px; padding: 14px; margin: 0 0 12px; display: grid; gap: 14px; }
+.ed-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.ed-grid > div { display: grid; gap: 6px; align-content: start; }
+.inline { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.inline input[type="number"] { width: 110px; }
+.form { display: grid; grid-template-columns: 120px 150px minmax(0, 1fr); gap: 8px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.msg { font-size: 13px; padding: 8px 10px; border-radius: 6px; background: var(--warn-bg); }
+.hist { display: grid; gap: 6px; font-size: 12px; margin: 0; padding: 0; list-style: none; }
+.hist li { display: grid; grid-template-columns: 82px minmax(0, 1fr); gap: 8px; }
+.hist .d { color: var(--muted); font-family: var(--mono); }
+
+.tpl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tpl th, .tpl td { padding: 6px 8px 6px 0; border-bottom: 1px solid var(--line); text-align: left; }
+.tpl th { font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.tpl input { width: 84px; padding: 5px 8px; }
+.scroll-x { overflow-x: auto; }
+
+.bulkbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 15; background: var(--surface); border-top: 1px solid var(--line);
+  padding-block: 12px max(12px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.bulkbar-in { max-width: 1240px; margin: 0 auto; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.toast { position: fixed; z-index: 30; left: 50%; transform: translateX(-50%); bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  background: var(--fg); color: var(--surface); padding: 10px 16px; border-radius: 8px; font-size: 13px; max-width: calc(100% - 32px); }
 
 @media (max-width: 760px) {
   .project { grid-template-columns: 1fr; }
   .drawer { border-left: 0; }
+  .form { grid-template-columns: 1fr 1fr; }
+  .form input[name="note"] { grid-column: 1 / -1; }
 }
 @media (prefers-reduced-motion: reduce) { .cell { transition: none; } .cell:hover { transform: none; } }
 </style>
@@ -130,7 +171,9 @@ select { font: inherit; padding: 7px 10px; border-radius: 8px; border: 1px solid
 <div class="wrap">
   <header class="topbar">
     <div class="logo"><span class="logo-mark"><i></i><i></i><i></i><i></i><i></i></span>Brick by brick</div>
-    <div class="crumbs">Проекты › <b id="crumb-project"></b></div>
+    <label class="who" for="role">Я вхожу как
+      <select id="role"></select>
+    </label>
   </header>
 
   <section class="project" aria-label="Карточка проекта">
@@ -150,53 +193,72 @@ select { font: inherit; padding: 7px 10px; border-radius: 8px; border: 1px solid
 
   <div class="controls">
     <div class="tabs" role="tablist" id="tabs"></div>
-    <div class="colorby">
+    <div class="field">
       <label class="label" for="colorby">Раскрасить шахматку</label>
       <select id="colorby"></select>
     </div>
   </div>
 
-  <section class="board-card">
+  <section class="board-card" id="board-card">
     <div class="board-head">
       <h2 id="b-title"></h2>
-      <div class="legend" id="legend"></div>
+      <div class="board-tools">
+        <button class="btn" id="mass-toggle" aria-pressed="false">Массовая отметка</button>
+        <button class="btn" id="tpl-open">Объёмы по планировкам</button>
+      </div>
     </div>
+    <div class="legend" id="legend"></div>
     <div class="board-scroll"><div class="board" id="board"></div></div>
-    <div class="note">Нажмите на квартиру, коммерческое или техническое помещение, чтобы открыть список работ. МОП — места общего пользования этажа (лестнично-лифтовой узел, коридор).</div>
+    <div class="note" id="board-hint"></div>
   </section>
 </div>
 
+<div class="bulkbar" id="bulkbar" hidden><div class="bulkbar-in" id="bulk-in"></div></div>
 <div class="scrim" id="scrim" hidden></div>
 <aside class="drawer" id="drawer" hidden aria-modal="true" role="dialog" aria-labelledby="d-title"></aside>
+<div class="modal" id="modal" hidden aria-modal="true" role="dialog" aria-labelledby="m-title"></div>
+<div class="toast" id="toast" hidden role="status"></div>
 
 <script>
 // ---------- справочники ----------
 const STATUS = [
-  { id: 0, name: "Не начато", color: "var(--s0)", w: 0 },
-  { id: 1, name: "В работе", color: "var(--s1)", w: .5 },
-  { id: 2, name: "Выполнено", color: "var(--s2)", w: .9 },
-  { id: 3, name: "Принято технадзором", color: "var(--s3)", w: 1 },
-  { id: 4, name: "Замечания", color: "var(--s4)", w: .8 },
+  { name: "Не начато", color: "var(--s0)" },
+  { name: "В работе", color: "var(--s1)" },
+  { name: "Выполнено, ждёт приёмки", color: "var(--s2)" },
+  { name: "Принято технадзором", color: "var(--s3)" },
+  { name: "Замечания", color: "var(--s4)" },
 ];
+const ROLES = { pto: "Инженер ПТО", foreman: "Прораб", tn: "Технадзор", boss: "Руководитель" };
+const ROLE_HINT = {
+  pto: "ПТО задаёт плановые объёмы: один раз на планировку или вручную для конкретного помещения.",
+  foreman: "Прораб вносит факт выполнения, частично или полностью, по одному помещению или сразу по нескольким.",
+  tn: "Технадзор принимает выполненные работы или выставляет замечания.",
+  boss: "Руководитель видит всё, но ничего не меняет.",
+};
 const WORKS = {
   apt: [
-    ["Кладка перегородок", "АР", "м²"], ["Установка окон ПВХ", "АР", "шт."], ["Стояки водоснабжения и канализации", "ВК", "п.м."],
+    ["Кладка перегородок", "АР", "м²"], ["Установка окон ПВХ", "АР", "шт."], ["Стояки ВК", "ВК", "п.м."],
     ["Электромонтаж: разводка", "ЭОМ", "п.м."], ["Радиаторы отопления", "ОВ", "шт."], ["Штукатурка стен", "Отделка", "м²"],
     ["Стяжка пола", "Отделка", "м²"], ["Входная дверь", "АР", "шт."], ["Шпаклёвка стен", "Отделка", "м²"], ["Установка счётчиков", "ВК", "шт."],
   ],
-  k: [
-    ["Витражное остекление", "АР", "м²"], ["Электромонтаж: разводка", "ЭОМ", "п.м."], ["Вентиляция", "ОВ", "п.м."],
-    ["Стяжка пола", "Отделка", "м²"], ["Штукатурка стен", "Отделка", "м²"],
-  ],
-  mop: [
-    ["Штукатурка стен", "Отделка", "м²"], ["Плитка пола", "Отделка", "м²"], ["Освещение МОП", "ЭОМ", "шт."], ["Окраска стен", "Отделка", "м²"],
-  ],
-  tech: [
-    ["Гидроизоляция пола", "АР", "м²"], ["Электромонтаж: разводка", "ЭОМ", "п.м."], ["Вентиляция", "ОВ", "п.м."], ["Окраска стен", "Отделка", "м²"],
-  ],
+  k: [["Витражное остекление", "АР", "м²"], ["Электромонтаж: разводка", "ЭОМ", "п.м."], ["Вентиляция", "ОВ", "п.м."], ["Стяжка пола", "Отделка", "м²"], ["Штукатурка стен", "Отделка", "м²"]],
+  mop: [["Штукатурка стен", "Отделка", "м²"], ["Плитка пола", "Отделка", "м²"], ["Освещение МОП", "ЭОМ", "шт."], ["Окраска стен", "Отделка", "м²"]],
+  tech: [["Гидроизоляция пола", "АР", "м²"], ["Электромонтаж: разводка", "ЭОМ", "п.м."], ["Вентиляция", "ОВ", "п.м."], ["Окраска стен", "Отделка", "м²"]],
+};
+// плановые объёмы по типу квартиры — вносятся один раз, применяются ко всем квартирам этого типа
+const TEMPLATE = {
+  1: { "Кладка перегородок": 22, "Установка окон ПВХ": 2, "Стояки ВК": 6, "Электромонтаж: разводка": 90, "Радиаторы отопления": 2, "Штукатурка стен": 95, "Стяжка пола": 40, "Входная дверь": 1, "Шпаклёвка стен": 95, "Установка счётчиков": 2 },
+  2: { "Кладка перегородок": 34, "Установка окон ПВХ": 3, "Стояки ВК": 6, "Электромонтаж: разводка": 140, "Радиаторы отопления": 3, "Штукатурка стен": 150, "Стяжка пола": 61, "Входная дверь": 1, "Шпаклёвка стен": 150, "Установка счётчиков": 2 },
+  3: { "Кладка перегородок": 48, "Установка окон ПВХ": 4, "Стояки ВК": 9, "Электромонтаж: разводка": 190, "Радиаторы отопления": 4, "Штукатурка стен": 205, "Стяжка пола": 85, "Входная дверь": 1, "Шпаклёвка стен": 205, "Установка счётчиков": 2 },
 };
 const CREWS = { "АР": "Бригада №1 (общестрой)", "ВК": "Субподрядчик: ВК", "ЭОМ": "Субподрядчик: электрика", "ОВ": "Субподрядчик: ОВ", "Отделка": "Бригада №3 (отделка)" };
 const ALL_WORK_NAMES = [...new Set(Object.values(WORKS).flat().map(w => w[0]))];
+
+// ---------- даты ----------
+const pad = n => String(n).padStart(2, "0");
+const fmt = d => `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+const isoToday = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+const isoToRu = s => s.split("-").reverse().join(".");
 
 // ---------- генерация примера ----------
 let seed = 7;
@@ -214,22 +276,35 @@ const BLOCK_CFG = [
   { name: "Блок C", floors: 12, perFloor: [1, 1, 2, 3, 3, 2], stage: 3.5 },
 ];
 const AREA = { 1: [38, 44], 2: [56, 66], 3: [78, 92] };
-function makeWorks(kind, floorNo, floors, stage, qty) {
+const baseQty = (name, unit, area) => unit === "шт." ? Math.max(1, Math.round(area / 25)) : unit === "п.м." ? Math.round(area * 1.6) : /пол/i.test(name) ? Math.round(area) : Math.round(area * 2.4);
+
+function genEntries(w, qty, mon) {
+  const day = () => 1 + Math.floor(rnd() * 27);
+  if (w.unit === "шт." || qty < 20) { w.entries.push({ type: "fact", qty, date: `${pad(day())}.${pad(mon)}.2026`, who: ROLES.foreman }); return; }
+  const first = Math.round(qty * (.4 + rnd() * .3));
+  w.entries.push({ type: "fact", qty: first, date: `${pad(day())}.${pad(mon)}.2026`, who: ROLES.foreman });
+  w.entries.push({ type: "fact", qty: qty - first, date: `${pad(day())}.${pad(Math.min(mon + 1, 10))}.2026`, who: ROLES.foreman });
+}
+function makeWorks(kind, floorNo, floors, stage, area, rooms) {
   const s = stage - (Math.max(floorNo, 1) - 1) * (stage / floors) * 0.9 + (rnd() - .5) * 1.2;
-  return WORKS[kind].map((w, i) => {
+  return WORKS[kind].map(([name, section, unit], i) => {
     let st = i < s - 1.5 ? 3 : i < s - .5 ? 2 : i < s + .4 ? 1 : 0;
     if (st >= 2 && rnd() < .07) st = 4;
-    const day = 1 + Math.floor(rnd() * 27), mon = 3 + Math.min(7, Math.floor(i * .7 + floorNo * .3));
-    return { name: w[0], section: w[1], unit: w[2], qty: w[2] === "шт." ? Math.max(1, Math.round(qty / 25)) : Math.round(qty * (w[2] === "п.м." ? 1.6 : 2.4)),
-             status: st, crew: CREWS[w[1]], date: st ? `${String(day).padStart(2, "0")}.${String(mon).padStart(2, "0")}.2026` : "—" };
+    const plan = kind === "apt" ? TEMPLATE[rooms][name] : baseQty(name, unit, area);
+    const w = { name, section, unit, plan, crew: CREWS[section], status: st, entries: [], override: false };
+    const mon = 3 + Math.min(6, Math.floor(i * .7 + floorNo * .3));
+    if (st === 1) genEntries(w, Math.max(unit === "шт." ? 0 : 1, Math.round(plan * (.2 + rnd() * .6))), mon);
+    if (st === 1 && fact(w) === 0) w.status = 0;
+    if (st >= 2) genEntries(w, plan, mon);
+    if (st === 3) w.entries.push({ type: "status", to: 3, date: `${pad(5 + Math.floor(rnd() * 20))}.${pad(Math.min(mon + 1, 10))}.2026`, who: ROLES.tn });
+    if (st === 4) w.entries.push({ type: "status", to: 4, date: `${pad(5 + Math.floor(rnd() * 20))}.${pad(Math.min(mon + 1, 10))}.2026`, who: ROLES.tn, note: "Отклонение от плоскости более 3 мм на 2 м, переделать" });
+    return w;
   });
 }
 let aptNo = 1;
 BLOCK_CFG.forEach((cfg, bi) => {
   const block = { name: cfg.name, floors: [] };
-  if (bi === 0) {
-    block.floors.push({ no: -1, kind: "Подвал", units: ["ИТП", "Электрощитовая", "Насосная"].map(n => ({ kind: "tech", label: n, area: 18 + Math.round(rnd() * 20), works: makeWorks("tech", 1, cfg.floors, cfg.stage + 1, 30) })) });
-  }
+  if (bi === 0) block.floors.push({ no: -1, kind: "Подвал", units: ["ИТП", "Электрощитовая", "Насосная"].map(n => { const a = 18 + Math.round(rnd() * 20); return { kind: "tech", label: n, area: a, works: makeWorks("tech", 1, cfg.floors, cfg.stage + 1, a) }; }) });
   for (let f = 1; f <= cfg.floors; f++) {
     const floor = { no: f, units: [] };
     if (f === 1 && bi !== 1) {
@@ -239,7 +314,7 @@ BLOCK_CFG.forEach((cfg, bi) => {
       floor.kind = "Жилой";
       cfg.perFloor.forEach(r => {
         const [lo, hi] = AREA[r], a = +(lo + rnd() * (hi - lo)).toFixed(1);
-        floor.units.push({ kind: "apt", label: String(aptNo++), rooms: r, area: a, works: makeWorks("apt", f, cfg.floors, cfg.stage, a) });
+        floor.units.push({ kind: "apt", label: String(aptNo++), rooms: r, area: a, works: makeWorks("apt", f, cfg.floors, cfg.stage, a, r) });
       });
     }
     floor.units.push({ kind: "mop", label: "МОП", area: 28, works: makeWorks("mop", f, cfg.floors, cfg.stage - 2, 28) });
@@ -249,18 +324,51 @@ BLOCK_CFG.forEach((cfg, bi) => {
   PROJECT.blocks.push(block);
 });
 
-// ---------- расчёты ----------
-const progress = works => works.length ? works.reduce((s, w) => s + STATUS[w.status].w, 0) / works.length : 0;
+// ---------- логика объёмов и статусов ----------
+function fact(w) { return w.entries.reduce((s, e) => s + (e.type === "fact" ? e.qty : 0), 0); }
+function rest(w) { return Math.max(0, +(w.plan - fact(w)).toFixed(2)); }
+// статусы 0–2 вычисляются из факта; «принято» и «замечание» ставит только технадзор
+function autoStatus(w) {
+  const f = fact(w);
+  if (w.status === 3 && f >= w.plan) return;
+  if (w.status === 4) return;
+  w.status = f <= 0 ? 0 : f < w.plan ? 1 : 2;
+}
+function addFact(w, qty, date, note) {
+  w.entries.push({ type: "fact", qty, date, who: ROLES[role], note });
+  autoStatus(w);
+}
+function setStatus(w, to, note) {
+  w.entries.push({ type: "status", to, date: fmt(new Date()), who: ROLES[role], note });
+  w.status = to;
+  if (to === 2) autoStatus(w);
+}
+function setPlan(w, plan, manual) {
+  const old = w.plan;
+  if (old === plan) return false;
+  w.plan = plan;
+  if (manual) w.override = true;
+  w.entries.push({ type: "plan", from: old, to: plan, date: fmt(new Date()), who: ROLES[role], note: manual ? "вручную" : "по шаблону планировки" });
+  if (w.status === 3 && fact(w) < plan) w.status = 1;
+  autoStatus(w);
+  return true;
+}
+const workProgress = w => w.status === 3 ? 1 : Math.min(fact(w) / (w.plan || 1), 1) * .9;
+const progress = works => works.length ? works.reduce((s, w) => s + workProgress(w), 0) / works.length : 0;
 const allWorks = units => units.flatMap(u => u.works);
 const blockUnits = b => b.floors.flatMap(f => f.units);
 const pct = x => Math.round(x * 100) + "%";
+const q = n => (Math.round(n * 10) / 10).toLocaleString("ru-RU");
 const unitTitle = u => ({ apt: `Кв. ${u.label}`, k: `Помещение ${u.label}`, mop: "МОП", tech: u.label })[u.kind];
 const unitType = u => ({ apt: `${u.rooms}-комн. квартира`, k: "Коммерческое", mop: "Места общего пользования", tech: "Техническое" })[u.kind];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
-// ---------- рендер ----------
+// ---------- состояние ----------
 const $ = id => document.getElementById(id);
-let current = 0, colorBy = "progress", openUnit = null;
+let role = "foreman", current = 0, colorBy = "progress", openUnit = null, openWork = null, edMsg = "";
+let mass = false; const selected = new Set();
 
+// ---------- рендер: проект, вкладки, шахматка ----------
 function statusBar(works, el) {
   const n = works.length || 1;
   el.innerHTML = [3, 2, 4, 1].map(s => {
@@ -268,11 +376,8 @@ function statusBar(works, el) {
     return c ? `<span style="width:${c / n * 100}%;background:${STATUS[s].color}" title="${STATUS[s].name}: ${c}"></span>` : "";
   }).join("");
 }
-
 function renderProject() {
-  const all = PROJECT.blocks.flatMap(blockUnits);
-  const works = allWorks(all);
-  $("crumb-project").textContent = PROJECT.name;
+  const all = PROJECT.blocks.flatMap(blockUnits), works = allWorks(all);
   $("p-name").textContent = PROJECT.name;
   $("p-address").textContent = PROJECT.address;
   const apts = all.filter(u => u.kind === "apt").length, ks = all.filter(u => u.kind === "k").length;
@@ -281,9 +386,8 @@ function renderProject() {
   $("p-pct").textContent = pct(progress(works));
   statusBar(works, $("p-bar"));
   $("p-counts").innerHTML = [3, 2, 1, 4, 0].map(s =>
-    `<div class="count"><span class="dot" style="background:${STATUS[s].color}"></span>${STATUS[s].name}<span class="num" style="margin-left:auto">${works.filter(w => w.status === s).length}</span></div>`).join("");
+    `<div class="count"><span class="dot" style="background:${STATUS[s].color}"></span>${s === 2 ? "Ждёт приёмки" : STATUS[s].name}<span class="num" style="margin-left:auto">${works.filter(w => w.status === s).length}</span></div>`).join("");
 }
-
 function renderTabs() {
   $("tabs").innerHTML = PROJECT.blocks.map((b, i) => {
     const units = blockUnits(b);
@@ -291,44 +395,38 @@ function renderTabs() {
       <b>${b.name}</b><small>${b.floors.filter(f => f.no > 0).length} эт. · ${units.filter(u => u.kind === "apt").length} кв. · ${pct(progress(allWorks(units)))}</small></button>`;
   }).join("");
 }
-
-function renderSelect() {
-  $("colorby").innerHTML = `<option value="progress">По общей готовности</option><optgroup label="По виду работы">` +
-    ALL_WORK_NAMES.map(n => `<option value="${n}">${n}</option>`).join("") + "</optgroup>";
-}
-
 function renderLegend() {
-  if (colorBy === "progress") {
-    $("legend").innerHTML = `<span><span class="dot" style="background:var(--cell);border:1px solid var(--line)"></span>0%</span>` +
+  $("legend").innerHTML = colorBy === "progress"
+    ? `<span><span class="dot" style="background:var(--cell);border:1px solid var(--line)"></span>0%</span>` +
       [25, 50, 75].map(p => `<span><span class="dot" style="background:color-mix(in oklab, var(--s3) ${p}%, var(--cell))"></span>${p}%</span>`).join("") +
-      `<span><span class="dot" style="background:var(--s3)"></span>100%</span><span><span class="dot" style="background:var(--s4);border-radius:50%"></span>есть замечания</span>`;
-  } else {
-    $("legend").innerHTML = STATUS.map(s => `<span><span class="dot" style="background:${s.color}"></span>${s.name}</span>`).join("") +
+      `<span><span class="dot" style="background:var(--s3)"></span>100%</span><span><span class="dot" style="background:var(--s4);border-radius:50%"></span>есть замечания</span>`
+    : STATUS.map(s => `<span><span class="dot" style="background:${s.color}"></span>${s.name}</span>`).join("") +
       `<span><span class="dot" style="background:var(--cell);opacity:.4"></span>работа не предусмотрена</span>`;
-  }
 }
-
 function cellStyle(u) {
   if (colorBy === "progress") {
     const p = progress(u.works);
-    return { bg: p ? `color-mix(in oklab, var(--s3) ${Math.round(p * 100)}%, var(--cell))` : "var(--cell)", dark: p > .62, dim: false };
+    return { bg: p ? `color-mix(in oklab, var(--s3) ${Math.round(p * 100)}%, var(--cell))` : "var(--cell)", dark: p > .62 };
   }
   const w = u.works.find(x => x.name === colorBy);
   if (!w) return { bg: "var(--cell)", dim: true };
-  return { bg: w.status ? STATUS[w.status].color : "var(--cell)", dark: w.status >= 2, dim: false };
+  return { bg: w.status ? STATUS[w.status].color : "var(--cell)", dark: w.status >= 2 };
 }
-
 function renderBoard() {
   const b = PROJECT.blocks[current];
   $("b-title").textContent = `${b.name} · шахматка`;
+  $("board-card").classList.toggle("mass", mass);
+  $("board-hint").textContent = mass
+    ? "Режим массовой отметки: нажимайте на помещения, чтобы выбрать их. Нажатие на номер этажа выбирает весь этаж."
+    : "Нажмите на помещение, чтобы открыть его работы. МОП — места общего пользования этажа.";
   $("board").innerHTML = b.floors.map(f => `
     <div class="floor">
-      <div class="floor-label"><span class="num">${f.no}</span><small>${f.kind}</small></div>
+      <button class="floor-label" data-floor="${f.no}" ${mass ? "" : 'tabindex="-1"'} aria-label="Этаж ${f.no}"><span class="num">${f.no}</span><small>${f.kind}</small></button>
       <div class="units">${f.units.map((u, ui) => {
-        const s = cellStyle(u), flag = u.works.some(w => w.status === 4);
+        const s = cellStyle(u), flag = u.works.some(w => w.status === 4), key = `${f.no}:${ui}`;
         const sub = u.kind === "apt" ? `${u.rooms}к · ${u.area}` : u.kind === "k" ? `${u.area} м²` : u.kind === "tech" ? "тех." : "общ.";
-        return `<button class="cell ${u.kind === "apt" ? "" : u.kind}${s.dim ? " dim" : ""}${s.dark ? " on-dark" : ""}" style="background:${s.bg}"
-          data-f="${f.no}" data-u="${ui}" aria-label="${unitTitle(u)}, этаж ${f.no}, готовность ${pct(progress(u.works))}">
+        return `<button class="cell ${u.kind === "apt" ? "" : u.kind}${s.dim ? " dim" : ""}${s.dark ? " on-dark" : ""}${selected.has(key) ? " sel" : ""}" style="background:${s.bg}"
+          data-f="${f.no}" data-u="${ui}" ${mass ? `aria-pressed="${selected.has(key)}"` : ""} aria-label="${unitTitle(u)}, этаж ${f.no}, готовность ${pct(progress(u.works))}">
           ${flag ? '<span class="flag" title="Есть замечания"></span>' : ""}
           <span class="n">${u.kind === "apt" ? u.label : unitTitle(u)}</span>
           <span class="t">${sub}</span>
@@ -336,59 +434,229 @@ function renderBoard() {
       }).join("")}</div>
     </div>`).join("");
 }
+function renderAll() { renderProject(); renderTabs(); renderLegend(); renderBoard(); renderBulk(); if (openUnit) renderDrawer(); }
 
-function siblings(f) { return f.units; }
-function openDrawer(floorNo, ui) {
-  const b = PROJECT.blocks[current], f = b.floors.find(x => x.no === floorNo), u = f.units[ui];
-  openUnit = { floorNo, ui };
-  const p = progress(u.works), d = $("drawer");
-  const specs = [["Тип", unitType(u)], ["Этаж", f.no], ["Площадь", `${u.area} м²`]];
-  if (u.kind === "apt") specs.push(["Комнат", u.rooms], ["Отделка", "Предчистовая"]);
-  const idx = b.floors.indexOf(f);
-  d.innerHTML = `
-    <div class="drawer-head">
-      <div>
-        <div class="crumbs">${PROJECT.name} › ${b.name} › Этаж ${f.no}</div>
-        <h2 id="d-title">${unitTitle(u)}</h2>
+// ---------- карточка помещения ----------
+function getUnit() {
+  const b = PROJECT.blocks[current], f = b.floors.find(x => x.no === openUnit.floorNo);
+  return { b, f, u: f.units[openUnit.ui] };
+}
+function histLine(e, w) {
+  if (e.type === "fact") return `+${q(e.qty)} ${w.unit} — факт, ${e.who}${e.note ? `: «${esc(e.note)}»` : ""}`;
+  if (e.type === "plan") return `План ${q(e.from)} → ${q(e.to)} ${w.unit}, ${e.who} (${e.note})`;
+  return `Статус: ${STATUS[e.to].name}, ${e.who}${e.note ? `: «${esc(e.note)}»` : ""}`;
+}
+function editorHTML(w, i) {
+  const f = fact(w), r = rest(w);
+  const planBlock = role === "pto"
+    ? `<div class="inline"><input type="number" id="ed-plan" min="0" step="any" value="${w.plan}" aria-label="Плановый объём"><span>${w.unit}</span><button class="btn" data-act="plan">Сохранить план</button></div>`
+    : `<b class="num">${q(w.plan)} ${w.unit}</b>`;
+  let actions = "";
+  if (role === "foreman") {
+    if (w.status === 3) actions = `<div class="note">Работа принята технадзором. Чтобы внести ещё факт, нужно, чтобы ПТО увеличил план.</div>`;
+    else actions = `
+      <div class="label">Внести факт выполнения</div>
+      <div class="form">
+        <input type="number" id="ed-qty" min="0" step="any" placeholder="${q(r)}" aria-label="Объём, ${w.unit}">
+        <input type="date" id="ed-date" value="${isoToday()}" aria-label="Дата">
+        <input type="text" id="ed-note" name="note" placeholder="Комментарий (необязательно)" aria-label="Комментарий">
       </div>
-      <button class="btn" id="close" aria-label="Закрыть">✕</button>
+      <div class="actions">
+        <button class="btn primary" data-act="fact">Внести объём</button>
+        <button class="btn" data-act="full" ${r <= 0 ? "disabled" : ""}>Выполнено полностью (+${q(r)} ${w.unit})</button>
+        ${w.status === 4 ? `<button class="btn ok" data-act="fixed">Замечание устранено</button>` : ""}
+      </div>`;
+  } else if (role === "tn") {
+    if (w.status === 2) actions = `
+      <div class="actions"><button class="btn ok" data-act="accept">Принять</button></div>
+      <div class="inline"><input type="text" id="ed-remark" placeholder="Текст замечания" style="flex:1" aria-label="Текст замечания"><button class="btn bad" data-act="remark">Выставить замечание</button></div>`;
+    else if (w.status === 4) actions = `<div class="note">Ждёт, пока прораб устранит замечание.</div>`;
+    else if (w.status === 3) actions = `<div class="note">Работа принята.</div>`;
+    else actions = `<div class="note">Принять можно, когда факт достигнет плана.</div>`;
+  } else if (role === "pto") actions = `<div class="note">Если изменить план вручную, шаблон планировки больше не будет менять объём этой работы.</div>`;
+  else actions = `<div class="note">Только просмотр.</div>`;
+  return `<div class="editor" id="editor">
+    <div class="ed-grid">
+      <div><span class="label">План${w.override ? " · изменён вручную" : ""}</span>${planBlock}</div>
+      <div><span class="label">Факт</span><b class="num">${q(f)} из ${q(w.plan)} ${w.unit}</b>
+        <div class="bar"><span style="width:${Math.min(100, f / (w.plan || 1) * 100)}%;background:${STATUS[w.status].color}"></span></div></div>
+    </div>
+    ${edMsg ? `<div class="msg" role="alert">${edMsg}</div>` : ""}
+    ${actions}
+    <div class="label">История</div>
+    <ul class="hist">${w.entries.slice().reverse().map(e => `<li><span class="d">${e.date}</span><span>${histLine(e, w)}</span></li>`).join("") || "<li>Записей пока нет</li>"}</ul>
+  </div>`;
+}
+function renderDrawer() {
+  const { b, f, u } = getUnit(), d = $("drawer"), idx = b.floors.indexOf(f), ui = openUnit.ui;
+  const specs = [["Тип", unitType(u)], ["Этаж", f.no], ["Площадь", `${u.area} м²`]];
+  if (u.kind === "apt") specs.push(["Комнат", u.rooms]);
+  d.innerHTML = `
+    <div class="d-head">
+      <div><div class="crumbs">${PROJECT.name} › ${b.name} › Этаж ${f.no}</div><h2 id="d-title">${unitTitle(u)}</h2></div>
+      <button class="btn" data-act="close" aria-label="Закрыть">✕</button>
     </div>
     <div class="specs">${specs.map(([k, v]) => `<div><span class="label">${k}</span><b>${v}</b></div>`).join("")}</div>
     <div style="display:grid;gap:8px">
-      <div style="display:flex;justify-content:space-between"><span class="label">Готовность</span><span class="num">${pct(p)}</span></div>
+      <div style="display:flex;justify-content:space-between"><span class="label">Готовность</span><span class="num">${pct(progress(u.works))}</span></div>
       <div class="bar" id="d-bar"></div>
     </div>
-    <div class="table-scroll"><table class="works">
-      <thead><tr><th>Работа</th><th>Объём</th><th>Статус</th></tr></thead>
-      <tbody>${u.works.map(w => `<tr>
-        <td>${w.name}<small>${w.section} · ${w.crew}</small></td>
-        <td class="num">${w.qty} ${w.unit}</td>
-        <td><span class="pill"><span class="dot" style="background:${STATUS[w.status].color}"></span>${STATUS[w.status].name}</span><small class="num">${w.date}</small></td>
-      </tr>`).join("")}</tbody></table></div>
+    <div class="note">${ROLE_HINT[role]} Нажмите на работу, чтобы открыть её.</div>
+    <div class="wlist">${u.works.map((w, i) => `
+      <div class="witem">
+        <button class="wrow" data-w="${i}" aria-expanded="${openWork === i}">
+          <span>${w.name}<small>${w.section} · ${w.crew}</small></span>
+          <span class="right"><span class="pill"><span class="dot" style="background:${STATUS[w.status].color}"></span>${STATUS[w.status].name}</span>
+            <span class="num note">${q(fact(w))} / ${q(w.plan)} ${w.unit}</span>
+            <span class="mini"><span style="width:${Math.min(100, fact(w) / (w.plan || 1) * 100)}%"></span></span></span>
+        </button>
+        ${openWork === i ? editorHTML(w, i) : ""}
+      </div>`).join("")}</div>
     <div class="nav-row">
-      <button class="btn" id="prev" ${ui === 0 ? "disabled" : ""}>← Соседнее</button>
-      <button class="btn" id="next" ${ui === f.units.length - 1 ? "disabled" : ""}>Соседнее →</button>
-      <button class="btn" id="up" ${idx === 0 ? "disabled" : ""}>Этаж выше ↑</button>
-      <button class="btn" id="down" ${idx === b.floors.length - 1 ? "disabled" : ""}>Этаж ниже ↓</button>
+      <button class="btn" data-act="prev" ${ui === 0 ? "disabled" : ""}>← Соседнее</button>
+      <button class="btn" data-act="next" ${ui === f.units.length - 1 ? "disabled" : ""}>Соседнее →</button>
+      <button class="btn" data-act="up" ${idx === 0 ? "disabled" : ""}>Этаж выше ↑</button>
+      <button class="btn" data-act="down" ${idx === b.floors.length - 1 ? "disabled" : ""}>Этаж ниже ↓</button>
     </div>
-    <div class="note">Пример данных. В рабочей версии здесь будут фото, акты скрытых работ и история изменений статусов.</div>`;
+    <div class="note">Прототип: изменения хранятся только до перезагрузки страницы. В рабочей версии к факту прикладываются фото, а к скрытым работам — акты.</div>`;
   statusBar(u.works, $("d-bar"));
-  $("close").onclick = closeDrawer;
-  $("prev").onclick = () => openDrawer(floorNo, ui - 1);
-  $("next").onclick = () => openDrawer(floorNo, ui + 1);
-  const go = j => { const nf = b.floors[j]; openDrawer(nf.no, Math.min(ui, nf.units.length - 1)); };
-  $("up").onclick = () => go(idx - 1);
-  $("down").onclick = () => go(idx + 1);
-  d.hidden = false; $("scrim").hidden = false;
-  $("close").focus();
 }
-function closeDrawer() { $("drawer").hidden = true; $("scrim").hidden = true; openUnit = null; }
+function openDrawer(floorNo, ui) {
+  openUnit = { floorNo, ui }; openWork = null; edMsg = "";
+  renderDrawer();
+  $("drawer").hidden = false; $("scrim").hidden = false;
+  $("drawer").querySelector('[data-act="close"]').focus();
+}
+function closeAll() { $("drawer").hidden = true; $("modal").hidden = true; $("scrim").hidden = true; openUnit = null; }
 
-$("tabs").addEventListener("click", e => { const t = e.target.closest(".tab"); if (!t) return; current = +t.dataset.i; renderTabs(); renderBoard(); });
-$("board").addEventListener("click", e => { const c = e.target.closest(".cell"); if (c) openDrawer(+c.dataset.f, +c.dataset.u); });
-$("colorby").addEventListener("change", e => { colorBy = e.target.value; renderLegend(); renderBoard(); });
-$("scrim").addEventListener("click", closeDrawer);
-document.addEventListener("keydown", e => { if (e.key === "Escape" && openUnit) closeDrawer(); });
+$("drawer").addEventListener("click", e => {
+  const row = e.target.closest(".wrow");
+  if (row) { const i = +row.dataset.w; openWork = openWork === i ? null : i; edMsg = ""; renderDrawer(); return; }
+  const btn = e.target.closest("[data-act]"); if (!btn) return;
+  const act = btn.dataset.act, { b, f, u } = getUnit(), idx = b.floors.indexOf(f);
+  if (act === "close") return closeAll();
+  const nav = { prev: [f.no, openUnit.ui - 1], next: [f.no, openUnit.ui + 1] };
+  if (nav[act]) return openDrawer(...nav[act]);
+  if (act === "up" || act === "down") { const nf = b.floors[idx + (act === "up" ? -1 : 1)]; return openDrawer(nf.no, Math.min(openUnit.ui, nf.units.length - 1)); }
+  const w = u.works[openWork]; edMsg = "";
+  if (act === "plan") {
+    const v = parseFloat($("ed-plan").value);
+    if (!(v > 0)) edMsg = "План должен быть больше нуля.";
+    else if (setPlan(w, v, true)) toast(`План изменён: ${q(v)} ${w.unit}`);
+  }
+  if (act === "fact" || act === "full") {
+    const qty = act === "full" ? rest(w) : parseFloat($("ed-qty").value);
+    const note = $("ed-note").value.trim(), date = isoToRu($("ed-date").value || isoToday());
+    if (!(qty > 0)) edMsg = "Укажите объём больше нуля.";
+    else if (fact(w) + qty > w.plan * 1.05 && !note) edMsg = `Факт превысит план (${q(fact(w) + qty)} из ${q(w.plan)} ${w.unit}). Укажите причину в комментарии или попросите ПТО изменить план.`;
+    else { addFact(w, qty, date, note); toast(`Внесено: +${q(qty)} ${w.unit}`); }
+  }
+  if (act === "fixed") { setStatus(w, 2, "замечание устранено"); toast("Отправлено технадзору на повторную приёмку"); }
+  if (act === "accept") { setStatus(w, 3); toast("Работа принята"); }
+  if (act === "remark") {
+    const t = $("ed-remark").value.trim();
+    if (!t) edMsg = "Опишите замечание, чтобы прорабу было понятно, что исправить.";
+    else { setStatus(w, 4, t); toast("Замечание выставлено"); }
+  }
+  renderAll();
+});
 
-renderProject(); renderTabs(); renderSelect(); renderLegend(); renderBoard();
+// ---------- массовая отметка ----------
+function selectedUnits() {
+  const b = PROJECT.blocks[current];
+  return [...selected].map(k => { const [fn, ui] = k.split(":").map(Number); return b.floors.find(f => f.no === fn).units[ui]; });
+}
+let bulkWork = "Штукатурка стен";
+function renderBulk() {
+  $("bulkbar").hidden = !mass;
+  if (!mass) return;
+  const n = selected.size;
+  let act = "";
+  if (role === "foreman") act = `<button class="btn primary" data-bulk="done" ${n ? "" : "disabled"}>Отметить выполненной на 100%</button>`;
+  else if (role === "tn") act = `<button class="btn ok" data-bulk="accept" ${n ? "" : "disabled"}>Принять выполненные</button>`;
+  else act = `<span class="note">Массовая отметка доступна прорабу и технадзору.</span>`;
+  $("bulk-in").innerHTML = `
+    <b class="num">Выбрано: ${n}</b>
+    <select id="bulk-work" aria-label="Вид работы">${ALL_WORK_NAMES.map(x => `<option ${x === bulkWork ? "selected" : ""}>${x}</option>`).join("")}</select>
+    ${act}
+    <button class="btn" data-bulk="clear" ${n ? "" : "disabled"}>Снять выбор</button>
+    <button class="btn" data-bulk="exit">Выйти из режима</button>`;
+}
+$("bulk-in").addEventListener("change", e => { if (e.target.id === "bulk-work") { bulkWork = e.target.value; colorBy = bulkWork; $("colorby").value = bulkWork; renderLegend(); renderBoard(); } });
+$("bulk-in").addEventListener("click", e => {
+  const a = e.target.closest("[data-bulk]")?.dataset.bulk; if (!a) return;
+  if (a === "exit") { setMass(false); return; }
+  if (a === "clear") { selected.clear(); renderAll(); return; }
+  let ok = 0, skip = 0;
+  selectedUnits().forEach(u => {
+    const w = u.works.find(x => x.name === bulkWork);
+    if (a === "done" && w && (w.status === 0 || w.status === 1)) { addFact(w, rest(w), fmt(new Date()), "массовая отметка"); ok++; }
+    else if (a === "accept" && w && w.status === 2) { setStatus(w, 3, "массовая приёмка"); ok++; }
+    else skip++;
+  });
+  toast(`${bulkWork}: обработано ${ok}${skip ? `, пропущено ${skip} (работы нет или статус не подходит)` : ""}`);
+  selected.clear(); renderAll();
+});
+function setMass(on) {
+  mass = on; selected.clear();
+  $("mass-toggle").setAttribute("aria-pressed", on);
+  if (on && colorBy === "progress") { colorBy = bulkWork; $("colorby").value = bulkWork; }
+  renderAll();
+}
+
+// ---------- шаблоны объёмов ----------
+function renderModal() {
+  const edit = role === "pto", works = WORKS.apt;
+  $("modal").innerHTML = `
+    <div class="d-head"><div><span class="label">Плановые объёмы</span><h2 id="m-title">Объёмы по планировкам</h2></div>
+      <button class="btn" data-m="close" aria-label="Закрыть">✕</button></div>
+    <div class="note">Объём вносится один раз на тип квартиры и применяется ко всем квартирам этого типа во всех блоках. Если для квартиры план изменили вручную, шаблон её не трогает.${edit ? "" : " Редактирует инженер ПТО: переключите роль вверху страницы."}</div>
+    <div class="scroll-x"><table class="tpl">
+      <thead><tr><th>Работа</th><th>Ед.</th><th>1-комн.</th><th>2-комн.</th><th>3-комн.</th></tr></thead>
+      <tbody>${works.map(([n, , unit], i) => `<tr><td>${n}</td><td>${unit}</td>${[1, 2, 3].map(r =>
+        `<td>${edit ? `<input type="number" min="0" step="any" id="tpl-${r}-${i}" value="${TEMPLATE[r][n]}" aria-label="${n}, ${r}-комн.">` : `<span class="num">${TEMPLATE[r][n]}</span>`}</td>`).join("")}</tr>`).join("")}</tbody>
+    </table></div>
+    <div class="actions">${edit ? `<button class="btn primary" data-m="apply">Сохранить и применить ко всем квартирам</button>` : ""}<button class="btn" data-m="close">Закрыть</button></div>`;
+}
+$("tpl-open").addEventListener("click", () => { renderModal(); $("modal").hidden = false; $("scrim").hidden = false; $("modal").querySelector("[data-m]").focus(); });
+$("modal").addEventListener("click", e => {
+  const a = e.target.closest("[data-m]")?.dataset.m; if (!a) return;
+  if (a === "close") return closeAll();
+  WORKS.apt.forEach(([n], i) => [1, 2, 3].forEach(r => { const v = parseFloat($(`tpl-${r}-${i}`).value); if (v > 0) TEMPLATE[r][n] = v; }));
+  let changed = 0, kept = 0;
+  PROJECT.blocks.flatMap(blockUnits).filter(u => u.kind === "apt").forEach(u => u.works.forEach(w => {
+    if (w.override) { kept++; return; }
+    if (setPlan(w, TEMPLATE[u.rooms][w.name], false)) changed++;
+  }));
+  closeAll(); renderAll();
+  toast(`Шаблон применён. Изменено работ: ${changed}${kept ? `; с ручным планом, не тронуто: ${kept}` : ""}`);
+});
+
+// ---------- прочее ----------
+let toastTimer;
+function toast(t) { const el = $("toast"); el.textContent = t; el.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => el.hidden = true, 3200); }
+
+$("role").innerHTML = Object.entries(ROLES).map(([k, v]) => `<option value="${k}" ${k === role ? "selected" : ""}>${v}</option>`).join("");
+$("role").addEventListener("change", e => { role = e.target.value; edMsg = ""; if (!$("modal").hidden) renderModal(); renderAll(); });
+$("colorby").innerHTML = `<option value="progress">По общей готовности</option><optgroup label="По виду работы">` +
+  ALL_WORK_NAMES.map(n => `<option value="${n}">${n}</option>`).join("") + "</optgroup>";
+$("colorby").addEventListener("change", e => { colorBy = e.target.value; if (colorBy !== "progress") bulkWork = colorBy; renderLegend(); renderBoard(); renderBulk(); });
+$("tabs").addEventListener("click", e => { const t = e.target.closest(".tab"); if (!t) return; current = +t.dataset.i; selected.clear(); renderAll(); });
+$("mass-toggle").addEventListener("click", () => setMass(!mass));
+$("board").addEventListener("click", e => {
+  const fl = e.target.closest(".floor-label");
+  if (fl && mass) {
+    const fn = +fl.dataset.floor, f = PROJECT.blocks[current].floors.find(x => x.no === fn);
+    const keys = f.units.map((_, i) => `${fn}:${i}`), all = keys.every(k => selected.has(k));
+    keys.forEach(k => all ? selected.delete(k) : selected.add(k));
+    renderBoard(); renderBulk(); return;
+  }
+  const c = e.target.closest(".cell"); if (!c) return;
+  if (mass) { const k = `${c.dataset.f}:${c.dataset.u}`; selected.has(k) ? selected.delete(k) : selected.add(k); renderBoard(); renderBulk(); }
+  else openDrawer(+c.dataset.f, +c.dataset.u);
+});
+$("scrim").addEventListener("click", closeAll);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("scrim").hidden) closeAll(); });
+
+renderAll();
 </script>
