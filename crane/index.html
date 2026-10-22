@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Моменты башенного крана</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400&family=PT+Sans:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: инженерный лист — чертёж крана слева, пульт параметров справа, графики внизу */
+:root {
+  --bg: #eef1f4;
+  --surface: #ffffff;
+  --ink: #18212c;
+  --muted: #5a6574;
+  --line: #c8d0da;
+  --grid: #e1e6ec;
+  --cw: #c0392b;      /* момент по часовой (груз) */
+  --acw: #2d58cf;     /* момент против часовой (противовес) */
+  --steel: #d99a12;   /* жёлтая сталь крана */
+  --steel-ink: #3a2c08;
+  --ok: #2a8250;
+  --warn: #b5560d;
+  --font-display: "PT Serif", Georgia, "Times New Roman", serif;
+  --font-body: "PT Sans", "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e131a; --surface: #151c25; --ink: #e5e9ef; --muted: #98a3b2; --line: #2b3542; --grid: #1e2732;
+    --cw: #f06a5c; --acw: #7096ff; --steel: #f0b437; --steel-ink: #1b1404; --ok: #4cc38a; --warn: #f0954a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e131a; --surface: #151c25; --ink: #e5e9ef; --muted: #98a3b2; --line: #2b3542; --grid: #1e2732;
+  --cw: #f06a5c; --acw: #7096ff; --steel: #f0b437; --steel-ink: #1b1404; --ok: #4cc38a; --warn: #f0954a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.5 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 18px; }
+header { display: grid; gap: 4px; }
+h1 {
+  font: 700 clamp(1.5rem, 3.6vw, 2.3rem)/1.15 var(--font-display);
+  margin: 0; text-wrap: balance;
+}
+h1 em { font-weight: 400; }
+.sub { color: var(--muted); margin: 0; font-family: var(--font-mono); font-size: 0.82rem; }
+h2 {
+  font: 700 0.78rem/1.2 var(--font-body);
+  text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0;
+}
+.main { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 18px; align-items: start; }
+@media (max-width: 900px) { .main { grid-template-columns: minmax(0, 1fr); } }
+.sheet {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
+  padding: 14px; display: grid; gap: 12px; min-width: 0;
+}
+svg { display: block; width: 100%; height: auto; max-width: 100%; }
+.status { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.chip {
+  font: 700 0.8rem/1 var(--font-body); padding: 6px 10px; border-radius: 999px;
+  border: 1.5px solid currentColor; white-space: nowrap;
+}
+.chip.ok { color: var(--ok); } .chip.cw { color: var(--cw); } .chip.acw { color: var(--acw); }
+.moments { display: grid; gap: 4px; font-family: var(--font-mono); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+.mrow { display: grid; grid-template-columns: 9.5em 1fr; gap: 8px; align-items: baseline; }
+.mrow .name { font-family: var(--font-display); font-size: 1rem; }
+.mrow.cw .name, .mrow.cw b { color: var(--cw); }
+.mrow.acw .name, .mrow.acw b { color: var(--acw); }
+.mrow .calc { overflow-wrap: anywhere; }
+.note { color: var(--muted); font-size: 0.8rem; }
+@media (max-width: 520px) { .mrow { grid-template-columns: 1fr; gap: 0; } }
+
+.answer {
+  border-left: 3px solid var(--steel); padding: 8px 12px; background: color-mix(in srgb, var(--steel) 10%, transparent);
+  font-size: 0.95rem;
+}
+.answer.bad { border-color: var(--warn); background: color-mix(in srgb, var(--warn) 12%, transparent); }
+.answer p { margin: 0; }
+.answer p + p { margin-top: 6px; }
+
+.panel { display: grid; gap: 16px; }
+fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 10px; }
+legend { padding: 0; margin-bottom: 8px; }
+.field { display: grid; grid-template-columns: 1fr 108px; gap: 8px; align-items: center; }
+.field label { font-size: 0.9rem; }
+.field label small { color: var(--muted); }
+input[type="number"], input[type="text"] {
+  width: 100%; font: 0.95rem var(--font-mono); padding: 6px 8px; border-radius: 4px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--ink); text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+input[aria-invalid="true"] { border-color: var(--warn); outline: 1px solid var(--warn); }
+input:focus-visible, button:focus-visible { outline: 2px solid var(--acw); outline-offset: 2px; }
+input[type="range"] { width: 100%; accent-color: var(--steel); }
+.slider { display: grid; gap: 4px; }
+.slider .top { display: flex; justify-content: space-between; gap: 8px; font-size: 0.9rem; }
+.slider .top output { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.slider.d1 .top output { color: var(--cw); } .slider.d2 .top output { color: var(--acw); }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; }
+button {
+  font: 700 0.88rem var(--font-body); padding: 8px 12px; border-radius: 4px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+}
+button:hover { border-color: var(--muted); }
+button.primary { background: var(--steel); border-color: var(--steel); color: var(--steel-ink); }
+button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.toggle { display: flex; gap: 8px; align-items: center; font-size: 0.9rem; cursor: pointer; }
+.toggle input { width: 18px; height: 18px; accent-color: var(--acw); }
+.stats { display: grid; gap: 4px; font-size: 0.88rem; }
+.stats div { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px dashed var(--line); padding-block: 3px; }
+.stats b { font-family: var(--font-mono); font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+
+.charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 700px) { .charts { grid-template-columns: minmax(0, 1fr); } }
+
+/* SVG */
+.c-grid { stroke: var(--grid); stroke-width: 1; fill: none; }
+.c-axis { stroke: var(--ink); stroke-width: 1.5; fill: none; }
+.c-text { fill: var(--muted); font: 12px var(--font-mono); }
+.c-label { fill: var(--ink); font: 13px var(--font-display); }
+.steel { stroke: var(--steel); fill: none; stroke-width: 2.4; stroke-linejoin: round; }
+.steel-fill { fill: var(--steel); stroke: var(--steel-ink); stroke-width: 1; }
+.steel-thin { stroke: var(--steel); fill: none; stroke-width: 1.4; }
+.ink-line { stroke: var(--ink); fill: none; stroke-width: 1.4; }
+.ink-fill { fill: var(--ink); }
+.surface-fill { fill: var(--surface); stroke: var(--ink); stroke-width: 1.2; }
+.ground { stroke: var(--ink); stroke-width: 2; }
+.hatch { stroke: var(--muted); stroke-width: 1; }
+.red { stroke: var(--cw); fill: none; } .red-fill { fill: var(--cw); }
+.blue { stroke: var(--acw); fill: none; } .blue-fill { fill: var(--acw); }
+.red-text { fill: var(--cw); font: 600 14px var(--font-mono); }
+.blue-text { fill: var(--acw); font: 600 14px var(--font-mono); }
+.crate { fill: color-mix(in srgb, var(--steel) 45%, #8a5a2b); stroke: var(--ink); stroke-width: 1.2; }
+.crate-text { fill: #fff8e8; font: 600 12px var(--font-mono); }
+.cw-block { fill: color-mix(in srgb, var(--muted) 55%, var(--surface)); stroke: var(--ink); stroke-width: 1.2; }
+.mv { fill: var(--ink); font: 700 18px var(--font-body); }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Груз уезжает дальше. <em>Куда должен ехать противовес?</em></h1>
+    <p class="sub" id="sub">груз 1000 кг · крюк 200 кг · противовес 4000 кг · g = 10 Н/кг</p>
+  </header>
+
+  <div class="main">
+    <section class="sheet" aria-label="Схема крана">
+      <div class="status">
+        <h2>Моменты относительно вершины мачты</h2>
+        <span class="chip ok" id="chip">Равновесие</span>
+      </div>
+      <svg id="crane" viewBox="0 0 900 520" role="img" aria-label="Башенный кран с грузом и противовесом">
+        <defs>
+          <marker id="arR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="red-fill"/></marker>
+          <marker id="arB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="blue-fill"/></marker>
+        </defs>
+        <g id="static"></g>
+        <g id="top"></g>
+      </svg>
+      <div class="moments" aria-live="polite">
+        <div class="mrow cw"><span class="name">по часовой</span><span class="calc" id="momCw"></span></div>
+        <div class="mrow acw"><span class="name">против часовой</span><span class="calc" id="momAcw"></span></div>
+      </div>
+      <div class="answer" id="answer"></div>
+    </section>
+
+    <aside class="sheet panel" aria-label="Параметры">
+      <fieldset>
+        <legend><h2>Готовые примеры</h2></legend>
+        <div class="btns" id="presets">
+          <button type="button" data-preset="video">Как в видео</button>
+          <button type="button" data-preset="brick">Поддон кирпича</button>
+          <button type="button" data-preset="slab">Плита перекрытия</button>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><h2>Массы и g</h2></legend>
+        <div class="field"><label for="mLoad">Груз <small>кг</small></label><input id="mLoad" type="text" inputmode="decimal"></div>
+        <div class="field"><label for="mHook">Крюк с обоймой <small>кг</small></label><input id="mHook" type="text" inputmode="decimal"></div>
+        <div class="field"><label for="mCw">Противовес <small>кг</small></label><input id="mCw" type="text" inputmode="decimal"></div>
+        <div class="field"><label for="g">g <small>Н/кг</small></label><input id="g" type="text" inputmode="decimal"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend><h2>Геометрия крана</h2></legend>
+        <div class="field"><label for="jib">Длина стрелы <small>м</small></label><input id="jib" type="text" inputmode="decimal"></div>
+        <div class="field"><label for="d1Min">Тележка не ближе <small>м</small></label><input id="d1Min" type="text" inputmode="decimal"></div>
+        <div class="field"><label for="d2Min">Противовес не ближе <small>м</small></label><input id="d2Min" type="text" inputmode="decimal"></div>
+        <div class="field"><label for="d2Max">Противовес не дальше <small>м</small></label><input id="d2Max" type="text" inputmode="decimal"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend><h2>Движение</h2></legend>
+        <div class="slider d1">
+          <div class="top"><label for="d1">Вылет тележки d₁</label><output id="d1Out" for="d1"></output></div>
+          <input id="d1" type="range" step="0.01">
+        </div>
+        <div class="btns">
+          <button type="button" class="primary" id="goOut">Груз → наружу</button>
+          <button type="button" id="goIn">Груз ← к мачте</button>
+        </div>
+        <label class="toggle"><input type="checkbox" id="auto" checked> Противовес балансирует сам</label>
+        <div class="slider d2">
+          <div class="top"><label for="d2">Плечо противовеса d₂</label><output id="d2Out" for="d2"></output></div>
+          <input id="d2" type="range" step="0.01" disabled>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><h2>Грузовая характеристика</h2></legend>
+        <div class="stats">
+          <div><span>Вес груза с крюком F₁</span><b id="sF1"></b></div>
+          <div><span>Вес противовеса F₂</span><b id="sF2"></b></div>
+          <div><span>Макс. вылет с этим грузом</span><b id="sReach"></b></div>
+          <div><span>Макс. груз на вылете d₁</span><b id="sMaxLoad"></b></div>
+        </div>
+      </fieldset>
+    </aside>
+  </div>
+
+  <div class="charts">
+    <section class="sheet" aria-label="Диаграмма моментов">
+      <h2>Момент, Н·м</h2>
+      <svg id="bars" viewBox="0 0 440 250" role="img" aria-label="Столбцы моментов по и против часовой стрелки"></svg>
+    </section>
+    <section class="sheet" aria-label="График плеч во времени">
+      <h2>Плечи d, м — последние 12 с</h2>
+      <svg id="trend" viewBox="0 0 440 250" role="img" aria-label="График d1 и d2 во времени"></svg>
+    </section>
+  </div>
+</div>
+
+<script>
+(() => {
+  const PRESETS = {
+    video: { mLoad: 1000, mHook: 200, mCw: 4000, g: 10, jib: 22, d1Min: 3, d2Min: 1, d2Max: 6, d1: 12.77 },
+    brick: { mLoad: 1300, mHook: 200, mCw: 6000, g: 9.8, jib: 30, d1Min: 3, d2Min: 1.5, d2Max: 8, d1: 10 },
+    slab:  { mLoad: 2500, mHook: 250, mCw: 8000, g: 9.8, jib: 35, d1Min: 3, d2Min: 1.5, d2Max: 9, d1: 8 }
+  };
+  const S = Object.assign({ auto: true, d2: 0, target: null }, PRESETS.video);
+  S.d2 = need();
+
+  const $ = id => document.getElementById(id);
+  const NS = "http://www.w3.org/2000/svg";
+  const nf = {};
+  const fmt = (x, d = 0) => (nf[d] ||= new Intl.NumberFormat("ru-RU", { minimumFractionDigits: d, maximumFractionDigits: d })).format(x);
+  const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+  const el = (tag, attrs = {}, parent) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  };
+
+  function F1() { return (S.mLoad + S.mHook) * S.g; }
+  function F2() { return S.mCw * S.g; }
+  function need() { return ((S.mLoad + S.mHook) * S.d1) / S.mCw; }
+
+  /* ---------- поля ввода ---------- */
+  const NUM = ["mLoad", "mHook", "mCw", "g", "jib", "d1Min", "d2Min", "d2Max"];
+  const RULES = {
+    mLoad: v => v >= 0, mHook: v => v >= 0, mCw: v => v > 0, g: v => v > 0,
+    jib: v => v >= 5 && v <= 100, d1Min: v => v >= 0 && v < S.jib - 1,
+    d2Min: v => v >= 0 && v < S.d2Max, d2Max: v => v > S.d2Min && v <= 40
+  };
+  function fillInputs() {
+    for (const k of NUM) { $(k).value = String(S[k]).replace(".", ","); $(k).removeAttribute("aria-invalid"); }
+  }
+  for (const k of NUM) {
+    $(k).addEventListener("input", e => {
+      const v = parseFloat(e.target.value.replace(",", ".").replace(/\s/g, ""));
+      if (!Number.isFinite(v) || !RULES[k](v)) { e.target.setAttribute("aria-invalid", "true"); return; }
+      e.target.removeAttribute("aria-invalid");
+      S[k] = v;
+      S.d1 = clamp(S.d1, S.d1Min, S.jib);
+      S.d2 = clamp(S.d2, S.d2Min, S.d2Max);
+      if (["jib", "d1Min", "d2Min", "d2Max"].includes(k)) buildCrane();
+      syncSliders();
+    });
+  }
+  function syncSliders() {
+    const d1 = $("d1"), d2 = $("d2");
+    d1.min = S.d1Min; d1.max = S.jib; d1.value = S.d1;
+    d2.min = S.d2Min; d2.max = S.d2Max; d2.value = S.d2;
+    d2.disabled = S.auto;
+  }
+  $("d1").addEventListener("input", e => { S.target = null; S.d1 = +e.target.value; });
+  $("d2").addEventListener("input", e => { S.d2 = +e.target.value; });
+  $("auto").addEventListener("change", e => { S.auto = e.target.checked; syncSliders(); });
+  $("goOut").addEventListener("click", () => { S.target = S.jib; });
+  $("goIn").addEventListener("click", () => { S.target = S.d1Min; });
+  $("presets").addEventListener("click", e => {
+    const p = PRESETS[e.target.dataset.preset];
+    if (!p) return;
+    Object.assign(S, p, { target: null });
+    S.d2 = clamp(need(), S.d2Min, S.d2Max);
+    fillInputs(); buildCrane(); syncSliders();
+  });
+
+  /* ---------- чертёж крана ---------- */
+  const G = { mastX: 0, k: 1, jibY: 150, jibB: 176, apexY: 58, groundY: 486 };
+  let D = {};
+  function truss(parent, x0, x1, yT, yB) {
+    const step = 22, n = Math.max(1, Math.round(Math.abs(x1 - x0) / step)), s = (x1 - x0) / n;
+    el("line", { x1: x0, y1: yT, x2: x1, y2: yT, class: "steel" }, parent);
+    el("line", { x1: x0, y1: yB, x2: x1, y2: yB, class: "steel" }, parent);
+    let d = `M${x0},${yB}`;
+    for (let i = 0; i < n; i++) d += ` L${x0 + s * (i + 0.5)},${yT} L${x0 + s * (i + 1)},${yB}`;
+    el("path", { d, class: "steel-thin" }, parent);
+  }
+  function buildCrane() {
+    const st = $("static"), top = $("top");
+    st.replaceChildren(); top.replaceChildren();
+    const cj = S.d2Max + 1.2, jl = S.jib + 0.6;
+    G.k = Math.min(600 / jl, 230 / cj);
+    G.mastX = 40 + cj * G.k;
+    const { mastX: mx, k, jibY, jibB, apexY, groundY } = G;
+
+    // земля и мачта
+    el("line", { x1: 0, y1: groundY, x2: 900, y2: groundY, class: "ground" }, st);
+    for (let x = 0; x < 900; x += 14) el("line", { x1: x, y1: groundY + 12, x2: x + 12, y2: groundY, class: "hatch" }, st);
+    el("rect", { x: mx - 34, y: groundY - 10, width: 68, height: 10, class: "surface-fill" }, st);
+    const mw = 16, segs = 12, h = (groundY - 10 - jibB - 14) / segs;
+    el("line", { x1: mx - mw, y1: jibB + 14, x2: mx - mw, y2: groundY - 10, class: "steel" }, st);
+    el("line", { x1: mx + mw, y1: jibB + 14, x2: mx + mw, y2: groundY - 10, class: "steel" }, st);
+    for (let i = 0; i < segs; i++) {
+      const y = jibB + 14 + i * h;
+      el("line", { x1: mx - mw, y1: y, x2: mx + mw, y2: y, class: "steel-thin" }, st);
+      el("line", { x1: mx - mw, y1: y + h, x2: mx + mw, y2: y, class: "steel-thin" }, st);
+    }
+    // стройка справа
+    const bx = Math.min(870, mx + S.jib * k * 0.82), by = groundY - 150;
+    for (const dx of [-36, 0, 36]) el("line", { x1: bx + dx, y1: groundY, x2: bx + dx, y2: by, class: "ink-line" }, st);
+    for (const y of [by, by + 70]) el("rect", { x: bx - 46, y: y - 4, width: 92, height: 8, class: "surface-fill" }, st);
+
+    // поворотная часть (наклоняется при дисбалансе)
+    const tilt = el("g", { id: "tilt" }, top);
+    el("rect", { x: mx - 26, y: jibB, width: 52, height: 14, class: "steel-fill" }, tilt);
+    el("circle", { cx: mx, cy: jibB + 7, r: 4, class: "surface-fill" }, tilt);
+    const xR = mx + jl * k, xL = mx - cj * k;
+    truss(tilt, mx + 26, xR - 6, jibY, jibB);
+    el("path", { d: `M${xR - 6},${jibY} L${xR + 4},${jibB} L${xR - 6},${jibB}`, class: "steel" }, tilt);
+    truss(tilt, xL, mx - 26, jibY, jibB);
+    // оголовок и тяги
+    el("path", { d: `M${mx - 14},${jibY} L${mx},${apexY} L${mx + 14},${jibY}`, class: "steel" }, tilt);
+    el("line", { x1: mx, y1: apexY + 30, x2: mx, y2: jibY, class: "steel-thin" }, tilt);
+    el("line", { x1: mx, y1: apexY, x2: mx + (jl * k) * 0.62, y2: jibY, class: "ink-line" }, tilt);
+    el("line", { x1: mx, y1: apexY, x2: xL + 6, y2: jibY, class: "ink-line" }, tilt);
+    el("circle", { cx: mx, cy: apexY, r: 4, class: "ink-fill" }, tilt);
+    // кабина
+    el("rect", { x: mx + 20, y: jibB + 16, width: 30, height: 26, class: "surface-fill" }, tilt);
+    el("rect", { x: mx + 27, y: jibB + 22, width: 16, height: 12, class: "surface-fill" }, tilt);
+    // лебёдка на консоли
+    el("rect", { x: mx - 70, y: jibY - 16, width: 24, height: 14, class: "surface-fill" }, tilt);
+    el("circle", { cx: mx - 36, cy: jibY - 12, r: 10, class: "surface-fill" }, tilt);
+
+    // размерные линии
+    D.dimR = el("line", { y1: 112, y2: 112, class: "red", "stroke-width": 1.6, "marker-start": "url(#arR)", "marker-end": "url(#arR)" }, tilt);
+    D.dimB = el("line", { y1: 112, y2: 112, class: "blue", "stroke-width": 1.6, "marker-start": "url(#arB)", "marker-end": "url(#arB)" }, tilt);
+    D.tickR = el("line", { y1: 104, y2: 180, class: "red", "stroke-dasharray": "3 3" }, tilt);
+    D.tickB = el("line", { y1: 104, y2: 180, class: "blue", "stroke-dasharray": "3 3" }, tilt);
+    el("line", { x1: mx, x2: mx, y1: 100, y2: 120, class: "ink-line", "stroke-dasharray": "3 3" }, tilt);
+    D.labR = el("text", { y: 102, class: "red-text", "text-anchor": "middle" }, tilt);
+    D.labB = el("text", { y: 102, class: "blue-text", "text-anchor": "end" }, tilt);
+
+    // противовес
+    D.cw = el("g", {}, tilt);
+    el("rect", { x: -14, y: jibB - 4, width: 28, height: 8, class: "steel-fill" }, D.cw);
+    el("line", { x1: -8, y1: jibB + 4, x2: -12, y2: jibB + 18, class: "ink-line" }, D.cw);
+    el("line", { x1: 8, y1: jibB + 4, x2: 12, y2: jibB + 18, class: "ink-line" }, D.cw);
+    for (let i = 0; i < 4; i++) el("rect", { x: -26, y: jibB + 18 + i * 16, width: 52, height: 16, class: "cw-block" }, D.cw);
+    D.cwArrow = el("line", { x1: 0, x2: 0, y1: jibB + 88, class: "blue", "stroke-width": 3, "marker-end": "url(#arB)" }, D.cw);
+    D.cwF = el("text", { x: 0, class: "blue-text", "text-anchor": "middle" }, D.cw);
+    D.cwMv = el("text", { x: 0, y: jibB + 38 + 0, class: "mv", "text-anchor": "middle" }, D.cw);
+
+    // тележка, трос, груз
+    D.tr = el("g", {}, tilt);
+    el("rect", { x: -16, y: jibB - 2, width: 32, height: 12, class: "steel-fill" }, D.tr);
+    el("circle", { cx: -9, cy: jibB - 2, r: 3.5, class: "surface-fill" }, D.tr);
+    el("circle", { cx: 9, cy: jibB - 2, r: 3.5, class: "surface-fill" }, D.tr);
+    el("line", { x1: 0, y1: jibB + 10, x2: 0, y2: 280, class: "ink-line" }, D.tr);
+    el("rect", { x: -9, y: 270, width: 18, height: 20, rx: 3, class: "steel-fill" }, D.tr);
+    el("path", { d: "M0,290 v6 a6,6 0 1 0 6,6", class: "ink-line" }, D.tr);
+    el("path", { d: "M0,310 L-34,330 M0,310 L34,330", class: "ink-line" }, D.tr);
+    el("rect", { x: -40, y: 330, width: 80, height: 44, class: "crate" }, D.tr);
+    D.crateT = el("text", { x: 0, y: 357, class: "crate-text", "text-anchor": "middle" }, D.tr);
+    D.trArrow = el("line", { x1: 0, x2: 0, y1: 376, class: "red", "stroke-width": 3, "marker-end": "url(#arR)" }, D.tr);
+    D.trF = el("text", { x: -16, y: 286, class: "red-text", "text-anchor": "end" }, D.tr);
+    D.trMv = el("text", { x: 0, y: 166, class: "mv", "text-anchor": "middle" }, D.tr);
+  }
+
+  /* ---------- графики ---------- */
+  function niceStep(raw) {
+    const p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+    return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p;
+  }
+  const BX = { l: 74, r: 425, t: 20, b: 215 };
+  function drawBars(M1, M2) {
+    const svg = $("bars"); svg.replaceChildren();
+    const step = niceStep(Math.max(M1, M2, 1) / 3), top = Math.ceil(Math.max(M1, M2, 1) * 1.15 / step) * step;
+    const y = v => BX.b - (v / top) * (BX.b - BX.t);
+    for (let v = 0; v <= top + 1e-9; v += step) {
+      el("line", { x1: BX.l, x2: BX.r, y1: y(v), y2: y(v), class: "c-grid", "stroke-dasharray": "3 4" }, svg);
+      el("text", { x: BX.l - 8, y: y(v) + 4, class: "c-text", "text-anchor": "end" }, svg).textContent = fmt(v);
+    }
+    const w = 96, cx = [BX.l + 100, BX.l + 250];
+    [[M1, "red", "по часовой", "red-text"], [M2, "blue", "против часовой", "blue-text"]].forEach(([v, c, name, tc], i) => {
+      el("rect", { x: cx[i] - w / 2, y: y(v), width: w, height: BX.b - y(v), class: c + "-fill" }, svg);
+      el("text", { x: cx[i], y: y(v) - 8, class: tc, "text-anchor": "middle" }, svg).textContent = fmt(v);
+      el("text", { x: cx[i], y: BX.b + 22, class: "c-label", "text-anchor": "middle" }, svg).textContent = name;
+    });
+    el("line", { x1: BX.l, x2: BX.l, y1: BX.t - 6, y2: BX.b, class: "c-axis" }, svg);
+    el("line", { x1: BX.l, x2: BX.r, y1: BX.b, y2: BX.b, class: "c-axis" }, svg);
+  }
+  const hist = [], WIN = 12;
+  function drawTrend(now) {
+    const svg = $("trend"); svg.replaceChildren();
+    const L = { l: 40, r: 425, t: 16, b: 210 };
+    const vmax = Math.max(S.jib, S.d2Max), step = niceStep(vmax / 4), top = Math.ceil(vmax / step) * step;
+    const y = v => L.b - (v / top) * (L.b - L.t), x = t => L.r - ((now - t) / WIN) * (L.r - L.l);
+    for (let v = 0; v <= top + 1e-9; v += step) {
+      el("line", { x1: L.l, x2: L.r, y1: y(v), y2: y(v), class: "c-grid", "stroke-dasharray": "3 4" }, svg);
+      el("text", { x: L.l - 6, y: y(v) + 4, class: "c-text", "text-anchor": "end" }, svg).textContent = fmt(v);
+    }
+    for (const [key, cls] of [["d1", "red"], ["d2", "blue"]]) {
+      const pts = hist.map(h => `${x(h.t).toFixed(1)},${y(h[key]).toFixed(1)}`).join(" ");
+      el("polyline", { points: pts, class: cls, "stroke-width": 2.5, "stroke-linejoin": "round" }, svg);
+      const last = hist[hist.length - 1];
+      el("circle", { cx: x(last.t), cy: y(last[key]), r: 5, class: cls + "-fill" }, svg);
+    }
+    el("line", { x1: L.l, x2: L.l, y1: L.t - 6, y2: L.b, class: "c-axis" }, svg);
+    el("line", { x1: L.l, x2: L.r, y1: L.b, y2: L.b, class: "c-axis" }, svg);
+    el("text", { x: L.l + 4, y: L.b + 26, class: "red-text" }, svg).textContent = "d₁ тележка";
+    el("text", { x: L.l + 120, y: L.b + 26, class: "blue-text" }, svg).textContent = "d₂ противовес";
+    el("text", { x: L.r, y: L.b + 26, class: "c-text", "text-anchor": "end" }, svg).textContent = "t →";
+  }
+
+  /* ---------- текст ---------- */
+  function render(v1, v2, now) {
+    const f1 = F1(), f2 = F2(), M1 = f1 * S.d1, M2 = f2 * S.d2, dM = M1 - M2;
+    const dNeed = need(), { mastX: mx, k, jibB } = G;
+    const xT = mx + S.d1 * k, xC = mx - S.d2 * k;
+
+    $("sub").textContent = `груз ${fmt(S.mLoad)} кг · крюк ${fmt(S.mHook)} кг · противовес ${fmt(S.mCw)} кг · g = ${fmt(S.g, S.g % 1 ? 2 : 0)} Н/кг`;
+    $("d1Out").textContent = fmt(S.d1, 2) + " м";
+    $("d2Out").textContent = fmt(S.d2, 2) + " м";
+    $("d1").value = S.d1; if (S.auto) $("d2").value = S.d2;
+
+    // чертёж
+    D.tr.setAttribute("transform", `translate(${xT},0)`);
+    D.cw.setAttribute("transform", `translate(${xC},0)`);
+    D.dimR.setAttribute("x1", mx + 2); D.dimR.setAttribute("x2", xT - 2);
+    D.dimB.setAttribute("x1", mx - 2); D.dimB.setAttribute("x2", xC + 2);
+    D.tickR.setAttribute("x1", xT); D.tickR.setAttribute("x2", xT);
+    D.tickB.setAttribute("x1", xC); D.tickB.setAttribute("x2", xC);
+    D.labR.setAttribute("x", (mx + xT) / 2); D.labR.textContent = `d₁ = ${fmt(S.d1, 2)} м`;
+    D.labB.setAttribute("x", Math.max(xC + 70, mx - 8)); D.labB.textContent = `d₂ = ${fmt(S.d2, 2)} м`;
+    D.crateT.textContent = `${fmt(S.mLoad)} кг`;
+    const aLen = (f, ref) => 34 + 46 * Math.sqrt(f / ref);
+    const ref = Math.max(f1, f2, 1);
+    D.trArrow.setAttribute("y2", 376 + aLen(f1, ref)); D.trF.textContent = `${fmt(f1)} Н`;
+    D.cwArrow.setAttribute("y2", jibB + 88 + aLen(f2, ref));
+    D.cwF.setAttribute("y", jibB + 88 + aLen(f2, ref) + 22); D.cwF.textContent = `${fmt(f2)} Н`;
+    D.trMv.textContent = Math.abs(v1) > 0.05 ? (v1 > 0 ? "→" : "←") : "";
+    D.cwMv.textContent = Math.abs(v2) > 0.05 ? (v2 > 0 ? "←" : "→") : "";
+    const tilt = clamp((dM / Math.max(M1 + M2, 1)) * 18, -3.5, 3.5);
+    $("tilt").setAttribute("transform", `rotate(${tilt.toFixed(2)} ${mx} ${jibB + 7})`);
+
+    // моменты
+    $("momCw").innerHTML = `${fmt(f1)} Н × ${fmt(S.d1, 2)} м = <b>${fmt(M1)} Н·м</b>`;
+    $("momAcw").innerHTML = `${fmt(f2)} Н × ${fmt(S.d2, 2)} м = <b>${fmt(M2)} Н·м</b>`;
+    const tol = Math.max(M1, M2) * 0.004 + 1, chip = $("chip");
+    if (Math.abs(dM) <= tol) { chip.className = "chip ok"; chip.textContent = "Равновесие"; }
+    else if (dM > 0) { chip.className = "chip cw"; chip.textContent = `Перевес груза: ${fmt(dM)} Н·м`; }
+    else { chip.className = "chip acw"; chip.textContent = `Перевес противовеса: ${fmt(-dM)} Н·м`; }
+
+    // ответ
+    const reach = Math.min(S.jib, (f2 * S.d2Max) / Math.max(f1, 1e-9));
+    const maxLoad = (f2 * S.d2Max) / (S.g * S.d1) - S.mHook;
+    const ans = $("answer");
+    let html = `<p><b>Ответ:</b> противовес едет <b>от мачты</b>, в свою сторону, как и груз в свою. F₁ не меняется, а d₁ растёт, значит момент по часовой растёт. Чтобы моменты остались равны, должно расти и d₂:</p>
+      <p style="font-family:var(--font-mono)">d₂ = F₁·d₁ / F₂ = ${fmt(f1)} × ${fmt(S.d1, 2)} / ${fmt(f2)} = ${fmt(dNeed, 2)} м</p>`;
+    let bad = false;
+    if (dNeed > S.d2Max + 1e-9) {
+      bad = true;
+      html += `<p><b>Не хватает хода.</b> Нужно ${fmt(dNeed, 2)} м, а противовес едет только до ${fmt(S.d2Max, 2)} м. С этим грузом вылет не больше ${fmt(reach, 2)} м, или груз не тяжелее ${fmt(Math.max(0, maxLoad))} кг.</p>`;
+    } else if (dNeed < S.d2Min - 1e-9) {
+      bad = true;
+      html += `<p><b>Противовес упёрся в мачту.</b> Нужно ${fmt(dNeed, 2)} м, а ближе ${fmt(S.d2Min, 2)} м он не подъедет. Кран перевешивает назад: отведите груз дальше или возьмите противовес полегче.</p>`;
+    }
+    if (!S.auto) html += `<p>Ручной режим: двигайте d₂ сами и поймайте равновесие.</p>`;
+    ans.className = "answer" + (bad ? " bad" : "");
+    if (ans.innerHTML !== html) ans.innerHTML = html;
+
+    $("sF1").textContent = `${fmt(f1)} Н`;
+    $("sF2").textContent = `${fmt(f2)} Н`;
+    $("sReach").textContent = `${fmt(reach, 2)} м`;
+    $("sMaxLoad").textContent = maxLoad > 0 ? `${fmt(maxLoad)} кг` : "—";
+
+    drawBars(M1, M2);
+    drawTrend(now);
+  }
+
+  /* ---------- цикл ---------- */
+  let last = performance.now(), t0 = last, prev = { d1: S.d1, d2: S.d2 };
+  function frame(ts) {
+    const dt = Math.min(0.05, (ts - last) / 1000); last = ts;
+    const now = (ts - t0) / 1000;
+    if (S.target !== null) {
+      const speed = Math.max(2, S.jib / 6), dir = Math.sign(S.target - S.d1), stepM = speed * dt;
+      if (Math.abs(S.target - S.d1) <= stepM) { S.d1 = S.target; S.target = null; }
+      else S.d1 += dir * stepM;
+    }
+    if (S.auto) {
+      const goal = clamp(need(), S.d2Min, S.d2Max);
+      S.d2 += (goal - S.d2) * (1 - Math.exp(-dt / 0.12));
+      if (Math.abs(goal - S.d2) < 0.0005) S.d2 = goal;
+    }
+    const v1 = dt ? (S.d1 - prev.d1) / dt : 0, v2 = dt ? (S.d2 - prev.d2) / dt : 0;
+    prev = { d1: S.d1, d2: S.d2 };
+    hist.push({ t: now, d1: S.d1, d2: S.d2 });
+    while (hist.length && hist[0].t < now - WIN) hist.shift();
+    render(v1, v2, now);
+    requestAnimationFrame(frame);
+  }
+
+  fillInputs(); buildCrane(); syncSliders();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
