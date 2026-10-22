@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Точка росы в стене</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400&family=PT+Sans:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: инженерный лист — разрез стены с графиками слева, конструктор слоёв справа */
+:root {
+  --bg: #eef1f4;
+  --surface: #ffffff;
+  --ink: #18212c;
+  --muted: #5a6574;
+  --line: #c8d0da;
+  --grid: #e1e6ec;
+  --warm: #c0392b;    /* температура */
+  --dew: #1f7a8c;     /* точка росы и пар */
+  --cold: #2d58cf;
+  --steel: #d99a12;
+  --steel-ink: #3a2c08;
+  --ok: #2a8250;
+  --warn: #b5760d;
+  --bad: #c0392b;
+  --font-display: "PT Serif", Georgia, "Times New Roman", serif;
+  --font-body: "PT Sans", "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e131a; --surface: #151c25; --ink: #e5e9ef; --muted: #98a3b2; --line: #2b3542; --grid: #1e2732;
+    --warm: #f06a5c; --dew: #4fc1d6; --cold: #7096ff; --steel: #f0b437; --steel-ink: #1b1404;
+    --ok: #4cc38a; --warn: #f0b04a; --bad: #f06a5c;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e131a; --surface: #151c25; --ink: #e5e9ef; --muted: #98a3b2; --line: #2b3542; --grid: #1e2732;
+  --warm: #f06a5c; --dew: #4fc1d6; --cold: #7096ff; --steel: #f0b437; --steel-ink: #1b1404;
+  --ok: #4cc38a; --warn: #f0b04a; --bad: #f06a5c;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 18px; }
+header { display: grid; gap: 4px; }
+h1 { font: 700 clamp(1.5rem, 3.6vw, 2.3rem)/1.15 var(--font-display); margin: 0; text-wrap: balance; }
+h1 em { font-weight: 400; }
+.sub { color: var(--muted); margin: 0; font-family: var(--font-mono); font-size: 0.82rem; }
+h2 { font: 700 0.78rem/1.2 var(--font-body); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0; }
+.main { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 18px; align-items: start; }
+@media (max-width: 960px) { .main { grid-template-columns: minmax(0, 1fr); } }
+.sheet { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px; display: grid; gap: 12px; min-width: 0; }
+svg { display: block; width: 100%; height: auto; max-width: 100%; }
+.status { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.chip { font: 700 0.8rem/1 var(--font-body); padding: 6px 10px; border-radius: 999px; border: 1.5px solid currentColor; }
+.chip.ok { color: var(--ok); } .chip.warn { color: var(--warn); } .chip.bad { color: var(--bad); }
+.answer { border-left: 3px solid var(--ok); padding: 8px 12px; background: color-mix(in srgb, var(--ok) 9%, transparent); font-size: 0.95rem; }
+.answer.warn { border-color: var(--warn); background: color-mix(in srgb, var(--warn) 12%, transparent); }
+.answer.bad { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 10%, transparent); }
+.answer p { margin: 0; } .answer p + p { margin-top: 6px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 4px 24px; font-size: 0.88rem; }
+.stats div { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px dashed var(--line); padding-block: 3px; }
+.stats b { font-family: var(--font-mono); font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+.panel { display: grid; gap: 16px; }
+fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 10px; }
+legend { padding: 0; margin-bottom: 8px; }
+.field { display: grid; grid-template-columns: 1fr 96px; gap: 8px; align-items: center; }
+.field label { font-size: 0.9rem; } .field label small { color: var(--muted); }
+input[type="text"], select {
+  width: 100%; font: 0.92rem var(--font-mono); padding: 6px 8px; border-radius: 4px; border: 1px solid var(--line);
+  background: var(--bg); color: var(--ink); font-variant-numeric: tabular-nums;
+}
+input[type="text"] { text-align: right; }
+select { font-family: var(--font-body); }
+input[aria-invalid="true"] { border-color: var(--bad); outline: 1px solid var(--bad); }
+input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--cold); outline-offset: 2px; }
+.btns { display: flex; flex-wrap: wrap; gap: 6px; }
+button { font: 700 0.85rem var(--font-body); padding: 7px 10px; border-radius: 4px; cursor: pointer; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+button:hover { border-color: var(--muted); }
+button[aria-pressed="true"] { background: var(--steel); border-color: var(--steel); color: var(--steel-ink); }
+button.icon { padding: 6px 8px; min-width: 32px; font-family: var(--font-mono); }
+.layers { display: grid; gap: 6px; }
+.layer { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; grid-template-areas: "sw sel sel" "sw inp ops"; gap: 6px; align-items: center; padding-bottom: 6px; border-bottom: 1px dashed var(--line); }
+.layer .sw { grid-area: sw; width: 10px; height: 100%; border-radius: 2px; border: 1px solid var(--line); }
+.layer select { grid-area: sel; } .layer input { grid-area: inp; } .layer .ops { grid-area: ops; }
+.layer .ops { display: flex; gap: 3px; }
+.side { font-size: 0.78rem; color: var(--muted); display: flex; justify-content: space-between; }
+.note { color: var(--muted); font-size: 0.8rem; margin: 0; }
+
+.c-grid { stroke: var(--grid); stroke-width: 1; fill: none; }
+.c-axis { stroke: var(--ink); stroke-width: 1.5; fill: none; }
+.c-text { fill: var(--muted); font: 12px var(--font-mono); }
+.c-label { fill: var(--ink); font: 13px var(--font-display); }
+.layer-edge { stroke: var(--ink); stroke-width: 1; opacity: 0.5; }
+.layer-name { fill: var(--ink); font: 12px var(--font-body); }
+.air { fill: color-mix(in srgb, var(--cold) 6%, var(--surface)); }
+.t-line { stroke: var(--warm); stroke-width: 3; fill: none; stroke-linejoin: round; }
+.t-dot { fill: var(--warm); }
+.t-text { fill: var(--warm); font: 600 13px var(--font-mono); }
+.d-line { stroke: var(--dew); stroke-width: 2; stroke-dasharray: 7 5; fill: none; }
+.d-text { fill: var(--dew); font: 600 13px var(--font-mono); }
+.e-line { stroke: var(--dew); stroke-width: 3; fill: none; }
+.E-line { stroke: var(--warm); stroke-width: 2.5; fill: none; }
+.zero { stroke: var(--cold); stroke-width: 1; stroke-dasharray: 2 4; }
+.zone { fill: color-mix(in srgb, var(--dew) 30%, transparent); }
+.zone-bad { fill: color-mix(in srgb, var(--bad) 28%, transparent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Где в стене выпадает конденсат? <em>Утеплитель снаружи или изнутри</em></h1>
+    <p class="sub" id="sub"></p>
+  </header>
+
+  <div class="main">
+    <div class="sheet">
+      <div class="status">
+        <h2>Температура в разрезе стены</h2>
+        <span class="chip ok" id="chip">Сухо</span>
+      </div>
+      <svg id="tchart" viewBox="0 0 900 330" role="img" aria-label="Распределение температуры в стене и точка росы"></svg>
+      <div class="answer" id="answer"></div>
+      <div class="stats">
+        <div><span>Сопротивление стены R₀</span><b id="sR"></b></div>
+        <div><span>Теплопотери q</span><b id="sQ"></b></div>
+        <div><span>Точка росы воздуха комнаты</span><b id="sTd"></b></div>
+        <div><span>Поверхность стены в комнате</span><b id="sTsi"></b></div>
+        <div><span>Где проходит 0 °C</span><b id="sZero"></b></div>
+        <div><span>Зона конденсации</span><b id="sZone"></b></div>
+        <div><span>Влаги в 1 м² за сутки зимы</span><b id="sG"></b></div>
+      </div>
+
+      <div class="status" style="margin-top:8px">
+        <h2 id="vtitle">Пар в стене: сколько есть и сколько влезет</h2>
+      </div>
+      <svg id="vchart" viewBox="0 0 900 290" role="img" aria-label="Парциальное давление пара и давление насыщения по толщине стены"></svg>
+      <p class="note">Бирюзовая линия: сколько пара реально проходит через стену (парциальное давление e). Красная: сколько пара воздух может удержать при этой температуре (давление насыщения E). Пунктир показывает, сколько пара было бы, если бы он не конденсировался. Там, где пунктир выше красной линии, пару тесно: он упирается в насыщение и становится водой или инеем (красная полоса). Так считают по методу Глазера, на котором построены нормы строительной теплотехники.</p>
+    </div>
+
+    <aside class="sheet panel" aria-label="Параметры">
+      <fieldset>
+        <legend><h2>Готовые стены</h2></legend>
+        <div class="btns" id="walls">
+          <button type="button" data-wall="outside">Газоблок, вата снаружи</button>
+          <button type="button" data-wall="inside">Кирпич, вата изнутри</button>
+          <button type="button" data-wall="insideVb">Изнутри + пароизоляция</button>
+          <button type="button" data-wall="xps">Газоблок + ЭППС снаружи</button>
+          <button type="button" data-wall="bare">Кирпич без утепления</button>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><h2>Город</h2></legend>
+        <div class="btns" id="cities"></div>
+        <div class="field"><label for="te">Самый мороз <small>°C</small></label><input id="te" type="text" inputmode="decimal"></div>
+        <div class="field"><label for="tw">Средняя зимняя <small>°C</small></label><input id="tw" type="text" inputmode="decimal"></div>
+        <div class="field"><label for="phe">Влажность снаружи <small>%</small></label><input id="phe" type="text" inputmode="decimal"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend><h2>Комната</h2></legend>
+        <div class="field"><label for="ti">Внутри <small>°C</small></label><input id="ti" type="text" inputmode="decimal"></div>
+        <div class="field"><label for="phi">Влажность внутри <small>%</small></label><input id="phi" type="text" inputmode="decimal"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend><h2>Слои стены, толщина в мм</h2></legend>
+        <div class="side"><span>↑ комната</span></div>
+        <div class="layers" id="layers"></div>
+        <div class="side"><span>↓ улица</span></div>
+        <button type="button" id="add">+ Добавить слой</button>
+      </fieldset>
+      <p class="note">Самый мороз — средняя самой холодной пятидневки: по ней считают теплопотери и температуру стены в комнате. Средняя зимняя — средняя за месяцы с морозом: по ней считают, копится ли влага. Значения городов ориентировочные, точные смотрите в СП РК «Строительная климатология».</p>
+    </aside>
+  </div>
+</div>
+
+<script>
+(() => {
+  // λ — теплопроводность, Вт/(м·°C); mu — паропроницаемость, мг/(м·ч·Па)
+  const MAT = {
+    plaster:  { name: "Штукатурка цементная", lam: 0.93,  mu: 0.09,     col: "#c9b38f" },
+    gkl:      { name: "Гипсокартон",          lam: 0.21,  mu: 0.075,    col: "#e7e1d3" },
+    brick:    { name: "Кирпич керамический",  lam: 0.81,  mu: 0.11,     col: "#c4643f" },
+    silicate: { name: "Кирпич силикатный",    lam: 0.87,  mu: 0.11,     col: "#d9d3c4" },
+    gas:      { name: "Газоблок D500",        lam: 0.14,  mu: 0.20,     col: "#bfc5cc" },
+    concrete: { name: "Железобетон",          lam: 2.04,  mu: 0.03,     col: "#8d939b" },
+    wool:     { name: "Минвата фасадная",     lam: 0.045, mu: 0.30,     col: "#e8c552" },
+    eps:      { name: "Пенопласт ППС",        lam: 0.041, mu: 0.05,     col: "#f2f2ee" },
+    xps:      { name: "ЭППС (пеноплэкс)",     lam: 0.032, mu: 0.005,    col: "#7fb2e0" },
+    wood:     { name: "Брус (сосна)",         lam: 0.18,  mu: 0.06,     col: "#b98a55" },
+    vb:       { name: "Пароизоляция (плёнка)", lam: 0.2,  mu: 0.00003,  col: "#8e6bc4" }
+  };
+  const WALLS = {
+    outside:  [["plaster", 20], ["gas", 300], ["wool", 100], ["plaster", 8]],
+    inside:   [["gkl", 12.5], ["wool", 100], ["brick", 380], ["plaster", 20]],
+    insideVb: [["gkl", 12.5], ["vb", 0.2], ["wool", 100], ["brick", 380], ["plaster", 20]],
+    xps:      [["plaster", 20], ["gas", 300], ["xps", 50], ["plaster", 8]],
+    bare:     [["plaster", 20], ["brick", 510], ["plaster", 20]]
+  };
+  // [город, самая холодная пятидневка, средняя за месяцы с морозом, дней с морозом] — ориентировочно
+  const CITIES = [["Астана", -31, -11, 150], ["Алматы", -20, -4, 100], ["Караганда", -30, -10, 150], ["Павлодар", -34, -12, 150], ["Актобе", -29, -10, 140], ["Шымкент", -14, -1, 60], ["Атырау", -22, -6, 110]];
+  const RSI = 1 / 8.7, RSE = 1 / 23;
+
+  const S = { ti: 20, phi: 55, te: -31, tw: -11, days: 150, phe: 85, city: "Астана", wall: "inside", layers: [] };
+  S.layers = WALLS.inside.map(([m, d]) => ({ m, d }));
+
+  const $ = id => document.getElementById(id);
+  const NS = "http://www.w3.org/2000/svg";
+  const nf = {};
+  const fmt = (x, d = 0) => (nf[d] ||= new Intl.NumberFormat("ru-RU", { minimumFractionDigits: d, maximumFractionDigits: d })).format(x);
+  const el = (tag, attrs = {}, parent, text) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    if (parent) parent.appendChild(e);
+    return e;
+  };
+  const tint = c => `color-mix(in srgb, ${c} 70%, var(--surface))`;
+
+  // давление насыщения, Па (Магнус: над водой при t ≥ 0, надо льдом при t < 0)
+  const Esat = t => t >= 0 ? 610.94 * Math.exp(17.625 * t / (t + 243.04)) : 611.15 * Math.exp(22.452 * t / (272.55 + t));
+  // точка росы по парциальному давлению, °C
+  const dewOf = e => { const g = Math.log(e / 610.94); return 243.04 * g / (17.625 - g); };
+
+  /* ---------- расчёт ---------- */
+  function solve(tOut) {
+    const L = S.layers.map(l => ({ ...l, ...MAT[l.m], dm: l.d / 1000 }));
+    L.forEach(l => { l.R = l.dm / l.lam; l.Rv = l.dm / l.mu; });
+    let acc = 0;
+    L.forEach(l => { l.s0 = acc; acc += l.Rv; l.s1 = acc; });
+    const R0 = RSI + L.reduce((s, l) => s + l.R, 0) + RSE;
+    const RV = L.reduce((s, l) => s + l.Rv, 0);
+    const q = (S.ti - tOut) / R0;
+    const ei = S.phi / 100 * Esat(S.ti), ee = S.phe / 100 * Esat(tOut);
+    let r = RSI, rv = 0;
+    for (const l of L) {
+      l.t0 = S.ti - q * r; l.e0 = ei - (ei - ee) * rv / RV;
+      r += l.R; rv += l.Rv;
+      l.t1 = S.ti - q * r; l.e1 = ei - (ei - ee) * rv / RV;
+    }
+    const tsi = S.ti - q * RSI, td = dewOf(ei);
+    // простой метод: где температура ниже точки росы воздуха комнаты
+    const zoneT = [];
+    L.forEach((l, i) => { if (Math.min(l.t0, l.t1) < td) zoneT.push(i); });
+    // метод Глазера: реальная линия пара — «натянутая нить» под кривой насыщения E
+    const P = [{ s: 0, v: ei, i: -1 }];
+    let sv = 0;
+    L.forEach((l, i) => {
+      for (let k = 0; k <= 40; k++) {
+        const f = k / 40;
+        P.push({ s: sv + l.Rv * f, v: Esat(l.t0 + (l.t1 - l.t0) * f), i, f });
+      }
+      sv += l.Rv;
+    });
+    P.push({ s: RV, v: ee, i: -1 });
+    const hull = [];
+    for (const p of P) {
+      while (hull.length >= 2) {
+        const a = hull[hull.length - 2], b = hull[hull.length - 1];
+        if ((b.s - a.s) * (p.v - a.v) - (b.v - a.v) * (p.s - a.s) <= 0) hull.pop(); else break;
+      }
+      hull.push(p);
+    }
+    const eAt = s => {
+      for (let j = 1; j < hull.length; j++) if (s <= hull[j].s + 1e-12) {
+        const a = hull[j - 1], b = hull[j], w = b.s - a.s;
+        return w < 1e-12 ? b.v : a.v + (b.v - a.v) * (s - a.s) / w;
+      }
+      return ee;
+    };
+    const slope = (a, b) => (b.v - a.v) / Math.max(b.s - a.s, 1e-12);
+    // накопление влаги, мг/(м²·ч): разница потоков пара на входе в зону и на выходе
+    const g = hull.length > 2 ? Math.max(0, slope(hull[hull.length - 2], hull[hull.length - 1]) - slope(hull[0], hull[1])) : 0;
+    const zoneV = [];
+    for (const h of hull) if (h.i >= 0 && !zoneV.includes(h.i)) zoneV.push(h.i);
+    let zeroIn = null;
+    L.forEach((l, i) => { if (zeroIn === null && l.t0 >= 0 && l.t1 < 0) zeroIn = i; });
+    return { L, R0, q, ei, ee, tsi, td, zoneT, zoneV, zeroIn, g, eAt, hull };
+  }
+
+  /* ---------- геометрия разреза ---------- */
+  const X = { l: 56, room: 60, out: 60, r: 884 };
+  function layout(L) {
+    const x0 = X.l + X.room, x1 = X.r - X.out, W = x1 - x0, total = L.reduce((s, l) => s + l.d, 0) || 1;
+    const min = 10;
+    let w = L.map(l => Math.max(min, l.d / total * W));
+    const k = W / w.reduce((s, v) => s + v, 0);
+    w = w.map(v => v * k);
+    let x = x0;
+    L.forEach((l, i) => { l.x0 = x; x += w[i]; l.x1 = x; });
+    return { x0, x1 };
+  }
+  function niceStep(raw) {
+    const p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+    return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p;
+  }
+  function bands(svg, L, top, bot, x0, x1, names) {
+    el("rect", { x: X.l, y: top, width: x0 - X.l, height: bot - top, class: "air" }, svg);
+    el("rect", { x: x1, y: top, width: X.r - x1, height: bot - top, class: "air" }, svg);
+    for (const l of L) {
+      el("rect", { x: l.x0, y: top, width: l.x1 - l.x0, height: bot - top, style: `fill:${tint(l.col)};opacity:.35` }, svg);
+      el("line", { x1: l.x0, x2: l.x0, y1: top, y2: bot, class: "layer-edge" }, svg);
+    }
+    el("line", { x1: x1, x2: x1, y1: top, y2: bot, class: "layer-edge" }, svg);
+    if (names) {
+      el("text", { x: (X.l + x0) / 2, y: bot + 18, class: "c-text", "text-anchor": "middle" }, svg, "комната");
+      el("text", { x: (x1 + X.r) / 2, y: bot + 18, class: "c-text", "text-anchor": "middle" }, svg, "улица");
+      L.forEach((l, i) => {
+        if (l.x1 - l.x0 < 46) return;
+        const t = el("text", { x: (l.x0 + l.x1) / 2, y: bot + 18, class: "layer-name", "text-anchor": "middle" }, svg, `${fmt(l.d, l.d % 1 ? 1 : 0)} мм`);
+        if (l.x1 - l.x0 > 90) el("text", { x: (l.x0 + l.x1) / 2, y: bot + 34, class: "c-text", "text-anchor": "middle" }, svg, l.name.split(" ")[0]);
+      });
+    }
+  }
+
+  function drawT(R) {
+    const svg = $("tchart"); svg.replaceChildren();
+    const { L } = R, { x0, x1 } = layout(L);
+    const top = 14, bot = 270;
+    const lo = Math.min(S.te, R.td) - 4, hi = Math.max(S.ti, R.td) + 4;
+    const step = niceStep((hi - lo) / 5), ymin = Math.floor(lo / step) * step, ymax = Math.ceil(hi / step) * step;
+    const y = t => bot - (t - ymin) / (ymax - ymin) * (bot - top);
+    bands(svg, L, top, bot, x0, x1, true);
+    for (let v = ymin; v <= ymax + 1e-9; v += step) {
+      el("line", { x1: X.l, x2: X.r, y1: y(v), y2: y(v), class: "c-grid", "stroke-dasharray": "3 4", opacity: 0.6 }, svg);
+      el("text", { x: X.l - 6, y: y(v) + 4, class: "c-text", "text-anchor": "end" }, svg, fmt(v));
+    }
+    el("text", { x: X.l - 6, y: top - 2 + 10, class: "c-text", "text-anchor": "end" }, svg, "");
+    if (ymin < 0 && ymax > 0) el("line", { x1: X.l, x2: X.r, y1: y(0), y2: y(0), class: "zero" }, svg);
+
+    // зона ниже точки росы внутри стены
+    for (const l of L) {
+      const n = 40; let d = "", open = false;
+      for (let k = 0; k <= n; k++) {
+        const f = k / n, t = l.t0 + (l.t1 - l.t0) * f, x = l.x0 + (l.x1 - l.x0) * f;
+        if (t < R.td) { d += `${open ? "L" : "M"}${x.toFixed(1)},${y(R.td).toFixed(1)} `; open = true; }
+      }
+      if (!open) continue;
+      // заливка между линией точки росы и кривой температуры
+      const pts = [];
+      for (let k = 0; k <= n; k++) {
+        const f = k / n, t = l.t0 + (l.t1 - l.t0) * f;
+        if (t < R.td) pts.push([l.x0 + (l.x1 - l.x0) * f, t]);
+      }
+      const poly = pts.map(([x]) => `${x.toFixed(1)},${y(R.td).toFixed(1)}`).concat(pts.slice().reverse().map(([x, t]) => `${x.toFixed(1)},${y(t).toFixed(1)}`)).join(" ");
+      el("polygon", { points: poly, class: "zone" }, svg);
+    }
+
+    el("line", { x1: X.l, x2: X.r, y1: y(R.td), y2: y(R.td), class: "d-line" }, svg);
+    el("text", { x: X.r - 4, y: y(R.td) - 6, class: "d-text", "text-anchor": "end" }, svg, `точка росы ${fmt(R.td, 1)} °C`);
+
+    let d = `M${X.l},${y(S.ti)} L${x0 - 14},${y(S.ti)} L${x0},${y(R.tsi)}`;
+    for (const l of L) d += ` L${l.x1},${y(l.t1)}`;
+    const tse = L.length ? L[L.length - 1].t1 : S.te;
+    d += ` L${x1 + 14},${y(S.te)} L${X.r},${y(S.te)}`;
+    el("path", { d, class: "t-line" }, svg);
+    el("circle", { cx: x0, cy: y(R.tsi), r: 5, class: "t-dot" }, svg);
+    el("text", { x: X.l + 4, y: y(S.ti) - 8, class: "t-text" }, svg, `+${fmt(S.ti)}`.replace("+-", "−"));
+    el("text", { x: x0 + 8, y: y(R.tsi) + (R.tsi > R.td + 2 ? -8 : 18), class: "t-text" }, svg, `${fmt(R.tsi, 1)} °C`);
+    el("text", { x: X.r - 4, y: y(S.te) + 18, class: "t-text", "text-anchor": "end" }, svg, `${fmt(S.te)} °C`);
+    void tse;
+    el("line", { x1: X.l, x2: X.l, y1: top, y2: bot, class: "c-axis" }, svg);
+    el("text", { x: X.l + 4, y: top + 12, class: "c-text" }, svg, "°C");
+  }
+
+  function drawV(R) {
+    const svg = $("vchart"); svg.replaceChildren();
+    const { L } = R, { x0, x1 } = layout(L);
+    const top = 14, bot = 250;
+    const vmax = Math.max(Esat(S.ti), R.ei) * 1.08, step = niceStep(vmax / 4), ytop = Math.ceil(vmax / step) * step;
+    const y = v => bot - v / ytop * (bot - top);
+    bands(svg, L, top, bot, x0, x1, false);
+    for (let v = 0; v <= ytop + 1e-9; v += step) {
+      el("line", { x1: X.l, x2: X.r, y1: y(v), y2: y(v), class: "c-grid", "stroke-dasharray": "3 4", opacity: 0.6 }, svg);
+      el("text", { x: X.l - 6, y: y(v) + 4, class: "c-text", "text-anchor": "end" }, svg, fmt(v));
+    }
+    let dE = "", de = "", dl = "";
+    for (const l of L) {
+      const pts = [];
+      for (let k = 0; k <= 40; k++) {
+        const f = k / 40, x = l.x0 + (l.x1 - l.x0) * f, t = l.t0 + (l.t1 - l.t0) * f;
+        const E = Esat(t), e = R.eAt(l.s0 + (l.s1 - l.s0) * f), lin = l.e0 + (l.e1 - l.e0) * f;
+        dE += `${dE ? "L" : "M"}${x.toFixed(1)},${y(E).toFixed(1)} `;
+        de += `${de ? "L" : "M"}${x.toFixed(1)},${y(e).toFixed(1)} `;
+        dl += `${dl ? "L" : "M"}${x.toFixed(1)},${y(lin).toFixed(1)} `;
+        pts.push([x, e, E]);
+      }
+      // зона, где пар упёрся в насыщение и превращается в воду или иней
+      let run = [];
+      const flush = () => {
+        if (run.length) {
+          const xa = run[0][0] - 2, xb = run[run.length - 1][0] + 2;
+          el("rect", { x: xa, y: top, width: Math.max(4, xb - xa), height: bot - top, class: "zone-bad" }, svg);
+        }
+        run = [];
+      };
+      for (const p of pts) { if (p[1] >= p[2] * 0.995 && R.g * 0.024 >= 1) run.push(p); else flush(); }
+      flush();
+    }
+    el("path", { d: dl, class: "e-line", "stroke-dasharray": "3 5", "stroke-width": 1.5, opacity: 0.7 }, svg);
+    el("path", { d: dE, class: "E-line" }, svg);
+    el("path", { d: de, class: "e-line" }, svg);
+    el("line", { x1: X.l, x2: X.l, y1: top, y2: bot, class: "c-axis" }, svg);
+    el("line", { x1: X.l, x2: X.r, y1: bot, y2: bot, class: "c-axis" }, svg);
+    el("text", { x: X.l + 4, y: top + 12, class: "c-text" }, svg, "Па");
+    el("text", { x: X.r - 4, y: top + 16, class: "t-text", "text-anchor": "end" }, svg, "E — сколько может удержать");
+    el("text", { x: X.r - 4, y: top + 34, class: "d-text", "text-anchor": "end" }, svg, "e — сколько есть на самом деле");
+    el("text", { x: (X.l + x0) / 2, y: bot + 18, class: "c-text", "text-anchor": "middle" }, svg, "комната");
+    el("text", { x: (x1 + X.r) / 2, y: bot + 18, class: "c-text", "text-anchor": "middle" }, svg, "улица");
+  }
+
+  /* ---------- вывод ---------- */
+  function render() {
+    const R = solve(S.te), W = solve(S.tw);
+    $("sub").textContent = `${S.city || "свой климат"}: мороз ${fmt(S.te)} °C, в среднем зимой ${fmt(S.tw)} °C, ${fmt(S.phe)} % · в комнате +${fmt(S.ti)} °C, ${fmt(S.phi)} %`;
+    $("vtitle").textContent = `Пар в стене при средней зимней ${fmt(S.tw)} °C: сколько есть и сколько влезет`;
+    $("sR").textContent = `${fmt(R.R0, 2)} м²·°C/Вт`;
+    $("sQ").textContent = `${fmt(R.q, 1)} Вт/м²`;
+    $("sTd").textContent = `${fmt(R.td, 1)} °C`;
+    $("sTsi").textContent = `${fmt(R.tsi, 1)} °C`;
+    $("sZero").textContent = R.zeroIn === null ? "—" : R.L[R.zeroIn].name.toLowerCase();
+    const names = idx => idx.map(i => R.L[i].name.toLowerCase()).filter((v, i, a) => a.indexOf(v) === i).join(", ");
+    const gDay = W.g * 24 / 1000;
+    $("sZone").textContent = gDay >= 1 ? names(W.zoneV) : "нет";
+    $("sG").textContent = `${fmt(gDay, 1)} г`;
+
+    const chip = $("chip"), ans = $("answer"), parts = [];
+    const kgWinter = gDay * S.days / 1000;
+    let level = "ok", label = "Сухо";
+    if (gDay >= 20) { level = "bad"; label = "Стена мокнет"; }
+    else if (gDay >= 5) { level = "warn"; label = "Влага копится"; }
+    else if (gDay >= 1) { label = "Почти сухо"; }
+
+    if (R.tsi < R.td) {
+      level = "bad"; label = "Конденсат в комнате";
+      parts.push(`<p><b>Стена в комнате мокрая.</b> В мороз её поверхность ${fmt(R.tsi, 1)} °C, а точка росы ${fmt(R.td, 1)} °C. Влага садится прямо на обои: жди плесень в углах. Нужно утеплить стену или снизить влажность.</p>`);
+    } else {
+      parts.push(`<p>В мороз ${fmt(S.te)} °C поверхность стены в комнате ${fmt(R.tsi, 1)} °C, на ${fmt(R.tsi - R.td, 1)} °C теплее точки росы. На обоях конденсата не будет.</p>`);
+    }
+    const W0 = W.L, wallIdx = W0.findIndex(l => l.lam > 0.5 && l.d > 100), insIdx = W0.findIndex(l => l.lam < 0.06);
+    const insideIns = insIdx >= 0 && wallIdx >= 0 && insIdx < wallIdx;
+    if (gDay >= 1) {
+      parts.push(`<p><b>Внутри стены копится влага:</b> ${names(W.zoneV)}. За сутки в 1 м² набирается ${fmt(gDay, 1)} г воды, за зиму примерно ${fmt(kgWinter, kgWinter < 1 ? 2 : 1)} кг. Пар из комнаты входит в стену легче, чем выходит наружу, и на холоде становится водой или инеем.</p>`);
+      if (insideIns && !W0.some(l => l.m === "vb")) parts.push(`<p>Утеплитель стоит со стороны комнаты, поэтому кирпич за ним холодный и пар садится на него. Правильно утеплять снаружи. Если можно только изнутри, ставьте пароизоляцию между отделкой и утеплителем.</p>`);
+      else if (W0.some(l => l.m === "xps")) parts.push(`<p>Снаружи стоит слой, который почти не пропускает пар (ЭППС). Пар упирается в него. Слои должны пропускать пар всё лучше от комнаты к улице.</p>`);
+      else if (level === "ok") parts.push(`<p>Это немного: летом такая влага успевает высохнуть.</p>`);
+    } else {
+      parts.push(`<p><b>Стена сухая.</b> Пар проходит наружу и почти нигде не превращается в воду.</p>`);
+      if (R.zoneT.length) parts.push(`<p>Часть стены холоднее точки росы (бирюзовая заливка на верхнем графике), но пар туда почти не доходит. Линия точки росы сама по себе ещё не значит мокрую стену: решает нижний график.</p>`);
+    }
+    chip.className = "chip " + level;
+    chip.textContent = label;
+    ans.className = "answer" + (level === "ok" ? "" : " " + level);
+    ans.innerHTML = parts.join("");
+
+    document.querySelectorAll("#walls button").forEach(b => b.setAttribute("aria-pressed", b.dataset.wall === S.wall));
+    document.querySelectorAll("#cities button").forEach(b => b.setAttribute("aria-pressed", b.dataset.city === S.city));
+    drawT(R); drawV(W);
+  }
+
+  /* ---------- редактор слоёв ---------- */
+  function buildLayers() {
+    const box = $("layers"); box.replaceChildren();
+    S.layers.forEach((l, i) => {
+      const row = document.createElement("div"); row.className = "layer";
+      const sw = document.createElement("span"); sw.className = "sw"; sw.style.background = MAT[l.m].col;
+      const sel = document.createElement("select"); sel.id = `m${i}`; sel.setAttribute("aria-label", `Материал слоя ${i + 1}`);
+      for (const k in MAT) { const o = document.createElement("option"); o.value = k; o.textContent = MAT[k].name; sel.appendChild(o); }
+      sel.value = l.m;
+      sel.addEventListener("change", () => { l.m = sel.value; S.wall = null; sw.style.background = MAT[l.m].col; render(); });
+      const inp = document.createElement("input"); inp.type = "text"; inp.inputMode = "decimal"; inp.id = `d${i}`;
+      inp.setAttribute("aria-label", `Толщина слоя ${i + 1}, мм`); inp.value = String(l.d).replace(".", ",");
+      inp.addEventListener("input", () => {
+        const v = parseFloat(inp.value.replace(",", "."));
+        if (!Number.isFinite(v) || v <= 0 || v > 2000) { inp.setAttribute("aria-invalid", "true"); return; }
+        inp.removeAttribute("aria-invalid"); l.d = v; S.wall = null; render();
+      });
+      const ops = document.createElement("div"); ops.className = "ops";
+      const mk = (txt, lab, fn, dis) => { const b = document.createElement("button"); b.type = "button"; b.className = "icon"; b.textContent = txt; b.setAttribute("aria-label", lab); b.disabled = dis; b.addEventListener("click", fn); ops.appendChild(b); };
+      mk("↑", "Выше", () => { [S.layers[i - 1], S.layers[i]] = [S.layers[i], S.layers[i - 1]]; S.wall = null; buildLayers(); render(); }, i === 0);
+      mk("↓", "Ниже", () => { [S.layers[i + 1], S.layers[i]] = [S.layers[i], S.layers[i + 1]]; S.wall = null; buildLayers(); render(); }, i === S.layers.length - 1);
+      mk("×", "Удалить", () => { S.layers.splice(i, 1); S.wall = null; buildLayers(); render(); }, S.layers.length === 1);
+      row.append(sw, sel, inp, ops); box.appendChild(row);
+    });
+  }
+  $("add").addEventListener("click", () => { S.layers.push({ m: "plaster", d: 10 }); S.wall = null; buildLayers(); render(); });
+  $("walls").addEventListener("click", e => {
+    const w = WALLS[e.target.dataset.wall]; if (!w) return;
+    S.wall = e.target.dataset.wall; S.layers = w.map(([m, d]) => ({ m, d })); buildLayers(); render();
+  });
+  const cities = $("cities");
+  for (const [name, t, tw, days] of CITIES) {
+    const b = document.createElement("button"); b.type = "button"; b.dataset.city = name; b.textContent = name;
+    b.addEventListener("click", () => { S.city = name; S.te = t; S.tw = tw; S.days = days; $("te").value = String(t); $("tw").value = String(tw); render(); });
+    cities.appendChild(b);
+  }
+  const NUM = { ti: v => v > -10 && v < 40, phi: v => v > 1 && v <= 100, te: v => v > -60 && v < 30, tw: v => v > -40 && v < 15, phe: v => v > 1 && v <= 100 };
+  for (const k in NUM) {
+    $(k).value = String(S[k]);
+    $(k).addEventListener("input", e => {
+      const v = parseFloat(e.target.value.replace(",", ".").replace("−", "-"));
+      if (!Number.isFinite(v) || !NUM[k](v)) { e.target.setAttribute("aria-invalid", "true"); return; }
+      e.target.removeAttribute("aria-invalid"); S[k] = v; if (k === "te" || k === "tw") S.city = null; render();
+    });
+  }
+
+  buildLayers(); render();
+})();
+</script>
+</body>
+</html>
