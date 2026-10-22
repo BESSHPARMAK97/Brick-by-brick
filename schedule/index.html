@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ГПР стройки</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400&family=PT+Sans:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: инженерный лист — сводка, диаграмма Ганта с графиком рабочих (общая прокрутка), таблица работ */
+:root {
+  --bg: #eef1f4;
+  --surface: #ffffff;
+  --ink: #18212c;
+  --muted: #5a6574;
+  --line: #c8d0da;
+  --grid: #e1e6ec;
+  --bar: #2d58cf;      /* обычная работа */
+  --crit: #c0392b;     /* критический путь */
+  --float: #2d58cf;
+  --steel: #d99a12;
+  --steel-ink: #3a2c08;
+  --ok: #2a8250;
+  --warn: #b5760d;
+  --weekend: #e6eaef;
+  --font-display: "PT Serif", Georgia, "Times New Roman", serif;
+  --font-body: "PT Sans", "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e131a; --surface: #151c25; --ink: #e5e9ef; --muted: #98a3b2; --line: #2b3542; --grid: #1e2732;
+    --bar: #7096ff; --crit: #f06a5c; --float: #7096ff; --steel: #f0b437; --steel-ink: #1b1404;
+    --ok: #4cc38a; --warn: #f0b04a; --weekend: #1a222c;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e131a; --surface: #151c25; --ink: #e5e9ef; --muted: #98a3b2; --line: #2b3542; --grid: #1e2732;
+  --bar: #7096ff; --crit: #f06a5c; --float: #7096ff; --steel: #f0b437; --steel-ink: #1b1404;
+  --ok: #4cc38a; --warn: #f0b04a; --weekend: #1a222c;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px;
+}
+.wrap { max-width: 1280px; margin: 0 auto; display: grid; gap: 18px; }
+header { display: grid; gap: 4px; }
+h1 { font: 700 clamp(1.5rem, 3.6vw, 2.3rem)/1.15 var(--font-display); margin: 0; text-wrap: balance; }
+h1 em { font-weight: 400; }
+.sub { color: var(--muted); margin: 0; font-size: 0.95rem; max-width: 70ch; }
+h2 { font: 700 0.78rem/1.2 var(--font-body); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0; }
+.sheet { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px; display: grid; gap: 12px; min-width: 0; }
+.controls { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: end; }
+.ctl { display: grid; gap: 4px; font-size: 0.85rem; color: var(--muted); }
+.btns { display: flex; flex-wrap: wrap; gap: 6px; }
+button { font: 700 0.85rem var(--font-body); padding: 7px 10px; border-radius: 4px; cursor: pointer; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+button:hover { border-color: var(--muted); }
+button[aria-pressed="true"] { background: var(--steel); border-color: var(--steel); color: var(--steel-ink); }
+input[type="text"], input[type="date"] {
+  font: 0.9rem var(--font-mono); padding: 6px 8px; border-radius: 4px; border: 1px solid var(--line);
+  background: var(--bg); color: var(--ink); font-variant-numeric: tabular-nums; width: 100%;
+}
+input[aria-invalid="true"] { border-color: var(--crit); outline: 1px solid var(--crit); }
+input:focus-visible, button:focus-visible { outline: 2px solid var(--bar); outline-offset: 2px; }
+.toggle { display: flex; gap: 8px; align-items: center; font-size: 0.88rem; cursor: pointer; color: var(--ink); }
+.toggle input { width: 18px; height: 18px; accent-color: var(--bar); }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+.kpi { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 4px; }
+.kpi span { font-size: 0.8rem; color: var(--muted); }
+.kpi b { font: 600 1.15rem var(--font-mono); font-variant-numeric: tabular-nums; }
+.kpi.crit b { color: var(--crit); }
+.msg { border-left: 3px solid var(--ok); padding: 8px 12px; background: color-mix(in srgb, var(--ok) 9%, transparent); font-size: 0.93rem; }
+.msg.warn { border-color: var(--warn); background: color-mix(in srgb, var(--warn) 12%, transparent); }
+.msg.bad { border-color: var(--crit); background: color-mix(in srgb, var(--crit) 10%, transparent); }
+.msg p { margin: 0; } .msg p + p { margin-top: 6px; }
+.scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 4px; }
+.scroll svg { display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.82rem; color: var(--muted); align-items: center; }
+.legend i { display: inline-block; width: 22px; height: 10px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.note { color: var(--muted); font-size: 0.8rem; margin: 0; }
+
+table { border-collapse: collapse; width: 100%; font-size: 0.88rem; min-width: 860px; }
+th { text-align: left; font: 700 0.75rem var(--font-body); text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); padding: 6px 4px; border-bottom: 1px solid var(--line); }
+td { padding: 4px; border-bottom: 1px dashed var(--line); vertical-align: middle; }
+td.num { font-family: var(--font-mono); color: var(--muted); width: 32px; text-align: right; }
+td.ro { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 0.84rem; }
+tr.crit td.num { color: var(--crit); font-weight: 600; }
+td input.n { width: 64px; text-align: right; }
+td input.nm { font-family: var(--font-body); min-width: 240px; }
+td input.p { width: 90px; }
+td .x { padding: 4px 8px; }
+
+svg text { font-family: var(--font-body); }
+.g-weekend { fill: var(--weekend); }
+.g-hol { fill: color-mix(in srgb, var(--steel) 22%, transparent); }
+.g-grid { stroke: var(--grid); stroke-width: 1; }
+.g-month { stroke: var(--line); stroke-width: 1.2; }
+.g-head { fill: var(--ink); font: 700 12px var(--font-body); }
+.g-day { fill: var(--muted); font: 10px var(--font-mono); }
+.g-name { fill: var(--ink); font: 13px var(--font-body); }
+.g-name.crit { fill: var(--crit); font-weight: 700; }
+.g-bar { fill: var(--bar); }
+.g-bar.crit { fill: var(--crit); }
+.g-float { fill: color-mix(in srgb, var(--float) 22%, transparent); stroke: var(--float); stroke-dasharray: 3 3; stroke-width: 1; }
+.g-handle { fill: var(--ink); opacity: 0; cursor: ew-resize; }
+.g-row:hover .g-handle { opacity: 0.35; }
+.g-dep { stroke: var(--muted); stroke-width: 1.2; fill: none; }
+.g-dep.crit { stroke: var(--crit); }
+.g-lab { fill: var(--muted); font: 11px var(--font-mono); }
+.g-winter { fill: var(--steel); font: 700 12px var(--font-body); }
+.g-hist { fill: color-mix(in srgb, var(--ok) 55%, var(--surface)); }
+.g-peak { stroke: var(--crit); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.g-axis { stroke: var(--ink); stroke-width: 1.2; }
+.g-sep { fill: var(--surface); }
+.g-ms { fill: var(--ink); }
+.g-ms.crit { fill: var(--crit); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>ГПР: график производства работ <em>и критический путь</em></h1>
+    <p class="sub">Впишите работы, сроки и что после чего идёт. График сам посчитает дату сдачи и покажет критический путь: работы, задержка которых сдвигает весь объект. Правый край полоски можно тянуть мышью.</p>
+  </header>
+
+  <section class="sheet">
+    <div class="controls">
+      <div class="ctl"><span>Объект</span>
+        <div class="btns" id="presets">
+          <button type="button" data-preset="house">Дом из газоблока</button>
+          <button type="button" data-preset="flat">Ремонт квартиры</button>
+        </div>
+      </div>
+      <label class="ctl" for="start"><span>Начало работ</span><input id="start" type="date" style="width:160px"></label>
+      <div class="ctl"><span>Рабочая неделя</span>
+        <div class="btns" id="week">
+          <button type="button" data-week="5">5 дней</button>
+          <button type="button" data-week="6">6 дней</button>
+          <button type="button" data-week="7">без выходных</button>
+        </div>
+      </div>
+      <div class="ctl"><span>Масштаб</span>
+        <div class="btns" id="zoom">
+          <button type="button" data-zoom="18">дни</button>
+          <button type="button" data-zoom="7">недели</button>
+          <button type="button" data-zoom="3">месяцы</button>
+        </div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="hol" checked> Праздники РК — нерабочие</label>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><span>Сдача объекта</span><b id="kEnd"></b></div>
+      <div class="kpi"><span>Рабочих дней</span><b id="kWd"></b></div>
+      <div class="kpi"><span>Календарных дней</span><b id="kCd"></b></div>
+      <div class="kpi crit"><span>Работ на критическом пути</span><b id="kCrit"></b></div>
+      <div class="kpi"><span>Пик рабочих на объекте</span><b id="kPeak"></b></div>
+      <div class="kpi"><span>Трудозатраты</span><b id="kMan"></b></div>
+    </div>
+    <div class="msg" id="msg"></div>
+
+    <div class="legend">
+      <span><i style="background:var(--crit)"></i>критический путь</span>
+      <span><i style="background:var(--bar)"></i>работа с запасом</span>
+      <span><i class="g-float" style="background:color-mix(in srgb, var(--float) 22%, transparent);border:1px dashed var(--float)"></i>резерв времени</span>
+      <span><i style="background:var(--weekend)"></i>выходной</span>
+      <span><i style="background:color-mix(in srgb, var(--steel) 22%, transparent)"></i>праздник</span>
+      <span>❄ наружная работа зимой</span>
+    </div>
+    <div class="scroll" id="scroll"><svg id="gantt" role="img" aria-label="Диаграмма Ганта и график движения рабочих"></svg></div>
+  </section>
+
+  <section class="sheet">
+    <h2>Работы</h2>
+    <div class="scroll" style="border:0">
+      <table>
+        <thead><tr>
+          <th>№</th><th>Работа</th><th>Дней</th><th>После №</th><th>Рабочих</th><th>Улица</th><th>Начало</th><th>Конец</th><th>Резерв</th><th></th>
+        </tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div class="btns"><button type="button" id="add">+ Добавить работу</button></div>
+    <p class="note">«Дней» — рабочие дни. «После №» — номера работ, которые должны закончиться раньше, через запятую. Можно добавить паузу: «4+10» значит начать через 10 рабочих дней после окончания работы 4. «Резерв» — на сколько дней работу можно задержать без сдвига сдачи. Праздники РК учтены фиксированные: 1–2 и 7 января, 8 марта, 21–23 марта, 1, 7 и 9 мая, 6 июля, 30 августа, 25 октября, 16 декабря. Курбан айт и переносы выходных меняются каждый год — их добавьте паузой вручную.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  // [название, рабочих дней, после, рабочих, наружная]
+  const PRESETS = {
+    house: [
+      ["Разбивка осей, подготовка площадки", 3, "", 3, true],
+      ["Земляные работы под фундамент", 4, "1", 3, true],
+      ["Опалубка и армирование ленты", 8, "2", 5, true],
+      ["Бетонирование фундамента", 2, "3", 6, true],
+      ["Выдержка бетона", 10, "4", 0, true],
+      ["Гидроизоляция, обратная засыпка", 4, "5", 4, true],
+      ["Кладка стен 1 этажа (газоблок)", 15, "6", 4, true],
+      ["Армопояс и перекрытие", 7, "7", 6, true],
+      ["Кладка стен 2 этажа", 12, "8", 4, true],
+      ["Кровля: стропильная система", 6, "9", 4, true],
+      ["Кровля: покрытие", 5, "10", 4, true],
+      ["Окна и входная дверь", 3, "9", 2, false],
+      ["Электрика черновая", 8, "11,12", 2, false],
+      ["Сантехника и отопление", 10, "11,12", 2, false],
+      ["Штукатурка стен", 14, "13,14", 4, false],
+      ["Стяжка пола", 5, "15", 3, false],
+      ["Фасад: утепление и отделка", 15, "12", 4, true],
+      ["Чистовая отделка", 20, "16", 4, false],
+      ["Благоустройство, сдача", 5, "17,18", 3, true]
+    ],
+    flat: [
+      ["Демонтаж", 4, "", 3, false],
+      ["Перегородки", 5, "1", 2, false],
+      ["Электрика черновая", 5, "2", 2, false],
+      ["Сантехника черновая", 4, "2", 1, false],
+      ["Штукатурка стен", 8, "3,4", 3, false],
+      ["Стяжка пола", 3, "5", 2, false],
+      ["Высыхание стяжки", 7, "6", 0, false],
+      ["Плитка: санузел и кухня", 8, "5", 2, false],
+      ["Шпаклёвка и шлифовка", 7, "6", 2, false],
+      ["Покраска, обои", 6, "9", 2, false],
+      ["Напольные покрытия", 4, "7,10", 2, false],
+      ["Двери, плинтус, электрика чистовая", 4, "11,8", 2, false],
+      ["Уборка и сдача", 1, "12", 2, false]
+    ]
+  };
+  const HOLIDAYS = ["01-01", "01-02", "01-07", "03-08", "03-21", "03-22", "03-23", "05-01", "05-07", "05-09", "07-06", "08-30", "10-25", "12-16"];
+  const DAY = 86400000;
+
+  const today = new Date();
+  const nextMon = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+  while (nextMon.getUTCDay() !== 1) nextMon.setTime(nextMon.getTime() + DAY);
+  const S = { start: nextMon, week: 6, hol: true, zoom: 7, tasks: [], preset: "house" };
+  const load = k => { S.preset = k; S.tasks = PRESETS[k].map(([name, dur, pred, men, out]) => ({ name, dur, pred, men, out })); };
+  load("house");
+  // дом начинаем в строительный сезон: ближайший апрель
+  const seasonStart = () => {
+    const y = today.getMonth() >= 3 && today.getMonth() < 6 ? today.getFullYear() : today.getFullYear() + (today.getMonth() >= 6 ? 1 : 0);
+    const d = new Date(Date.UTC(y, 3, 1));
+    while (d.getUTCDay() !== 1) d.setTime(d.getTime() + DAY);
+    return d.getTime() < nextMon.getTime() ? new Date(nextMon) : d;
+  };
+  S.start = seasonStart();
+
+  const $ = id => document.getElementById(id);
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (tag, attrs = {}, parent, text) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    if (parent) parent.appendChild(e);
+    return e;
+  };
+  const nf = new Intl.NumberFormat("ru-RU");
+  const dShort = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "short", timeZone: "UTC" });
+  const dLong = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+  const mName = new Intl.DateTimeFormat("ru-RU", { month: "long", year: "numeric", timeZone: "UTC" });
+  const iso = d => d.toISOString().slice(0, 10);
+  const addDays = (d, n) => new Date(d.getTime() + n * DAY);
+
+  /* ---------- календарь ---------- */
+  const isHoliday = d => S.hol && HOLIDAYS.includes(iso(d).slice(5));
+  const isWeekend = d => { const w = d.getUTCDay(); return S.week === 5 ? (w === 0 || w === 6) : S.week === 6 ? w === 0 : false; };
+  const isWork = d => !isWeekend(d) && !isHoliday(d);
+  let WD = [];
+  function buildCalendar(n) {
+    WD = []; let d = new Date(S.start);
+    for (let guard = 0; WD.length < n && guard < 20000; guard++, d = addDays(d, 1)) if (isWork(d)) WD.push(d);
+  }
+
+  /* ---------- метод критического пути ---------- */
+  function parsePred(str, self, n) {
+    const out = [];
+    for (const raw of String(str).split(/[,;\s]+/).filter(Boolean)) {
+      const m = raw.match(/^(\d+)(?:([+-])(\d+))?$/);
+      if (!m) return { err: `не понял «${raw}»` };
+      const id = +m[1] - 1, lag = m[2] ? (m[2] === "+" ? +m[3] : -m[3]) : 0;
+      if (id < 0 || id >= n) return { err: `нет работы №${m[1]}` };
+      if (id === self) return { err: "работа не может идти после себя" };
+      out.push({ id, lag });
+    }
+    return { list: out };
+  }
+  function cpm() {
+    const T = S.tasks, n = T.length, errors = [];
+    T.forEach((t, i) => { const p = parsePred(t.pred, i, n); t.preds = p.list || []; t.err = p.err || null; if (p.err) errors.push(`№${i + 1}: ${p.err}`); });
+    // топологический порядок
+    const indeg = T.map(t => t.preds.length), succ = T.map(() => []);
+    T.forEach((t, i) => t.preds.forEach(p => succ[p.id].push({ id: i, lag: p.lag })));
+    const order = [], q = []; indeg.forEach((d, i) => { if (!d) q.push(i); });
+    while (q.length) { const i = q.shift(); order.push(i); for (const s of succ[i]) if (--indeg[s.id] === 0) q.push(s.id); }
+    if (order.length < n) { errors.push("в связях есть замкнутый круг: работа ждёт сама себя через другие"); return { errors, bad: true }; }
+    for (const i of order) { const t = T[i]; t.es = Math.max(0, ...t.preds.map(p => T[p.id].ef + p.lag)); t.ef = t.es + t.dur; }
+    const end = Math.max(0, ...T.map(t => t.ef));
+    for (const i of order.slice().reverse()) { const t = T[i]; t.lf = Math.min(end, ...succ[i].map(s => T[s.id].ls - s.lag)); t.ls = t.lf - t.dur; t.fl = t.ls - t.es; t.crit = t.fl === 0; }
+    return { errors, end, succ };
+  }
+
+  /* ---------- рисование ---------- */
+  const G = { name: 270, head: 46, row: 30, hist: 110, gap: 26 };
+  let geo = null;
+  function render() {
+    const R = cpm(), T = S.tasks, svg = $("gantt");
+    svg.replaceChildren();
+    if (R.bad) {
+      showMsg("bad", [`<p><b>График не построить:</b> ${R.errors.join("; ")}.</p>`]);
+      for (const k of ["kEnd", "kWd", "kCd", "kCrit", "kPeak", "kMan"]) $(k).textContent = "—";
+      S.tasks.forEach(t => { t.es = undefined; t.crit = false; });
+      updateRows(); return;
+    }
+    buildCalendar(R.end + 400);
+    const startD = S.start, endD = R.end > 0 ? WD[R.end - 1] : startD;
+    const spanDays = Math.round((endD - startD) / DAY) + 1;
+    const ppd = S.zoom, W = G.name + (spanDays + 10) * ppd + 20;
+    const ganttH = G.head + T.length * G.row + 8, H = ganttH + G.gap + G.hist + 30;
+    svg.setAttribute("width", W); svg.setAttribute("height", H); svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    const x = d => G.name + Math.round((d - startD) / DAY) * ppd;
+    const rowY = i => G.head + i * G.row;
+
+    // фон: выходные, праздники, месяцы
+    const days = spanDays + 10;
+    for (let k = 0; k < days; k++) {
+      const d = addDays(startD, k), xx = G.name + k * ppd;
+      if (isHoliday(d)) el("rect", { x: xx, y: G.head - 16, width: ppd, height: ganttH - G.head + 16, class: "g-hol" }, svg);
+      else if (isWeekend(d)) el("rect", { x: xx, y: G.head - 16, width: ppd, height: ganttH - G.head + 16, class: "g-weekend" }, svg);
+      if (d.getUTCDate() === 1 || k === 0) {
+        el("line", { x1: xx, x2: xx, y1: 0, y2: H, class: "g-month" }, svg);
+        const label = mName.format(d);
+        if (ppd * 20 > label.length * 7 || d.getUTCDate() === 1) el("text", { x: xx + 4, y: 16, class: "g-head" }, svg, ppd >= 3 ? label : "");
+      }
+      if (ppd >= 14) el("text", { x: xx + ppd / 2, y: G.head - 4, class: "g-day", "text-anchor": "middle" }, svg, d.getUTCDate());
+      else if (ppd >= 6 && d.getUTCDay() === 1) el("text", { x: xx + 2, y: G.head - 4, class: "g-day" }, svg, d.getUTCDate());
+    }
+    for (let i = 0; i <= T.length; i++) el("line", { x1: 0, x2: W, y1: rowY(i), y2: rowY(i), class: "g-grid" }, svg);
+
+    // строки
+    const barOf = t => {
+      if (t.dur === 0) { const d = WD[t.es] || startD; return { x0: x(d), x1: x(d) }; }
+      return { x0: x(WD[t.es]), x1: x(WD[t.ef - 1]) + ppd };
+    };
+    T.forEach((t, i) => {
+      const y = rowY(i), g = el("g", { class: "g-row" }, svg), b = barOf(t);
+      // резерв
+      if (t.fl > 0 && t.dur > 0) {
+        const fx1 = x(WD[t.ef - 1 + t.fl]) + ppd;
+        el("rect", { x: b.x1, y: y + 9, width: Math.max(0, fx1 - b.x1), height: G.row - 18, class: "g-float" }, g);
+      }
+      if (t.dur === 0) {
+        el("path", { d: `M${b.x0},${y + 7} l8,8 l-8,8 l-8,-8 z`, class: "g-ms" + (t.crit ? " crit" : "") }, g);
+      } else {
+        el("rect", { x: b.x0, y: y + 6, width: Math.max(2, b.x1 - b.x0), height: G.row - 12, rx: 3, class: "g-bar" + (t.crit ? " crit" : ""), opacity: t.men === 0 ? 0.45 : 1 }, g);
+        const h = el("rect", { x: b.x1 - 6, y: y + 3, width: 12, height: G.row - 6, class: "g-handle", "data-i": i }, g);
+        h.addEventListener("pointerdown", startDrag);
+        const lab = `${t.dur} дн`;
+        el("text", { x: b.x1 + 6 + (t.fl > 0 ? 0 : 0), y: y + G.row / 2 + 4, class: "g-lab" }, g, t.men ? `${lab} · ${t.men} чел` : lab);
+      }
+      // зима
+      if (t.out && t.dur > 0) {
+        let cold = false;
+        for (let k = t.es; k < t.ef; k++) { const m = WD[k].getUTCMonth(); if (m === 11 || m <= 1) { cold = true; break; } }
+        t.cold = cold;
+        if (cold) el("text", { x: b.x0 - 14, y: y + G.row / 2 + 5, class: "g-winter", "text-anchor": "middle" }, g, "❄");
+      } else t.cold = false;
+    });
+    // связи
+    T.forEach((t, i) => t.preds.forEach(p => {
+      const a = T[p.id], ba = barOf(a), bb = barOf(t), ya = rowY(p.id) + G.row / 2, yb = rowY(i) + G.row / 2;
+      const crit = a.crit && t.crit && a.ef + p.lag === t.es;
+      const xm = Math.max(ba.x1 + 4, bb.x0 - 6);
+      el("path", { d: `M${ba.x1},${ya} H${xm} V${yb - 6 * Math.sign(yb - ya)} L${bb.x0},${yb}`, class: "g-dep" + (crit ? " crit" : ""), opacity: crit ? 0.9 : 0.45 }, svg);
+    }));
+    // колонка названий поверх прокрутки
+    const names = el("g", {}, svg);
+    el("rect", { x: 0, y: 0, width: G.name - 4, height: H, class: "g-sep" }, names);
+    el("line", { x1: G.name - 4, x2: G.name - 4, y1: 0, y2: H, class: "g-month" }, names);
+    el("text", { x: 8, y: G.head - 4, class: "g-head" }, names, "Работа");
+    T.forEach((t, i) => {
+      const nm = `${i + 1}. ${t.name}`;
+      el("text", { x: 8, y: rowY(i) + G.row / 2 + 5, class: "g-name" + (t.crit ? " crit" : "") }, names, nm.length > 34 ? nm.slice(0, 33) + "…" : nm);
+    });
+
+    // график движения рабочих
+    const hy0 = ganttH + G.gap, hy1 = hy0 + G.hist;
+    const men = []; let peak = 0, manDays = 0;
+    for (let k = 0; k < days; k++) {
+      const d = addDays(startD, k); let m = 0;
+      if (isWork(d)) {
+        const wi = WD.findIndex(w => w.getTime() === d.getTime());
+        if (wi >= 0) for (const t of T) if (wi >= t.es && wi < t.ef) m += t.men;
+      }
+      men.push(m); peak = Math.max(peak, m); manDays += m;
+    }
+    const top = Math.max(4, Math.ceil(peak / 4) * 4), hy = v => hy1 - v / top * (G.hist - 14);
+    men.forEach((m, k) => { if (m) el("rect", { x: G.name + k * ppd, y: hy(m), width: ppd, height: hy1 - hy(m), class: "g-hist" }, svg); });
+    el("line", { x1: G.name, x2: W, y1: hy1, y2: hy1, class: "g-axis" }, svg);
+    if (peak) el("line", { x1: G.name, x2: W, y1: hy(peak), y2: hy(peak), class: "g-peak" }, svg);
+    el("text", { x: 8, y: hy0 + 16, class: "g-head" }, names, "Движение рабочих, чел.");
+    for (let v = 0; v <= top; v += top / 4) el("text", { x: G.name - 10, y: hy(v) + 4, class: "g-day", "text-anchor": "end" }, names, v);
+    el("text", { x: 8, y: hy0 + 34, class: "g-lab" }, names, peak ? `пик ${peak} чел (пунктир)` : "");
+    names.parentNode.appendChild(names); // поверх
+    // повторно положим гистограмму под колонку названий — уже отрисована раньше
+
+    geo = { x, ppd, startD };
+
+    // сводка
+    const crit = T.filter(t => t.crit);
+    const cal = R.end ? spanDays : 0;
+    $("kEnd").textContent = R.end ? dLong.format(endD).replace(" г.", "") : "—";
+    $("kWd").textContent = nf.format(R.end);
+    $("kCd").textContent = nf.format(cal);
+    $("kCrit").textContent = `${crit.length} из ${T.length}`;
+    $("kPeak").textContent = `${peak} чел`;
+    $("kMan").textContent = `${nf.format(manDays)} чел-дн`;
+
+    const parts = [];
+    let level = "ok";
+    if (R.errors.length) { level = "bad"; parts.push(`<p><b>Проверьте связи:</b> ${R.errors.join("; ")}. Эти связи пока не учтены.</p>`); }
+    parts.push(`<p><b>Критический путь:</b> ${crit.map(t => `№${S.tasks.indexOf(t) + 1}`).join(" → ")}. Каждый день задержки любой из этих работ сдвигает сдачу на день. Остальные работы можно задержать на величину резерва.</p>`);
+    const cold = T.filter(t => t.cold);
+    if (cold.length) {
+      if (level === "ok") level = "warn";
+      parts.push(`<p><b>❄ Зимой на улице:</b> ${cold.map(t => `№${T.indexOf(t) + 1} ${t.name.toLowerCase()}`).join("; ")}. Бетон и кладке зимой нужен прогрев или противоморозные добавки: дороже и медленнее. Попробуйте начать раньше или сдвинуть эти работы.</p>`);
+    }
+    const idle = T.filter(t => t.fl > 15 && t.dur > 0);
+    if (idle.length) parts.push(`<p>Большой резерв у работ ${idle.map(t => `№${T.indexOf(t) + 1}`).join(", ")}: их бригады можно перебросить на критический путь и ускорить сдачу.</p>`);
+    showMsg(level, parts);
+    updateRows();
+  }
+  function showMsg(level, parts) { const m = $("msg"); m.className = "msg" + (level === "ok" ? "" : " " + level); m.innerHTML = parts.join(""); }
+
+  /* ---------- перетаскивание конца полоски ---------- */
+  let drag = null;
+  function svgX(evt) { const svg = $("gantt"), pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()).x; }
+  function startDrag(e) { e.preventDefault(); drag = { i: +e.target.dataset.i }; document.body.style.cursor = "ew-resize"; }
+  window.addEventListener("pointermove", e => {
+    if (!drag || !geo) return;
+    const t = S.tasks[drag.i];
+    const k = Math.floor((svgX(e) - G.name) / geo.ppd), d = addDays(geo.startD, k);
+    let wi = 0; while (wi < WD.length && WD[wi] <= d) wi++;
+    const dur = Math.max(1, Math.min(365, wi - t.es));
+    if (dur !== t.dur) { t.dur = dur; render(); const inp = $(`dur${drag.i}`); if (inp) inp.value = dur; }
+  });
+  window.addEventListener("pointerup", () => { if (drag) { drag = null; document.body.style.cursor = ""; } });
+
+  /* ---------- таблица ---------- */
+  const rowRefs = [];
+  function buildRows() {
+    const tb = $("rows"); tb.replaceChildren(); rowRefs.length = 0;
+    S.tasks.forEach((t, i) => {
+      const tr = document.createElement("tr");
+      const td = (cls) => { const c = document.createElement("td"); if (cls) c.className = cls; tr.appendChild(c); return c; };
+      td("num").textContent = i + 1;
+      const inp = (id, val, cls, lab, onv) => {
+        const c = td(), e = document.createElement("input"); e.type = "text"; e.id = id; e.value = val; if (cls) e.className = cls;
+        e.setAttribute("aria-label", lab); e.addEventListener("input", () => onv(e)); c.appendChild(e); return e;
+      };
+      inp(`name${i}`, t.name, "nm", `Работа ${i + 1}`, e => { t.name = e.value; render(); });
+      inp(`dur${i}`, t.dur, "n", `Дней, работа ${i + 1}`, e => {
+        const v = +e.value; if (!Number.isInteger(v) || v < 0 || v > 365) return e.setAttribute("aria-invalid", "true");
+        e.removeAttribute("aria-invalid"); t.dur = v; render();
+      }).inputMode = "numeric";
+      const pe = inp(`pred${i}`, t.pred, "p", `После каких работ, работа ${i + 1}`, e => { t.pred = e.value; render(); });
+      inp(`men${i}`, t.men, "n", `Рабочих, работа ${i + 1}`, e => {
+        const v = +e.value; if (!Number.isInteger(v) || v < 0 || v > 500) return e.setAttribute("aria-invalid", "true");
+        e.removeAttribute("aria-invalid"); t.men = v; render();
+      }).inputMode = "numeric";
+      const oc = td(), cb = document.createElement("input"); cb.type = "checkbox"; cb.id = `out${i}`; cb.checked = t.out;
+      cb.setAttribute("aria-label", `Наружная работа ${i + 1}`); cb.addEventListener("change", () => { t.out = cb.checked; render(); }); oc.appendChild(cb);
+      const s = td("ro"), f = td("ro"), fl = td("ro");
+      const dc = td(), del = document.createElement("button"); del.type = "button"; del.className = "x"; del.textContent = "×";
+      del.setAttribute("aria-label", `Удалить работу ${i + 1}`); del.disabled = S.tasks.length === 1;
+      del.addEventListener("click", () => removeTask(i)); dc.appendChild(del);
+      tb.appendChild(tr);
+      rowRefs.push({ tr, s, f, fl, pe });
+    });
+  }
+  function updateRows() {
+    S.tasks.forEach((t, i) => {
+      const r = rowRefs[i]; if (!r) return;
+      const ok = WD.length && t.es !== undefined && !Number.isNaN(t.es);
+      r.tr.className = t.crit ? "crit" : "";
+      r.pe.toggleAttribute("aria-invalid", !!t.err);
+      r.s.textContent = ok ? dShort.format(WD[t.es] || S.start) : "—";
+      r.f.textContent = ok ? (t.dur ? dShort.format(WD[t.ef - 1]) : "веха") : "—";
+      r.fl.textContent = ok ? (t.crit ? "крит." : `${t.fl} дн`) : "—";
+    });
+  }
+  function removeTask(i) {
+    S.tasks.splice(i, 1);
+    // перенумеровать связи
+    S.tasks.forEach(t => {
+      t.pred = String(t.pred).split(/[,;\s]+/).filter(Boolean).map(raw => {
+        const m = raw.match(/^(\d+)(.*)$/); if (!m) return raw;
+        const id = +m[1]; if (id === i + 1) return null; return (id > i + 1 ? id - 1 : id) + m[2];
+      }).filter(Boolean).join(",");
+    });
+    buildRows(); render();
+  }
+  $("add").addEventListener("click", () => {
+    const n = S.tasks.length;
+    S.tasks.push({ name: "Новая работа", dur: 5, pred: n ? String(n) : "", men: 2, out: false });
+    buildRows(); render();
+    $(`name${n}`).focus(); $(`name${n}`).select();
+  });
+
+  /* ---------- настройки ---------- */
+  const press = () => {
+    document.querySelectorAll("#week button").forEach(b => b.setAttribute("aria-pressed", +b.dataset.week === S.week));
+    document.querySelectorAll("#zoom button").forEach(b => b.setAttribute("aria-pressed", +b.dataset.zoom === S.zoom));
+    document.querySelectorAll("#presets button").forEach(b => b.setAttribute("aria-pressed", b.dataset.preset === S.preset));
+  };
+  $("week").addEventListener("click", e => { const w = +e.target.dataset.week; if (w) { S.week = w; press(); render(); } });
+  $("zoom").addEventListener("click", e => { const z = +e.target.dataset.zoom; if (z) { S.zoom = z; press(); render(); } });
+  $("presets").addEventListener("click", e => {
+    const p = e.target.dataset.preset; if (!p) return;
+    load(p); if (p === "house") { S.start = seasonStart(); $("start").value = iso(S.start); }
+    press(); buildRows(); render();
+  });
+  $("hol").addEventListener("change", e => { S.hol = e.target.checked; render(); });
+  $("start").value = iso(S.start);
+  $("start").addEventListener("change", e => { if (!e.target.value) return; S.start = new Date(e.target.value + "T00:00:00Z"); render(); });
+
+  press(); buildRows(); render();
+})();
+</script>
+</body>
+</html>
