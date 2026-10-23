@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;700&display=swap">
 <style>
-/* Layout: инженерный лист — слева форма исходных данных, справа разрез в масштабе и ведомость объёмов */
+/* Layout: инженерный лист — слева форма исходных данных, справа план и разрез в масштабе и ведомость объёмов */
 :root{
   --bg:#ECEEEA;        /* бетон */
   --panel:#F7F8F5;
@@ -41,6 +41,7 @@
   --warn:#FF8A80;--warn-bg:#3B1B18;--ok:#7CC48E;color-scheme:dark;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 48px}
 .wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
@@ -54,12 +55,13 @@ form{background:var(--panel);border:1px solid var(--line);padding:20px;display:f
 fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;min-width:0}
 legend{font-size:11px;text-transform:uppercase;letter-spacing:.09em;font-weight:600;color:var(--accent);padding:0;margin-bottom:10px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.stack{display:flex;flex-direction:column;gap:12px}
 label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
 label b{font-weight:500;color:var(--fg)}
-input[type=number],select{font:inherit;font-family:var(--f-mono);font-size:14px;color:var(--fg);background:var(--bg);border:1px solid var(--line);padding:8px 10px;width:100%;border-radius:0}
+input[type=number],select,textarea{font:inherit;font-family:var(--f-mono);font-size:14px;color:var(--fg);background:var(--bg);border:1px solid var(--line);padding:8px 10px;width:100%;border-radius:0}
+textarea.poly{min-height:150px;resize:vertical;line-height:1.5}
 select{font-family:var(--f-body)}
-input:focus-visible,select:focus-visible,button:focus-visible,.seg input:focus-visible+span{outline:2px solid var(--accent);outline-offset:1px}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,.seg input:focus-visible+span{outline:2px solid var(--accent);outline-offset:1px}
 .seg{display:flex;border:1px solid var(--line)}
 .seg label{flex:1;flex-direction:row;cursor:pointer;gap:0}
 .seg input{position:absolute;opacity:0;pointer-events:none}
@@ -71,6 +73,7 @@ input:focus-visible,select:focus-visible,button:focus-visible,.seg input:focus-v
 .results{display:flex;flex-direction:column;gap:20px;min-width:0}
 .alert{border-left:4px solid var(--warn);background:var(--warn-bg);color:var(--fg);padding:10px 14px;font-size:14px}
 .alert strong{color:var(--warn)}
+#alerts{display:flex;flex-direction:column;gap:8px}
 .headline{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
 .kpi{background:var(--panel);padding:14px 16px;display:flex;flex-direction:column;gap:2px}
 .kpi .k{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
@@ -81,6 +84,12 @@ input:focus-visible,select:focus-visible,button:focus-visible,.seg input:focus-v
 .sheet h2{font-family:var(--f-display);font-weight:500;font-size:15px;margin:0 0 12px;letter-spacing:.01em}
 .svgbox{overflow-x:auto}
 svg{display:block;width:100%;height:auto;min-width:520px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:10px;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:0;border-top:2px solid var(--fg)}
+.sw.dash{border-top:2px dashed var(--struct)}
+.sw.top{border-top:1px solid var(--fg);height:10px;background:var(--soil)}
+.sw.shore{border-top:4px solid var(--accent)}
 .tbl{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:14px}
 td,th{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
@@ -92,7 +101,7 @@ tr.total td{font-weight:600;border-bottom:2px solid var(--fg)}
 button{font:inherit;font-size:14px;font-weight:500;padding:9px 14px;border:1px solid var(--fg);background:var(--fg);color:var(--bg);cursor:pointer;border-radius:0}
 button.ghost{background:transparent;color:var(--fg)}
 #copyState{font-size:13px;color:var(--ok)}
-#report{width:100%;font-family:var(--f-mono);font-size:12px;min-height:120px;background:var(--bg);color:var(--fg);border:1px solid var(--line);padding:8px}
+#report{width:100%;font-family:var(--f-mono);font-size:12px;min-height:120px;margin-top:10px}
 .ref{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}
 @media (max-width:860px){.ref{grid-template-columns:minmax(0,1fr)}}
 .ref p,.ref li{font-size:14px;max-width:65ch}
@@ -109,7 +118,7 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
   <header>
     <div>
       <h1>Калькулятор котлована</h1>
-      <p class="sub">Объём выемки под жилой комплекс: откосы по СН РК 1.03-05, формула обелиска, въездная траншея, недобор, вывоз и обратная засыпка.</p>
+      <p class="sub">Объём выемки под жилой комплекс для прямоугольного или произвольного контура: откосы по СН РК 1.03-05, въездная траншея, недобор, вывоз и обратная засыпка.</p>
     </div>
     <div class="stamp">ЛИСТ 1 · ЗЕМЛЯНЫЕ РАБОТЫ<br>единицы: м, м³</div>
   </header>
@@ -118,9 +127,22 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
     <form id="f" autocomplete="off">
       <fieldset>
         <legend>Подземная часть</legend>
-        <div class="row">
+        <div class="seg" role="radiogroup" aria-label="Форма в плане">
+          <label><input type="radio" name="shape" id="shapeRect" value="rect" checked><span>Прямоугольник</span></label>
+          <label><input type="radio" name="shape" id="shapePoly" value="poly"><span>Произвольный контур</span></label>
+        </div>
+        <div class="row" id="rectBox">
           <label><b>Длина плиты A, м</b><input type="number" id="A" step="0.1" min="0" value="60"></label>
           <label><b>Ширина плиты B, м</b><input type="number" id="B" step="0.1" min="0" value="20"></label>
+        </div>
+        <div class="stack" id="polyBox" hidden>
+          <div class="seg" role="radiogroup" aria-label="Способ задания контура">
+            <label><input type="radio" name="polyFmt" id="fmtXY" value="xy" checked><span>Координаты углов</span></label>
+            <label><input type="radio" name="polyFmt" id="fmtSides" value="sides"><span>Стороны и повороты</span></label>
+          </div>
+          <label id="lblXY"><b>Контур плиты: x y, м</b><textarea class="poly" id="polyXY" spellcheck="false"></textarea></label>
+          <label id="lblSides" hidden><b>Контур плиты: длина, поворот°</b><textarea class="poly" id="polySides" spellcheck="false"></textarea></label>
+          <p class="hint" id="fmtHint"></p>
         </div>
         <div class="row">
           <label><b>Глубина H, м</b><input type="number" id="H" step="0.1" min="0" value="4"></label>
@@ -138,7 +160,7 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
         <label><b>Грунт</b>
           <select id="soil"></select>
         </label>
-        <div class="row" id="slopeBox">
+        <div class="row">
           <label><b>Откос 1 : m</b>
             <select id="mMode"><option value="table">по таблице</option><option value="manual">вручную</option></select>
           </label>
@@ -165,9 +187,9 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
           <label><b>Kр (первонач.)</b><input type="number" id="kp" step="0.01" min="1" value="1.24"></label>
           <label><b>Kор (остат.)</b><input type="number" id="kor" step="0.01" min="1" value="1.05"></label>
         </div>
-        <label class="check"><input type="checkbox" id="vuAuto" checked> Объём подземной части = A·B·H</label>
+        <label class="check"><input type="checkbox" id="vuAuto" checked> Объём подземной части = F₀·H</label>
         <label><b>Объём подземной части, м³</b><input type="number" id="vu" step="1" min="0" value="4800" disabled></label>
-        <p class="hint">Kр и Kор подставляются по грунту, их можно поправить по данным изысканий.</p>
+        <p class="hint">F₀ — площадь плиты. Kр и Kор подставляются по грунту, их можно поправить по данным изысканий.</p>
       </fieldset>
     </form>
 
@@ -182,7 +204,18 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
       </div>
 
       <div class="sheet">
-        <h2>Поперечный разрез по ширине B, масштаб соблюдён</h2>
+        <h2>План котлована, масштаб соблюдён</h2>
+        <div class="svgbox"><svg id="plan" viewBox="0 0 760 360" role="img" aria-label="План котлована"></svg></div>
+        <div class="legend">
+          <span><i class="sw dash"></i>контур плиты</span>
+          <span><i class="sw"></i>дно котлована</span>
+          <span id="lgTop"><i class="sw top"></i>откосы до бровки</span>
+          <span id="lgShore" hidden><i class="sw shore"></i>ограждение</span>
+        </div>
+      </div>
+
+      <div class="sheet" id="secSheet">
+        <h2>Поперечный разрез по ширине B</h2>
         <div class="svgbox"><svg id="sec" viewBox="0 0 760 300" role="img" aria-label="Поперечный разрез котлована"></svg></div>
       </div>
 
@@ -206,7 +239,7 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
   </div>
 
   <section class="sheet">
-    <h2>Справка: крутизна откосов без крепления</h2>
+    <h2>Справка</h2>
     <div class="ref">
       <div class="tbl"><table>
         <thead><tr><th>Грунт</th><th>до 1,5 м</th><th>1,5–3 м</th><th>3–5 м</th><th>Kр</th></tr></thead>
@@ -214,8 +247,9 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
       </table></div>
       <div>
         <ul>
-          <li>Котлован с откосами: <code>V = H/6·[(2a+a₁)·b + (2a₁+a)·b₁]</code>, где <code>a₁ = a + 2mH</code>, <code>b₁ = b + 2mH</code>.</li>
-          <li>С креплением (шпунт, сваи, «стена в грунте»): <code>V = a·b·H</code>.</li>
+          <li>Любой контур с откосами: <code>V = F·H + P·m·H²/2 + K·m²·H³/3</code>. F и P — площадь и периметр дна, <code>K = Σ tg(φ/2)</code> по углам поворота контура.</li>
+          <li>У контура только с прямыми углами (Г, П, Т, ступенчатый) K = 4: выпуклый угол даёт +1, входящий −1. Для прямоугольника формула совпадает с формулой обелиска.</li>
+          <li>С креплением (шпунт, сваи, «стена в грунте»): <code>V = F·H</code>, площадь по формуле Гаусса.</li>
           <li>Пандус: <code>V = H²/6·[3b + 2mH·(m′−m)/m′]·(m′−m)</code>.</li>
           <li>Глубже 5 м откосы назначают по расчёту устойчивости. Для Алматы и других сейсмичных районов в расчёт входит сейсмическая нагрузка.</li>
           <li>Вывоз считается за вычетом грунта, оставленного на засыпку пазух: <code>V_засыпки / Kор</code> в плотном теле.</li>
@@ -224,7 +258,7 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
     </div>
   </section>
 
-  <footer>Калькулятор даёт предварительный объём для прямоугольного котлована на ровной площадке. Для рабочей документации и смет сверяйте нормативы с действующими редакциями СП РК / СН РК, а рельеф учитывайте методом квадратов по топосъёмке.</footer>
+  <footer>Калькулятор даёт предварительный объём на ровной площадке с одной отметкой дна. Приямки, ступенчатое дно и неровный рельеф считаются отдельно. Для рабочей документации и смет сверяйте нормативы с действующими редакциями СП РК / СН РК.</footer>
 </div>
 
 <script>
@@ -236,74 +270,189 @@ const SOILS = [
   {id:"clay",  name:"Глина",                  m:[0,0.25,0.5],  kp:1.28, kor:1.07},
   {id:"loess", name:"Лёссовый",               m:[0,0.5,0.5],   kp:1.20, kor:1.04},
 ];
-const DEFAULTS = {A:60,B:20,H:4,c:0.6,wall:"slope",soil:"loam",mMode:"table",mManual:0.75,ramp:true,rb:6,rm:8,ned:0.1,truck:20,kp:1.24,kor:1.05,vuAuto:true,vu:4800};
+const DEFAULTS = {shape:"rect",A:60,B:20,H:4,c:0.6,polyFmt:"xy",
+  polyXY:"0 0\n60 0\n60 20\n20 20\n20 40\n0 40",
+  polySides:"60 90\n20 90\n40 -90\n20 90\n20 90\n40",
+  wall:"slope",soil:"loam",mMode:"table",mManual:0.75,ramp:true,rb:6,rm:8,ned:0.1,truck:20,kp:1.24,kor:1.05,vuAuto:true,vu:4800};
+const HINTS = {
+  xy:"Углы контура плиты по порядку обхода, по одному на строку: x и y в метрах через пробел или табуляцию. Можно вставить столбцы из Excel или AutoCAD.",
+  sides:"Каждая строка: длина стороны в метрах и поворот после неё в градусах (+ влево, − вправо). Обход начинается из точки 0,0 на восток."
+};
 const $ = id => document.getElementById(id);
 const nf = (x,d=1) => Number.isFinite(x) ? x.toLocaleString("ru-RU",{minimumFractionDigits:d,maximumFractionDigits:d}) : "—";
 const num = id => { const v = parseFloat($(id).value); return Number.isFinite(v) ? v : 0; };
+const radio = name => document.querySelector(`input[name="${name}"]:checked`).value;
 
 $("soil").innerHTML = SOILS.map(s=>`<option value="${s.id}">${s.name}</option>`).join("");
 $("refTb").innerHTML = SOILS.map(s=>`<tr data-s="${s.id}"><td>${s.name}</td>${s.m.map(v=>`<td class="n">1 : ${nf(v,2)}</td>`).join("")}<td class="n">${nf(s.kp,2)}</td></tr>`).join("");
 
 function band(H){ return H<=1.5?0:H<=3?1:2; }
 
+/* ---------- геометрия контура ---------- */
+const area = p => { let s=0; for(let i=0;i<p.length;i++){ const a=p[i], b=p[(i+1)%p.length]; s+=a[0]*b[1]-b[0]*a[1]; } return s/2; };
+const perim = p => p.reduce((s,a,i)=>{ const b=p[(i+1)%p.length]; return s+Math.hypot(b[0]-a[0],b[1]-a[1]); },0);
+// угол поворота контура в каждой вершине; при обходе против часовой выпуклый угол > 0
+function turns(p){
+  return p.map((b,i)=>{
+    const a=p[(i-1+p.length)%p.length], c=p[(i+1)%p.length];
+    const e1=[b[0]-a[0],b[1]-a[1]], e2=[c[0]-b[0],c[1]-b[1]];
+    return Math.atan2(e1[0]*e2[1]-e1[1]*e2[0], e1[0]*e2[0]+e1[1]*e2[1]);
+  });
+}
+// убрать повторяющиеся и лежащие на одной прямой точки, привести обход к «против часовой»
+function clean(p){
+  let q=p.filter((a,i)=>{ const b=p[(i+1)%p.length]; return Math.hypot(b[0]-a[0],b[1]-a[1])>1e-6; });
+  for(let i; q.length>3 && (i=turns(q).findIndex(t=>Math.abs(t)<1e-9))>=0; ) q.splice(i,1);
+  if(area(q)<0) q.reverse();
+  return q;
+}
+// смещение контура наружу на d с острыми (не скруглёнными) углами, как у плоских откосов
+function offset(p,d){
+  const n=p.length, N=[];
+  for(let i=0;i<n;i++){ const a=p[i], b=p[(i+1)%n], L=Math.hypot(b[0]-a[0],b[1]-a[1]); N.push([(b[1]-a[1])/L,-(b[0]-a[0])/L]); }
+  return p.map((pt,i)=>{
+    const n1=N[(i-1+n)%n], n2=N[i], k=1+n1[0]*n2[0]+n1[1]*n2[1];
+    return [pt[0]+d*(n1[0]+n2[0])/k, pt[1]+d*(n1[1]+n2[1])/k];
+  });
+}
+function segCross(p1,p2,p3,p4){
+  const d=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
+  const d1=d(p3,p4,p1), d2=d(p3,p4,p2), d3=d(p1,p2,p3), d4=d(p1,p2,p4);
+  return ((d1>0&&d2<0)||(d1<0&&d2>0)) && ((d3>0&&d4<0)||(d3<0&&d4>0));
+}
+function selfCross(p){
+  const n=p.length;
+  for(let i=0;i<n;i++) for(let j=i+2;j<n;j++){
+    if(i===0 && j===n-1) continue;
+    if(segCross(p[i],p[(i+1)%n],p[j],p[(j+1)%n])) return true;
+  }
+  return false;
+}
+// сторона «вывернулась» при смещении — откосы соседних участков перекрываются
+const flipped = (p,q) => p.some((a,i)=>{ const b=p[(i+1)%p.length], c=q[i], e=q[(i+1)%q.length]; return (b[0]-a[0])*(e[0]-c[0])+(b[1]-a[1])*(e[1]-c[1])<=0; });
+
+function nums(line){
+  line=line.trim(); if(!line) return null;
+  let t=line.split(/[\s;]+/).filter(Boolean);
+  if(t.length===1 && t[0].includes(",")) t=t[0].split(",");
+  return t.map(s=>parseFloat(s.replace(",",".")));
+}
+function parseXY(txt){
+  const pts=[], bad=[];
+  txt.split("\n").forEach((l,i)=>{ const v=nums(l); if(!v) return;
+    if(v.length<2 || !Number.isFinite(v[0]) || !Number.isFinite(v[1])) { bad.push(i+1); return; }
+    pts.push([v[0],v[1]]); });
+  return {pts,bad,gap:0};
+}
+function parseSides(txt){
+  const pts=[[0,0]], bad=[]; let h=0;
+  const r6=x=>Math.round(x*1e6)/1e6;
+  txt.split("\n").forEach((l,i)=>{ const v=nums(l); if(!v) return;
+    if(!Number.isFinite(v[0]) || v[0]<=0) { bad.push(i+1); return; }
+    const [x,y]=pts[pts.length-1];
+    pts.push([r6(x+v[0]*Math.cos(h)), r6(y+v[0]*Math.sin(h))]);
+    if(v.length>1 && Number.isFinite(v[1])) h+=v[1]*Math.PI/180; });
+  const [ex,ey]=pts[pts.length-1], gap=Math.hypot(ex,ey);
+  if(gap<1e-3) pts.pop();
+  return {pts,bad,gap};
+}
+
+function plateOutline(shape){
+  if(shape==="rect"){ const A=num("A"), B=num("B"); return {pts:[[0,0],[A,0],[A,B],[0,B]],bad:[],gap:0}; }
+  return radio("polyFmt")==="sides" ? parseSides($("polySides").value) : parseXY($("polyXY").value);
+}
+
 function calc(){
-  const A=num("A"),B=num("B"),H=num("H"),c=num("c");
-  const shore=$("wallShore").checked;
+  const shape=radio("shape");
+  const H=num("H"), c=num("c");
+  const shore=radio("wall")==="shore";
   const soil=SOILS.find(s=>s.id===$("soil").value);
   const manual=$("mMode").value==="manual";
   const mTable=soil.m[band(H)];
-  const m = shore ? 0 : (manual ? num("mManual") : mTable);
-  const mRampSide = manual ? num("mManual") : mTable;
-  const a=A+2*c, b=B+2*c;
-  const a1=a+2*m*H, b1=b+2*m*H;
-  const Vpit = shore ? a*b*H : H/6*((2*a+a1)*b + (2*a1+a)*b1);
+  const mSoil = manual ? num("mManual") : mTable;
+  const m = shore ? 0 : mSoil;
+  const r={shape,H,c,shore,soil,manual,m,mTable,mSoil,errors:[],warns:[],A:num("A"),B:num("B")};
+
+  const raw=plateOutline(shape);
+  if(raw.bad.length) r.warns.push(`<strong>Строки ${raw.bad.join(", ")} пропущены:</strong> в них нет двух чисел.`);
+  if(raw.gap>0.01) r.warns.push(`<strong>Контур не замкнулся, невязка ${nf(raw.gap,2)} м.</strong> Последняя точка соединена с первой автоматически, проверьте длины и углы.`);
+  const plate=raw.pts.length>=3 ? clean(raw.pts) : [];
+  if(plate.length<3 || Math.abs(area(plate))<1e-6){ r.errors.push("<strong>Контур не задан.</strong> Нужно минимум три угла, не лежащих на одной прямой."); return r; }
+  if(selfCross(plate)){ r.errors.push("<strong>Стороны контура пересекаются.</strong> Перечислите углы по порядку обхода, без петель."); return r; }
+  if(turns(plate).some(t=>Math.abs(t)>170*Math.PI/180)){ r.errors.push("<strong>В контуре есть разворот почти на 180°.</strong> Проверьте порядок точек или знак поворота."); return r; }
+
+  const bottom = c>0 ? offset(plate,c) : plate;
+  if(c>0 && (flipped(plate,bottom)||selfCross(bottom))) r.warns.push("<strong>Рабочее пространство не помещается во входящем углу.</strong> Контур дна получился неточным, уменьшите c или упростите контур.");
+  const F=area(bottom), P=perim(bottom), phi=turns(bottom);
+  const K=phi.reduce((s,t)=>s+Math.tan(t/2),0);
+  const top = m*H>0 ? offset(bottom,m*H) : bottom;
+  if(m*H>0 && (flipped(bottom,top)||selfCross(top))) r.warns.push("<strong>Откосы соседних участков перекрываются.</strong> Узкий выступ или близкие крылья: формула завышает объём. Считайте такой котлован по цифровой модели или с креплением.");
+
+  const Vpit = F*H + P*m*H*H/2 + K*m*m*H*H*H/3;
 
   let Vramp=0;
   const rb=num("rb"), rm=num("rm");
-  const rampOn=$("ramp").checked && rm>mRampSide;
-  if(rampOn){ Vramp = H*H/6*(3*rb + 2*mRampSide*H*(rm-mRampSide)/rm)*(rm-mRampSide); }
+  const rampOn=$("ramp").checked && rm>mSoil;
+  if(rampOn) Vramp = H*H/6*(3*rb + 2*mSoil*H*(rm-mSoil)/rm)*(rm-mSoil);
 
   const Vtot=Vpit+Vramp;
   const ned=Math.min(num("ned"),H);
-  const Vned=a*b*ned;
+  const Vned=F*ned;
   const kp=num("kp")||1, kor=num("kor")||1;
-  if($("vuAuto").checked) $("vu").value=Math.round(A*B*H);
+  const F0=area(plate);
+  if($("vuAuto").checked) $("vu").value=Math.round(F0*H);
   const Vu=Math.min(num("vu"),Vtot);
   const Vback=Math.max(Vtot-Vu,0);
   const Vkeep=Vback/kor;
   const Vexp=Math.max(Vtot-Vkeep,0)*kp;
   const trips=Math.ceil(Vexp/(num("truck")||1));
 
-  return {A,B,H,c,shore,soil,manual,m,mTable,mRampSide,a,b,a1,b1,Vpit,rampOn,rb,rm,Vramp,Vtot,ned,Vned,kp,kor,Vu,Vback,Vkeep,Vexp,trips,
-          rampRequested:$("ramp").checked};
+  Object.assign(r,{plate,bottom,top,F0,F,P,K,nConvex:phi.filter(t=>t>0).length,nReflex:phi.filter(t=>t<0).length,
+    Ftop:area(top),Vpit,rampOn,rb,rm,Vramp,Vtot,ned,Vned,kp,kor,Vu,Vback,Vkeep,Vexp,trips,rampRequested:$("ramp").checked});
+  if(shape==="rect"){ r.a=r.A+2*c; r.b=r.B+2*c; r.a1=r.a+2*m*H; r.b1=r.b+2*m*H; }
+  return r;
 }
 
 function render(){
   const r=calc();
-  // alerts
-  const al=[];
-  if(!r.shore && r.H>5) al.push("<strong>H > 5 м.</strong> Табличные откосы не применяются: крутизну назначают расчётом устойчивости или переходят на крепление. Сейчас взято значение для 3–5 м.");
-  if(r.c<0.6) al.push("<strong>Рабочее пространство меньше 0,6 м.</strong> Для пазух, где работают люди, это ниже нормы.");
-  if(r.rampRequested && !r.rampOn) al.push("<strong>Пандус не посчитан:</strong> уклон 1 : m′ должен быть положе откоса стенок (m′ > m).");
-  if(!r.shore && r.m===0 && r.H>0) al.push("<strong>Вертикальные стенки без крепления</strong> допустимы только при глубине до 1,5 м в связных грунтах и без грунтовых вод.");
+  const al=[...r.errors,...r.warns];
+  if(!r.errors.length){
+    if(!r.shore && r.H>5) al.push("<strong>H > 5 м.</strong> Табличные откосы не применяются: крутизну назначают расчётом устойчивости или переходят на крепление. Сейчас взято значение для 3–5 м.");
+    if(r.c<0.6) al.push("<strong>Рабочее пространство меньше 0,6 м.</strong> Для пазух, где работают люди, это ниже нормы.");
+    if(r.rampRequested && !r.rampOn) al.push("<strong>Пандус не посчитан:</strong> уклон 1 : m′ должен быть положе откоса стенок (m′ > m).");
+    if(!r.shore && r.m===0 && r.H>0) al.push("<strong>Вертикальные стенки без крепления</strong> допустимы только при глубине до 1,5 м в связных грунтах и без грунтовых вод.");
+  }
   $("alerts").innerHTML=al.map(t=>`<div class="alert">${t}</div>`).join("");
+  document.querySelectorAll("#refTb tr").forEach(tr=>tr.classList.toggle("cur",tr.dataset.s===r.soil.id));
+  $("secSheet").hidden = r.shape!=="rect" || !!r.errors.length;
+
+  if(r.errors.length){
+    ["kTotal","kExport","kTrips","kBack"].forEach(k=>$(k).textContent="—");
+    $("tb").innerHTML=""; $("plan").innerHTML=""; $("report").value="";
+    save(); return;
+  }
 
   $("kTotal").innerHTML=`${nf(r.Vtot,0)} <small>м³</small>`;
   $("kExport").innerHTML=`${nf(r.Vexp,0)} <small>м³</small>`;
   $("kTrips").textContent=Number.isFinite(r.trips)?r.trips.toLocaleString("ru-RU"):"—";
   $("kBack").innerHTML=`${nf(r.Vback,0)} <small>м³</small>`;
 
+  const rect=r.shape==="rect";
   const rows=[
-    ["Размеры дна a × b","A+2c × B+2c",`${nf(r.a,2)} × ${nf(r.b,2)} м`],
+    ["Площадь плиты F₀", rect?"A·B":"по координатам (Гаусс)", `${nf(r.F0,1)} м²`],
+    ...(rect?[["Размеры дна a × b","A+2c × B+2c",`${nf(r.a,2)} × ${nf(r.b,2)} м`]]:[]),
+    ["Площадь дна F", r.c>0?"контур плиты + c":"по контуру плиты", `${nf(r.F,1)} м²`],
+    ["Периметр дна P","",`${nf(r.P,2)} м`],
+    ["Поправка на углы K",`Σ tg(φ/2): углов ${r.nConvex} выпукл., ${r.nReflex} вход.`,nf(r.K,3)],
     ["Откос стенок", r.shore?"крепление":(r.manual?"задан вручную":`таблица, ${r.soil.name.toLowerCase()}`), r.shore?"вертикально":`1 : ${nf(r.m,2)}`],
-    ["Размеры верха a₁ × b₁","a+2mH × b+2mH",`${nf(r.a1,2)} × ${nf(r.b1,2)} м`],
-    ["Площадь по верху","a₁·b₁",`${nf(r.a1*r.b1,1)} м²`],
-    ["Объём котлована", r.shore?"a·b·H":"H/6·[(2a+a₁)b+(2a₁+a)b₁]",`${nf(r.Vpit,1)} м³`],
+    ...(rect?[["Размеры верха a₁ × b₁","a+2mH × b+2mH",`${nf(r.a1,2)} × ${nf(r.b1,2)} м`]]:[]),
+    ["Площадь по верху", r.shore?"равна дну":"контур дна + m·H", `${nf(r.Ftop,1)} м²`],
+    ["Объём котлована", r.shore?"F·H":"F·H + P·m·H²/2 + K·m²·H³/3",`${nf(r.Vpit,1)} м³`],
     ["Въездная траншея", r.rampOn?`b=${nf(r.rb,1)}, 1:${nf(r.rm,1)}`:"не учитывается",`${nf(r.Vramp,1)} м³`],
     ["Всего выемка (плотное тело)","",`${nf(r.Vtot,1)} м³`,"total"],
-    ["  в т.ч. недобор, вручную","a·b·t",`${nf(r.Vned,1)} м³`],
+    ["  в т.ч. недобор, вручную","F·t",`${nf(r.Vned,1)} м³`],
     ["  в т.ч. экскаватором","V − V_нед",`${nf(r.Vtot-r.Vned,1)} м³`],
-    ["Подземная часть здания", $("vuAuto").checked?"A·B·H":"задано",`${nf(r.Vu,1)} м³`],
+    ["Подземная часть здания", $("vuAuto").checked?"F₀·H":"задано",`${nf(r.Vu,1)} м³`],
     ["Обратная засыпка пазух","V − V_подз",`${nf(r.Vback,1)} м³`],
     ["Оставить грунта на засыпку","V_засыпки / Kор",`${nf(r.Vkeep,1)} м³`],
     ["То же в отвале (рыхлый)","× Kр",`${nf(r.Vkeep*r.kp,1)} м³`],
@@ -312,75 +461,115 @@ function render(){
   ];
   $("tb").innerHTML=rows.map(([n,f,v,cls])=>`<tr class="${cls||""}"><td>${n}</td><td class="f">${f}</td><td class="n">${v}</td></tr>`).join("");
 
-  document.querySelectorAll("#refTb tr").forEach(tr=>tr.classList.toggle("cur",tr.dataset.s===r.soil.id));
-  drawSection(r);
+  drawPlan(r);
+  if(rect) drawSection(r);
   $("report").value=reportText(rows,r);
   save();
+}
+
+const txt=(x,y,s,anchor="middle",fill="var(--fg)")=>`<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="${anchor}" font-family="JetBrains Mono, monospace" font-size="12" fill="${fill}">${s}</text>`;
+const HATCH=`<defs><pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="var(--soil)"/><line x1="0" y1="0" x2="0" y2="8" stroke="var(--soil-hatch)" stroke-width="1.4"/></pattern></defs>`;
+
+function drawPlan(r){
+  const W=760, pad=40, scaleH=30;
+  const all=[...r.top,...r.bottom,...r.plate];
+  const xs=all.map(p=>p[0]), ys=all.map(p=>p[1]);
+  const minX=Math.min(...xs), maxX=Math.max(...xs), minY=Math.min(...ys), maxY=Math.max(...ys);
+  const spanX=Math.max(maxX-minX,1e-3), spanY=Math.max(maxY-minY,1e-3);
+  const s=Math.min((W-2*pad)/spanX, 420/spanY);
+  const Hh=Math.max(spanY*s+2*pad+scaleH, 200);
+  const ox=(W-spanX*s)/2;
+  const P=([x,y])=>[ox+(x-minX)*s, pad+(maxY-y)*s];
+  const pts=p=>p.map(P).map(q=>q[0].toFixed(1)+","+q[1].toFixed(1)).join(" ");
+  const out=[HATCH];
+  if(!r.shore && r.m*r.H>0){
+    out.push(`<polygon points="${pts(r.top)}" fill="url(#hatch)" stroke="var(--fg)" stroke-width="1"/>`);
+    r.bottom.forEach((b,i)=>{ const [x1,y1]=P(b), [x2,y2]=P(r.top[i]); out.push(`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="var(--soil-hatch)" stroke-width="1"/>`); });
+  }
+  out.push(`<polygon points="${pts(r.bottom)}" fill="var(--panel)" stroke="${r.shore?"var(--accent)":"var(--fg)"}" stroke-width="${r.shore?4:2}" stroke-linejoin="miter"/>`);
+  out.push(`<polygon points="${pts(r.plate)}" fill="none" stroke="var(--struct)" stroke-width="1.5" stroke-dasharray="6 4"/>`);
+  // длины сторон плиты, подписаны внутри контура
+  const n=r.plate.length;
+  r.plate.forEach((a,i)=>{
+    const b=r.plate[(i+1)%n], L=Math.hypot(b[0]-a[0],b[1]-a[1]);
+    if(L*s<46) return;
+    const inn=[-(b[1]-a[1])/L,(b[0]-a[0])/L], k=14/s;
+    const [x,y]=P([(a[0]+b[0])/2+inn[0]*k,(a[1]+b[1])/2+inn[1]*k]);
+    out.push(txt(x,y+4,nf(L,L%1?2:0),"middle","var(--muted)"));
+  });
+  // масштабная линейка
+  const nice=[1,2,5,10,20,25,50,100,200,500].filter(v=>v*s<=Math.min(220,(W-2*pad)/2)).pop()||1;
+  const sy=Hh-14, sx=pad;
+  out.push(`<line x1="${sx}" y1="${sy}" x2="${(sx+nice*s).toFixed(1)}" y2="${sy}" stroke="var(--fg)" stroke-width="2"/>`);
+  [sx,sx+nice*s].forEach(x=>out.push(`<line x1="${x.toFixed(1)}" y1="${sy-5}" x2="${x.toFixed(1)}" y2="${sy+5}" stroke="var(--fg)" stroke-width="1.5"/>`));
+  out.push(txt(sx+nice*s+8,sy+4,`${nice} м`,"start"));
+  $("plan").setAttribute("viewBox",`0 0 ${W} ${Math.round(Hh)}`);
+  $("plan").innerHTML=out.join("");
+  $("lgTop").hidden = r.shore || r.m*r.H<=0;
+  $("lgShore").hidden = !r.shore;
 }
 
 function drawSection(r){
   const W=760,Hh=300,padX=40,top=60,bot=40;
   const span=Math.max(r.b1, r.b)+ (r.shore?2:0);
-  const sx=(W-2*padX)/span, sy=(Hh-top-bot)/Math.max(r.H,0.1);
-  const s=Math.min(sx,sy);
+  const s=Math.min((W-2*padX)/span,(Hh-top-bot)/Math.max(r.H,0.1));
   const cx=W/2, gy=top, dy=gy+r.H*s;
   const X=v=>cx+v*s;
   const hb=r.b/2, ht=r.b1/2, hB=r.B/2;
-  const pit=`${X(-ht)},${gy} ${X(ht)},${gy} ${X(hb)},${dy} ${X(-hb)},${dy}`;
   const nedY=dy-Math.min(r.ned,r.H)*s;
   const groundH=Math.min(Hh-gy-8, r.H*s+28);
-  const parts=[];
-  parts.push(`<defs><pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="var(--soil)"/><line x1="0" y1="0" x2="0" y2="8" stroke="var(--soil-hatch)" stroke-width="1.4"/></pattern></defs>`);
-  parts.push(`<rect x="0" y="${gy}" width="${W}" height="${groundH}" fill="url(#hatch)"/>`);
-  parts.push(`<polygon points="${pit}" fill="var(--panel)"/>`);
-  if(r.ned>0) parts.push(`<rect x="${X(-hb)}" y="${nedY}" width="${r.b*s}" height="${dy-nedY}" fill="var(--accent-soft)"/>`);
-  parts.push(`<rect x="${X(-hB)}" y="${gy}" width="${r.B*s}" height="${r.H*s}" fill="none" stroke="var(--struct)" stroke-width="1.5" stroke-dasharray="6 4"/>`);
-  parts.push(`<line x1="0" y1="${gy}" x2="${W}" y2="${gy}" stroke="var(--fg)" stroke-width="1.5"/>`);
-  parts.push(`<polyline points="${X(-ht)},${gy} ${X(-hb)},${dy} ${X(hb)},${dy} ${X(ht)},${gy}" fill="none" stroke="var(--fg)" stroke-width="2"/>`);
-  if(r.shore){
-    [-hb,hb].forEach(v=>parts.push(`<line x1="${X(v)}" y1="${gy-6}" x2="${X(v)}" y2="${dy+14}" stroke="var(--accent)" stroke-width="4"/>`));
-  }
-  const t=(x,y,txt,anchor="middle",cls="")=>`<text x="${x}" y="${y}" text-anchor="${anchor}" font-family="JetBrains Mono, monospace" font-size="12" fill="var(--fg)" ${cls}>${txt}</text>`;
-  // top dimension
+  const out=[HATCH];
+  out.push(`<rect x="0" y="${gy}" width="${W}" height="${groundH}" fill="url(#hatch)"/>`);
+  out.push(`<polygon points="${X(-ht)},${gy} ${X(ht)},${gy} ${X(hb)},${dy} ${X(-hb)},${dy}" fill="var(--panel)"/>`);
+  if(r.ned>0) out.push(`<rect x="${X(-hb)}" y="${nedY}" width="${r.b*s}" height="${dy-nedY}" fill="var(--accent-soft)"/>`);
+  out.push(`<rect x="${X(-hB)}" y="${gy}" width="${r.B*s}" height="${r.H*s}" fill="none" stroke="var(--struct)" stroke-width="1.5" stroke-dasharray="6 4"/>`);
+  out.push(`<line x1="0" y1="${gy}" x2="${W}" y2="${gy}" stroke="var(--fg)" stroke-width="1.5"/>`);
+  out.push(`<polyline points="${X(-ht)},${gy} ${X(-hb)},${dy} ${X(hb)},${dy} ${X(ht)},${gy}" fill="none" stroke="var(--fg)" stroke-width="2"/>`);
+  if(r.shore) [-hb,hb].forEach(v=>out.push(`<line x1="${X(v)}" y1="${gy-6}" x2="${X(v)}" y2="${dy+14}" stroke="var(--accent)" stroke-width="4"/>`));
   const dimY=gy-22;
-  parts.push(`<line x1="${X(-ht)}" y1="${dimY}" x2="${X(ht)}" y2="${dimY}" stroke="var(--muted)" stroke-width="1"/>`);
-  [-ht,ht].forEach(v=>parts.push(`<line x1="${X(v)}" y1="${dimY-5}" x2="${X(v)}" y2="${gy}" stroke="var(--muted)" stroke-width="1"/>`));
-  parts.push(t(cx,dimY-6,`b₁ = ${nf(r.b1,2)} м`));
-  // bottom dimension
+  out.push(`<line x1="${X(-ht)}" y1="${dimY}" x2="${X(ht)}" y2="${dimY}" stroke="var(--muted)" stroke-width="1"/>`);
+  [-ht,ht].forEach(v=>out.push(`<line x1="${X(v)}" y1="${dimY-5}" x2="${X(v)}" y2="${gy}" stroke="var(--muted)" stroke-width="1"/>`));
+  out.push(txt(cx,dimY-6,`b₁ = ${nf(r.b1,2)} м`));
   const bdY=Math.min(dy+22,Hh-6);
-  parts.push(`<line x1="${X(-hb)}" y1="${bdY}" x2="${X(hb)}" y2="${bdY}" stroke="var(--muted)" stroke-width="1"/>`);
-  parts.push(t(cx,bdY-5,`b = ${nf(r.b,2)} м`));
-  // depth
+  out.push(`<line x1="${X(-hb)}" y1="${bdY}" x2="${X(hb)}" y2="${bdY}" stroke="var(--muted)" stroke-width="1"/>`);
+  out.push(txt(cx,bdY-5,`b = ${nf(r.b,2)} м`));
   const hx=X(ht)+18;
-  parts.push(`<line x1="${hx}" y1="${gy}" x2="${hx}" y2="${dy}" stroke="var(--muted)" stroke-width="1"/>`);
-  parts.push(t(hx+6,(gy+dy)/2+4,`H = ${nf(r.H,2)} м`,"start"));
-  if(!r.shore && r.m>0) parts.push(t(X(-(hb+ht)/2)-8,(gy+dy)/2,`1:${nf(r.m,2)}`,"end"));
-  parts.push(`<text x="${cx}" y="${gy+16}" text-anchor="middle" font-family="Golos Text, sans-serif" font-size="12" fill="var(--muted)">контур подземной части B = ${nf(r.B,2)} м</text>`);
-  $("sec").innerHTML=parts.join("");
+  out.push(`<line x1="${hx}" y1="${gy}" x2="${hx}" y2="${dy}" stroke="var(--muted)" stroke-width="1"/>`);
+  out.push(txt(hx+6,(gy+dy)/2+4,`H = ${nf(r.H,2)} м`,"start"));
+  if(!r.shore && r.m>0) out.push(txt(X(-(hb+ht)/2)-8,(gy+dy)/2,`1:${nf(r.m,2)}`,"end"));
+  out.push(`<text x="${cx}" y="${gy+16}" text-anchor="middle" font-family="Golos Text, sans-serif" font-size="12" fill="var(--muted)">контур подземной части B = ${nf(r.B,2)} м</text>`);
+  $("sec").innerHTML=out.join("");
 }
 
 function reportText(rows,r){
-  const head=`Расчёт объёма котлована\nПлита ${nf(r.A,2)} × ${nf(r.B,2)} м, глубина ${nf(r.H,2)} м, грунт: ${r.soil.name.toLowerCase()}, ${r.shore?"с креплением":"откосы 1:"+nf(r.m,2)}\n`;
+  const form = r.shape==="rect" ? `Плита ${nf(r.A,2)} × ${nf(r.B,2)} м` : `Контур плиты ${r.plate.length} углов, F₀ = ${nf(r.F0,1)} м²`;
+  const head=`Расчёт объёма котлована\n${form}, глубина ${nf(r.H,2)} м, грунт: ${r.soil.name.toLowerCase()}, ${r.shore?"с креплением":"откосы 1:"+nf(r.m,2)}\n`;
   return head+rows.map(([n,f,v])=>`${n.trim()}${f?" ("+f+")":""}: ${v}`).join("\n");
 }
 
-const FIELDS=["A","B","H","c","soil","mMode","mManual","rb","rm","ned","truck","kp","kor","vu"];
+/* ---------- состояние формы ---------- */
+const FIELDS=["A","B","H","c","polyXY","polySides","soil","mMode","mManual","rb","rm","ned","truck","kp","kor","vu"];
 const CHECKS=["ramp","vuAuto"];
+const RADIOS=["shape","polyFmt","wall"];
+const KEY="kotlovan-v2";
 function save(){
   try{
-    const o={wall:$("wallShore").checked?"shore":"slope"};
-    FIELDS.forEach(k=>o[k]=$(k).value); CHECKS.forEach(k=>o[k]=$(k).checked);
-    localStorage.setItem("kotlovan-v1",JSON.stringify(o));
+    const o={};
+    FIELDS.forEach(k=>o[k]=$(k).value); CHECKS.forEach(k=>o[k]=$(k).checked); RADIOS.forEach(k=>o[k]=radio(k));
+    localStorage.setItem(KEY,JSON.stringify(o));
   }catch(e){}
 }
 function apply(o){
   FIELDS.forEach(k=>{ if(o[k]!==undefined) $(k).value=o[k]; });
   CHECKS.forEach(k=>{ if(o[k]!==undefined) $(k).checked=!!o[k]; });
-  (o.wall==="shore"?$("wallShore"):$("wallSlope")).checked=true;
-  syncDisabled();
+  RADIOS.forEach(k=>{ const el=document.querySelector(`input[name="${k}"][value="${o[k]}"]`); if(el) el.checked=true; });
+  syncForm();
 }
-function syncDisabled(){
-  const shore=$("wallShore").checked;
+function syncForm(){
+  const shore=radio("wall")==="shore", poly=radio("shape")==="poly", fmt=radio("polyFmt");
+  $("rectBox").hidden=poly; $("polyBox").hidden=!poly;
+  $("lblXY").hidden=fmt!=="xy"; $("lblSides").hidden=fmt!=="sides";
+  $("fmtHint").textContent=HINTS[fmt];
   $("mMode").disabled=shore;
   $("mManual").disabled=shore||$("mMode").value!=="manual";
   $("vu").disabled=$("vuAuto").checked;
@@ -389,21 +578,20 @@ function syncDisabled(){
 
 $("f").addEventListener("input",e=>{
   if(e.target.id==="soil"){ const s=SOILS.find(x=>x.id===e.target.value); $("kp").value=s.kp; $("kor").value=s.kor; }
-  syncDisabled(); render();
+  syncForm(); render();
 });
-$("f").addEventListener("change",()=>{ syncDisabled(); render(); });
+$("f").addEventListener("change",()=>{ syncForm(); render(); });
 $("f").addEventListener("submit",e=>e.preventDefault());
 $("reset").addEventListener("click",()=>{ apply(DEFAULTS); render(); $("copyState").textContent=""; });
 $("copy").addEventListener("click",()=>{
-  const txt=$("report").value;
   const done=()=>{ $("copyState").textContent="Отчёт скопирован"; };
   const fallback=()=>{ const ta=$("report"); ta.hidden=false; ta.focus(); ta.select(); $("copyState").textContent="Выделите текст и скопируйте вручную"; };
-  try{ navigator.clipboard.writeText(txt).then(done,fallback); }catch(e){ fallback(); }
+  try{ navigator.clipboard.writeText($("report").value).then(done,fallback); }catch(e){ fallback(); }
 });
 
 let saved=null;
-try{ saved=JSON.parse(localStorage.getItem("kotlovan-v1")||"null"); }catch(e){}
-apply(saved||DEFAULTS);
+try{ saved=JSON.parse(localStorage.getItem(KEY)||"null"); }catch(e){}
+apply({...DEFAULTS,...(saved||{})});
 render();
 </script>
 </body>
