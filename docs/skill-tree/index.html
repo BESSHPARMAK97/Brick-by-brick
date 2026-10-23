@@ -1,0 +1,1669 @@
+<title>Дерево прокачки ЖК</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: blueprint sheet. Tree of stages on the left, quest panel on the right (bottom sheet on phones). */
+:root {
+  --bg: #eaf0f6;
+  --grid: #dbe4ee;
+  --surface: #ffffff;
+  --surface-2: #f4f7fb;
+  --ink: #13233a;
+  --muted: #586a82;
+  --line: #c3cfdc;
+  --accent: #df7f00;
+  --accent-soft: #fbe9cf;
+  --accent-ink: #7a4500;
+  --done: #1d8657;
+  --done-soft: #d8f0e4;
+  --locked: #9aa8b8;
+  --shadow: 0 1px 2px rgba(19,35,58,.06), 0 8px 24px rgba(19,35,58,.08);
+  --f-display: "Unbounded", "Golos Text", system-ui, sans-serif;
+  --f-body: "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1828; --grid: #13233a; --surface: #14233a; --surface-2: #192b45;
+    --ink: #e5edf6; --muted: #93a5bc; --line: #2a3e5a;
+    --accent: #f4a32a; --accent-soft: #3a2a12; --accent-ink: #ffd08a;
+    --done: #43c08a; --done-soft: #143a2b; --locked: #4b5f7a;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1828; --grid: #13233a; --surface: #14233a; --surface-2: #192b45;
+  --ink: #e5edf6; --muted: #93a5bc; --line: #2a3e5a;
+  --accent: #f4a32a; --accent-soft: #3a2a12; --accent-ink: #ffd08a;
+  --done: #43c08a; --done-soft: #143a2b; --locked: #4b5f7a;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 15px;
+  line-height: 1.5;
+}
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; letter-spacing: -.01em; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.eyebrow { font-family: var(--f-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+.wrap {
+  max-width: 1320px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px;
+}
+
+/* Header / HUD */
+.hud {
+  display: grid; grid-template-columns: 1fr auto; gap: 16px 24px; align-items: end;
+  padding-block: 8px 20px; border-bottom: 1px solid var(--line); margin-bottom: 20px;
+}
+.hud h1 { font-size: clamp(22px, 3.2vw, 34px); font-weight: 700; }
+.hud p { margin: 6px 0 0; color: var(--muted); max-width: 62ch; }
+.rank { display: grid; gap: 8px; min-width: 260px; }
+.rank-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.rank-name { font-family: var(--f-display); font-weight: 700; font-size: 18px; }
+.xpbar { height: 10px; border-radius: 99px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
+.xpbar > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--done)); transition: width .4s ease; }
+.hud-meta { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.sync::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--locked); margin-right: 6px; vertical-align: 1px; }
+.sync[data-mode="shared"]::before { background: var(--done); }
+.sync[data-mode="local"]::before { background: var(--accent); }
+
+/* Main layout */
+.main { display: grid; grid-template-columns: minmax(0, 1fr) 440px; gap: 24px; align-items: start; }
+.tree-card { position: relative; min-width: 0; }
+.panel {
+  position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px);
+  max-height: calc(100vh - 24px); overflow: auto;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow);
+}
+
+/* Tree */
+.tree { position: relative; display: grid; gap: 34px; padding-block: 8px 24px; }
+.edges { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.edges path { fill: none; stroke: var(--line); stroke-width: 2; }
+.edges path.open { stroke: var(--accent); stroke-dasharray: 6 6; }
+.edges path.done { stroke: var(--done); stroke-width: 2.5; }
+.tier { position: relative; display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: center; gap: 8px; }
+.tier-label { display: grid; gap: 2px; }
+.tier-label b { font-family: var(--f-mono); font-size: 12px; color: var(--ink); font-weight: 500; }
+.tier-label span { font-size: 11px; color: var(--muted); line-height: 1.25; }
+.tier-nodes { display: flex; justify-content: center; gap: clamp(16px, 6vw, 72px); flex-wrap: wrap; }
+
+.node {
+  position: relative; z-index: 1; display: grid; justify-items: center; gap: 8px;
+  width: 132px; padding: 0; background: none; border: 0; cursor: pointer; text-align: center;
+}
+.hex {
+  --p: 0; width: 64px; height: 72px; display: grid; place-items: center;
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  background: conic-gradient(var(--ring, var(--accent)) calc(var(--p) * 1%), var(--line) 0);
+  transition: transform .15s ease;
+}
+.hex-in {
+  width: 56px; height: 64px; display: grid; place-items: center;
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  background: var(--surface); font-family: var(--f-display); font-weight: 700; font-size: 17px; color: var(--ink);
+}
+.node-name { font-size: 13px; line-height: 1.25; font-weight: 500; text-wrap: balance; }
+.node-sub { font-family: var(--f-mono); font-size: 10.5px; color: var(--muted); margin-top: -4px; }
+.node:hover .hex { transform: translateY(-2px); }
+.node[data-state="locked"] .hex-in { background: var(--surface-2); color: var(--locked); }
+.node[data-state="locked"] .node-name { color: var(--muted); }
+.node[data-state="open"] .hex { background: var(--accent); }
+.node[data-state="open"] .hex-in { background: var(--accent-soft); color: var(--accent-ink); }
+.node[data-state="active"] .hex-in { background: var(--accent-soft); color: var(--accent-ink); }
+.node[data-state="done"] .hex { --ring: var(--done); background: var(--done); }
+.node[data-state="done"] .hex-in { background: var(--done); color: var(--surface); }
+.node[aria-current="true"] .node-name { text-decoration: underline; text-decoration-color: var(--accent); text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.node[aria-current="true"] .hex { transform: scale(1.08); }
+@media (prefers-reduced-motion: no-preference) {
+  .node[data-state="open"] .hex { animation: pulse 2.2s ease-in-out infinite; }
+  @keyframes pulse { 50% { filter: drop-shadow(0 0 8px var(--accent)); } }
+}
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+/* Panel */
+.panel-inner { padding: 20px; display: grid; gap: 18px; }
+.panel-head { display: grid; gap: 6px; }
+.panel-head h2 { font-size: 21px; font-weight: 700; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 99px;
+  font-size: 12px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink);
+}
+button.chip { cursor: pointer; }
+.chip[data-state="done"] { background: var(--done-soft); border-color: transparent; color: var(--done); }
+.chip[data-state="open"], .chip[data-state="active"] { background: var(--accent-soft); border-color: transparent; color: var(--accent-ink); }
+.chip[data-state="locked"] { color: var(--muted); }
+.status { font-family: var(--f-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+.desc { margin: 0; color: var(--ink); }
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; margin: 0; }
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; min-width: 0; }
+.section-title { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.section-title h3 { font-size: 13px; font-weight: 500; letter-spacing: .02em; }
+
+.gate {
+  border-radius: 10px; padding: 10px 12px; font-size: 13px; display: grid; gap: 2px;
+  background: var(--surface-2); border: 1px dashed var(--line);
+}
+.gate[data-state="done"] { background: var(--done-soft); border: 1px solid transparent; color: var(--done); }
+.gate[data-state="locked"] { color: var(--muted); }
+.gate b { font-weight: 600; }
+
+.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.task label {
+  display: grid; grid-template-columns: 20px 1fr; gap: 10px; align-items: start;
+  padding: 8px; border-radius: 8px; cursor: pointer;
+}
+.task label:hover { background: var(--surface-2); }
+.task input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--done); cursor: pointer; }
+.task input:disabled, .task input:disabled + span { cursor: not-allowed; }
+.task input:disabled + span { color: var(--muted); }
+.task input:checked + span { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line); }
+
+.docs { display: grid; gap: 8px; }
+.doc {
+  display: grid; grid-template-columns: 34px 1fr auto; gap: 10px; align-items: center;
+  padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2);
+}
+.doc-ext {
+  width: 34px; height: 40px; border-radius: 4px 10px 4px 4px; display: grid; place-items: center;
+  font-family: var(--f-mono); font-size: 9.5px; text-transform: uppercase; background: var(--surface); border: 1px solid var(--line); color: var(--muted);
+}
+.doc-title { font-size: 13px; font-weight: 500; line-height: 1.3; min-width: 0; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 7px 12px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+}
+.btn:hover { border-color: var(--ink); }
+.btn.primary { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.btn.primary:hover { opacity: .9; }
+.btn.ghost { background: none; border-color: transparent; color: var(--muted); }
+.btn.ghost:hover { color: var(--ink); border-color: var(--line); }
+.tip { font-size: 13px; padding: 10px 12px; border-left: 3px solid var(--accent); background: var(--surface-2); border-radius: 0 8px 8px 0; }
+.tip b { font-family: var(--f-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--accent-ink); display: block; margin-bottom: 2px; }
+.panel-close { display: none; }
+.foot { margin-top: 28px; font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: space-between; align-items: center; }
+.reset-confirm { display: inline-flex; gap: 6px; align-items: center; }
+
+/* Document viewer */
+dialog.viewer {
+  width: min(820px, calc(100vw - 32px)); max-height: calc(100vh - 48px); padding: 0;
+  border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); box-shadow: var(--shadow);
+}
+dialog.viewer::backdrop { background: rgba(10, 20, 35, .55); }
+.viewer-head { display: flex; gap: 12px; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.viewer-head h3 { font-size: 15px; min-width: 0; }
+.viewer-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.viewer-body { padding: 18px; overflow: auto; max-height: calc(100vh - 160px); }
+.viewer-body pre {
+  margin: 0; white-space: pre-wrap; word-break: break-word; font-family: var(--f-mono); font-size: 12.5px; line-height: 1.6;
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 16px;
+}
+.viewer-note { font-size: 12px; color: var(--muted); margin: 0 0 10px; }
+.toast {
+  position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  background: var(--ink); color: var(--surface); padding: 8px 14px; border-radius: 8px; font-size: 13px; z-index: 50;
+}
+
+@media (max-width: 980px) {
+  .main { grid-template-columns: minmax(0, 1fr); }
+  .panel {
+    position: fixed; inset: auto 0 0 0; top: auto; max-height: 86vh; border-radius: 16px 16px 0 0; z-index: 30;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px);
+  }
+  .panel[data-open="false"] { display: none; }
+  .panel-close { display: inline-flex; position: sticky; top: 0; float: right; margin: 10px 10px 0 0; z-index: 2; }
+}
+@media (max-width: 560px) {
+  .hud { grid-template-columns: 1fr; }
+  .rank { min-width: 0; }
+  .tier { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .tier-label { grid-auto-flow: column; justify-self: center; gap: 8px; align-items: baseline; position: relative; z-index: 1; background: var(--bg); padding: 0 6px; }
+  .node { width: 124px; }
+}
+</style>
+
+<div class="wrap">
+  <header class="hud">
+    <div>
+      <div class="eyebrow">Девелопмент · Республика Казахстан</div>
+      <h1>Дерево прокачки ЖК</h1>
+      <p>Этапы строительства жилого комплекса от идеи до ключей. Этап открывается, когда закрыты все условия перехода на предыдущих. Внутри каждого этапа есть образцы документов.</p>
+    </div>
+    <div class="rank" aria-live="polite">
+      <div class="rank-row"><span class="eyebrow">Ранг</span><span class="mono" id="xp">0 XP</span></div>
+      <div class="rank-row"><span class="rank-name" id="rank">Стажёр</span><span class="mono" id="stages">0 / 20 этапов</span></div>
+      <div class="xpbar" role="progressbar" aria-label="Общий прогресс" aria-valuemin="0" aria-valuemax="100" id="xpbar"><i></i></div>
+      <div class="hud-meta"><span class="sync" id="sync" data-mode="pending">Подключение к хранилищу…</span></div>
+    </div>
+  </header>
+
+  <div class="main">
+    <section class="tree-card" aria-label="Дерево этапов">
+      <div class="legend">
+        <span><i style="background:var(--done)"></i>Пройден</span>
+        <span><i style="background:var(--accent)"></i>Доступен</span>
+        <span><i style="background:var(--line)"></i>Закрыт</span>
+      </div>
+      <div class="tree" id="tree"><svg class="edges" id="edges" aria-hidden="true"></svg></div>
+      <div class="foot">
+        <span>Образцы документов приведены для ознакомления. Перед использованием сверьте их с действующим законодательством РК и юристом.</span>
+        <span id="reset-zone"><button class="btn ghost" id="reset">Сбросить прогресс</button></span>
+      </div>
+    </section>
+
+    <aside class="panel" id="panel" data-open="false" aria-label="Этап">
+      <button class="btn panel-close" id="panel-close" aria-label="Закрыть">Закрыть</button>
+      <div class="panel-inner" id="panel-inner"></div>
+    </aside>
+  </div>
+</div>
+
+<dialog class="viewer" id="viewer" aria-labelledby="viewer-title">
+  <div class="viewer-head">
+    <h3 id="viewer-title"></h3>
+    <div class="viewer-actions">
+      <button class="btn" id="v-copy">Копировать</button>
+      <button class="btn primary" id="v-dl">Скачать</button>
+      <button class="btn ghost" id="v-close">Закрыть</button>
+    </div>
+  </div>
+  <div class="viewer-body">
+    <p class="viewer-note">Поля в квадратных скобках [ ] заполните своими данными.</p>
+    <pre id="viewer-text"></pre>
+  </div>
+</dialog>
+<div class="toast" id="toast" hidden></div>
+
+<script id="tree-data">
+window.TREE = {
+nodes: [
+{ id: "idea", lvl: 1, phase: "Идея", code: "01", name: "Анализ и концепция", dur: "1–3 мес.", req: [],
+  desc: "Изучить рынок, выбрать город и формат, собрать финансовую модель и принять решение «входим / не входим».",
+  tasks: [
+    "Проведён анализ рынка: цены за м², темп продаж, конкуренты в радиусе 2–3 км",
+    "Определён класс жилья (эконом / комфорт / бизнес / премиум) и целевой покупатель",
+    "Составлена квартирография и концепция (паркинг, коммерция, двор, инфраструктура)",
+    "Собрана финмодель: выручка, себестоимость, налоги, NPV, IRR, пиковый долг",
+    "Маржа к себестоимости не ниже целевой (ориентир 20–30%), проверена чувствительность к цене и стоимости СМР",
+    "Определены источники финансирования и доля собственного капитала",
+    "Инвестиционный меморандум утверждён учредителями (решение go)"
+  ],
+  docs: ["memo", "finmodel"],
+  tip: "Сравнивайте не только цену за м², но и скорость продаж конкурентов. Медленные продажи убивают проект быстрее, чем низкая цена." },
+
+{ id: "land", lvl: 2, phase: "Земля", code: "02", name: "Земельный участок", dur: "1–4 мес.", req: ["idea"],
+  desc: "Найти участок, проверить его юридически и технически, оформить право собственности или аренды.",
+  tasks: [
+    "Целевое назначение участка допускает многоквартирное жилищное строительство (или подано на изменение)",
+    "Участок соответствует Генплану и ПДП: этажность, плотность, красные линии",
+    "Проверены обременения: аресты, залоги, сервитуты, охранные зоны ЛЭП, газа, водоохранные зоны",
+    "Получены сведения о близости и свободной мощности инженерных сетей",
+    "Проведена предварительная оценка грунтов и сейсмичности площадки",
+    "Подписан договор (купля-продажа, аренда, совместная деятельность или итог торгов МИО)",
+    "Право на землю зарегистрировано в НАО «Правительство для граждан», есть идентификационный документ"
+  ],
+  docs: ["land_spa", "land_jv"],
+  tip: "Не покупайте землю без понимания, где брать электричество и тепло. В Алматы и Астане подключение может стоить как треть участка." },
+
+{ id: "ird", lvl: 3, phase: "Разрешения", code: "03", name: "АПЗ и техусловия", dur: "1–3 мес.", req: ["land"],
+  desc: "Получить архитектурно-планировочное задание и технические условия на подключение ко всем сетям.",
+  tasks: [
+    "Подана заявка на АПЗ в управление архитектуры и градостроительства (через портал e-qurylys / egov)",
+    "АПЗ получено",
+    "Получены ТУ на электроснабжение",
+    "Получены ТУ на водоснабжение и водоотведение",
+    "Получены ТУ на теплоснабжение или газоснабжение",
+    "Получены ТУ на ливневую канализацию и телеком",
+    "Пройдены экологические процедуры (скрининг или декларация о воздействии по Экологическому кодексу)",
+    "Плата за подключение и внеплощадочные сети заложена в финмодель"
+  ],
+  docs: ["apz_list", "tu_request"],
+  tip: "Подавайте заявки на ТУ в тот же день, когда зарегистрировали землю. Ожидание мощностей часто становится главным тормозом проекта." },
+
+{ id: "survey", lvl: 3, phase: "Разрешения", code: "04", name: "Инженерные изыскания", dur: "1–2 мес.", req: ["land"],
+  desc: "Провести топосъёмку и геологию, чтобы проектировщик знал, на чём и как строить.",
+  tasks: [
+    "Выбран изыскатель с лицензией на изыскательскую деятельность",
+    "Выдано техническое задание на изыскания",
+    "Выполнена топографическая съёмка М 1:500",
+    "Выполнены инженерно-геологические изыскания: скважины, лабораторные испытания, уровень грунтовых вод",
+    "Для сейсмоопасной зоны выполнено сейсмическое микрорайонирование",
+    "Технический отчёт по изысканиям принят и передан проектировщику"
+  ],
+  docs: ["survey_tz"],
+  tip: "Экономия на скважинах оборачивается перерасходом на фундаментах. Количество и глубину скважин задаёт проектировщик, а не изыскатель." },
+
+{ id: "sketch", lvl: 4, phase: "Проект", code: "05", name: "Эскизный проект", dur: "1–3 мес.", req: ["ird", "survey"],
+  desc: "Разработать объёмно-планировочное решение и фасады, согласовать эскиз с акиматом.",
+  tasks: [
+    "Выбран проектировщик с лицензией на проектную деятельность нужной категории",
+    "Утверждено задание на проектирование",
+    "Разработаны генплан, планировки, фасады, расчёт ТЭП (площади, этажность, плотность)",
+    "Квартирография в эскизе совпадает с финмоделью",
+    "Эскизный проект согласован с управлением архитектуры (и градсоветом, если требуется)",
+    "Финмодель обновлена по фактическим ТЭП эскиза"
+  ],
+  docs: ["design_task"],
+  tip: "Задание на проектирование — главный документ заказчика. Всё, чего нет в задании, проектировщик сделает на своё усмотрение." },
+
+{ id: "finance", lvl: 5, phase: "Финансы", code: "06", name: "Финансирование", dur: "2–6 мес.", req: ["sketch"],
+  desc: "Собрать структуру денег: собственный капитал, банк, КЖК, средства дольщиков.",
+  tasks: [
+    "Создано отдельное ТОО-застройщик под проект (SPV)",
+    "Подтверждён собственный капитал (земля, ПСД, деньги), обычно 10–30% бюджета",
+    "Подготовлен и подан пакет документов в банк и (или) АО «Казахстанская жилищная компания»",
+    "Выбран способ долевого участия: гарантия КЖК, уполномоченная компания или продажи после каркаса",
+    "Получено одобрение финансирования (кредитное решение, гарантия или договор с инвестором)",
+    "Согласован график финансирования с графиком строительства"
+  ],
+  docs: ["bank_pack"],
+  tip: "Банку нужен не красивый рендер, а реалистичный график продаж и подтверждённый собственный вклад." },
+
+{ id: "psd", lvl: 5, phase: "Проект", code: "07", name: "Рабочий проект (ПСД)", dur: "3–6 мес.", req: ["sketch"],
+  desc: "Разработать полный комплект проектно-сметной документации по всем разделам.",
+  tasks: [
+    "Подписан договор на проектирование стадий П / РП",
+    "Разработаны разделы АР, КЖ / КМ, ОВ, ВК, ЭОМ, СС, пожарная безопасность, лифты",
+    "Разработаны ПОС, раздел ООС и энергоэффективность",
+    "Составлена сметная документация",
+    "Проведена внутренняя проверка проекта (нормоконтроль, сверка со сметой и финмоделью)",
+    "Комплект ПСД готов к подаче на экспертизу"
+  ],
+  docs: ["design_contract"],
+  tip: "Закажите независимую проверку конструктива до экспертизы. Это дешевле, чем переделки на стройке." },
+
+{ id: "expert", lvl: 6, phase: "Проект", code: "08", name: "Экспертиза", dur: "1–3 мес.", req: ["psd"],
+  desc: "Пройти комплексную вневедомственную экспертизу ПСД и получить положительное заключение.",
+  tasks: [
+    "Выбрана экспертная организация (РГП «Госэкспертиза» или аккредитованная частная)",
+    "Сформирован и подан полный пакет: ПСД, изыскания, АПЗ, ТУ, документ на землю",
+    "Получены замечания экспертизы",
+    "Все замечания сняты, откорректированная ПСД передана повторно",
+    "Получено положительное заключение комплексной вневедомственной экспертизы"
+  ],
+  docs: ["expert_letter"],
+  tip: "Назначьте у проектировщика одного ответственного за снятие замечаний. Срок экспертизы чаще срывается из-за медленных ответов, чем из-за самих замечаний." },
+
+{ id: "tender", lvl: 6, phase: "Стройка", code: "09", name: "Тендер и подрядчики", dur: "1–2 мес.", req: ["psd"],
+  desc: "Выбрать генподрядчика, технадзор и авторнадзор, заказать оборудование с долгой поставкой.",
+  tasks: [
+    "Подготовлена тендерная документация и критерии оценки",
+    "Получено не менее трёх предложений от подрядчиков с лицензией нужной категории",
+    "Подрядчики проверены: опыт, техника, налоговая задолженность, судебные споры",
+    "Подписан договор генподряда (цена, график, удержания, неустойки, страхование)",
+    "Подписаны договоры технического надзора и авторского надзора",
+    "Заказаны позиции с долгой поставкой: лифты, ТП, окна, фасад"
+  ],
+  docs: ["tender_invite", "gc_contract"],
+  tip: "Самая низкая цена в тендере часто означает дополнительные соглашения потом. Сравнивайте предложения по полной стоимости владения." },
+
+{ id: "dolevka", lvl: 7, phase: "Финансы", code: "10", name: "Долевое участие и продажи", dur: "весь срок стройки", req: ["expert", "finance"],
+  desc: "Законно привлечь деньги дольщиков по Закону РК «О долевом участии в жилищном строительстве» и запустить продажи.",
+  tasks: [
+    "Выполнены условия выбранного способа (гарантия КЖК, уполномоченная компания или готовый каркас)",
+    "Заключён договор с инжиниринговой компанией",
+    "Получено разрешение МИО на привлечение денег дольщиков",
+    "Открыт отдельный счёт для средств дольщиков",
+    "Утверждены форма ДДУ, прайс-лист и шахматка",
+    "Запущены отдел продаж, сайт, реклама, партнёрства с банками по ипотеке",
+    "Настроена ежемесячная отчётность дольщикам и регистрация ДДУ в информационной системе"
+  ],
+  docs: ["ddu", "owner_report"],
+  tip: "Предварительные договоры, «паи» и продажи через кооперативы в обход закона незаконны. Это прямой путь к уголовному делу." },
+
+{ id: "start", lvl: 7, phase: "Стройка", code: "11", name: "Старт СМР", dur: "2–4 нед.", req: ["expert", "tender", "finance"],
+  desc: "Уведомить ГАСК о начале работ и подготовить площадку.",
+  tasks: [
+    "Подано уведомление о начале строительно-монтажных работ через портал",
+    "Площадка огорожена, установлен паспорт объекта",
+    "Организованы бытовой городок, КПП, временное электричество и вода",
+    "Выполнена геодезическая разбивка осей",
+    "Получены разрешения на вырубку или пересадку деревьев (если требуется)",
+    "Ведётся общий журнал работ, назначены ответственные лица"
+  ],
+  docs: ["smr_notice", "tn_contract"],
+  tip: "Исполнительная документация начинается с первого дня. Восстановить её задним числом перед приёмкой почти невозможно." },
+
+{ id: "zero", lvl: 8, phase: "Стройка", code: "12", name: "Нулевой цикл", dur: "3–5 мес.", req: ["start"],
+  desc: "Котлован, фундаменты, гидроизоляция и подземная часть.",
+  tasks: [
+    "Разработан котлован, выполнено водопонижение и крепление стенок (если требуется)",
+    "Выполнены сваи или фундаментная плита, проведены испытания",
+    "Выполнена гидроизоляция подземной части",
+    "Возведены паркинг и техподполье",
+    "Подписаны акты освидетельствования скрытых работ",
+    "Выполнена обратная засыпка"
+  ],
+  docs: ["hidden_works"],
+  tip: "Нулевой цикл лучше закончить до зимы: копать мёрзлый грунт и бороться с водой в котловане дорого." },
+
+{ id: "nets", lvl: 8, phase: "Стройка", code: "13", name: "Внешние сети", dur: "6–18 мес., параллельно", req: ["start"],
+  desc: "Построить внеплощадочные сети по ТУ и подключить объект к городской инфраструктуре.",
+  tasks: [
+    "Разработан и согласован проект внеплощадочных сетей",
+    "Построены ТП / РП и кабельные линии",
+    "Построены водовод и канализационный коллектор",
+    "Построена теплотрасса или газопровод",
+    "Сети сданы эксплуатирующим организациям, подписаны акты разграничения",
+    "Заключены договоры на поставку электричества, воды, тепла или газа"
+  ],
+  docs: ["balance_act"],
+  tip: "Это риск номер один по срокам ввода. Начинайте сети одновременно с нулевым циклом, а не после каркаса." },
+
+{ id: "frame", lvl: 9, phase: "Стройка", code: "14", name: "Каркас", dur: "8–14 мес.", req: ["zero"],
+  desc: "Монолитные колонны, стены, перекрытия и лестнично-лифтовые узлы.",
+  tasks: [
+    "Каркас возведён на всю высоту по всем блокам",
+    "Прочность бетона подтверждена лабораторией",
+    "Ведётся журнал бетонных работ, при морозах фиксируются меры зимнего бетонирования",
+    "Подписаны акты скрытых работ по армированию каждой захватки",
+    "Геодезическая исполнительная съёмка каркаса выполнена",
+    "Замечания технадзора и авторнадзора по каркасу закрыты"
+  ],
+  docs: ["concrete_log"],
+  tip: "Планируйте основной объём каркаса на апрель–октябрь. На севере и в центре РК зимний прогрев бетона заметно удорожает работы." },
+
+{ id: "envelope", lvl: 10, phase: "Стройка", code: "15", name: "Контур здания", dur: "4–8 мес.", req: ["frame"],
+  desc: "Наружные стены, кровля, окна и фасад. Задача: закрыть контур до холодов.",
+  tasks: [
+    "Выполнена кладка наружных стен и перегородок",
+    "Смонтирована кровля с гидроизоляцией",
+    "Установлены окна и витражи, контур закрыт",
+    "Выполнены утепление и фасад по расчёту теплозащиты",
+    "Подписаны акты скрытых работ по утеплению и креплениям фасада",
+    "Предписания технадзора закрыты"
+  ],
+  docs: ["defect_order"],
+  tip: "Если контур закрыт до ноября, внутренние работы идут всю зиму без тепляков." },
+
+{ id: "mep", lvl: 10, phase: "Стройка", code: "16", name: "Инженерные системы", dur: "6–10 мес.", req: ["frame"],
+  desc: "Отопление, вода, канализация, вентиляция, электрика, слаботочка, пожарная безопасность, лифты.",
+  tasks: [
+    "Смонтированы отопление и ИТП, водопровод, канализация, вентиляция",
+    "Смонтированы электроснабжение и освещение МОП",
+    "Смонтированы слаботочные системы: домофон, видеонаблюдение, интернет",
+    "Смонтированы пожарная сигнализация, дымоудаление, пожарный водопровод",
+    "Смонтированы и освидетельствованы лифты",
+    "Установлены приборы учёта",
+    "Проведены индивидуальные испытания систем, подписаны акты"
+  ],
+  docs: ["test_act"],
+  tip: "Согласуйте трассы инженерии до начала отделки. Каждая штроба после чистовой отделки — это и деньги, и недовольный дольщик." },
+
+{ id: "finish", lvl: 11, phase: "Стройка", code: "17", name: "Отделка и благоустройство", dur: "4–8 мес.", req: ["envelope", "mep"],
+  desc: "Отделка МОП и квартир по концепции, дворы, дороги, площадки, озеленение.",
+  tasks: [
+    "Выполнена отделка МОП: холлы, лестницы, коридоры",
+    "Квартиры доведены до заявленного состояния (черновая, white box или чистовая)",
+    "Выполнены проезды, тротуары, парковки",
+    "Выполнены детские и спортивные площадки, озеленение, освещение двора",
+    "Обеспечена безбарьерная среда",
+    "Проведён внутренний обход и устранены замечания по ведомости"
+  ],
+  docs: ["punch_list"],
+  tip: "Холл подъезда и двор продают следующую очередь лучше любой рекламы." },
+
+{ id: "commission", lvl: 12, phase: "Финал", code: "18", name: "Ввод в эксплуатацию", dur: "1–2 мес.", req: ["finish", "nets"],
+  desc: "Пусконаладка, сбор исполнительной документации и приёмка объекта.",
+  tasks: [
+    "Проведена комплексная пусконаладка всех систем",
+    "Исполнительная документация собрана полностью",
+    "Получены заключения технадзора и авторнадзора о соответствии",
+    "Генподрядчик подписал декларацию о соответствии",
+    "Подписан и зарегистрирован акт приёмки объекта в эксплуатацию",
+    "Объекту присвоен адрес, выполнены техпаспорт и первичная регистрация"
+  ],
+  docs: ["commission_act"],
+  tip: "Начинайте собирать папки исполнительной документации по разделам за 3 месяца до приёмки." },
+
+{ id: "handover", lvl: 13, phase: "Финал", code: "19", name: "Передача квартир и ОСИ", dur: "1–3 мес.", req: ["commission"],
+  desc: "Передать квартиры дольщикам, зарегистрировать право собственности, организовать управление домом.",
+  tasks: [
+    "Дольщики уведомлены о готовности к передаче",
+    "Выполнены обмеры, проведены перерасчёты площадей по договорам",
+    "Подписаны акты приёма-передачи квартир",
+    "Покупатели зарегистрировали право собственности",
+    "Проведено собрание и создано ОСИ (или простое товарищество)",
+    "ОСИ переданы техдокументация, ключи от техпомещений и договоры с поставщиками"
+  ],
+  docs: ["owner_notice", "handover_act", "osi_protocol"],
+  tip: "Назначьте временную управляющую компанию на период до создания ОСИ, чтобы дом не остался без обслуживания." },
+
+{ id: "warranty", lvl: 14, phase: "Финал", code: "20", name: "Гарантия и закрытие", dur: "от 2 лет", req: ["handover"],
+  desc: "Обслуживать гарантийные обязательства и закрыть проект финансово.",
+  tasks: [
+    "Работает гарантийный отдел с журналом заявок и сроками ответа",
+    "Гарантийные удержания возвращены подрядчикам после истечения сроков",
+    "Кредит погашен, гарантии и залоги сняты",
+    "Подготовлен финальный финансовый отчёт: план и факт",
+    "Проведён разбор уроков проекта для следующего ЖК"
+  ],
+  docs: ["warranty_claim", "closeout"],
+  tip: "Разбор уроков — самый дешёвый способ сделать следующий ЖК прибыльнее." }
+],
+
+templates: {
+memo: { title: "Инвестиционный меморандум", ext: "txt", body:
+`ИНВЕСТИЦИОННЫЙ МЕМОРАНДУМ
+Проект: ЖК «[Название]», г. [Город], район [Район]
+Дата: [дд.мм.гггг]    Подготовил: [ФИО, должность]
+
+1. РЕЗЮМЕ
+   Формат: [класс жилья], [кол-во блоков] блоков, [этажность] этажей
+   Общая площадь: [___] м², продаваемая жилая: [___] м², коммерция: [___] м²
+   Срок реализации: [___] мес.   Бюджет: [___] млн тг
+   Ожидаемая выручка: [___] млн тг   Прибыль до налога: [___] млн тг
+   Маржа к себестоимости: [___]%   IRR: [___]%   Пиковый долг: [___] млн тг
+
+2. РЫНОК
+   Средняя цена первички в районе: [___] тг/м²
+   Конкуренты (название, класс, цена, темп продаж, срок сдачи):
+   1) [___]
+   2) [___]
+   3) [___]
+   Целевой покупатель: [___]
+   Ипотечные и государственные программы, доступные покупателю: [___]
+
+3. УЧАСТОК
+   Адрес / кадастровый номер: [___]   Площадь: [___] га
+   Целевое назначение: [___]   Право: [собственность / аренда до ___]
+   Сети рядом: эл. [___], вода [___], тепло/газ [___]
+   Геология, сейсмичность: [___]
+
+4. ПРОДУКТ
+   Квартирография: студии [__]%, 1-комн. [__]%, 2-комн. [__]%, 3-комн. [__]%
+   Паркинг: [___] мест   Коммерция: [___]   Двор / инфраструктура: [___]
+   Конструктив: [монолит / сборный монолит / КПД / кирпич]
+
+5. ФИНАНСИРОВАНИЕ
+   Собственный капитал: [___] млн тг ([__]%)
+   Банк / КЖК: [___] млн тг   Средства дольщиков: [___] млн тг
+   Способ долевого участия: [гарантия КЖК / уполномоченная компания / после каркаса]
+
+6. ГРАФИК (укрупнённо)
+   Земля и ИРД: [___]   Проект и экспертиза: [___]   СМР: [___]   Ввод: [___]
+
+7. РИСКИ И МЕРЫ
+   [риск] -> [мера]
+   [риск] -> [мера]
+
+8. РЕШЕНИЕ
+   Рекомендация: [входить / не входить / входить при условии ___]
+   Утверждено: [ФИО учредителя] ________ (подпись)   Дата: [___]` },
+
+finmodel: { title: "Финансовая модель (Excel, пример расчёта)", ext: "csv", body:
+`Статья;Ед. изм.;Значение;Комментарий
+ИСХОДНЫЕ ДАННЫЕ;;;
+Площадь участка;м²;15000;
+Общая площадь здания;м²;45000;
+Продаваемая жилая площадь;м²;32000;обычно 70–75% от общей
+Продаваемая коммерция;м²;2000;
+Машино-места;шт;250;
+ЦЕНЫ;;;
+Средняя цена жилья;тг/м²;550000;пример - проверьте по рынку
+Цена коммерции;тг/м²;700000;
+Цена машино-места;тг/шт;4000000;
+ВЫРУЧКА;;;
+Выручка жильё;тг;=C5*C9;
+Выручка коммерция;тг;=C6*C10;
+Выручка паркинг;тг;=C7*C11;
+Итого выручка;тг;=C13+C14+C15;
+СЕБЕСТОИМОСТЬ;;;
+Земля;тг;2000000000;
+ИРД, изыскания, проект, экспертиза;тг;=C4*12000;ориентир на м² общей площади
+СМР;тг;=C4*230000;ориентир на м² общей - уточнить сметой
+Внешние сети и подключение;тг;=C4*20000;зависит от ТУ
+Технадзор, авторнадзор, инжиниринг;тг;=C20*2/100;
+Маркетинг и продажи;тг;=C16*3/100;
+Административные расходы;тг;=C16*2/100;
+Проценты по кредиту;тг;800000000;по графику кредита
+Резерв на непредвиденные;тг;=C20*7/100;
+Итого себестоимость;тг;=C18+C19+C20+C21+C22+C23+C24+C25+C26;
+РЕЗУЛЬТАТ;;;
+Прибыль до налога;тг;=C16-C27;
+КПН 20%;тг;=C29*20/100;
+Чистая прибыль;тг;=C29-C30;
+Маржа к себестоимости;%;=C29/C27*100;цель 20–30%
+Себестоимость 1 м² продаваемой площади;тг/м²;=C27/(C5+C6);
+ВАЖНО;;;Все цифры условные. НДС и график денежных потоков не учтены.` },
+
+land_spa: { title: "Договор купли-продажи земельного участка", ext: "txt", body:
+`ДОГОВОР КУПЛИ-ПРОДАЖИ ЗЕМЕЛЬНОГО УЧАСТКА № [___]
+
+г. [Город]                                              [дд.мм.гггг]
+
+[Наименование / ФИО продавца], БИН/ИИН [___], в лице [___], действующего на основании [___], именуемый «Продавец», и
+[Наименование покупателя], БИН [___], в лице [___], действующего на основании [___], именуемый «Покупатель»,
+заключили настоящий договор о нижеследующем.
+
+1. ПРЕДМЕТ ДОГОВОРА
+1.1. Продавец передаёт в собственность Покупателя земельный участок:
+     адрес: [___]; кадастровый номер: [___]; площадь: [___] га;
+     целевое назначение: [___]; делимость: [делимый / неделимый].
+1.2. Участок принадлежит Продавцу на праве частной собственности на основании [___],
+     идентификационный документ [___] от [___].
+1.3. Продавец гарантирует, что участок не продан, не заложен, не находится под арестом,
+     не обременён правами третьих лиц и не является предметом судебного спора.
+
+2. ЦЕНА И ПОРЯДОК РАСЧЁТОВ
+2.1. Цена участка: [___] ([сумма прописью]) тенге.
+2.2. Порядок оплаты: [___]% в течение [___] банковских дней после подписания;
+     [___]% в течение [___] банковских дней после государственной регистрации права Покупателя.
+2.3. Расчёты производятся в безналичной форме на счёт Продавца: [банковские реквизиты].
+
+3. ПЕРЕДАЧА И РЕГИСТРАЦИЯ
+3.1. Участок передаётся по акту приёма-передачи в течение [___] дней после подписания договора.
+3.2. Право собственности Покупателя возникает с момента государственной регистрации.
+3.3. Расходы на регистрацию несёт [Покупатель / Продавец].
+
+4. ОТВЕТСТВЕННОСТЬ СТОРОН
+4.1. За просрочку оплаты Покупатель уплачивает пеню [___]% от просроченной суммы за каждый день.
+4.2. Если выявятся обременения, о которых Продавец не сообщил, Покупатель вправе расторгнуть
+     договор и потребовать возврата уплаченного и возмещения убытков.
+
+5. ПРОЧИЕ УСЛОВИЯ
+5.1. Споры решаются переговорами, при недостижении согласия — в суде по месту нахождения участка.
+5.2. Договор составлен в [___] экземплярах, имеющих одинаковую силу.
+
+6. РЕКВИЗИТЫ И ПОДПИСИ СТОРОН
+Продавец: [реквизиты] ________          Покупатель: [реквизиты] ________
+
+Приложения: акт приёма-передачи; копия идентификационного документа; справка об отсутствии обременений.
+Примечание: договоры с земельными участками могут требовать нотариального удостоверения — уточните у юриста.` },
+
+land_jv: { title: "Соглашение о намерениях с собственником земли (совместная деятельность)", ext: "txt", body:
+`СОГЛАШЕНИЕ О НАМЕРЕНИЯХ
+о совместной реализации проекта жилищного строительства
+
+г. [Город]                                              [дд.мм.гггг]
+
+[Собственник участка], ИИН/БИН [___] («Собственник»), и [Застройщик], БИН [___] («Застройщик»)
+выражают намерение совместно реализовать проект ЖК на участке:
+адрес [___], кадастровый номер [___], площадь [___] га.
+
+1. ВКЛАДЫ СТОРОН
+   Собственник: земельный участок (рыночная оценка [___] тг).
+   Застройщик: разработка ПСД, финансирование и организация строительства.
+
+2. РАСПРЕДЕЛЕНИЕ РЕЗУЛЬТАТА
+   Собственник получает [___]% продаваемой площади квартирами / [___] тг деньгами.
+   Перечень квартир определяется после утверждения эскизного проекта.
+
+3. ПОРЯДОК ДЕЙСТВИЙ
+   3.1. До [___] Застройщик проводит due diligence участка и сетей.
+   3.2. До [___] стороны подписывают основной договор.
+   3.3. Собственник не продаёт и не обременяет участок до [___] (эксклюзив).
+
+4. КОНФИДЕНЦИАЛЬНОСТЬ
+   Стороны не раскрывают условия соглашения третьим лицам без согласия другой стороны.
+
+5. ЮРИДИЧЕСКАЯ СИЛА
+   Соглашение не создаёт обязательства заключить основной договор, кроме разделов 3.3 и 4.
+
+Подписи: Собственник ________   Застройщик ________` },
+
+apz_list: { title: "Перечень сведений для заявки на АПЗ и ТУ", ext: "txt", body:
+`ПЕРЕЧЕНЬ СВЕДЕНИЙ И ДОКУМЕНТОВ ДЛЯ ЗАЯВКИ НА АПЗ И ТЕХНИЧЕСКИЕ УСЛОВИЯ
+(заявка подаётся электронно через портал e-qurylys / egov.kz; состав уточняйте на портале на дату подачи)
+
+ДАННЫЕ ЗАЯВИТЕЛЯ
+[ ] Наименование, БИН, юридический адрес, ЭЦП руководителя
+[ ] Контактное лицо, телефон, e-mail
+
+ДАННЫЕ ОБ УЧАСТКЕ
+[ ] Идентификационный документ на земельный участок, кадастровый номер
+[ ] Правоустанавливающий документ (договор купли-продажи, аренды, решение МИО)
+[ ] Топографическая съёмка участка
+
+ДАННЫЕ ОБ ОБЪЕКТЕ
+[ ] Наименование объекта: «Многоквартирный жилой комплекс [___]»
+[ ] Функциональное назначение, этажность, количество блоков
+[ ] Ориентировочная общая площадь: [___] м²; количество квартир: [___]
+[ ] Эскиз (эскизный проект) или ситуационная схема
+
+ИСХОДНЫЕ НАГРУЗКИ ДЛЯ ТУ
+[ ] Электроснабжение: расчётная мощность [___] кВт, категория надёжности [___]
+[ ] Водопотребление: [___] м³/сут, в т.ч. пожаротушение [___] л/с
+[ ] Водоотведение: [___] м³/сут
+[ ] Теплопотребление: [___] Гкал/ч (отопление, ГВС, вентиляция)
+[ ] Газопотребление (при автономной котельной): [___] м³/ч
+[ ] Ливневые стоки, телеком
+
+ПОСЛЕ ПОЛУЧЕНИЯ
+[ ] Сроки действия АПЗ и ТУ занесены в реестр сроков
+[ ] Стоимость подключения и внеплощадочных сетей внесена в финмодель` },
+
+tu_request: { title: "Письмо-запрос технических условий", ext: "txt", body:
+`[Бланк организации]
+Исх. № [___] от [дд.мм.гггг]
+
+[Руководителю энергопередающей организации / водоканала / теплосетей]
+[ФИО]
+
+О выдаче технических условий на подключение
+
+Прошу выдать технические условия на подключение к сетям [электроснабжения / водоснабжения и водоотведения / теплоснабжения] проектируемого объекта:
+
+Объект: многоквартирный жилой комплекс «[Название]»
+Адрес: [___], кадастровый номер участка [___]
+Этажность / количество блоков: [___]
+Количество квартир: [___], общая площадь: [___] м²
+
+Расчётные нагрузки:
+— [электрическая мощность ___ кВт, категория надёжности ___]
+— [водопотребление ___ м³/сут, водоотведение ___ м³/сут]
+— [тепловая нагрузка ___ Гкал/ч]
+
+Планируемый срок ввода в эксплуатацию: [квартал, год]. Очерёдность: [одна очередь / ___ очередей].
+
+Приложения:
+1. Идентификационный документ на земельный участок.
+2. Ситуационная схема / эскиз.
+3. Расчёт нагрузок.
+
+Директор [ТОО «___»]      ________      [ФИО]
+Исполнитель: [ФИО, телефон]` },
+
+survey_tz: { title: "Техническое задание на инженерные изыскания", ext: "txt", body:
+`ТЕХНИЧЕСКОЕ ЗАДАНИЕ НА ИНЖЕНЕРНЫЕ ИЗЫСКАНИЯ
+
+1. Объект: многоквартирный жилой комплекс «[Название]»
+2. Адрес: [___], кадастровый номер [___], площадь участка [___] га
+3. Заказчик: [___]   Проектировщик: [___]
+4. Стадия проектирования: [эскизный проект / П / РП]
+5. Характеристика объекта: [___] блоков, этажность [___], подземный паркинг [да / нет, глубина ___ м]
+   Предполагаемый тип фундамента: [плита / сваи], нагрузки на фундамент: [___]
+
+6. СОСТАВ РАБОТ
+6.1. Инженерно-геодезические: топосъёмка М 1:500 с сечением рельефа 0,5 м, съёмка подземных коммуникаций.
+6.2. Инженерно-геологические:
+     — скважин не менее [___], глубина не менее [___] м (задаёт проектировщик);
+     — отбор проб и лабораторные испытания грунтов и воды;
+     — определение уровня грунтовых вод, агрессивности к бетону;
+     — оценка просадочности, набухания, засолённости (при наличии).
+6.3. Сейсмическое микрорайонирование (для сейсмоопасных районов).
+6.4. Инженерно-экологические (при необходимости).
+
+7. ТРЕБОВАНИЯ К ОТЧЁТУ
+     Технический отчёт в бумажном виде [___] экз. и электронно (PDF, DWG), в системе координат [___].
+
+8. СРОК ВЫПОЛНЕНИЯ: [___] календарных дней.
+9. Исполнитель должен иметь лицензию на изыскательскую деятельность соответствующей категории.
+
+Заказчик ________ [ФИО]      Согласовано (ГИП) ________ [ФИО]` },
+
+design_task: { title: "Задание на проектирование", ext: "txt", body:
+`ЗАДАНИЕ НА ПРОЕКТИРОВАНИЕ
+многоквартирного жилого комплекса «[Название]»
+
+1. Основание: АПЗ № [___] от [___]; ТУ: [перечень]
+2. Заказчик: [___]   Генпроектировщик: [___]
+3. Адрес: [___], площадь участка [___] га
+4. Вид строительства: новое строительство, [___] очередей
+5. Стадийность: эскизный проект, рабочий проект (П/РП), рабочая документация
+
+6. ТЕХНИКО-ЭКОНОМИЧЕСКИЕ ПОКАЗАТЕЛИ
+   Количество блоков: [___]; этажность: [___]
+   Общая площадь: не более [___] м²; продаваемая жилая: не менее [___] м²
+   Класс комфортности: [___]
+   Квартирография: студии [__]%, 1-к [__]%, 2-к [__]%, 3-к [__]%, площади: [диапазоны]
+   Коммерция на первых этажах: [___] м²; паркинг: [___] мест (подземный / наземный)
+
+7. ТРЕБОВАНИЯ К РЕШЕНИЯМ
+   Конструктив: [монолитный каркас / ___]; сейсмичность площадки: [___] баллов
+   Наружные стены и фасад: [___]
+   Отделка квартир: [черновая / white box / чистовая]; отделка МОП: [___]
+   Отопление: [от городских сетей через ИТП / крышная котельная]
+   Вентиляция: [___]; лифты: [кол-во, грузоподъёмность, скорость]
+   Слаботочка: домофон, видеонаблюдение, интернет, диспетчеризация
+   Поквартирный учёт: электричество, вода, тепло
+   Благоустройство: двор без машин, детские и спортивные площадки, озеленение
+   Безбарьерная среда для маломобильных групп
+
+8. ОСОБЫЕ ТРЕБОВАНИЯ
+   Сметная стоимость СМР — не выше [___] тг/м² общей площади
+   Вариантная проработка планировок: [___] вариантов
+   3D-визуализации: [___]
+
+9. ТРЕБОВАНИЯ К ДОКУМЕНТАЦИИ
+   Соответствие действующим СП РК, СН РК, техрегламентам; разделы согласно составу ПСД
+   Формат передачи: PDF + DWG/RVT, [___] экз. на бумаге
+   Сопровождение экспертизы и снятие замечаний — силами проектировщика
+
+Заказчик ________ [ФИО]      Генпроектировщик ________ [ФИО]` },
+
+design_contract: { title: "Договор на проектирование: ключевые условия", ext: "txt", body:
+`ДОГОВОР НА ВЫПОЛНЕНИЕ ПРОЕКТНЫХ РАБОТ — КЛЮЧЕВЫЕ УСЛОВИЯ (term sheet)
+
+Стороны: Заказчик [___]; Проектировщик [___], лицензия № [___], категория [___]
+Предмет: разработка ПСД стадий [П / РП / РД] по объекту «[___]» согласно Заданию на проектирование (Приложение 1)
+
+Цена: [___] тг, в т.ч. НДС [___] / без НДС. Фиксированная, изменяется только при изменении Задания.
+Этапы и оплата:
+  1. Эскизный проект — [___]% — после согласования в УАГ
+  2. Проект (П) — [___]% — после передачи комплекта
+  3. Положительное заключение экспертизы — [___]%
+  4. Рабочая документация — [___]%
+Аванс: [___]%, засчитывается пропорционально.
+
+Сроки: всего [___] дней; по этапам — график (Приложение 2).
+Сопровождение экспертизы: обязанность Проектировщика, срок ответа на замечания — не более [___] рабочих дней.
+Авторский надзор: [включён / отдельный договор], стоимость [___].
+Ответственность:
+  — просрочка этапа — пеня [___]% в день, не более [___]%;
+  — ошибки ПСД, повлёкшие удорожание СМР, — возмещение затрат на переделку;
+  — страхование профессиональной ответственности — [да / нет].
+Исключительные права на проект: переходят Заказчику после оплаты.
+Гарантии: устранение ошибок ПСД без доплаты в течение всего срока строительства.
+Расторжение: Заказчик вправе отказаться с оплатой фактически выполненного.` },
+
+expert_letter: { title: "Сопроводительное письмо на экспертизу и перечень документов", ext: "txt", body:
+`[Бланк организации]
+Исх. № [___] от [дд.мм.гггг]
+
+[Руководителю экспертной организации]
+
+Просим провести комплексную вневедомственную экспертизу рабочего проекта
+«Многоквартирный жилой комплекс [Название] по адресу [___]».
+
+Сведения об объекте: [___] блоков, этажность [___], общая площадь [___] м², сметная стоимость [___] тг.
+Источник финансирования: [собственные / заёмные / бюджетные средства].
+Уровень ответственности: [___].
+
+Перечень прилагаемых документов:
+[ ] 1. Задание на проектирование, утверждённое заказчиком
+[ ] 2. Идентификационный и правоустанавливающий документы на землю
+[ ] 3. Архитектурно-планировочное задание
+[ ] 4. Технические условия на подключение ко всем сетям
+[ ] 5. Согласованный эскизный проект
+[ ] 6. Отчёты об инженерных изысканиях (геодезия, геология, сейсмика)
+[ ] 7. Рабочий проект по всем разделам, включая ПОС и ООС
+[ ] 8. Сметная документация
+[ ] 9. Экологические документы (результаты скрининга / декларация)
+[ ] 10. Копии лицензий проектировщика и изыскателя
+[ ] 11. Договор на проведение экспертизы и документ об оплате
+
+Ответственный за снятие замечаний: [ФИО, телефон, e-mail]
+
+Директор ________ [ФИО]` },
+
+bank_pack: { title: "Пакет документов на проектное финансирование", ext: "txt", body:
+`ПАКЕТ ДОКУМЕНТОВ ДЛЯ БАНКА / КЖК НА ФИНАНСИРОВАНИЕ ПРОЕКТА
+(точный перечень запросите у кредитора — у каждого банка свои требования)
+
+О ЗАЁМЩИКЕ
+[ ] Учредительные документы ТОО-застройщика, справка о регистрации
+[ ] Решение участников о привлечении финансирования и залоге
+[ ] Финансовая отчётность за [___] лет (для новых SPV — отчётность материнской компании)
+[ ] Справка об отсутствии налоговой задолженности
+[ ] Опыт: перечень реализованных объектов с актами ввода
+
+О ПРОЕКТЕ
+[ ] Инвестиционный меморандум / бизнес-план
+[ ] Финансовая модель с графиком денежных потоков (помесячно)
+[ ] Документы на землю, отсутствие обременений
+[ ] АПЗ, ТУ, эскизный проект, ПСД и заключение экспертизы (или график их получения)
+[ ] Смета и договор генподряда (или проект договора)
+[ ] График строительства и график продаж
+[ ] Маркетинговое исследование рынка
+
+ОБЕСПЕЧЕНИЕ
+[ ] Залог земельного участка и объекта незавершённого строительства
+[ ] Залог прав требования по ДДУ / будущих поступлений
+[ ] Гарантии / поручительство учредителей
+[ ] Отчёт независимого оценщика
+
+СОБСТВЕННОЕ УЧАСТИЕ
+[ ] Подтверждение вложенных средств: земля, ПСД, деньги на счёте — [___]% бюджета` },
+
+tender_invite: { title: "Приглашение к тендеру на генподряд и критерии оценки", ext: "txt", body:
+`ПРИГЛАШЕНИЕ К УЧАСТИЮ В ТЕНДЕРЕ
+на выполнение функций генерального подрядчика
+
+Заказчик: [___]
+Объект: многоквартирный жилой комплекс «[Название]», г. [___]
+Объём работ: строительство «под ключ» согласно ПСД (положительное заключение № [___])
+Срок строительства: [___] месяцев с даты начала работ
+
+ТРЕБОВАНИЯ К УЧАСТНИКАМ
+1. Государственная лицензия на строительно-монтажные работы [___] категории
+2. Опыт: не менее [___] завершённых жилых объектов от [___] м² за последние [___] лет
+3. Отсутствие налоговой задолженности и банкротства
+4. Собственная или арендованная техника (краны, бетонная техника) — перечень
+5. Кадры: ИТР с опытом, главный инженер, служба ОТ и ТБ
+6. Банковская гарантия исполнения договора — [___]% от цены
+
+СОСТАВ ПРЕДЛОЖЕНИЯ
+— коммерческое предложение по форме Заказчика (укрупнённая смета по разделам);
+— календарный график;
+— проект производства работ (концепция);
+— документы, подтверждающие соответствие требованиям.
+
+КРИТЕРИИ ОЦЕНКИ (баллы)
+Цена .................................. [40]
+Срок и реалистичность графика ......... [20]
+Опыт аналогичных объектов ............. [20]
+Ресурсы: техника и кадры .............. [10]
+Финансовая устойчивость ............... [10]
+
+Срок подачи: до [дд.мм.гггг, чч:мм]. Адрес / e-mail для подачи: [___]
+Контактное лицо: [ФИО, телефон]` },
+
+gc_contract: { title: "Договор генподряда: ключевые условия", ext: "txt", body:
+`ДОГОВОР ГЕНЕРАЛЬНОГО ПОДРЯДА — КЛЮЧЕВЫЕ УСЛОВИЯ (term sheet)
+
+Стороны: Заказчик [___]; Генподрядчик [___], лицензия № [___] категории [___]
+Предмет: строительство объекта «[___]» под ключ по ПСД и рабочей документации
+
+ЦЕНА
+— [фиксированная / твёрдая договорная цена] [___] тг, НДС [___]
+— индексация: [не применяется / только по металлу и бетону при росте свыше ___%]
+
+СРОКИ
+— начало: [___]; окончание: [___]; промежуточные вехи: нулевой цикл, каркас, контур, инженерия, отделка
+— календарный график — Приложение [___]
+
+ОПЛАТА
+— аванс [___]% под банковскую гарантию возврата аванса
+— ежемесячно по актам выполненных работ, подписанным технадзором
+— гарантийное удержание [___]% (обычно 5–10%), возврат после гарантийного срока
+
+КАЧЕСТВО И КОНТРОЛЬ
+— работы принимаются технадзором; скрытые работы — только по актам освидетельствования
+— исполнительная документация ведётся с первого дня и передаётся по разделам
+
+ОТВЕТСТВЕННОСТЬ
+— просрочка вехи: [___]% от цены за день, не более [___]%
+— несвоевременная оплата: [___]% от суммы за день
+— право Заказчика привлечь третье лицо за счёт Генподрядчика при срыве сроков
+
+СТРАХОВАНИЕ: строительно-монтажные риски, ответственность перед третьими лицами, работники
+СУБПОДРЯД: только с письменного согласия Заказчика
+ГАРАНТИЯ: не менее [___] лет на конструктив и [___] на инженерные системы и отделку (не ниже требований закона)
+РАСТОРЖЕНИЕ: основания, порядок расчётов, передача площадки и документации` },
+
+ddu: { title: "Договор о долевом участии: основные условия", ext: "txt", body:
+`ДОГОВОР О ДОЛЕВОМ УЧАСТИИ В ЖИЛИЩНОМ СТРОИТЕЛЬСТВЕ — ОСНОВНЫЕ УСЛОВИЯ
+(применяйте типовую форму, предусмотренную законодательством о долевом участии; ниже — что проверить)
+
+[ ] Стороны: застройщик (уполномоченная компания), дольщик — полные реквизиты
+[ ] Реквизиты разрешения МИО на привлечение денег дольщиков
+[ ] Способ организации долевого строительства: [гарантия КЖК / уполномоченная компания / после каркаса]
+[ ] Объект: адрес, блок, этаж, номер квартиры, проектная площадь, количество комнат, планировка (приложение)
+[ ] Состояние квартиры при передаче: [черновая / white box / чистовая] — с перечнем
+[ ] Цена, порядок оплаты (единовременно / рассрочка / ипотека), счёт для зачисления
+[ ] Порядок перерасчёта цены при отклонении фактической площади от проектной
+[ ] Срок завершения строительства и срок передачи квартиры
+[ ] Права дольщика на информацию о ходе строительства
+[ ] Гарантийный срок и порядок предъявления претензий
+[ ] Ответственность сторон, основания расторжения, порядок возврата денег
+[ ] Регистрация договора в единой информационной системе долевого строительства
+
+ПЕРЕД ПОДПИСАНИЕМ ДОЛЬЩИК ПОЛУЧАЕТ:
+[ ] Копию разрешения МИО
+[ ] Сведения о гарантии / уполномоченной компании
+[ ] Проектную декларацию, планировку квартиры` },
+
+owner_report: { title: "Ежемесячный отчёт застройщика дольщикам", ext: "txt", body:
+`ОТЧЁТ О ХОДЕ СТРОИТЕЛЬСТВА ЖК «[Название]»
+за [месяц, год]
+
+1. ОБЩАЯ ГОТОВНОСТЬ: [___]% (план: [___]%)
+
+2. ВЫПОЛНЕННЫЕ РАБОТЫ ЗА МЕСЯЦ
+   Блок [1]: [например, перекрытие 9 этажа, кладка стен 5–6 этажей]
+   Блок [2]: [___]
+   Сети: [___]
+   Благоустройство: [___]
+
+3. ПЛАН НА СЛЕДУЮЩИЙ МЕСЯЦ
+   [___]
+
+4. СРОКИ
+   Плановый срок ввода: [___]. Отклонения: [нет / есть — причина и меры]
+
+5. ФИНАНСЫ (по данным инжиниринговой компании)
+   Привлечено средств дольщиков: [___] тг; направлено на строительство: [___] тг
+
+6. ФОТО И ВИДЕО
+   [ссылка на фотоотчёт / трансляцию с камер]
+
+Контакты отдела по работе с дольщиками: [телефон, e-mail, адрес офиса]` },
+
+smr_notice: { title: "Уведомление о начале СМР: перечень сведений", ext: "txt", body:
+`УВЕДОМЛЕНИЕ О НАЧАЛЕ СТРОИТЕЛЬНО-МОНТАЖНЫХ РАБОТ — ЧТО ПОДГОТОВИТЬ
+(подаётся электронно через портал в органы государственного архитектурно-строительного контроля; форма определяется действующими правилами)
+
+СВЕДЕНИЯ О ЗАКАЗЧИКЕ
+[ ] Наименование, БИН, адрес, руководитель, ЭЦП
+
+СВЕДЕНИЯ ОБ ОБЪЕКТЕ
+[ ] Наименование и адрес объекта, кадастровый номер участка
+[ ] Уровень ответственности, технические характеристики (этажность, площадь)
+[ ] Плановые даты начала и окончания строительства
+
+ДОКУМЕНТЫ
+[ ] Положительное заключение комплексной вневедомственной экспертизы ПСД
+[ ] Идентификационный документ на земельный участок
+[ ] Договор генподряда, лицензия генподрядчика
+[ ] Договор на технический надзор, аттестаты экспертов технадзора
+[ ] Договор на авторский надзор
+[ ] Приказы о назначении ответственных лиц (заказчик, генподрядчик)
+
+ПОСЛЕ ПОДАЧИ
+[ ] Получено подтверждение принятия уведомления
+[ ] Паспорт объекта установлен на ограждении
+[ ] Открыт общий журнал работ` },
+
+tn_contract: { title: "Договор технического надзора: ключевые условия", ext: "txt", body:
+`ДОГОВОР НА ОКАЗАНИЕ УСЛУГ ТЕХНИЧЕСКОГО НАДЗОРА — КЛЮЧЕВЫЕ УСЛОВИЯ
+
+Стороны: Заказчик [___]; Исполнитель [___], аккредитация / аттестаты экспертов № [___]
+Объект: «[___]», адрес [___]
+
+ОБЪЁМ УСЛУГ
+— контроль соответствия работ ПСД, СП РК и техрегламентам
+— входной контроль материалов, проверка сертификатов
+— участие в освидетельствовании скрытых работ, подписание актов
+— проверка и подписание актов выполненных работ (объёмы и качество)
+— выдача предписаний и контроль их устранения
+— ежемесячный отчёт Заказчику с фото
+— заключение о качестве при приёмке объекта
+
+ПЕРСОНАЛ: эксперты по [конструктивам, инженерным сетям, ___]; присутствие на объекте [ежедневно / ___ раз в неделю]
+ЦЕНА: [___] тг ([___]% от стоимости СМР); оплата ежемесячно
+СРОК: с начала СМР до подписания акта приёмки в эксплуатацию
+ОТВЕТСТВЕННОСТЬ: за подписание актов на некачественные работы; страхование ответственности
+НЕЗАВИСИМОСТЬ: Исполнитель не аффилирован с генподрядчиком` },
+
+hidden_works: { title: "Акт освидетельствования скрытых работ", ext: "txt", body:
+`АКТ № [___]
+ОСВИДЕТЕЛЬСТВОВАНИЯ СКРЫТЫХ РАБОТ
+
+Объект: [___]                               г. [___]   [дд.мм.гггг]
+
+Комиссия в составе:
+— представитель генподрядчика: [ФИО, должность]
+— представитель технического надзора: [ФИО, аттестат №]
+— представитель авторского надзора: [ФИО]
+— представитель заказчика: [ФИО]
+произвела осмотр работ, выполненных [наименование организации], и составила настоящий акт.
+
+1. К освидетельствованию предъявлены: [например, армирование фундаментной плиты в осях 1–8 / А–Г]
+2. Работы выполнены по проекту: [шифр, лист чертежа]
+3. Применены материалы: [арматура А500С Ø__, бетон В__ — сертификаты, паспорта №]
+4. Предъявлена исполнительная документация: [исполнительная схема, протоколы испытаний]
+5. Отклонения от проекта: [нет / перечень и согласование с проектировщиком]
+6. Дата начала работ: [___]   Дата окончания: [___]
+
+РЕШЕНИЕ КОМИССИИ
+Работы выполнены в соответствии с проектом и нормативными требованиями.
+Разрешается производство последующих работ: [например, бетонирование плиты].
+
+Подписи:
+Генподрядчик ________   Технадзор ________   Авторнадзор ________   Заказчик ________` },
+
+concrete_log: { title: "Журнал бетонных работ (форма)", ext: "csv", body:
+`Дата;Блок / захватка;Конструкция;Класс бетона;Марка по морозостойкости;Объём, м³;Поставщик / № накладной;Температура воздуха, °C;Меры зимнего бетонирования;Образцы (кол-во, №);Прочность 7 сут, %;Прочность 28 сут, %;Подпись прораба;Подпись технадзора
+[дд.мм.гггг];Блок 1 / зах. 2;Перекрытие 5 этажа;B25;F150;48;[___];-8;Прогрев проводом ПНСВ, укрытие;6 шт., №45–50;;;;` },
+
+defect_order: { title: "Предписание об устранении замечаний", ext: "txt", body:
+`ПРЕДПИСАНИЕ № [___]
+об устранении замечаний
+
+Объект: [___]                               [дд.мм.гггг]
+Выдано: [генподрядчику / субподрядчику — наименование, ответственное лицо]
+Выдал: [технический надзор / заказчик — ФИО, должность]
+
+ВЫЯВЛЕННЫЕ НАРУШЕНИЯ
+№ | Место (блок, этаж, оси) | Описание нарушения | Нарушенный пункт ПСД / норм | Срок устранения
+1 | [___] | [например, отсутствуют противопожарные отсечки в фасадной системе] | [___] | [дата]
+2 | [___] | [___] | [___] | [дата]
+
+ТРЕБОВАНИЯ
+1. Устранить нарушения в указанные сроки.
+2. До устранения п. [___] приостановить работы [___].
+3. Письменно уведомить о выполнении с приложением фото / исполнительной документации.
+
+Предписание получил: ________ [ФИО]   Дата: [___]
+Отметка об устранении: ________ [ФИО технадзора]   Дата: [___]` },
+
+test_act: { title: "Акт индивидуального испытания систем", ext: "txt", body:
+`АКТ № [___]
+ИНДИВИДУАЛЬНОГО ИСПЫТАНИЯ СИСТЕМЫ / ОБОРУДОВАНИЯ
+
+Объект: [___]                               [дд.мм.гггг]
+Система: [например, отопление блока 2 / внутренний водопровод / пожарная сигнализация]
+
+Комиссия: генподрядчик [___], монтажная организация [___], технадзор [___], эксплуатирующая организация [___] (при необходимости)
+
+1. Испытания проведены по: [проект, шифр; методика / нормативный документ]
+2. Вид испытания: [гидравлическое давлением ___ МПа в течение ___ мин / прозвонка / пусконаладка]
+3. Результат: [падение давления не превысило ___ / протечек не обнаружено / параметры соответствуют проекту]
+4. Выявленные дефекты: [нет / перечень, срок устранения]
+
+ЗАКЛЮЧЕНИЕ: система [выдержала / не выдержала] испытание и [может / не может] быть предъявлена к комплексному опробованию.
+
+Подписи: ________ ________ ________` },
+
+balance_act: { title: "Акт разграничения балансовой принадлежности", ext: "txt", body:
+`АКТ
+РАЗГРАНИЧЕНИЯ БАЛАНСОВОЙ ПРИНАДЛЕЖНОСТИ И ЭКСПЛУАТАЦИОННОЙ ОТВЕТСТВЕННОСТИ
+
+[дд.мм.гггг]
+
+[Эксплуатирующая организация] («Сетевая организация») и [застройщик / ОСИ] («Потребитель») составили акт о том, что:
+
+1. Объект: ЖК «[___]», адрес [___]
+2. Вид сетей: [электрические / водопровод / канализация / тепловые / газ]
+3. Граница балансовой принадлежности: [например, наконечники кабелей в РУ-0,4 кВ ТП-___ / первый фланцевый узел после колодца ВК-___]
+4. Граница эксплуатационной ответственности: [совпадает с балансовой / иное]
+5. На балансе Сетевой организации: [перечень]
+6. На балансе Потребителя: [перечень]
+7. Разрешённая мощность / нагрузка: [___]
+8. Приборы учёта: [тип, номер, место установки, дата поверки]
+
+Схема границ — Приложение 1.
+
+Сетевая организация ________ [ФИО]     Потребитель ________ [ФИО]` },
+
+punch_list: { title: "Ведомость замечаний (пред-приёмка)", ext: "csv", body:
+`№;Блок;Этаж;Квартира / помещение;Раздел (АР, ОВ, ВК, ЭОМ, фасад, благоустройство);Описание замечания;Фото (ссылка);Ответственный;Срок устранения;Статус;Дата устранения;Проверил
+1;1;3;кв. 27;АР;Трещина в штукатурке откоса окна в комнате;[ссылка];[подрядчик];[дата];Открыто;;
+2;1;1;Холл;ЭОМ;Не работают 2 светильника;[ссылка];[подрядчик];[дата];Открыто;;` },
+
+commission_act: { title: "Акт приёмки объекта в эксплуатацию: структура", ext: "txt", body:
+`АКТ ПРИЁМКИ ПОСТРОЕННОГО ОБЪЕКТА В ЭКСПЛУАТАЦИЮ — СТРУКТУРА И ПОДГОТОВКА
+(форма утверждается уполномоченным органом; ниже — состав и что подготовить)
+
+1. СВЕДЕНИЯ ОБ ОБЪЕКТЕ
+   Наименование, адрес, кадастровый номер участка, уровень ответственности
+   Фактические ТЭП: общая площадь, жилая площадь, количество квартир, этажность
+2. УЧАСТНИКИ ПРИЁМКИ
+   Собственник (заказчик), генеральный подрядчик, технический надзор, авторский надзор
+3. ПЕРЕЧЕНЬ ДОКУМЕНТОВ, ПОДТВЕРЖДАЮЩИХ ГОТОВНОСТЬ
+   [ ] Положительное заключение экспертизы ПСД
+   [ ] Декларация о соответствии генподрядчика
+   [ ] Заключение технического надзора о качестве
+   [ ] Заключение авторского надзора о соответствии проекту
+   [ ] Исполнительная документация по всем разделам
+   [ ] Акты испытаний и пусконаладки систем
+   [ ] Акты разграничения и справки о выполнении ТУ
+   [ ] Документы на лифты (освидетельствование)
+   [ ] Исполнительная геодезическая съёмка
+4. ЗАКЛЮЧЕНИЕ
+   Объект построен в соответствии с проектом и готов к эксплуатации
+5. ПОДПИСИ участников; дата; регистрация акта в установленном порядке
+
+ПОСЛЕ ПОДПИСАНИЯ
+[ ] Регистрация акта / уведомление органов ГАСК
+[ ] Присвоение адреса, технический паспорт
+[ ] Первичная регистрация объекта в НАО «Правительство для граждан»` },
+
+owner_notice: { title: "Уведомление дольщику о готовности к передаче", ext: "txt", body:
+`[Бланк застройщика]
+Исх. № [___] от [дд.мм.гггг]
+
+[ФИО дольщика]
+[адрес, телефон, e-mail]
+
+Уважаемый(ая) [Имя Отчество]!
+
+Сообщаем, что объект ЖК «[Название]» по адресу [___] принят в эксплуатацию (акт от [дата]).
+По договору о долевом участии № [___] от [___] Вам подлежит передаче квартира № [___], блок [___], этаж [___].
+
+Фактическая площадь по обмерам: [___] м² (по договору: [___] м²).
+[Доплата / возврат] по перерасчёту площади: [___] тг.
+
+Приглашаем Вас для осмотра и подписания акта приёма-передачи в период с [___] по [___].
+Запись по телефону [___] или по адресу [___].
+При себе иметь: удостоверение личности, договор, документы об оплате.
+
+С уважением,
+[должность] ________ [ФИО]` },
+
+handover_act: { title: "Акт приёма-передачи квартиры", ext: "txt", body:
+`АКТ ПРИЁМА-ПЕРЕДАЧИ КВАРТИРЫ
+
+г. [___]                                    [дд.мм.гггг]
+
+[Застройщик], БИН [___], в лице [___] («Застройщик»), и [ФИО дольщика], ИИН [___] («Дольщик»),
+составили акт по договору о долевом участии № [___] от [___].
+
+1. Застройщик передал, а Дольщик принял квартиру:
+   адрес [___], блок [___], этаж [___], квартира № [___]
+   количество комнат [___], фактическая общая площадь [___] м²
+2. Состояние квартиры: [черновая / white box / чистовая отделка] согласно приложению к договору.
+3. Показания приборов учёта на дату передачи:
+   электричество № [___] — [___] кВт·ч; ХВС № [___] — [___] м³; ГВС № [___] — [___] м³; тепло № [___] — [___] Гкал
+4. Переданы ключи: [___] комплекта; ключ от почтового ящика; [пульт / карта доступа].
+5. Расчёты по договору произведены [полностью / с учётом перерасчёта площади: ___ тг].
+6. Замечания Дольщика: [нет / перечень с согласованным сроком устранения ___].
+7. Гарантийный срок исчисляется с даты подписания настоящего акта.
+
+Застройщик ________ [ФИО]                     Дольщик ________ [ФИО]` },
+
+osi_protocol: { title: "Протокол собрания о создании ОСИ", ext: "txt", body:
+`ПРОТОКОЛ № [1]
+собрания собственников квартир, нежилых помещений многоквартирного жилого дома
+по адресу: [___]
+
+Дата: [___]   Форма проведения: [очное / письменный опрос / электронное голосование]
+Общее количество собственников: [___]; приняли участие: [___] ([__]%)
+Кворум: [имеется / отсутствует]
+Председатель собрания: [ФИО]   Секретарь: [ФИО]
+
+ПОВЕСТКА ДНЯ
+1. Выбор формы управления объектом кондоминиума.
+2. Создание объединения собственников имущества (ОСИ) и утверждение устава.
+3. Избрание председателя ОСИ и совета дома.
+4. Определение размера взносов на содержание общего имущества.
+5. Выбор банка для текущего и сберегательного счетов.
+
+РЕШЕНИЯ
+1. Форма управления: ОСИ. «За» [___], «Против» [___], «Воздержались» [___].
+2. Создать ОСИ «[Название]», утвердить устав. Голосование: [___].
+3. Председатель ОСИ: [ФИО]; совет дома: [ФИО, ФИО, ФИО]. Голосование: [___].
+4. Взнос на содержание: [___] тг за м² в месяц. Голосование: [___].
+5. Банк: [___]. Голосование: [___].
+
+Приложения: лист регистрации / листы голосования.
+
+Председатель собрания ________   Секретарь ________
+(требования к кворуму и порядку голосования — по Закону РК «О жилищных отношениях»)` },
+
+warranty_claim: { title: "Гарантийная заявка собственника", ext: "txt", body:
+`ГАРАНТИЙНАЯ ЗАЯВКА № [___]
+
+Дата подачи: [___]
+Собственник: [ФИО], телефон [___]
+Адрес: ЖК «[___]», блок [___], квартира [___]
+Дата акта приёма-передачи: [___]
+
+ОПИСАНИЕ НЕДОСТАТКА
+Помещение: [кухня / санузел / ___]
+Что произошло: [например, протечка под ванной, трещина в стяжке, не греет радиатор]
+Когда обнаружено: [___]
+Фото / видео: [приложено, шт.]
+
+Удобное время для осмотра: [___]
+
+ЗАПОЛНЯЕТ ЗАСТРОЙЩИК
+Принято: [ФИО, дата]   Срок осмотра: [___]
+Результат осмотра: [гарантийный случай / не гарантийный — причина]
+Ответственный подрядчик: [___]   Срок устранения: [___]
+Выполнено: [дата]   Подпись собственника о приёмке работ: ________` },
+
+closeout: { title: "Отчёт о закрытии проекта и разбор уроков", ext: "txt", body:
+`ОТЧЁТ О ЗАКРЫТИИ ПРОЕКТА ЖК «[Название]»
+
+1. ИТОГИ ПРОТИВ ПЛАНА
+   Показатель            | План       | Факт       | Отклонение
+   Срок (мес.)           | [___]      | [___]      | [___]
+   Бюджет (млн тг)       | [___]      | [___]      | [___]
+   Себестоимость тг/м²   | [___]      | [___]      | [___]
+   Средняя цена тг/м²    | [___]      | [___]      | [___]
+   Темп продаж м²/мес.   | [___]      | [___]      | [___]
+   Прибыль (млн тг)      | [___]      | [___]      | [___]
+   IRR                   | [___]      | [___]      | [___]
+
+2. ЧТО СРАБОТАЛО ХОРОШО
+   — [___]
+
+3. ЧТО ПОШЛО НЕ ТАК И ПОЧЕМУ
+   — [проблема] → [корневая причина] → [последствия, тг / дни]
+
+4. ЧТО МЕНЯЕМ В СЛЕДУЮЩЕМ ПРОЕКТЕ
+   — [решение], ответственный [___], до [___]
+
+5. ПОДРЯДЧИКИ И ПОСТАВЩИКИ — ОЦЕНКА
+   [название] — качество [1–5], сроки [1–5], работать дальше: [да / нет]
+
+6. ГАРАНТИЙНЫЕ ОБРАЩЕНИЯ
+   Всего [___]; топ-3 причины: [___]
+
+Утверждено: ________ [ФИО]   Дата: [___]` }
+}
+};
+</script>
+
+<script>
+(function () {
+  const T = window.TREE;
+  const byId = Object.fromEntries(T.nodes.map(n => [n.id, n]));
+  const children = Object.fromEntries(T.nodes.map(n => [n.id, []]));
+  T.nodes.forEach(n => n.req.forEach(r => children[r].push(n.id)));
+  const totalTasks = T.nodes.reduce((s, n) => s + n.tasks.length, 0);
+  const XP_PER_TASK = 10;
+  const RANKS = [[0, "Стажёр"], [1, "Аналитик"], [4, "Девелопер"], [8, "Застройщик"], [13, "Генеральный застройщик"], [20, "Магнат ЖК"]];
+  const STATUS = { locked: "Закрыт", open: "Доступен", active: "В работе", done: "Пройден" };
+  const LOCAL_KEY = "zhk-skill-tree-v1";
+
+  let checked = {};
+  let selected = null;
+  let db = null, docRef = null, docExists = false, readOnly = false;
+  let downloads = null;
+
+  // --- storage ------------------------------------------------------------
+  function loadLocal() { try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || "{}"); } catch (e) { return {}; } }
+  function saveLocal() { try { localStorage.setItem(LOCAL_KEY, JSON.stringify(checked)); } catch (e) {} }
+  function setSync(mode, text) { const el = document.getElementById("sync"); el.dataset.mode = mode; el.textContent = text; }
+
+  let writeChain = Promise.resolve();
+  function persist(patch) {
+    saveLocal();
+    if (!docRef || readOnly) return;
+    writeChain = writeChain.then(async () => {
+      try {
+        if (docExists) await docRef.update({ checked: patch });
+        else { await docRef.set({ checked: { ...checked } }); docExists = true; }
+      } catch (e) {
+        if (e && e.code === "invalid_argument") {
+          // update() на несуществующем документе или нет прав на запись
+          try { await docRef.set({ checked: { ...checked } }); docExists = true; return; }
+          catch (e2) {
+            if (e2 && e2.code === "invalid_argument") {
+              readOnly = true; setSync("local", "Только просмотр: изменения не сохраняются"); renderAll(); return;
+            }
+          }
+        }
+        setSync("local", "Нет связи с хранилищем, прогресс сохранён в браузере");
+      }
+    });
+  }
+
+  async function connect() {
+    const use = window.claude && window.claude.use;
+    if (!use) { setSync("local", "Прогресс сохраняется в этом браузере"); return; }
+    try { downloads = await use("downloads"); } catch (e) { downloads = null; }
+    renderPanel();
+    try { db = await use("db"); } catch (e) { db = null; }
+    if (!db) { setSync("local", "Прогресс сохраняется в этом браузере"); return; }
+    docRef = db.doc("progress/main");
+    setSync("pending", "Синхронизация…");
+    docRef.onSnapshot(snap => {
+      docExists = snap.exists;
+      const data = snap.exists ? snap.data() : null;
+      const remote = (data && data.checked) || {};
+      if (!snap.exists && Object.keys(checked).some(k => checked[k])) {
+        // Первый запуск общего хранилища: переносим локальный прогресс.
+        persist({ ...checked });
+      } else {
+        checked = { ...remote };
+        saveLocal();
+      }
+      setSync("shared", readOnly ? "Только просмотр" : "Общий прогресс команды сохраняется");
+      renderAll();
+    }, () => setSync("local", "Нет связи с хранилищем, прогресс сохранён в браузере"));
+  }
+
+  // --- state --------------------------------------------------------------
+  const key = (n, i) => n.id + "." + i;
+  const doneCount = n => n.tasks.reduce((s, _, i) => s + (checked[key(n, i)] ? 1 : 0), 0);
+  const isDone = n => doneCount(n) === n.tasks.length;
+  const isUnlocked = n => n.req.every(r => isDone(byId[r]));
+  function stateOf(n) {
+    if (isDone(n)) return "done";
+    if (!isUnlocked(n)) return "locked";
+    return doneCount(n) > 0 ? "active" : "open";
+  }
+
+  // --- tree ---------------------------------------------------------------
+  const treeEl = document.getElementById("tree");
+  const edgesEl = document.getElementById("edges");
+  const nodeEls = {};
+
+  function buildTree() {
+    const tiers = {};
+    T.nodes.forEach(n => (tiers[n.lvl] = tiers[n.lvl] || []).push(n));
+    Object.keys(tiers).map(Number).sort((a, b) => a - b).forEach(lvl => {
+      const row = document.createElement("div");
+      row.className = "tier";
+      const phase = tiers[lvl][0].phase;
+      row.innerHTML = '<div class="tier-label"><b>LVL ' + String(lvl).padStart(2, "0") + '</b><span></span></div><div class="tier-nodes"></div>';
+      row.querySelector(".tier-label span").textContent = phase;
+      const wrap = row.querySelector(".tier-nodes");
+      tiers[lvl].forEach(n => {
+        const b = document.createElement("button");
+        b.className = "node";
+        b.type = "button";
+        b.innerHTML = '<span class="hex"><span class="hex-in"></span></span><span class="node-name"></span><span class="node-sub mono"></span>';
+        b.querySelector(".node-name").textContent = n.name;
+        b.addEventListener("click", () => select(n.id, true));
+        nodeEls[n.id] = b;
+        wrap.appendChild(b);
+      });
+      treeEl.appendChild(row);
+    });
+  }
+
+  function renderTree() {
+    T.nodes.forEach(n => {
+      const b = nodeEls[n.id];
+      const st = stateOf(n);
+      const dc = doneCount(n);
+      b.dataset.state = st;
+      b.setAttribute("aria-current", selected === n.id ? "true" : "false");
+      b.querySelector(".hex").style.setProperty("--p", Math.round(dc / n.tasks.length * 100));
+      b.querySelector(".hex-in").textContent = st === "done" ? "✓" : n.code;
+      b.querySelector(".node-sub").textContent = st === "locked" ? "закрыт" : dc + " / " + n.tasks.length;
+      b.setAttribute("aria-label", n.name + ", " + STATUS[st] + ", выполнено " + dc + " из " + n.tasks.length);
+    });
+    drawEdges();
+  }
+
+  function drawEdges() {
+    const box = treeEl.getBoundingClientRect();
+    edgesEl.setAttribute("viewBox", "0 0 " + box.width + " " + box.height);
+    let out = "";
+    T.nodes.forEach(n => n.req.forEach(r => {
+      const a = nodeEls[r].getBoundingClientRect();
+      const c = nodeEls[n.id].querySelector(".hex").getBoundingClientRect();
+      const x1 = a.left + a.width / 2 - box.left, y1 = a.bottom - box.top;
+      const x2 = c.left + c.width / 2 - box.left, y2 = c.top - box.top;
+      const my = (y2 - y1) / 2;
+      const cls = isDone(byId[r]) ? (isDone(n) ? "done" : "open") : "";
+      out += '<path class="' + cls + '" d="M' + x1 + ' ' + y1 + ' C' + x1 + ' ' + (y1 + my) + ' ' + x2 + ' ' + (y2 - my) + ' ' + x2 + ' ' + y2 + '"/>';
+    }));
+    edgesEl.innerHTML = out;
+  }
+
+  // --- HUD ----------------------------------------------------------------
+  function renderHud() {
+    const tasksDone = T.nodes.reduce((s, n) => s + doneCount(n), 0);
+    const stagesDone = T.nodes.filter(isDone).length;
+    let rank = RANKS[0][1];
+    RANKS.forEach(([min, name]) => { if (stagesDone >= min) rank = name; });
+    document.getElementById("xp").textContent = (tasksDone * XP_PER_TASK) + " / " + (totalTasks * XP_PER_TASK) + " XP";
+    document.getElementById("rank").textContent = rank;
+    document.getElementById("stages").textContent = stagesDone + " / " + T.nodes.length + " этапов";
+    const pct = Math.round(tasksDone / totalTasks * 100);
+    const bar = document.getElementById("xpbar");
+    bar.setAttribute("aria-valuenow", pct);
+    bar.querySelector("i").style.width = pct + "%";
+  }
+
+  // --- panel --------------------------------------------------------------
+  const panel = document.getElementById("panel");
+  const inner = document.getElementById("panel-inner");
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  function chip(id) {
+    const n = byId[id];
+    return '<button class="chip" type="button" data-go="' + n.id + '" data-state="' + stateOf(n) + '">' + esc(n.code + " · " + n.name) + "</button>";
+  }
+
+  function renderPanel() {
+    const n = byId[selected];
+    if (!n) { inner.innerHTML = ""; return; }
+    const st = stateOf(n);
+    const dc = doneCount(n);
+    const left = n.tasks.length - dc;
+    const lockedBy = n.req.filter(r => !isDone(byId[r]));
+    let gate;
+    if (st === "done") gate = '<div class="gate" data-state="done"><b>Условия перехода выполнены</b><span>' + (children[n.id].length ? "Следующие этапы открыты." : "Проект завершён. Поздравляем!") + "</span></div>";
+    else if (st === "locked") gate = '<div class="gate" data-state="locked"><b>Этап закрыт</b><span>Сначала пройдите: ' + lockedBy.map(r => esc(byId[r].name)).join(", ") + ".</span></div>";
+    else gate = '<div class="gate"><b>Осталось ' + left + " из " + n.tasks.length + "</b><span>Отметьте все пункты, чтобы открыть следующий этап.</span></div>";
+
+    const tasks = n.tasks.map((t, i) => {
+      const id = "t-" + n.id + "-" + i;
+      const dis = st === "locked" || readOnly ? " disabled" : "";
+      return '<li class="task"><label for="' + id + '"><input type="checkbox" id="' + id + '" data-k="' + key(n, i) + '"' + (checked[key(n, i)] ? " checked" : "") + dis + "><span>" + esc(t) + "</span></label></li>";
+    }).join("");
+
+    const docs = n.docs.map(d => {
+      const tpl = T.templates[d];
+      return '<div class="doc"><span class="doc-ext">' + (tpl.ext === "csv" ? "xls" : tpl.ext) + '</span><span class="doc-title">' + esc(tpl.title) + '</span><button class="btn" type="button" data-doc="' + d + '">Открыть</button></div>';
+    }).join("");
+
+    inner.innerHTML =
+      '<div class="panel-head"><div class="eyebrow">Этап ' + n.code + " · LVL " + n.lvl + " · " + esc(n.phase) + "</div>" +
+      "<h2>" + esc(n.name) + '</h2><div class="chips"><span class="chip status" data-state="' + st + '">' + STATUS[st] + '</span><span class="chip">Срок: ' + esc(n.dur) + "</span></div></div>" +
+      '<p class="desc">' + esc(n.desc) + "</p>" +
+      '<dl class="facts">' +
+        (n.req.length ? '<dt>Требует</dt><dd class="chips">' + n.req.map(chip).join("") + "</dd>" : "<dt>Требует</dt><dd>Стартовый этап</dd>") +
+        (children[n.id].length ? '<dt>Открывает</dt><dd class="chips">' + children[n.id].map(chip).join("") + "</dd>" : "") +
+      "</dl>" +
+      '<div><div class="section-title"><h3 class="eyebrow">Условия перехода</h3><span class="mono" style="font-size:12px;color:var(--muted)">' + dc + " / " + n.tasks.length + " · +" + n.tasks.length * XP_PER_TASK + " XP</span></div>" + gate + '<ul class="tasks" style="margin-top:8px">' + tasks + "</ul></div>" +
+      '<div><div class="section-title"><h3 class="eyebrow">Образцы документов</h3></div><div class="docs">' + docs + "</div></div>" +
+      (n.tip ? '<div class="tip"><b>Совет</b>' + esc(n.tip) + "</div>" : "");
+  }
+
+  inner.addEventListener("change", e => {
+    const k = e.target.dataset && e.target.dataset.k;
+    if (!k) return;
+    const nodeId = k.split(".")[0];
+    const wasDone = isDone(byId[nodeId]);
+    checked[k] = e.target.checked;
+    persist({ [k]: e.target.checked });
+    renderAll();
+    if (!wasDone && isDone(byId[nodeId])) {
+      const opened = children[nodeId].filter(c => isUnlocked(byId[c])).map(c => byId[c].name);
+      toast(opened.length ? "Этап пройден! Открыто: " + opened.join(", ") : "Этап пройден!");
+    }
+  });
+  inner.addEventListener("click", e => {
+    const go = e.target.closest("[data-go]");
+    if (go) { select(go.dataset.go, true); return; }
+    const d = e.target.closest("[data-doc]");
+    if (d) openDoc(d.dataset.doc);
+  });
+  document.getElementById("panel-close").addEventListener("click", () => { panel.dataset.open = "false"; });
+
+  function select(id, userAction) {
+    selected = id;
+    if (userAction) {
+      panel.dataset.open = "true";
+      try { history.replaceState(null, "", "#" + id); } catch (e) {}
+      panel.scrollTop = 0;
+    }
+    renderAll();
+  }
+
+  function renderAll() { renderHud(); renderTree(); renderPanel(); }
+
+  // --- document viewer ----------------------------------------------------
+  const viewer = document.getElementById("viewer");
+  let currentDoc = null;
+  const DISCLAIMER = "ОБРАЗЕЦ ДЛЯ ОЗНАКОМЛЕНИЯ. Перед использованием адаптируйте документ с юристом к действующему законодательству РК.";
+  function docText(id) {
+    const t = T.templates[id];
+    return t.ext === "csv" ? t.body : DISCLAIMER + "\n\n" + t.body;
+  }
+  function openDoc(id) {
+    currentDoc = id;
+    document.getElementById("viewer-title").textContent = T.templates[id].title;
+    document.getElementById("viewer-text").textContent = docText(id);
+    document.getElementById("v-dl").hidden = !downloads;
+    document.getElementById("v-dl").textContent = T.templates[id].ext === "csv" ? "Скачать для Excel" : "Скачать .txt";
+    if (viewer.showModal) viewer.showModal(); else viewer.setAttribute("open", "");
+  }
+  document.getElementById("v-close").addEventListener("click", () => viewer.close());
+  viewer.addEventListener("click", e => { if (e.target === viewer) viewer.close(); });
+  document.getElementById("v-copy").addEventListener("click", () => {
+    const text = docText(currentDoc);
+    const fallback = () => {
+      const r = document.createRange(); r.selectNodeContents(document.getElementById("viewer-text"));
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+      toast("Текст выделен, нажмите Ctrl+C");
+    };
+    try { navigator.clipboard.writeText(text).then(() => toast("Скопировано"), fallback); } catch (e) { fallback(); }
+  });
+  document.getElementById("v-dl").addEventListener("click", async () => {
+    if (!downloads) return;
+    const t = T.templates[currentDoc];
+    const name = t.title.replace(/[^\p{L}\p{N}\s-]/gu, "").trim().replace(/\s+/g, "_") + "." + t.ext;
+    const data = t.ext === "csv" ? "﻿" + t.body.replace(/\n/g, "\r\n") : docText(currentDoc).replace(/\n/g, "\r\n");
+    try { await downloads.save({ filename: name, data }); toast("Файл сохранён"); }
+    catch (e) {
+      if (e && e.code === "declined") return;
+      if (e && e.code === "rate_limited") { toast("Подождите немного и попробуйте снова"); return; }
+      toast("Скачивание недоступно здесь, используйте «Копировать»");
+    }
+  });
+
+  // --- misc ---------------------------------------------------------------
+  let toastTimer;
+  function toast(msg) {
+    const el = document.getElementById("toast");
+    el.textContent = msg; el.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, 2600);
+  }
+
+  const resetZone = document.getElementById("reset-zone");
+  resetZone.addEventListener("click", e => {
+    if (e.target.id === "reset") {
+      resetZone.innerHTML = '<span class="reset-confirm">Сбросить все отметки? <button class="btn" id="reset-yes">Да, сбросить</button><button class="btn ghost" id="reset-no">Отмена</button></span>';
+    } else if (e.target.id === "reset-yes" || e.target.id === "reset-no") {
+      if (e.target.id === "reset-yes" && !readOnly) {
+        checked = {};
+        saveLocal();
+        if (docRef) writeChain = writeChain.then(() => docRef.set({ checked: {} }).then(() => { docExists = true; }).catch(() => {}));
+        renderAll();
+        toast("Прогресс сброшен");
+      }
+      resetZone.innerHTML = '<button class="btn ghost" id="reset">Сбросить прогресс</button>';
+    }
+  });
+
+  function firstQuest() {
+    const n = T.nodes.find(n => stateOf(n) === "active") || T.nodes.find(n => stateOf(n) === "open") || T.nodes[T.nodes.length - 1];
+    return n.id;
+  }
+
+  // --- boot ---------------------------------------------------------------
+  checked = loadLocal();
+  buildTree();
+  const hash = (location.hash || "").slice(1);
+  selected = byId[hash] ? hash : firstQuest();
+  if (byId[hash] || window.matchMedia("(min-width: 981px)").matches) panel.dataset.open = "true";
+  renderAll();
+  if ("ResizeObserver" in window) new ResizeObserver(() => drawEdges()).observe(treeEl);
+  else window.addEventListener("resize", drawEdges);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawEdges);
+  connect();
+})();
+</script>
