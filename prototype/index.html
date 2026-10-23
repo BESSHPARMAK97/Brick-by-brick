@@ -2,229 +2,234 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap">
 <style>
-/* Layout: project card on top → block tabs → floor-by-floor chessboard; unit opens in a side drawer with editable works */
+/* Layout: one quiet column — project summary, block switch, chessboard; unit opens as a side sheet (bottom sheet on phones) */
 :root {
-  --bg: #eef0f2;
-  --surface: #ffffff;
-  --fg: #1c2127;
-  --muted: #66707b;
-  --line: #d7dbe0;
-  --cell: #e3e6ea;
-  --accent: #b4472b;
-  --warn-bg: #fbeee9;
-  --s0: #c9ced5; --s1: #e6a23c; --s2: #3c8dbc; --s3: #2f9e5b; --s4: #d6336c;
-  --display: "Unbounded", "Arial Black", system-ui, sans-serif;
-  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --bg: #ffffff;
+  --fg: #17181a;
+  --muted: #74777d;
+  --line: #ececee;
+  --soft: #f5f5f6;
+  --cell: #efeff1;
+  --brick: #c4542f;
+  --s0: #d9dadd; --s1: #f2b33d; --s2: #4a7fd6; --s3: #2f9e6b; --s4: #e5484d;
+  --bad-bg: #fdeeee;
+  --font: "Onest", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #15181c; --surface: #1d2126; --fg: #e7eaee; --muted: #98a2ad; --line: #30363d; --cell: #2a2f36; --warn-bg: #3a2620;
-  --accent: #e0714f; --s0: #4a525c; --s1: #e0a23f; --s2: #4ba3d6; --s3: #43b873; --s4: #ec5a8a; color-scheme: dark } }
+  --bg: #121314; --fg: #ececed; --muted: #94979d; --line: #26282b; --soft: #1b1c1e; --cell: #232528;
+  --brick: #e27450; --s0: #3a3d42; --s1: #e9ab3a; --s2: #5b8fe3; --s3: #3bb07b; --s4: #f06267; --bad-bg: #3a2022; color-scheme: dark } }
 :root[data-theme="dark"] {
-  --bg: #15181c; --surface: #1d2126; --fg: #e7eaee; --muted: #98a2ad; --line: #30363d; --cell: #2a2f36; --warn-bg: #3a2620;
-  --accent: #e0714f; --s0: #4a525c; --s1: #e0a23f; --s2: #4ba3d6; --s3: #43b873; --s4: #ec5a8a; color-scheme: dark }
+  --bg: #121314; --fg: #ececed; --muted: #94979d; --line: #26282b; --soft: #1b1c1e; --cell: #232528;
+  --brick: #e27450; --s0: #3a3d42; --s1: #e9ab3a; --s2: #5b8fe3; --s3: #3bb07b; --s4: #f06267; --bad-bg: #3a2022; color-scheme: dark }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 14px; line-height: 1.45; }
-.wrap { max-width: 1240px; margin: 0 auto; padding-block: 20px 96px;
-  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
-  display: grid; gap: 20px; }
-h1, h2, h3 { font-family: var(--display); font-weight: 700; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
-.label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
-.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
-.note { font-size: 12px; color: var(--muted); }
+body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 15px; line-height: 1.45; font-variant-numeric: tabular-nums; }
+h1, h2 { margin: 0; font-weight: 600; letter-spacing: -0.02em; text-wrap: balance; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+button, select, input { font: inherit; color: inherit; }
+:is(button, select, input, summary, label.btn):focus-visible { outline: 2px solid var(--brick); outline-offset: 2px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.logo { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 700; font-size: 15px; }
-.logo-mark { display: grid; grid-template-columns: repeat(3, 9px); gap: 2px; }
-.logo-mark i { height: 6px; background: var(--accent); border-radius: 1px; }
-.logo-mark i:nth-child(4), .logo-mark i:nth-child(5) { transform: translateX(5px); }
-.who { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
-
-.project { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px;
-  display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 24px; }
-.project h1 { font-size: clamp(22px, 3.2vw, 30px); }
-.project .sub { color: var(--muted); margin-top: 4px; }
-.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 20px; margin-top: 18px; }
-.facts div { display: grid; gap: 2px; min-width: 0; }
-.facts b { font-weight: 500; }
-.prog-big { display: grid; gap: 10px; align-content: start; }
-.prog-big .pct { font-family: var(--display); font-size: 40px; line-height: 1; }
-.bar { height: 8px; border-radius: 4px; background: var(--cell); overflow: hidden; display: flex; }
-.bar span { display: block; height: 100%; }
-.counts { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
-.count { display: flex; align-items: center; gap: 8px; font-size: 13px; }
-.dot { width: 10px; height: 10px; border-radius: 3px; flex: none; display: inline-block; }
-
-.controls { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: end; justify-content: space-between; }
-.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
-.tab { font: inherit; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--fg);
-  border-radius: 8px; padding: 8px 14px; display: grid; gap: 2px; text-align: left; min-width: 120px; }
-.tab small { color: var(--muted); font-size: 12px; }
-.tab[aria-selected="true"] { border-color: var(--fg); box-shadow: inset 0 0 0 1px var(--fg); }
-:is(.tab, .cell, .btn, select, input, .wrow, .floor-label):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.field { display: grid; gap: 4px; }
-select, input { font: inherit; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); min-width: 0; }
-input[type="number"] { font-family: var(--mono); }
-.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); }
-.legend span { display: flex; align-items: center; gap: 6px; }
-
-.board-card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; }
-.board-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: center; }
-.board-head h2 { font-size: 18px; }
-.board-tools { display: flex; gap: 8px; flex-wrap: wrap; }
-.board-scroll { overflow-x: auto; padding: 2px 2px 4px; }
-.board { display: grid; gap: 4px; min-width: max-content; }
-.floor { display: grid; grid-template-columns: 54px auto; gap: 8px; align-items: stretch; }
-.floor-label { font: inherit; color: var(--fg); background: none; border: 0; border-right: 2px solid var(--line);
-  display: grid; align-content: center; justify-items: end; padding: 0 6px 0 0; }
-.mass .floor-label { cursor: pointer; }
-.floor-label .num { font-size: 15px; font-weight: 500; }
-.floor-label small { font-size: 10px; color: var(--muted); }
-.units { display: flex; gap: 4px; }
-.cell { font: inherit; color: var(--fg); cursor: pointer; width: 78px; min-height: 56px; border-radius: 6px;
-  border: 1px solid transparent; background: var(--cell); padding: 6px 7px; display: grid; align-content: space-between;
-  text-align: left; position: relative; transition: transform .12s ease; }
-.cell:hover { transform: translateY(-1px); border-color: var(--fg); }
-.cell .n { font-family: var(--mono); font-weight: 500; font-size: 13px; }
-.cell .t { font-size: 11px; color: var(--muted); }
-.cell .p { font-family: var(--mono); font-size: 11px; }
-.cell.k { width: 118px; border-style: dashed; border-color: var(--line); }
-.cell.tech { width: 104px; border-style: dashed; border-color: var(--line); }
-.cell.mop { width: 64px; border-style: dashed; border-color: var(--line); }
-.cell.dim { opacity: .35; }
-.cell.sel { outline: 3px solid var(--fg); outline-offset: 1px; }
-.cell .flag { position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--s4); }
-.cell.on-dark .t, .cell.on-dark .n, .cell.on-dark .p { color: #fff; }
-
-.btn { font: inherit; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 8px; padding: 7px 12px; }
-.btn:hover:not(:disabled) { border-color: var(--fg); }
-.btn:disabled { opacity: .45; cursor: default; }
-.btn.primary { background: var(--fg); color: var(--surface); border-color: var(--fg); }
-.btn.ok { background: var(--s3); color: #fff; border-color: var(--s3); }
-.btn.bad { color: var(--s4); border-color: var(--s4); }
-.btn[aria-pressed="true"] { background: var(--fg); color: var(--surface); border-color: var(--fg); }
-
-/* drawer + modal */
-.scrim { position: fixed; inset: 0; background: rgba(10, 12, 15, .4); z-index: 20; }
-.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(600px, 100%); z-index: 21; background: var(--surface);
-  border-left: 1px solid var(--line); overflow-y: auto; display: grid; align-content: start; gap: 18px;
-  padding-top: max(20px, env(safe-area-inset-top, 0px)); padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
-  padding-left: 20px; padding-right: max(20px, env(safe-area-inset-right, 0px)); }
-.modal { position: fixed; z-index: 21; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(760px, calc(100% - 24px));
-  max-height: calc(100% - 48px); overflow-y: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: grid; gap: 16px; }
-.d-head { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
-.drawer h2, .modal h2 { font-size: 22px; margin-top: 4px; }
-.crumbs { font-size: 13px; color: var(--muted); }
-.specs { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; }
-.specs div { display: grid; gap: 2px; }
-.specs b { font-weight: 500; }
-.nav-row { display: flex; gap: 8px; flex-wrap: wrap; }
-.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; white-space: nowrap; }
-
-.wlist { display: grid; border-top: 1px solid var(--line); }
-.witem { border-bottom: 1px solid var(--line); }
-.wrow { font: inherit; color: var(--fg); background: none; border: 0; width: 100%; cursor: pointer; text-align: left;
-  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 10px 4px; align-items: center; }
-.wrow:hover { background: var(--bg); }
-.wrow small { color: var(--muted); font-size: 11px; display: block; }
-.wrow .right { display: grid; justify-items: end; gap: 3px; }
-.mini { width: 90px; height: 4px; border-radius: 2px; background: var(--cell); overflow: hidden; }
-.mini span { display: block; height: 100%; background: var(--fg); }
-.editor { background: var(--bg); border-radius: 8px; padding: 14px; margin: 0 0 12px; display: grid; gap: 14px; }
-.ed-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-.ed-grid > div { display: grid; gap: 6px; align-content: start; }
-.inline { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-.inline input[type="number"] { width: 110px; }
-.form { display: grid; grid-template-columns: 120px 150px minmax(0, 1fr); gap: 8px; }
-.actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.msg { font-size: 13px; padding: 8px 10px; border-radius: 6px; background: var(--warn-bg); }
-.hist { display: grid; gap: 6px; font-size: 12px; margin: 0; padding: 0; list-style: none; }
-.hist li { display: grid; grid-template-columns: 82px minmax(0, 1fr); gap: 8px; }
-.hist .d { color: var(--muted); font-family: var(--mono); }
-.thumbs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
-.thumb { padding: 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; width: 56px; height: 56px; cursor: zoom-in; background: var(--cell); }
-.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.photo-in { display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
-.photo-in input { padding: 6px; font-size: 13px; }
-.stats3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.stats3 > div { display: grid; gap: 4px; align-content: start; min-width: 0; }
-.lightbox { position: fixed; inset: 0; z-index: 40; background: rgba(10, 12, 15, .85); display: grid; place-items: center; padding: 24px; cursor: zoom-out; }
-.lightbox img { max-width: 100%; max-height: 100%; border-radius: 6px; }
-
-.tpl { width: 100%; border-collapse: collapse; font-size: 13px; }
-.tpl th, .tpl td { padding: 6px 8px 6px 0; border-bottom: 1px solid var(--line); text-align: left; }
-.tpl th { font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
-.tpl input { width: 84px; padding: 5px 8px; }
-.scroll-x { overflow-x: auto; }
-
-.bulkbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 15; background: var(--surface); border-top: 1px solid var(--line);
-  padding-block: 12px max(12px, env(safe-area-inset-bottom, 0px));
+/* top bar */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: var(--bg); border-bottom: 1px solid var(--line);
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-.bulkbar-in { max-width: 1240px; margin: 0 auto; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-.toast { position: fixed; z-index: 30; left: 50%; transform: translateX(-50%); bottom: calc(84px + env(safe-area-inset-bottom, 0px));
-  background: var(--fg); color: var(--surface); padding: 10px 16px; border-radius: 8px; font-size: 13px; max-width: calc(100% - 32px); }
+.top-in { max-width: 1120px; margin: 0 auto; height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.mark { display: grid; grid-template-columns: 8px 8px; gap: 2px; }
+.mark i { width: 8px; height: 5px; background: var(--brick); border-radius: 1px; }
+.mark i:nth-child(3) { grid-column: 1 / span 2; width: 18px; }
+.role { position: relative; }
+.role select { appearance: none; border: 1px solid var(--line); background: var(--bg); border-radius: 99px; padding: 6px 30px 6px 14px; font-size: 14px; cursor: pointer; }
+.role::after { content: ""; position: absolute; right: 13px; top: 50%; width: 6px; height: 6px; border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted); transform: translateY(-70%) rotate(45deg); pointer-events: none; }
 
-@media (max-width: 760px) {
-  .project { grid-template-columns: 1fr; }
-  .drawer { border-left: 0; }
-  .form { grid-template-columns: 1fr 1fr; }
-  .form input[name="note"] { grid-column: 1 / -1; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 28px 120px; display: grid; gap: 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* summary */
+.summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 20px 32px; align-items: end; }
+.summary h1 { font-size: clamp(24px, 4vw, 32px); }
+.big { display: grid; gap: 8px; justify-items: end; min-width: 220px; }
+.pct { font-size: 40px; font-weight: 600; line-height: 1; letter-spacing: -0.03em; }
+.track { height: 4px; width: 100%; border-radius: 2px; background: var(--cell); overflow: hidden; display: flex; }
+.track span { display: block; height: 100%; background: var(--s3); }
+.stats { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; }
+.stat { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--bg); border-radius: 99px; padding: 6px 14px; cursor: pointer; font-size: 14px; }
+.stat b { font-weight: 600; }
+.stat:hover { border-color: var(--muted); }
+.stat.on { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; }
+.facts { grid-column: 1 / -1; font-size: 14px; }
+.facts summary { cursor: pointer; color: var(--muted); width: max-content; list-style: none; }
+.facts summary::-webkit-details-marker { display: none; }
+.facts summary::after { content: " ↓"; }
+.facts[open] summary::after { content: " ↑"; }
+.facts dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px 24px; margin: 14px 0 0; }
+.facts dt { color: var(--muted); font-size: 13px; }
+.facts dd { margin: 2px 0 0; }
+
+/* toolbar */
+.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.seg { display: inline-flex; background: var(--soft); border-radius: 10px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: none; border-radius: 8px; padding: 6px 14px; cursor: pointer; font-size: 14px; display: inline-flex; gap: 8px; align-items: baseline; }
+.seg button small { color: var(--muted); font-size: 12px; }
+.seg button[aria-selected="true"] { background: var(--bg); box-shadow: 0 1px 2px rgba(0, 0, 0, .08); font-weight: 500; }
+.tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+select.plain { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 7px 10px; font-size: 14px; max-width: 100%; }
+
+.btn { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 8px 14px; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.btn:hover:not(:disabled) { border-color: var(--muted); }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.btn.danger { background: var(--s4); color: #fff; border-color: var(--s4); }
+.btn[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.link { border: 0; background: none; padding: 0; cursor: pointer; font-size: 14px; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line); }
+.link:hover { text-decoration-color: currentColor; }
+.link.danger { color: var(--s4); }
+.icon { width: 34px; height: 34px; display: grid; place-items: center; border: 0; background: none; border-radius: 8px; cursor: pointer; color: var(--muted); }
+.icon:hover:not(:disabled) { background: var(--soft); color: var(--fg); }
+.icon:disabled { opacity: .3; cursor: default; }
+
+/* chessboard */
+.board-wrap { display: grid; gap: 16px; min-width: 0; }
+.board-scroll { overflow-x: auto; padding: 4px 2px; }
+.board { display: grid; gap: 4px; min-width: max-content; }
+.floor { display: grid; grid-template-columns: 36px auto; gap: 8px; align-items: center; }
+.floor-no { border: 0; background: none; font-size: 13px; color: var(--muted); text-align: right; padding: 0 4px 0 0; height: 100%; }
+.mass .floor-no { cursor: pointer; color: var(--fg); }
+.units { display: flex; gap: 4px; }
+.cell { position: relative; min-width: 58px; height: 46px; padding: 0 10px; border: 0; border-radius: 8px; background: var(--cell); cursor: pointer;
+  display: grid; align-content: center; justify-items: start; gap: 0; text-align: left; transition: transform .12s ease, box-shadow .12s ease; }
+.cell:hover { box-shadow: inset 0 0 0 1.5px var(--fg); }
+.cell .n { font-weight: 600; font-size: 14px; line-height: 1.1; }
+.cell .p { font-size: 11px; opacity: .7; }
+.cell.alt { background: transparent !important; box-shadow: inset 0 0 0 1px var(--line); }
+.cell.alt.hit { box-shadow: inset 0 0 0 2px var(--hit); }
+.cell.dim { opacity: .3; }
+.cell.dark { color: #fff; }
+.cell.sel { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--fg); }
+.cell .flag { position: absolute; top: 6px; right: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--s4); box-shadow: 0 0 0 1.5px var(--bg); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* sheet */
+.scrim { position: fixed; inset: 0; background: rgba(0, 0, 0, .28); z-index: 20; }
+.sheet { position: fixed; z-index: 21; top: 0; right: 0; bottom: 0; width: min(480px, 100%); background: var(--bg); overflow-y: auto;
+  box-shadow: -12px 0 40px rgba(0, 0, 0, .12); display: grid; align-content: start; gap: 20px;
+  padding-top: max(20px, env(safe-area-inset-top, 0px)); padding-bottom: max(28px, env(safe-area-inset-bottom, 0px));
+  padding-left: 20px; padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+.sheet-head { display: flex; justify-content: space-between; align-items: start; gap: 8px; }
+.sheet-head h2 { font-size: 24px; }
+.icon-row { display: flex; margin-right: -8px; }
+.sheet-progress { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; }
+.sheet-progress b { font-weight: 600; font-size: 15px; }
+.works { list-style: none; margin: 0 -8px; padding: 0; display: grid; }
+.work-row { width: 100%; border: 0; background: none; cursor: pointer; display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; gap: 12px; align-items: center;
+  padding: 12px 8px; border-radius: 8px; text-align: left; }
+.work-row:hover { background: var(--soft); }
+.work.open .work-row { background: var(--soft); border-radius: 8px 8px 0 0; }
+.work-qty { color: var(--muted); font-size: 13px; white-space: nowrap; }
+.editor { background: var(--soft); border-radius: 0 0 8px 8px; padding: 4px 8px 16px 28px; display: grid; gap: 14px; margin-bottom: 6px; }
+.nums { display: flex; gap: 24px; margin: 0; }
+.nums dt { font-size: 12px; color: var(--muted); }
+.nums dd { margin: 0; font-weight: 600; }
+.field-row { display: flex; gap: 8px; }
+.qty { flex: 1; display: flex; align-items: center; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding-right: 12px; min-width: 0; }
+.qty input { flex: 1; border: 0; background: none; padding: 9px 12px; min-width: 0; font-size: 16px; }
+.qty input:focus-visible { outline: none; }
+.qty:focus-within { border-color: var(--fg); }
+.qty span { color: var(--muted); font-size: 14px; }
+.text { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 9px 12px; font-size: 15px; }
+.text:focus-visible { outline: none; border-color: var(--fg); }
+.row { display: flex; gap: 8px 12px; align-items: center; flex-wrap: wrap; }
+.more { display: grid; gap: 8px; }
+.more input[type="date"] { width: 100%; }
+.banner { border-radius: 8px; padding: 10px 12px; display: grid; gap: 4px; font-size: 14px; }
+.banner.bad { background: var(--bad-bg); }
+.banner b { color: var(--s4); font-weight: 600; }
+.err { font-size: 14px; color: var(--s4); }
+.hist-wrap summary { cursor: pointer; font-size: 13px; color: var(--muted); list-style: none; width: max-content; }
+.hist-wrap summary::-webkit-details-marker { display: none; }
+.hist-wrap summary::after { content: " ↓"; }
+.hist-wrap[open] summary::after { content: " ↑"; }
+.hist { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; font-size: 13px; }
+.hist li { display: grid; grid-template-columns: 78px minmax(0, 1fr); gap: 8px; }
+.hist .d { color: var(--muted); }
+.thumbs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.thumb { width: 52px; height: 52px; padding: 0; border: 0; border-radius: 6px; overflow: hidden; cursor: zoom-in; background: var(--cell); }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* modal, bulk, toast, lightbox */
+.modal { position: fixed; z-index: 21; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(720px, calc(100% - 24px)); max-height: calc(100% - 48px);
+  overflow-y: auto; background: var(--bg); border-radius: 14px; padding: 24px; display: grid; gap: 18px; box-shadow: 0 20px 60px rgba(0, 0, 0, .2); }
+.scroll-x { overflow-x: auto; }
+.tpl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tpl th, .tpl td { padding: 8px 10px 8px 0; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+.tpl th { font-weight: 500; color: var(--muted); font-size: 13px; }
+.tpl input { width: 76px; border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; background: var(--bg); }
+.bulk { position: fixed; z-index: 15; left: 50%; transform: translateX(-50%); bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  width: min(720px, calc(100% - 24px)); background: var(--fg); color: var(--bg); border-radius: 14px; padding: 10px 10px 10px 18px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; box-shadow: 0 12px 40px rgba(0, 0, 0, .25); }
+.bulk select { border: 0; border-radius: 8px; padding: 7px 10px; background: var(--bg); color: var(--fg); flex: 1; min-width: 160px; }
+.bulk .btn { background: var(--bg); color: var(--fg); border-color: var(--bg); }
+.bulk .icon { color: var(--bg); }
+.bulk .icon:hover { background: rgba(255, 255, 255, .12); color: var(--bg); }
+.bulk .hint { font-size: 13px; opacity: .7; }
+.toast { position: fixed; z-index: 30; left: 50%; transform: translateX(-50%); bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; max-width: calc(100% - 32px); box-shadow: 0 8px 30px rgba(0, 0, 0, .2); }
+.lightbox { position: fixed; inset: 0; z-index: 40; background: rgba(0, 0, 0, .88); display: grid; place-items: center; padding: 24px; cursor: zoom-out; }
+.lightbox img { max-width: 100%; max-height: 100%; border-radius: 8px; }
+
+@media (max-width: 640px) {
+  .summary { grid-template-columns: 1fr; }
+  .big { justify-items: start; min-width: 0; }
+  .sheet { top: auto; left: 0; width: 100%; height: 92%; border-radius: 16px 16px 0 0; box-shadow: 0 -12px 40px rgba(0, 0, 0, .15); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .editor { padding-left: 8px; }
 }
-@media (prefers-reduced-motion: reduce) { .cell { transition: none; } .cell:hover { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .cell { transition: none; } }
 </style>
 
-<div class="wrap">
-  <header class="topbar">
-    <div class="logo"><span class="logo-mark"><i></i><i></i><i></i><i></i><i></i></span>Brick by brick</div>
-    <label class="who" for="role">Я вхожу как
-      <select id="role"></select>
-    </label>
-  </header>
+<header class="top"><div class="top-in">
+  <div class="brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>Brick by brick</div>
+  <label class="role"><span class="sr">Роль</span><select id="role"></select></label>
+</div></header>
 
-  <section class="project" aria-label="Карточка проекта">
+<main class="wrap">
+  <section class="summary" aria-label="Проект">
     <div>
-      <span class="label">Карточка проекта · пример данных</span>
       <h1 id="p-name"></h1>
-      <div class="sub" id="p-address"></div>
-      <div class="facts" id="p-facts"></div>
+      <p class="muted" id="p-sub"></p>
     </div>
-    <div class="prog-big">
-      <span class="label">Общая готовность работ</span>
-      <div class="pct num" id="p-pct"></div>
-      <div class="bar" id="p-bar"></div>
-      <div class="counts" id="p-counts"></div>
+    <div class="big">
+      <span class="pct" id="p-pct"></span>
+      <div class="track"><span id="p-bar"></span></div>
     </div>
+    <div class="stats" id="p-stats"></div>
+    <details class="facts"><summary>О проекте</summary><dl id="p-facts"></dl></details>
   </section>
 
-  <div class="controls">
-    <div class="tabs" role="tablist" id="tabs"></div>
-    <div class="field">
-      <label class="label" for="colorby">Раскрасить шахматку</label>
-      <select id="colorby"></select>
-    </div>
-  </div>
-
-  <section class="board-card" id="board-card">
-    <div class="board-head">
-      <h2 id="b-title"></h2>
-      <div class="board-tools">
-        <button class="btn" id="mass-toggle" aria-pressed="false">Массовая отметка</button>
-        <button class="btn" id="tpl-open">Объёмы по планировкам</button>
+  <section class="board-wrap" id="board-wrap" aria-label="Шахматка">
+    <div class="toolbar">
+      <div class="seg" id="tabs" role="tablist" aria-label="Блоки"></div>
+      <div class="tools">
+        <label><span class="sr">Что показать</span><select class="plain" id="view"></select></label>
+        <button class="btn" id="mass-toggle" aria-pressed="false">Выбрать</button>
+        <button class="btn" id="tpl-open">Объёмы</button>
       </div>
     </div>
-    <div class="legend" id="legend"></div>
     <div class="board-scroll"><div class="board" id="board"></div></div>
-    <div class="note" id="board-hint"></div>
+    <div class="legend" id="legend"></div>
   </section>
-</div>
+</main>
 
-<div class="bulkbar" id="bulkbar" hidden><div class="bulkbar-in" id="bulk-in"></div></div>
+<div class="bulk" id="bulk" hidden></div>
 <div class="scrim" id="scrim" hidden></div>
-<aside class="drawer" id="drawer" hidden aria-modal="true" role="dialog" aria-labelledby="d-title"></aside>
+<aside class="sheet" id="drawer" hidden aria-modal="true" role="dialog" aria-labelledby="d-title"></aside>
 <div class="modal" id="modal" hidden aria-modal="true" role="dialog" aria-labelledby="m-title"></div>
 <div class="toast" id="toast" hidden role="status"></div>
 <div class="lightbox" id="lightbox" hidden role="dialog" aria-label="Фото"><img id="lightbox-img" alt="Фото к записи"></div>
@@ -234,17 +239,11 @@ input[type="number"] { font-family: var(--mono); }
 const STATUS = [
   { name: "Не начато", color: "var(--s0)" },
   { name: "В работе", color: "var(--s1)" },
-  { name: "Выполнено, ждёт приёмки", color: "var(--s2)" },
-  { name: "Принято технадзором", color: "var(--s3)" },
+  { name: "Ждёт приёмки", color: "var(--s2)" },
+  { name: "Принято", color: "var(--s3)" },
   { name: "Замечания", color: "var(--s4)" },
 ];
 const ROLES = { pto: "Инженер ПТО", foreman: "Прораб", tn: "Технадзор", boss: "Руководитель" };
-const ROLE_HINT = {
-  pto: "ПТО задаёт плановые объёмы: один раз на планировку или вручную для конкретного помещения.",
-  foreman: "Прораб вносит факт выполнения, частично или полностью, по одному помещению или сразу по нескольким. Фото можно приложить, но это необязательно.",
-  tn: "Технадзор принимает выполненный объём целиком или частями и выставляет замечания.",
-  boss: "Руководитель видит всё, но ничего не меняет.",
-};
 const WORKS = {
   apt: [
     ["Кладка перегородок", "АР", "м²"], ["Установка окон ПВХ", "АР", "шт."], ["Стояки ВК", "ВК", "п.м."],
@@ -275,7 +274,7 @@ let seed = 7;
 const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
 const PROJECT = {
   name: "ЖК «Кереге»",
-  address: "г. Астана, район Есиль · пример объекта",
+  address: "Астана, район Есиль · пример данных",
   facts: [["Застройщик", "ТОО «Пример Девелопмент»"], ["Генподрядчик", "ТОО «Пример Строй»"], ["Класс жилья", "Комфорт"],
           ["Отделка", "Предчистовая"], ["Ввод в эксплуатацию", "IV кв. 2027"]],
   blocks: [],
@@ -391,104 +390,198 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;",
 
 // ---------- состояние ----------
 const $ = id => document.getElementById(id);
-let role = "foreman", current = 0, colorBy = "progress", openUnit = null, openWork = null, edMsg = "";
-let mass = false; const selected = new Set();
+let role = "foreman", current = 0, colorBy = "progress", openUnit = null, openWork = null, edMsg = "", remarkForm = false;
+let mass = false, bulkWork = "Штукатурка стен";
+const selected = new Set();
 
-// ---------- рендер: проект, вкладки, шахматка ----------
-function statusBar(works, el) {
-  const n = works.length || 1;
-  el.innerHTML = [3, 2, 4, 1].map(s => {
-    const c = works.filter(w => w.status === s).length;
-    return c ? `<span style="width:${c / n * 100}%;background:${STATUS[s].color}" title="${STATUS[s].name}: ${c}"></span>` : "";
-  }).join("");
-}
-function renderProject() {
-  const all = PROJECT.blocks.flatMap(blockUnits), works = allWorks(all);
+const svg = d => `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const ICON = {
+  close: svg('<path d="M6 6l12 12M18 6L6 18"/>'),
+  left: svg('<path d="M15 6l-6 6 6 6"/>'), right: svg('<path d="M9 6l6 6-6 6"/>'),
+  up: svg('<path d="M6 15l6-6 6 6"/>'), down: svg('<path d="M6 9l6 6 6-6"/>'),
+  camera: svg('<path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13.5" r="3.5"/>'),
+};
+
+// режимы шахматки: по готовности, фильтры по состоянию и по виду работы
+const FILTERS = {
+  pending: { label: "К приёмке", color: "var(--s2)", hit: w => w.status !== 4 && pending(w) > 0, dark: true },
+  remarks: { label: "Замечания", color: "var(--s4)", hit: w => w.status === 4, dark: true },
+  inwork:  { label: "В работе",  color: "var(--s1)", hit: w => w.status === 1, dark: false },
+};
+
+// ---------- сводка проекта ----------
+function renderSummary() {
+  const all = PROJECT.blocks.flatMap(blockUnits), works = allWorks(all), p = progress(works);
   $("p-name").textContent = PROJECT.name;
-  $("p-address").textContent = PROJECT.address;
-  const apts = all.filter(u => u.kind === "apt").length, ks = all.filter(u => u.kind === "k").length;
-  $("p-facts").innerHTML = PROJECT.facts.concat([["Блоков", PROJECT.blocks.length], ["Квартир / коммерции", `${apts} / ${ks}`]])
-    .map(([k, v]) => `<div><span class="label">${k}</span><b>${v}</b></div>`).join("");
-  $("p-pct").textContent = pct(progress(works));
-  statusBar(works, $("p-bar"));
-  $("p-counts").innerHTML = [3, 2, 1, 4, 0].map(s =>
-    `<div class="count"><span class="dot" style="background:${STATUS[s].color}"></span>${s === 2 ? "Ждёт приёмки" : STATUS[s].name}<span class="num" style="margin-left:auto">${works.filter(w => w.status === s).length}</span></div>`).join("");
+  $("p-sub").textContent = PROJECT.address;
+  $("p-pct").textContent = pct(p);
+  $("p-bar").style.width = pct(p);
+  $("p-stats").innerHTML = Object.entries(FILTERS).map(([k, f]) =>
+    `<button class="stat${colorBy === k ? " on" : ""}" data-mode="${k}" aria-pressed="${colorBy === k}"><span class="dot" style="background:${f.color}"></span>${f.label}<b>${works.filter(f.hit).length}</b></button>`).join("");
+  const apts = all.filter(u => u.kind === "apt").length;
+  $("p-facts").innerHTML = PROJECT.facts.concat([["Блоков", PROJECT.blocks.length], ["Квартир", apts]])
+    .map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("");
 }
+
+// ---------- шахматка ----------
 function renderTabs() {
-  $("tabs").innerHTML = PROJECT.blocks.map((b, i) => {
-    const units = blockUnits(b);
-    return `<button class="tab" role="tab" aria-selected="${i === current}" data-i="${i}">
-      <b>${b.name}</b><small>${b.floors.filter(f => f.no > 0).length} эт. · ${units.filter(u => u.kind === "apt").length} кв. · ${pct(progress(allWorks(units)))}</small></button>`;
-  }).join("");
+  $("tabs").innerHTML = PROJECT.blocks.map((b, i) =>
+    `<button role="tab" aria-selected="${i === current}" data-i="${i}">${b.name}<small>${pct(progress(allWorks(blockUnits(b))))}</small></button>`).join("");
 }
-function renderLegend() {
-  if (colorBy === "pending") {
-    $("legend").innerHTML = `<span><span class="dot" style="background:var(--s2)"></span>есть объём к приёмке</span><span><span class="dot" style="background:var(--cell);border:1px solid var(--line)"></span>нечего принимать</span><span><span class="dot" style="background:var(--s4);border-radius:50%"></span>есть замечания</span>`;
-    return;
-  }
-  $("legend").innerHTML = colorBy === "progress"
-    ? `<span><span class="dot" style="background:var(--cell);border:1px solid var(--line)"></span>0%</span>` +
-      [25, 50, 75].map(p => `<span><span class="dot" style="background:color-mix(in oklab, var(--s3) ${p}%, var(--cell))"></span>${p}%</span>`).join("") +
-      `<span><span class="dot" style="background:var(--s3)"></span>100%</span><span><span class="dot" style="background:var(--s4);border-radius:50%"></span>есть замечания</span>`
-    : STATUS.map(s => `<span><span class="dot" style="background:${s.color}"></span>${s.name}</span>`).join("") +
-      `<span><span class="dot" style="background:var(--cell);opacity:.4"></span>работа не предусмотрена</span>`;
+function renderView() {
+  $("view").innerHTML = `<option value="progress">Готовность</option>` +
+    Object.entries(FILTERS).map(([k, f]) => `<option value="${k}">${f.label}</option>`).join("") +
+    `<optgroup label="По виду работы">${ALL_WORK_NAMES.map(n => `<option value="${n}">${n}</option>`).join("")}</optgroup>`;
+  $("view").value = colorBy;
 }
-function cellStyle(u) {
+function cellView(u) {
   if (colorBy === "progress") {
     const p = progress(u.works);
-    return { bg: p ? `color-mix(in oklab, var(--s3) ${Math.round(p * 100)}%, var(--cell))` : "var(--cell)", dark: p > .62 };
+    return { bg: p ? `color-mix(in oklab, var(--s3) ${Math.round(p * 100)}%, var(--cell))` : "var(--cell)", dark: p > .55 };
   }
-  if (colorBy === "pending") {
-    const n = u.works.filter(w => w.status !== 4 && pending(w) > 0).length;
-    return n ? { bg: "var(--s2)", dark: true } : { bg: "var(--cell)" };
-  }
+  const f = FILTERS[colorBy];
+  if (f) return u.works.some(f.hit) ? { bg: f.color, dark: f.dark, hit: f.color } : { bg: "var(--cell)" };
   const w = u.works.find(x => x.name === colorBy);
   if (!w) return { bg: "var(--cell)", dim: true };
-  return { bg: w.status ? STATUS[w.status].color : "var(--cell)", dark: w.status >= 2 };
+  return { bg: w.status ? STATUS[w.status].color : "var(--cell)", dark: w.status >= 2, hit: w.status ? STATUS[w.status].color : null };
 }
+const cellName = u => u.kind === "apt" ? u.label : u.kind === "k" ? u.label : u.kind === "mop" ? "МОП" : u.label;
 function renderBoard() {
   const b = PROJECT.blocks[current];
-  $("b-title").textContent = `${b.name} · шахматка`;
-  $("board-card").classList.toggle("mass", mass);
-  $("board-hint").textContent = mass
-    ? "Режим массовой отметки: нажимайте на помещения, чтобы выбрать их. Нажатие на номер этажа выбирает весь этаж."
-    : "Нажмите на помещение, чтобы открыть его работы. МОП — места общего пользования этажа.";
+  $("board-wrap").classList.toggle("mass", mass);
   $("board").innerHTML = b.floors.map(f => `
     <div class="floor">
-      <button class="floor-label" data-floor="${f.no}" ${mass ? "" : 'tabindex="-1"'} aria-label="Этаж ${f.no}"><span class="num">${f.no}</span><small>${f.kind}</small></button>
+      <button class="floor-no" data-floor="${f.no}" ${mass ? `aria-label="Выбрать весь ${f.no} этаж"` : 'tabindex="-1" aria-hidden="true"'}>${f.no}</button>
       <div class="units">${f.units.map((u, ui) => {
-        const s = cellStyle(u), flag = u.works.some(w => w.status === 4), key = `${f.no}:${ui}`;
-        const sub = u.kind === "apt" ? `${u.rooms}к · ${u.area}` : u.kind === "k" ? `${u.area} м²` : u.kind === "tech" ? "тех." : "общ.";
-        return `<button class="cell ${u.kind === "apt" ? "" : u.kind}${s.dim ? " dim" : ""}${s.dark ? " on-dark" : ""}${selected.has(key) ? " sel" : ""}" style="background:${s.bg}"
-          data-f="${f.no}" data-u="${ui}" ${mass ? `aria-pressed="${selected.has(key)}"` : ""} aria-label="${unitTitle(u)}, этаж ${f.no}, готовность ${pct(progress(u.works))}">
-          ${flag ? '<span class="flag" title="Есть замечания"></span>' : ""}
-          <span class="n">${u.kind === "apt" ? u.label : unitTitle(u)}</span>
-          <span class="t">${sub}</span>
-          <span class="p">${pct(progress(u.works))}</span></button>`;
+        const v = cellView(u), key = `${f.no}:${ui}`, alt = u.kind !== "apt";
+        const cls = ["cell", alt && "alt", alt && v.hit && "hit", v.dim && "dim", !alt && v.dark && "dark", selected.has(key) && "sel"].filter(Boolean).join(" ");
+        const style = alt ? (v.hit ? `--hit:${v.hit}` : "") : `background:${v.bg}`;
+        return `<button class="${cls}" style="${style}" data-f="${f.no}" data-u="${ui}" ${mass ? `aria-pressed="${selected.has(key)}"` : ""}
+          title="${unitTitle(u)} · ${unitType(u)}" aria-label="${unitTitle(u)}, ${f.no} этаж, готовность ${pct(progress(u.works))}">
+          ${u.works.some(w => w.status === 4) ? '<span class="flag"></span>' : ""}
+          <span class="n">${cellName(u)}</span><span class="p">${pct(progress(u.works))}</span></button>`;
       }).join("")}</div>
     </div>`).join("");
+  renderLegend();
 }
-function renderAll() { renderProject(); renderTabs(); renderLegend(); renderBoard(); renderBulk(); if (openUnit) renderDrawer(); }
+function renderLegend() {
+  const dot = c => `<span class="dot" style="background:${c}"></span>`;
+  let html;
+  if (colorBy === "progress") html = `<span>${dot("var(--cell)")}0%</span><span>${dot("color-mix(in oklab, var(--s3) 50%, var(--cell))")}50%</span><span>${dot("var(--s3)")}100%</span><span>${dot("var(--s4)")}замечание</span>`;
+  else if (FILTERS[colorBy]) html = `<span>${dot(FILTERS[colorBy].color)}${FILTERS[colorBy].label.toLowerCase()}</span>`;
+  else html = [1, 2, 3, 4].map(s => `<span>${dot(STATUS[s].color)}${STATUS[s].name.toLowerCase()}</span>`).join("");
+  $("legend").innerHTML = html + `<span>Пунктир — МОП, коммерция и техпомещения</span>${mass ? "<span>Номер этажа выбирает весь этаж</span>" : ""}`;
+}
 
 // ---------- карточка помещения ----------
 function getUnit() {
   const b = PROJECT.blocks[current], f = b.floors.find(x => x.no === openUnit.floorNo);
   return { b, f, u: f.units[openUnit.ui] };
 }
+const thumbs = photos => photos?.length ? `<div class="thumbs">${photos.map(src => `<button class="thumb" data-photo="${src}" aria-label="Открыть фото"><img src="${src}" alt=""></button>`).join("")}</div>` : "";
 function histLine(e, w) {
-  const note = e.note ? `: «${esc(e.note)}»` : "";
-  const photos = e.photos?.length ? `<div class="thumbs">${e.photos.map(src => `<button class="thumb" data-photo="${src}" aria-label="Открыть фото"><img src="${src}" alt=""></button>`).join("")}</div>` : "";
+  const note = e.note ? ` — «${esc(e.note)}»` : "";
   const text = {
-    fact: () => `+${q(e.qty)} ${w.unit} выполнено, ${e.who}${note}`,
-    accept: () => `Принято ${q(e.qty)} ${w.unit}, ${e.who}${note}`,
-    remark: () => `Замечание, ${e.who}${note}`,
-    fixed: () => `Замечание устранено, ${e.who}${note}`,
-    plan: () => `План ${q(e.from)} → ${q(e.to)} ${w.unit}, ${e.who} (${e.note})`,
+    fact: () => `+${q(e.qty)} ${w.unit} выполнено · ${e.who}${note}`,
+    accept: () => `Принято ${q(e.qty)} ${w.unit} · ${e.who}${note}`,
+    remark: () => `Замечание · ${e.who}${note}`,
+    fixed: () => `Замечание устранено · ${e.who}${note}`,
+    plan: () => `План ${q(e.from)} → ${q(e.to)} ${w.unit} · ${e.who}, ${e.note}`,
   }[e.type]();
-  return text + photos;
+  return text + thumbs(e.photos);
 }
-const photoInput = id => `<label class="photo-in">Фото, необязательно<input type="file" id="${id}" accept="image/*" multiple></label>`;
-// уменьшаем фото до 1280 px по длинной стороне, чтобы не хранить многомегабайтные снимки
+const photoBtn = id => `<label class="btn">${ICON.camera}<span data-count="${id}">Фото</span><input class="sr" type="file" id="${id}" accept="image/*" multiple></label>`;
+function factForm(w) {
+  const r = rest(w);
+  return `
+    <div class="field-row">
+      <div class="qty"><input type="number" id="ed-qty" min="0" step="any" inputmode="decimal" placeholder="Сколько сделано" aria-label="Объём, ${w.unit}"><span>${w.unit}</span></div>
+      <button class="btn primary" data-act="fact">Внести</button>
+    </div>
+    <div class="row">
+      ${r > 0 ? `<button class="link" data-act="full">Всё выполнено, +${q(r)} ${w.unit}</button>` : ""}
+    </div>
+    <div class="more">
+      <input class="text" type="text" id="ed-note" placeholder="Комментарий" aria-label="Комментарий">
+      <div class="row">${photoBtn("ed-photo")}<input class="text" type="date" id="ed-date" value="${isoToday()}" max="${isoToday()}" aria-label="Дата выполнения" style="flex:1;width:auto"></div>
+    </div>`;
+}
+function editorHTML(w) {
+  const f = fact(w), a = accepted(w), pend = pending(w);
+  const remark = w.status === 4 ? w.entries.slice().reverse().find(e => e.type === "remark") : null;
+  const banner = remark ? `<div class="banner bad"><b>Замечание</b><span>${esc(remark.note)}</span>${thumbs(remark.photos)}</div>` : "";
+  let body = "";
+  if (role === "foreman") {
+    if (w.status === 3) body = `<p class="muted small">Весь объём принят. Внести ещё можно, если ПТО увеличит план.</p>`;
+    else body = (remark ? `${banner}
+      <input class="text" type="text" id="ed-fixnote" placeholder="Что исправлено" aria-label="Что исправлено">
+      <div class="row">${photoBtn("ed-fixphoto")}<button class="btn primary" data-act="fixed">Замечание устранено</button></div>` : "") + factForm(w);
+  } else if (role === "tn") {
+    if (remark) body = `${banner}<p class="muted small">Принять можно после того, как прораб устранит замечание.</p>`;
+    else if (pend > 0) body = `
+      <div class="field-row">
+        <div class="qty"><input type="number" id="ed-acc" min="0" step="any" inputmode="decimal" value="${pend}" aria-label="Принимаемый объём, ${w.unit}"><span>${w.unit}</span></div>
+        <button class="btn primary" data-act="accept">Принять</button>
+      </div>
+      <p class="muted small">К приёмке ${q(pend)} ${w.unit}. Можно принять часть.</p>
+      ${remarkForm ? `<div class="more">
+        <input class="text" type="text" id="ed-remark" placeholder="Что не так" aria-label="Текст замечания">
+        <div class="row">${photoBtn("ed-rphoto")}<button class="btn danger" data-act="remark">Выставить замечание</button></div>
+      </div>` : `<div class="row"><button class="link danger" data-act="remark-open">Выставить замечание</button></div>`}`;
+    else body = `<p class="muted small">${a >= w.plan ? "Весь объём принят." : "Пока нечего принимать."}</p>`;
+  } else if (role === "pto") {
+    body = `<div class="field-row">
+        <div class="qty"><input type="number" id="ed-plan" min="0" step="any" inputmode="decimal" value="${w.plan}" aria-label="Плановый объём, ${w.unit}"><span>${w.unit}</span></div>
+        <button class="btn primary" data-act="plan">Сохранить план</button>
+      </div>${w.override ? `<p class="muted small">План задан вручную, шаблон планировки его не меняет.</p>` : ""}`;
+  }
+  return `<div class="editor">
+    <dl class="nums"><div><dt>План</dt><dd>${q(w.plan)}</dd></div><div><dt>Выполнено</dt><dd>${q(f)}</dd></div><div><dt>Принято</dt><dd>${q(a)}</dd></div></dl>
+    <div class="track">${barHTML(w)}</div>
+    <p class="muted small">${STATUS[w.status].name} · ${w.crew}</p>
+    ${edMsg ? `<p class="err" role="alert">${edMsg}</p>` : ""}
+    ${body}
+    <details class="hist-wrap"><summary>История · ${w.entries.length}</summary>
+      <ul class="hist">${w.entries.slice().reverse().map(e => `<li><span class="d">${e.date}</span><span>${histLine(e, w)}</span></li>`).join("") || "<li>Записей пока нет</li>"}</ul>
+    </details>
+  </div>`;
+}
+function renderDrawer() {
+  const { b, f, u } = getUnit(), idx = b.floors.indexOf(f), ui = openUnit.ui, p = progress(u.works);
+  const meta = [b.name, `${f.no} этаж`, u.kind === "apt" ? `${u.rooms}-комн.` : unitType(u), `${String(u.area).replace(".", ",")} м²`].join(" · ");
+  $("drawer").innerHTML = `
+    <div class="sheet-head">
+      <div><h2 id="d-title">${unitTitle(u)}</h2><p class="muted small">${meta}</p></div>
+      <div class="icon-row">
+        <button class="icon" data-act="prev" aria-label="Соседнее слева" ${ui === 0 ? "disabled" : ""}>${ICON.left}</button>
+        <button class="icon" data-act="next" aria-label="Соседнее справа" ${ui === f.units.length - 1 ? "disabled" : ""}>${ICON.right}</button>
+        <button class="icon" data-act="up" aria-label="Этаж выше" ${idx === 0 ? "disabled" : ""}>${ICON.up}</button>
+        <button class="icon" data-act="down" aria-label="Этаж ниже" ${idx === b.floors.length - 1 ? "disabled" : ""}>${ICON.down}</button>
+        <button class="icon" data-act="close" aria-label="Закрыть">${ICON.close}</button>
+      </div>
+    </div>
+    <div class="sheet-progress"><b>${pct(p)}</b><div class="track"><span style="width:${pct(p)}"></span></div></div>
+    <ul class="works">${u.works.map((w, i) => `
+      <li class="work${openWork === i ? " open" : ""}">
+        <button class="work-row" data-w="${i}" aria-expanded="${openWork === i}">
+          <span class="dot" style="background:${STATUS[w.status].color}" title="${STATUS[w.status].name}"></span>
+          <span>${w.name}</span>
+          <span class="work-qty">${q(fact(w))} / ${q(w.plan)} ${w.unit}</span>
+        </button>
+        ${openWork === i ? editorHTML(w) : ""}
+      </li>`).join("")}</ul>
+    <p class="muted small">Прототип: изменения и фото хранятся до перезагрузки страницы.</p>`;
+}
+function openDrawer(floorNo, ui) {
+  const reopen = !$("drawer").hidden;
+  openUnit = { floorNo, ui }; openWork = null; edMsg = ""; remarkForm = false;
+  renderDrawer();
+  $("drawer").hidden = false; $("scrim").hidden = false;
+  if (!reopen) $("drawer").querySelector('[data-act="close"]').focus();
+}
+function closeAll() { $("drawer").hidden = true; $("modal").hidden = true; $("scrim").hidden = true; openUnit = null; }
+
+// фото уменьшаются до 1280 px по длинной стороне, чтобы не хранить многомегабайтные снимки
 function readPhoto(file) {
   return new Promise(res => {
     const r = new FileReader();
@@ -512,144 +605,55 @@ async function readPhotos(id) {
   if (!el?.files?.length) return [];
   return (await Promise.all([...el.files].map(readPhoto))).filter(Boolean);
 }
-function editorHTML(w) {
-  const f = fact(w), a = accepted(w), pend = pending(w), r = rest(w);
-  const planBlock = role === "pto"
-    ? `<div class="inline"><input type="number" id="ed-plan" min="0" step="any" value="${w.plan}" aria-label="Плановый объём"><span>${w.unit}</span><button class="btn" data-act="plan">Сохранить план</button></div>`
-    : `<b class="num">${q(w.plan)} ${w.unit}</b>`;
-  let actions = "";
-  if (role === "foreman") {
-    if (w.status === 3) actions = `<div class="note">Весь объём принят технадзором. Чтобы внести ещё факт, нужно, чтобы ПТО увеличил план.</div>`;
-    else actions = `
-      ${w.status === 4 ? `<div class="label">Замечание технадзора</div>
-      <div class="inline"><input type="text" id="ed-fixnote" placeholder="Что исправлено (необязательно)" style="flex:1" aria-label="Что исправлено"></div>
-      ${photoInput("ed-fixphoto")}
-      <div class="actions"><button class="btn ok" data-act="fixed">Замечание устранено</button></div>` : ""}
-      <div class="label">Внести факт выполнения</div>
-      <div class="form">
-        <input type="number" id="ed-qty" min="0" step="any" placeholder="${q(r)}" aria-label="Объём, ${w.unit}">
-        <input type="date" id="ed-date" value="${isoToday()}" aria-label="Дата">
-        <input type="text" id="ed-note" name="note" placeholder="Комментарий (необязательно)" aria-label="Комментарий">
-      </div>
-      ${photoInput("ed-photo")}
-      <div class="actions">
-        <button class="btn primary" data-act="fact">Внести объём</button>
-        <button class="btn" data-act="full" ${r <= 0 ? "disabled" : ""}>Выполнено полностью (+${q(r)} ${w.unit})</button>
-      </div>`;
-  } else if (role === "tn") {
-    if (w.status === 4) actions = `<div class="note">Есть открытое замечание. Принять объём можно после того, как прораб его устранит.</div>`;
-    else if (pend > 0) actions = `
-      <div class="label">Приёмка · к приёмке ${q(pend)} ${w.unit}</div>
-      <div class="inline">
-        <input type="number" id="ed-acc" min="0" step="any" max="${pend}" value="${pend}" aria-label="Принимаемый объём, ${w.unit}"><span>${w.unit}</span>
-        <button class="btn ok" data-act="accept">Принять объём</button>
-      </div>
-      <div class="note">Можно принять часть: например, 60 из ${q(pend)} ${w.unit}. Остаток останется в очереди на приёмку.</div>
-      <div class="label">Или выставить замечание</div>
-      <div class="inline"><input type="text" id="ed-remark" placeholder="Что не так" style="flex:1" aria-label="Текст замечания"></div>
-      ${photoInput("ed-rphoto")}
-      <div class="actions"><button class="btn bad" data-act="remark">Выставить замечание</button></div>`;
-    else actions = `<div class="note">${a >= w.plan ? "Весь объём принят." : "Нет выполненного объёма, который ждёт приёмки."}</div>`;
-  } else if (role === "pto") actions = `<div class="note">Если изменить план вручную, шаблон планировки больше не будет менять объём этой работы.</div>`;
-  else actions = `<div class="note">Только просмотр.</div>`;
-  return `<div class="editor" id="editor">
-    <div class="stats3">
-      <div><span class="label">План${w.override ? " · вручную" : ""}</span>${planBlock}</div>
-      <div><span class="label">Выполнено</span><b class="num">${q(f)} ${w.unit}</b></div>
-      <div><span class="label">Принято</span><b class="num">${q(a)} ${w.unit}</b></div>
-    </div>
-    <div class="bar" title="зелёный — принято, синий — выполнено, ждёт приёмки">${barHTML(w)}</div>
-    ${edMsg ? `<div class="msg" role="alert">${edMsg}</div>` : ""}
-    ${actions}
-    <div class="label">История</div>
-    <ul class="hist">${w.entries.slice().reverse().map(e => `<li><span class="d">${e.date}</span><span>${histLine(e, w)}</span></li>`).join("") || "<li>Записей пока нет</li>"}</ul>
-  </div>`;
-}
-function renderDrawer() {
-  const { b, f, u } = getUnit(), d = $("drawer"), idx = b.floors.indexOf(f), ui = openUnit.ui;
-  const specs = [["Тип", unitType(u)], ["Этаж", f.no], ["Площадь", `${u.area} м²`]];
-  if (u.kind === "apt") specs.push(["Комнат", u.rooms]);
-  d.innerHTML = `
-    <div class="d-head">
-      <div><div class="crumbs">${PROJECT.name} › ${b.name} › Этаж ${f.no}</div><h2 id="d-title">${unitTitle(u)}</h2></div>
-      <button class="btn" data-act="close" aria-label="Закрыть">✕</button>
-    </div>
-    <div class="specs">${specs.map(([k, v]) => `<div><span class="label">${k}</span><b>${v}</b></div>`).join("")}</div>
-    <div style="display:grid;gap:8px">
-      <div style="display:flex;justify-content:space-between"><span class="label">Готовность</span><span class="num">${pct(progress(u.works))}</span></div>
-      <div class="bar" id="d-bar"></div>
-    </div>
-    <div class="note">${ROLE_HINT[role]} Нажмите на работу, чтобы открыть её.</div>
-    <div class="wlist">${u.works.map((w, i) => `
-      <div class="witem">
-        <button class="wrow" data-w="${i}" aria-expanded="${openWork === i}">
-          <span>${w.name}<small>${w.section} · ${w.crew}</small></span>
-          <span class="right"><span class="pill"><span class="dot" style="background:${STATUS[w.status].color}"></span>${STATUS[w.status].name}</span>
-            <span class="num note">${q(fact(w))} / ${q(w.plan)} ${w.unit}${accepted(w) && w.status !== 3 ? ` · принято ${q(accepted(w))}` : ""}${w.entries.some(e => e.photos?.length) ? " · фото" : ""}</span>
-            <span class="mini bar">${barHTML(w)}</span></span>
-        </button>
-        ${openWork === i ? editorHTML(w) : ""}
-      </div>`).join("")}</div>
-    <div class="nav-row">
-      <button class="btn" data-act="prev" ${ui === 0 ? "disabled" : ""}>← Соседнее</button>
-      <button class="btn" data-act="next" ${ui === f.units.length - 1 ? "disabled" : ""}>Соседнее →</button>
-      <button class="btn" data-act="up" ${idx === 0 ? "disabled" : ""}>Этаж выше ↑</button>
-      <button class="btn" data-act="down" ${idx === b.floors.length - 1 ? "disabled" : ""}>Этаж ниже ↓</button>
-    </div>
-    <div class="note">Прототип: изменения и фото хранятся только до перезагрузки страницы.</div>`;
-  statusBar(u.works, $("d-bar"));
-}
-function openDrawer(floorNo, ui) {
-  openUnit = { floorNo, ui }; openWork = null; edMsg = "";
-  renderDrawer();
-  $("drawer").hidden = false; $("scrim").hidden = false;
-  $("drawer").querySelector('[data-act="close"]').focus();
-}
-function closeAll() { $("drawer").hidden = true; $("modal").hidden = true; $("scrim").hidden = true; openUnit = null; }
 
+$("drawer").addEventListener("change", e => {
+  if (e.target.type !== "file") return;
+  const n = e.target.files.length, label = $("drawer").querySelector(`[data-count="${e.target.id}"]`);
+  if (label) label.textContent = n ? `Фото · ${n}` : "Фото";
+});
 $("drawer").addEventListener("click", async e => {
   const th = e.target.closest("[data-photo]");
   if (th) { $("lightbox-img").src = th.dataset.photo; $("lightbox").hidden = false; return; }
-  const row = e.target.closest(".wrow");
-  if (row) { const i = +row.dataset.w; openWork = openWork === i ? null : i; edMsg = ""; renderDrawer(); return; }
+  const row = e.target.closest(".work-row");
+  if (row) { const i = +row.dataset.w; openWork = openWork === i ? null : i; edMsg = ""; remarkForm = false; renderDrawer(); return; }
   const btn = e.target.closest("[data-act]"); if (!btn) return;
   const act = btn.dataset.act, { b, f, u } = getUnit(), idx = b.floors.indexOf(f);
   if (act === "close") return closeAll();
-  const nav = { prev: [f.no, openUnit.ui - 1], next: [f.no, openUnit.ui + 1] };
-  if (nav[act]) return openDrawer(...nav[act]);
+  if (act === "prev" || act === "next") return openDrawer(f.no, openUnit.ui + (act === "prev" ? -1 : 1));
   if (act === "up" || act === "down") { const nf = b.floors[idx + (act === "up" ? -1 : 1)]; return openDrawer(nf.no, Math.min(openUnit.ui, nf.units.length - 1)); }
   const w = u.works[openWork]; edMsg = "";
+  if (act === "remark-open") { remarkForm = true; renderDrawer(); $("ed-remark")?.focus(); return; }
   if (act === "plan") {
     const v = parseFloat($("ed-plan").value);
     if (!(v > 0)) edMsg = "План должен быть больше нуля.";
-    else if (setPlan(w, v, true)) toast(`План изменён: ${q(v)} ${w.unit}`);
+    else if (setPlan(w, v, true)) toast(`План: ${q(v)} ${w.unit}`);
   }
   if (act === "fact" || act === "full") {
     const qty = act === "full" ? rest(w) : parseFloat($("ed-qty").value);
     const note = $("ed-note").value.trim(), date = isoToRu($("ed-date").value || isoToday());
     if (!(qty > 0)) edMsg = "Укажите объём больше нуля.";
-    else if (fact(w) + qty > w.plan * 1.05 && !note) edMsg = `Факт превысит план (${q(fact(w) + qty)} из ${q(w.plan)} ${w.unit}). Укажите причину в комментарии или попросите ПТО изменить план.`;
+    else if (fact(w) + qty > w.plan * 1.05 && !note) edMsg = `Получится ${q(fact(w) + qty)} из ${q(w.plan)} ${w.unit} — больше плана. Напишите причину в комментарии.`;
     else {
       const photos = await readPhotos("ed-photo");
       addFact(w, qty, date, note, photos);
-      toast(`Внесено: +${q(qty)} ${w.unit}${photos.length ? `, фото: ${photos.length}` : ""}`);
+      toast(`+${q(qty)} ${w.unit}${photos.length ? ` · фото ${photos.length}` : ""}`);
     }
   }
   if (act === "fixed") {
     const photos = await readPhotos("ed-fixphoto");
     fixRemark(w, $("ed-fixnote").value.trim(), photos);
-    toast("Отправлено технадзору на повторную приёмку");
+    toast("Отправлено на повторную приёмку");
   }
   if (act === "accept") {
     const qty = parseFloat($("ed-acc").value), pend = pending(w);
-    if (!(qty > 0)) edMsg = "Укажите принимаемый объём больше нуля.";
-    else if (qty > pend) edMsg = `Принять можно не больше, чем выполнено и ещё не принято: ${q(pend)} ${w.unit}.`;
-    else { addAccept(w, qty); toast(`Принято ${q(qty)} ${w.unit}${qty < pend ? `, ещё ${q(pend - qty)} ждут приёмки` : ""}`); }
+    if (!(qty > 0)) edMsg = "Укажите объём больше нуля.";
+    else if (qty > pend) edMsg = `Можно принять не больше ${q(pend)} ${w.unit}.`;
+    else { addAccept(w, qty); toast(`Принято ${q(qty)} ${w.unit}${qty < pend ? ` · осталось ${q(pend - qty)}` : ""}`); }
   }
   if (act === "remark") {
     const t = $("ed-remark").value.trim();
-    if (!t) edMsg = "Опишите замечание, чтобы прорабу было понятно, что исправить.";
-    else { const photos = await readPhotos("ed-rphoto"); addRemark(w, t, photos); toast("Замечание выставлено"); }
+    if (!t) edMsg = "Опишите, что нужно исправить.";
+    else { const photos = await readPhotos("ed-rphoto"); addRemark(w, t, photos); remarkForm = false; toast("Замечание выставлено"); }
   }
   renderAll();
 });
@@ -659,27 +663,26 @@ function selectedUnits() {
   const b = PROJECT.blocks[current];
   return [...selected].map(k => { const [fn, ui] = k.split(":").map(Number); return b.floors.find(f => f.no === fn).units[ui]; });
 }
-let bulkWork = "Штукатурка стен";
 function renderBulk() {
-  $("bulkbar").hidden = !mass;
+  $("bulk").hidden = !mass;
   if (!mass) return;
   const n = selected.size;
-  let act = "";
-  if (role === "foreman") act = `<button class="btn primary" data-bulk="done" ${n ? "" : "disabled"}>Отметить выполненной на 100%</button>`;
-  else if (role === "tn") act = `<button class="btn ok" data-bulk="accept" ${n ? "" : "disabled"}>Принять весь выполненный объём</button>`;
-  else act = `<span class="note">Массовая отметка доступна прорабу и технадзору.</span>`;
-  $("bulk-in").innerHTML = `
-    <b class="num">Выбрано: ${n}</b>
+  const act = role === "foreman" ? `<button class="btn" data-bulk="done" ${n ? "" : "disabled"}>Выполнено</button>`
+    : role === "tn" ? `<button class="btn" data-bulk="accept" ${n ? "" : "disabled"}>Принять</button>`
+    : `<span class="hint">Отмечать может прораб или технадзор</span>`;
+  $("bulk").innerHTML = `
+    <span>${n ? `Выбрано: <b>${n}</b>` : "Выберите помещения"}</span>
     <select id="bulk-work" aria-label="Вид работы">${ALL_WORK_NAMES.map(x => `<option ${x === bulkWork ? "selected" : ""}>${x}</option>`).join("")}</select>
     ${act}
-    <button class="btn" data-bulk="clear" ${n ? "" : "disabled"}>Снять выбор</button>
-    <button class="btn" data-bulk="exit">Выйти из режима</button>`;
+    <button class="icon" data-bulk="exit" aria-label="Выйти из режима выбора">${ICON.close}</button>`;
 }
-$("bulk-in").addEventListener("change", e => { if (e.target.id === "bulk-work") { bulkWork = e.target.value; colorBy = bulkWork; $("colorby").value = bulkWork; renderLegend(); renderBoard(); } });
-$("bulk-in").addEventListener("click", e => {
+$("bulk").addEventListener("change", e => {
+  if (e.target.id !== "bulk-work") return;
+  bulkWork = colorBy = e.target.value; $("view").value = colorBy; renderSummary(); renderBoard();
+});
+$("bulk").addEventListener("click", e => {
   const a = e.target.closest("[data-bulk]")?.dataset.bulk; if (!a) return;
-  if (a === "exit") { setMass(false); return; }
-  if (a === "clear") { selected.clear(); renderAll(); return; }
+  if (a === "exit") return setMass(false);
   let ok = 0, skip = 0;
   selectedUnits().forEach(u => {
     const w = u.works.find(x => x.name === bulkWork);
@@ -687,29 +690,30 @@ $("bulk-in").addEventListener("click", e => {
     else if (a === "accept" && w && w.status !== 4 && pending(w) > 0) { addAccept(w, pending(w), "массовая приёмка"); ok++; }
     else skip++;
   });
-  toast(`${bulkWork}: обработано ${ok}${skip ? `, пропущено ${skip} (работы нет или статус не подходит)` : ""}`);
+  toast(`${bulkWork}: ${ok} готово${skip ? `, ${skip} пропущено` : ""}`);
   selected.clear(); renderAll();
 });
 function setMass(on) {
   mass = on; selected.clear();
   $("mass-toggle").setAttribute("aria-pressed", on);
-  if (on && colorBy === "progress") { colorBy = bulkWork; $("colorby").value = bulkWork; }
+  $("mass-toggle").textContent = on ? "Готово" : "Выбрать";
+  if (on && !ALL_WORK_NAMES.includes(colorBy)) colorBy = bulkWork;
+  $("view").value = colorBy;
   renderAll();
 }
 
 // ---------- шаблоны объёмов ----------
 function renderModal() {
-  const edit = role === "pto", works = WORKS.apt;
   $("modal").innerHTML = `
-    <div class="d-head"><div><span class="label">Плановые объёмы</span><h2 id="m-title">Объёмы по планировкам</h2></div>
-      <button class="btn" data-m="close" aria-label="Закрыть">✕</button></div>
-    <div class="note">Объём вносится один раз на тип квартиры и применяется ко всем квартирам этого типа во всех блоках. Если для квартиры план изменили вручную, шаблон её не трогает.${edit ? "" : " Редактирует инженер ПТО: переключите роль вверху страницы."}</div>
+    <div class="sheet-head"><div><h2 id="m-title">Объёмы по планировкам</h2>
+      <p class="muted small">Применяются ко всем квартирам этого типа. Планы, изменённые вручную, не меняются.</p></div>
+      <button class="icon" data-m="close" aria-label="Закрыть">${ICON.close}</button></div>
     <div class="scroll-x"><table class="tpl">
       <thead><tr><th>Работа</th><th>Ед.</th><th>1-комн.</th><th>2-комн.</th><th>3-комн.</th></tr></thead>
-      <tbody>${works.map(([n, , unit], i) => `<tr><td>${n}</td><td>${unit}</td>${[1, 2, 3].map(r =>
-        `<td>${edit ? `<input type="number" min="0" step="any" id="tpl-${r}-${i}" value="${TEMPLATE[r][n]}" aria-label="${n}, ${r}-комн.">` : `<span class="num">${TEMPLATE[r][n]}</span>`}</td>`).join("")}</tr>`).join("")}</tbody>
+      <tbody>${WORKS.apt.map(([n, , unit], i) => `<tr><td>${n}</td><td class="muted">${unit}</td>${[1, 2, 3].map(r =>
+        `<td><input type="number" min="0" step="any" id="tpl-${r}-${i}" value="${TEMPLATE[r][n]}" aria-label="${n}, ${r}-комн."></td>`).join("")}</tr>`).join("")}</tbody>
     </table></div>
-    <div class="actions">${edit ? `<button class="btn primary" data-m="apply">Сохранить и применить ко всем квартирам</button>` : ""}<button class="btn" data-m="close">Закрыть</button></div>`;
+    <div class="row"><button class="btn primary" data-m="apply">Применить</button><button class="btn" data-m="close">Отмена</button></div>`;
 }
 $("tpl-open").addEventListener("click", () => { renderModal(); $("modal").hidden = false; $("scrim").hidden = false; $("modal").querySelector("[data-m]").focus(); });
 $("modal").addEventListener("click", e => {
@@ -722,22 +726,30 @@ $("modal").addEventListener("click", e => {
     if (setPlan(w, TEMPLATE[u.rooms][w.name], false)) changed++;
   }));
   closeAll(); renderAll();
-  toast(`Шаблон применён. Изменено работ: ${changed}${kept ? `; с ручным планом, не тронуто: ${kept}` : ""}`);
+  toast(`Изменено работ: ${changed}${kept ? ` · с ручным планом не тронуто: ${kept}` : ""}`);
 });
 
 // ---------- прочее ----------
 let toastTimer;
-function toast(t) { const el = $("toast"); el.textContent = t; el.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => el.hidden = true, 3200); }
+function toast(t) { const el = $("toast"); el.textContent = t; el.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => el.hidden = true, 3000); }
+function renderAll() {
+  $("tpl-open").hidden = role !== "pto";
+  renderSummary(); renderTabs(); renderBoard(); renderBulk();
+  if (openUnit) renderDrawer();
+}
 
 $("role").innerHTML = Object.entries(ROLES).map(([k, v]) => `<option value="${k}" ${k === role ? "selected" : ""}>${v}</option>`).join("");
-$("role").addEventListener("change", e => { role = e.target.value; edMsg = ""; if (!$("modal").hidden) renderModal(); renderAll(); });
-$("colorby").innerHTML = `<option value="progress">По общей готовности</option><option value="pending">Что ждёт приёмки</option><optgroup label="По виду работы">` +
-  ALL_WORK_NAMES.map(n => `<option value="${n}">${n}</option>`).join("") + "</optgroup>";
-$("colorby").addEventListener("change", e => { colorBy = e.target.value; if (ALL_WORK_NAMES.includes(colorBy)) bulkWork = colorBy; renderLegend(); renderBoard(); renderBulk(); });
-$("tabs").addEventListener("click", e => { const t = e.target.closest(".tab"); if (!t) return; current = +t.dataset.i; selected.clear(); renderAll(); });
+$("role").addEventListener("change", e => { role = e.target.value; edMsg = ""; remarkForm = false; if (!$("modal").hidden) closeAll(); renderAll(); });
+$("view").addEventListener("change", e => { colorBy = e.target.value; if (ALL_WORK_NAMES.includes(colorBy)) bulkWork = colorBy; renderSummary(); renderBoard(); renderBulk(); });
+$("p-stats").addEventListener("click", e => {
+  const s = e.target.closest("[data-mode]"); if (!s) return;
+  colorBy = colorBy === s.dataset.mode ? "progress" : s.dataset.mode; $("view").value = colorBy;
+  renderSummary(); renderBoard();
+});
+$("tabs").addEventListener("click", e => { const t = e.target.closest("[data-i]"); if (!t) return; current = +t.dataset.i; selected.clear(); renderAll(); });
 $("mass-toggle").addEventListener("click", () => setMass(!mass));
 $("board").addEventListener("click", e => {
-  const fl = e.target.closest(".floor-label");
+  const fl = e.target.closest(".floor-no");
   if (fl && mass) {
     const fn = +fl.dataset.floor, f = PROJECT.blocks[current].floors.find(x => x.no === fn);
     const keys = f.units.map((_, i) => `${fn}:${i}`), all = keys.every(k => selected.has(k));
@@ -754,7 +766,9 @@ document.addEventListener("keydown", e => {
   if (e.key !== "Escape") return;
   if (!$("lightbox").hidden) $("lightbox").hidden = true;
   else if (!$("scrim").hidden) closeAll();
+  else if (mass) setMass(false);
 });
 
+renderView();
 renderAll();
 </script>
