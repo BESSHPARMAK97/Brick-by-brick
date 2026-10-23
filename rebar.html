@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Арматура · Brick by Brick</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;700&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <nav class="site" aria-label="Разделы">
+    <a class="brand" href="index.html">Brick by Brick</a>
+    <a href="earth.html">Земляные</a>
+    <a href="concrete.html">Бетон</a>
+    <a href="rebar.html" aria-current="page">Арматура</a>
+    <a href="masonry.html">Кладка и отделка</a>
+    <a href="kotlovan.html">Котлован</a>
+  </nav>
+
+  <header class="page">
+    <span class="eyebrow">Раздел 3</span>
+    <h1>Арматура</h1>
+    <p class="sub">Масса стержней по диаметрам, раскрой хлыстов, сетки плит, хомуты, нахлёсты и требования для сейсмических районов.</p>
+  </header>
+
+  <div class="toc">
+    <a href="#mass">Масса и раскрой</a><a href="#slab">Сетки плит</a><a href="#stirrups">Хомуты</a><a href="#laps">Нахлёсты и анкеровка</a>
+  </div>
+
+  <section class="topic" id="mass">
+    <h2>Масса арматуры и раскрой</h2>
+    <div class="prose">
+      <p>Масса 1 м стержня зависит только от диаметра. Класс стали (A240, A400, A500C) на неё не влияет. Арматуру закупают в тоннах, а на площадку она приходит хлыстами, обычно по 11,7 м. Поэтому кроме массы считают раскрой: сколько стержней выйдет из хлыста и сколько уйдёт в обрезки.</p>
+    </div>
+    <div class="formula">
+      <span class="lbl">Формула</span>
+      <div class="f">m = π·d²/4 · 7850 / 10⁶ ≈ 0,00617·d² &nbsp;кг/м</div>
+      <div class="where">d — номинальный диаметр в миллиметрах, 7850 кг/м³ — плотность стали.</div>
+    </div>
+    <div class="tbl">
+      <table class="ref">
+        <thead><tr><th>Диаметр</th><th>Площадь, см²</th><th>Масса 1 м, кг</th><th>Метров в 1 т</th></tr></thead>
+        <tbody id="massTable"></tbody>
+      </table>
+    </div>
+    <div class="example">
+      <span class="lbl">Пример</span>
+      <p>120 стержней Ø12 по 5,8 м: 696 м × 0,888 кг/м = <b>618 кг</b>. Из хлыста 11,7 м выходит 2 стержня, значит нужно 60 хлыстов, обрезки 6 м.</p>
+    </div>
+    <div data-calc="rebarMass"></div>
+  </section>
+
+  <section class="topic" id="slab">
+    <h2>Армирование плит сетками</h2>
+    <div class="prose">
+      <p>Число стержней в направлении считают по ширине плиты за вычетом защитных слоёв, длину стержня — по длине плиты так же. Если стержень длиннее хлыста, его собирают из кусков внахлёст, и каждый стык добавляет длину нахлёста.</p>
+    </div>
+    <div class="formula">
+      <span class="lbl">Формулы</span>
+      <div class="f">n = ⌊(B − 2a) / s⌋ + 1, &nbsp;l = L − 2a</div>
+      <div class="f">k = ⌈(l − l_н) / (l_хл − l_н)⌉, &nbsp;l' = l + (k − 1)·l_н</div>
+      <div class="where">a — защитный слой, s — шаг, l_н — длина нахлёста, l_хл — длина хлыста, k — число кусков в одном стержне.</div>
+    </div>
+    <div class="example">
+      <span class="lbl">Пример</span>
+      <p>Плита 24 × 12 м, две сетки Ø12 с шагом 200 мм, нахлёст 40d. Вдоль L — 60 стержней по 23,94 м из трёх кусков, вдоль B — 120 стержней по 11,94 м из двух кусков. Около <b>5,5 т</b> с запасом 3 %, это примерно 19 кг на 1 м² плиты.</p>
+    </div>
+    <div data-calc="rebarSlab"></div>
+    <div class="more">
+      <details>
+        <summary>Подробнее: поддерживающие каркасы и выпуски <span class="who">ПТО</span></summary>
+        <div class="inner">
+          <p>Верхнюю сетку держат поддерживающие каркасы («лягушки», «столики»). Их шаг — по проекту, обычно 0,8–1,2 м. Массу каркасов, выпусков под стены и колонны, а также дополнительного армирования у отверстий считают отдельно по спецификации.</p>
+          <p>Расход 15–25 кг/м² для фундаментной плиты 250–400 мм — нормальный диапазон для проверки «на глаз». Если получилось сильно меньше или больше, перепроверьте шаг и диаметры.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Частые ошибки</summary>
+        <div class="inner">
+          <ul>
+            <li>Число стержней посчитали как B / s без «+1».</li>
+            <li>Забыли нахлёсты: при плите длиннее 11,7 м это несколько процентов массы.</li>
+            <li>Посчитали одну сетку вместо двух.</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section class="topic" id="stirrups">
+    <h2>Хомуты колонн и балок</h2>
+    <div class="formula">
+      <span class="lbl">Формулы</span>
+      <div class="f">l_х = 2(b − 2a) + 2(h − 2a) + 2·l_кр</div>
+      <div class="f">n = ⌊L / s⌋ + 1 &nbsp;(со сгущением: 2·⌊L_з / s_з⌋ + ⌊(L − 2L_з) / s⌋ + 1)</div>
+      <div class="where">a — защитный слой до хомута, l_кр — длина крюка, L_з и s_з — длина зоны сгущения у каждого конца и шаг в ней.</div>
+    </div>
+    <div class="example">
+      <span class="lbl">Пример</span>
+      <p>Колонна 400 × 400 мм, высота 3 м, хомуты Ø8 шаг 150 мм, у концов по 0,5 м с шагом 100 мм. Хомут — 1,52 м, на колонну 24 шт. На 10 колонн — 240 хомутов, <b>144 кг</b>.</p>
+    </div>
+    <div data-calc="stirrups"></div>
+  </section>
+
+  <section class="topic" id="laps">
+    <h2>Нахлёсты, анкеровка и сейсмика</h2>
+    <div class="prose">
+      <p>Длина нахлёста и анкеровки зависит от класса бетона и стали, диаметра, положения стержня и доли стыкуемых стержней в одном сечении. Её назначает проектировщик по СП РК EN 1992-1-1. Для оценки на стадии подсчёта обычно берут 30–50 диаметров.</p>
+      <ul>
+        <li>Стыки располагают вразбежку. В одном сечении стыкуют не больше половины стержней, если проект не указывает иного.</li>
+        <li>В сейсмических районах, включая Алматы, Шымкент, Талдыкорган и Тараз, действуют требования СП РК 2.03-30 «Строительство в сейсмических зонах». Хомуты делают с загибом 135° и крюками не короче 10d, у узлов колонн и балок шаг хомутов сгущают, длины нахлёстов увеличивают.</li>
+        <li>Свариваемость стали и допуск к сварке стыков указаны в проекте. Класс A500C свариваемый. A400 из стали 35ГС для сварных стыков не рекомендуется.</li>
+      </ul>
+    </div>
+    <div class="more">
+      <details>
+        <summary>Проверь себя <span class="who">задача с ответом</span></summary>
+        <div class="inner">
+          <p>Сколько весит 1 м арматуры Ø16 и сколько метров Ø16 в одной тонне?</p>
+          <details>
+            <summary>Ответ</summary>
+            <div class="inner"><p>m = 0,00617·16² = <b>1,58 кг/м</b>. В тонне 1000 / 1,58 ≈ <b>633 м</b>.</p></div>
+          </details>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <footer>Brick by Brick — учебная методичка. Калькуляторы дают предварительные объёмы. Армирование назначает проектировщик; сверяйте нормативы с действующими редакциями СП РК.</footer>
+</div>
+<script src="assets/common.js"></script>
+<script src="assets/rebar.js"></script>
+</body>
+</html>

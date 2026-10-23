@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Кладка и отделка · Brick by Brick</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;700&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <nav class="site" aria-label="Разделы">
+    <a class="brand" href="index.html">Brick by Brick</a>
+    <a href="earth.html">Земляные</a>
+    <a href="concrete.html">Бетон</a>
+    <a href="rebar.html">Арматура</a>
+    <a href="masonry.html" aria-current="page">Кладка и отделка</a>
+    <a href="kotlovan.html">Котлован</a>
+  </nav>
+
+  <header class="page">
+    <span class="eyebrow">Раздел 4</span>
+    <h1>Кладка и отделка</h1>
+    <p class="sub">Кирпич и газоблок, раствор и клей, штукатурка, стяжка, утепление фасада и гидроизоляция.</p>
+  </header>
+
+  <div class="toc">
+    <a href="#brick">Кирпич</a><a href="#aac">Газоблок</a><a href="#plaster">Штукатурка</a><a href="#screed">Стяжка</a><a href="#insul">Утепление</a><a href="#wp">Гидроизоляция</a>
+  </div>
+
+  <section class="topic" id="brick">
+    <h2>Кирпичная кладка</h2>
+    <div class="prose">
+      <p>Кирпич считают по площади стены за вычетом проёмов. Проёмы вычитают по наружному обводу коробок. Толщину стены измеряют в кирпичах: полкирпича — 120 мм, один — 250 мм, полтора — 380 мм, два — 510 мм.</p>
+    </div>
+    <div class="formula">
+      <span class="lbl">Формулы</span>
+      <div class="f">n₁ = 2k / ((l + δв)·(h + δг)) &nbsp;шт/м²</div>
+      <div class="f">V_раствора = A·t − N·V_кирпича</div>
+      <div class="where">k — толщина стены в кирпичах; l = 0,25 м — длина кирпича; h — его высота; δв и δг — вертикальный и горизонтальный швы; t — толщина стены, м.</div>
+    </div>
+    <div class="tbl">
+      <table class="ref">
+        <thead><tr><th>Кирпич на 1 м² стены, шов 10 мм</th><th>0,5 кирп.</th><th>1 кирп.</th><th>1,5 кирп.</th><th>2 кирп.</th></tr></thead>
+        <tbody id="brickTable"></tbody>
+      </table>
+    </div>
+    <div class="example">
+      <span class="lbl">Пример</span>
+      <p>Стены длиной 30 м, высота 3 м, проёмы 12 м², толщина в 1 кирпич, кирпич одинарный. Площадь 78 м², 102,6 шт/м² — 8 000 шт, с запасом 5 % — <b>8 400 шт</b>. Раствора около 4,1 м³.</p>
+    </div>
+    <div data-calc="brick"></div>
+    <div class="more">
+      <details>
+        <summary>Подробнее: раствор, нормы <span class="who">ПТО, сметчикам</span></summary>
+        <div class="inner">
+          <p>Расчётный объём раствора — около 0,2 м³ на 1 м³ кладки из одинарного кирпича. Сметные нормы дают 0,22–0,24 м³ с учётом потерь и заполнения пустот. Для пустотелого кирпича расход раствора выше.</p>
+          <p>Марку раствора и кирпича задаёт проект. Кирпич — по ГОСТ 530 «Кирпич и камень керамические». Количество на поддоне зависит от завода: уточняйте перед заказом транспорта.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Частые ошибки</summary>
+        <div class="inner">
+          <ul>
+            <li>Проёмы вычли по размеру окна, а не по наружному обводу коробки.</li>
+            <li>Углы посчитали дважды: длину стен взяли по наружному периметру для каждой стены.</li>
+            <li>Не учли облицовочный слой отдельно от основной кладки.</li>
+          </ul>
+        </div>
+      </details>
+      <details>
+        <summary>Проверь себя <span class="who">задача с ответом</span></summary>
+        <div class="inner">
+          <p>Сколько полуторного кирпича нужно на стену 10 × 3 м толщиной в 1,5 кирпича без проёмов, без запаса?</p>
+          <details>
+            <summary>Ответ</summary>
+            <div class="inner"><p>n₁ = 3 / (0,26·0,098) = 117,7 шт/м². N = 30·117,7 ≈ <b>3 532 шт</b>.</p></div>
+          </details>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section class="topic" id="aac">
+    <h2>Газоблок</h2>
+    <div class="prose">
+      <p>Газоблок продают в кубометрах, поэтому кроме штук считают объём кладки. Шов тонкий, 2–3 мм на клею, им в расчёте количества пренебрегают.</p>
+    </div>
+    <div class="formula">
+      <span class="lbl">Формулы</span>
+      <div class="f">N = A / (l·h), &nbsp;V = A·t, &nbsp;M_клея = V·q</div>
+    </div>
+    <div class="example">
+      <span class="lbl">Пример</span>
+      <p>Стены 40 × 3 м, проёмы 14 м², блок 600 × 200 × 300 мм. Площадь 106 м², блоков 883, с запасом 5 % — <b>928 шт</b>, объём к заказу 33,4 м³. Клей — около 795 кг, 32 мешка.</p>
+    </div>
+    <div data-calc="aac"></div>
+    <div class="more">
+      <details>
+        <summary>Подробнее: армирование и перемычки <span class="who">ПТО</span></summary>
+        <div class="inner">
+          <p>Обычно армируют первый ряд, каждый четвёртый ряд и ряд под проёмами: два прутка Ø8 в штрабах. Калькулятор считает это ориентировочно, точная схема — в проекте.</p>
+          <p>Перемычки над проёмами, монолитный пояс и U-блоки считают отдельно. Изделия из ячеистого бетона — по ГОСТ 31360.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section class="topic" id="plaster">
+    <h2>Штукатурка</h2>
+    <div class="prose">
+      <p>Расход смеси задаётся в килограммах на 1 м² при слое 1 мм и указан на мешке. Средняя толщина зависит от кривизны стены: её берут по замерам отклонений правилом или лазерным уровнем, плюс 5–10 мм над маяком.</p>
+    </div>
+    <div class="formula">
+      <span class="lbl">Формула</span>
+      <div class="f">M = A·t·q·(1 + запас)</div>
+      <div class="where">t — средняя толщина, мм; q — расход, кг/м² на 1 мм. Ориентиры: гипсовая около 0,9, цементно-известковая около 1,5, цементно-песчаная около 1,7.</div>
+    </div>
+    <div class="example">
+      <span class="lbl">Пример</span>
+      <p>120 м² гипсовой штукатуркой слоем 15 мм: 120·15·0,9 = 1 620 кг, с запасом 5 % — 1 701 кг, <b>57 мешков</b> по 30 кг.</p>
+    </div>
+    <div data-calc="plaster"></div>
+  </section>
+
+  <section class="topic" id="screed">
+    <h2>Стяжка пола</h2>
+    <div class="prose">
+      <p>Готовую смесь считают по расходу с мешка. При самозамесе считают объём стяжки и раскладывают сухую смесь на цемент и песок в пропорции 1 : 3 по массе.</p>
+    </div>
+    <div class="formula">
+      <span class="lbl">Формулы</span>
+      <div class="f">Готовая смесь: M = A·t·q</div>
+      <div class="f">Самозамес: V = A·t, &nbsp;M_сух ≈ V·1900, &nbsp;Ц = M_сух/4, &nbsp;П = 3·M_сух/4</div>
+    </div>
+    <div class="example">
+      <span class="lbl">Пример</span>
+      <p>85 м², толщина 50 мм, готовая смесь 1,9 кг/м² на 1 мм: 85·50·1,9 = 8 075 кг, с запасом 5 % — <b>212 мешков</b> по 40 кг.</p>
+    </div>
+    <div data-calc="screed"></div>
+  </section>
+
+  <section class="topic" id="insul">
+    <h2>Утепление фасада</h2>
+    <div class="prose">
+      <p>Утеплитель считают по площади фасада за вычетом проёмов, в штуках плит и в кубометрах. К системе относятся клей для приклеивания, дюбели-грибки, армирующая сетка и базовый слой. Толщину утеплителя задаёт теплотехнический расчёт по климатическому району: для Астаны она заметно больше, чем для Шымкента.</p>
+    </div>
+    <div class="formula">
+      <span class="lbl">Формулы</span>
+      <div class="f">V = A·t, &nbsp;N = A / (l·b), &nbsp;дюбели = A·n</div>
+      <div class="where">Длина дюбеля — не меньше толщины утеплителя плюс 60 мм: заглубление в основание и клеевой слой.</div>
+    </div>
+    <div data-calc="insul"></div>
+  </section>
+
+  <section class="topic" id="wp">
+    <h2>Гидроизоляция</h2>
+    <div class="prose">
+      <p>Рулонную гидроизоляцию считают по изолируемой площади, умноженной на число слоёв и коэффициент на нахлёсты. На вертикальных поверхностях учитывают заход на стены и примыкания.</p>
+    </div>
+    <div class="formula">
+      <span class="lbl">Формула</span>
+      <div class="f">M = (A_гор + A_верт)·n_слоёв·k_нахл, &nbsp;рулонов = ⌈M / S_рулона⌉</div>
+    </div>
+    <div class="example">
+      <span class="lbl">Пример</span>
+      <p>Фундаментная плита 300 м² и стены подвала 180 м², два слоя, k = 1,15: M = 480·2·1,15 = 1 104 м², <b>111 рулонов</b> по 10 м². Праймер — 144 л.</p>
+    </div>
+    <div data-calc="wp"></div>
+  </section>
+
+  <footer>Brick by Brick — учебная методичка. Калькуляторы дают предварительные объёмы. Расход отделочных смесей уточняйте по паспорту производителя.</footer>
+</div>
+<script src="assets/common.js"></script>
+<script src="assets/masonry.js"></script>
+</body>
+</html>
