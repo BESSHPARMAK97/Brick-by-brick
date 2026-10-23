@@ -145,6 +145,15 @@ input[type="number"] { font-family: var(--mono); }
 .hist { display: grid; gap: 6px; font-size: 12px; margin: 0; padding: 0; list-style: none; }
 .hist li { display: grid; grid-template-columns: 82px minmax(0, 1fr); gap: 8px; }
 .hist .d { color: var(--muted); font-family: var(--mono); }
+.thumbs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.thumb { padding: 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; width: 56px; height: 56px; cursor: zoom-in; background: var(--cell); }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-in { display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
+.photo-in input { padding: 6px; font-size: 13px; }
+.stats3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.stats3 > div { display: grid; gap: 4px; align-content: start; min-width: 0; }
+.lightbox { position: fixed; inset: 0; z-index: 40; background: rgba(10, 12, 15, .85); display: grid; place-items: center; padding: 24px; cursor: zoom-out; }
+.lightbox img { max-width: 100%; max-height: 100%; border-radius: 6px; }
 
 .tpl { width: 100%; border-collapse: collapse; font-size: 13px; }
 .tpl th, .tpl td { padding: 6px 8px 6px 0; border-bottom: 1px solid var(--line); text-align: left; }
@@ -218,6 +227,7 @@ input[type="number"] { font-family: var(--mono); }
 <aside class="drawer" id="drawer" hidden aria-modal="true" role="dialog" aria-labelledby="d-title"></aside>
 <div class="modal" id="modal" hidden aria-modal="true" role="dialog" aria-labelledby="m-title"></div>
 <div class="toast" id="toast" hidden role="status"></div>
+<div class="lightbox" id="lightbox" hidden role="dialog" aria-label="Фото"><img id="lightbox-img" alt="Фото к записи"></div>
 
 <script>
 // ---------- справочники ----------
@@ -231,8 +241,8 @@ const STATUS = [
 const ROLES = { pto: "Инженер ПТО", foreman: "Прораб", tn: "Технадзор", boss: "Руководитель" };
 const ROLE_HINT = {
   pto: "ПТО задаёт плановые объёмы: один раз на планировку или вручную для конкретного помещения.",
-  foreman: "Прораб вносит факт выполнения, частично или полностью, по одному помещению или сразу по нескольким.",
-  tn: "Технадзор принимает выполненные работы или выставляет замечания.",
+  foreman: "Прораб вносит факт выполнения, частично или полностью, по одному помещению или сразу по нескольким. Фото можно приложить, но это необязательно.",
+  tn: "Технадзор принимает выполненный объём целиком или частями и выставляет замечания.",
   boss: "Руководитель видит всё, но ничего не меняет.",
 };
 const WORKS = {
@@ -296,8 +306,13 @@ function makeWorks(kind, floorNo, floors, stage, area, rooms) {
     if (st === 1) genEntries(w, Math.max(unit === "шт." ? 0 : 1, Math.round(plan * (.2 + rnd() * .6))), mon);
     if (st === 1 && fact(w) === 0) w.status = 0;
     if (st >= 2) genEntries(w, plan, mon);
-    if (st === 3) w.entries.push({ type: "status", to: 3, date: `${pad(5 + Math.floor(rnd() * 20))}.${pad(Math.min(mon + 1, 10))}.2026`, who: ROLES.tn });
-    if (st === 4) w.entries.push({ type: "status", to: 4, date: `${pad(5 + Math.floor(rnd() * 20))}.${pad(Math.min(mon + 1, 10))}.2026`, who: ROLES.tn, note: "Отклонение от плоскости более 3 мм на 2 м, переделать" });
+    const tnDate = () => `${pad(5 + Math.floor(rnd() * 20))}.${pad(Math.min(mon + 1, 10))}.2026`;
+    const f = fact(w);
+    // принято: всё (3), частично (часть 1, 2 и 4) или ничего
+    let acc = st === 3 ? plan : (st >= 1 && f > 0 && unit !== "шт." && rnd() < .4) ? Math.round(f * (.3 + rnd() * .4)) : 0;
+    if (st === 3 && unit !== "шт." && plan >= 20) { const part = Math.round(plan * .5); w.entries.push({ type: "accept", qty: part, date: tnDate(), who: ROLES.tn }); acc -= part; }
+    if (acc > 0) w.entries.push({ type: "accept", qty: acc, date: tnDate(), who: ROLES.tn });
+    if (st === 4) w.entries.push({ type: "remark", date: tnDate(), who: ROLES.tn, note: "Отклонение от плоскости более 3 мм на 2 м, переделать" });
     return w;
   });
 }
@@ -325,23 +340,32 @@ BLOCK_CFG.forEach((cfg, bi) => {
 });
 
 // ---------- логика объёмов и статусов ----------
-function fact(w) { return w.entries.reduce((s, e) => s + (e.type === "fact" ? e.qty : 0), 0); }
+function sum(w, type) { return +w.entries.reduce((s, e) => s + (e.type === type ? e.qty : 0), 0).toFixed(2); }
+function fact(w) { return sum(w, "fact"); }
+function accepted(w) { return sum(w, "accept"); }
 function rest(w) { return Math.max(0, +(w.plan - fact(w)).toFixed(2)); }
-// статусы 0–2 вычисляются из факта; «принято» и «замечание» ставит только технадзор
+function pending(w) { return Math.max(0, +(fact(w) - accepted(w)).toFixed(2)); }
+// статус вычисляется из плана, факта и принятого объёма; открытое замечание держит статус «Замечания»
 function autoStatus(w) {
-  const f = fact(w);
-  if (w.status === 3 && f >= w.plan) return;
   if (w.status === 4) return;
-  w.status = f <= 0 ? 0 : f < w.plan ? 1 : 2;
+  const f = fact(w), a = accepted(w);
+  w.status = a >= w.plan ? 3 : f >= w.plan ? 2 : f > 0 ? 1 : 0;
 }
-function addFact(w, qty, date, note) {
-  w.entries.push({ type: "fact", qty, date, who: ROLES[role], note });
+function addFact(w, qty, date, note, photos) {
+  w.entries.push({ type: "fact", qty, date, who: ROLES[role], note, photos });
   autoStatus(w);
 }
-function setStatus(w, to, note) {
-  w.entries.push({ type: "status", to, date: fmt(new Date()), who: ROLES[role], note });
-  w.status = to;
-  if (to === 2) autoStatus(w);
+function addAccept(w, qty, note) {
+  w.entries.push({ type: "accept", qty, date: fmt(new Date()), who: ROLES[role], note });
+  autoStatus(w);
+}
+function addRemark(w, note, photos) {
+  w.entries.push({ type: "remark", date: fmt(new Date()), who: ROLES[role], note, photos });
+  w.status = 4;
+}
+function fixRemark(w, note, photos) {
+  w.entries.push({ type: "fixed", date: fmt(new Date()), who: ROLES[role], note, photos });
+  w.status = 0; autoStatus(w);
 }
 function setPlan(w, plan, manual) {
   const old = w.plan;
@@ -349,11 +373,13 @@ function setPlan(w, plan, manual) {
   w.plan = plan;
   if (manual) w.override = true;
   w.entries.push({ type: "plan", from: old, to: plan, date: fmt(new Date()), who: ROLES[role], note: manual ? "вручную" : "по шаблону планировки" });
-  if (w.status === 3 && fact(w) < plan) w.status = 1;
   autoStatus(w);
   return true;
 }
-const workProgress = w => w.status === 3 ? 1 : Math.min(fact(w) / (w.plan || 1), 1) * .9;
+// принятый объём считается полностью, выполненный, но не принятый — на 90%
+const workProgress = w => Math.min(1, (accepted(w) + pending(w) * .9) / (w.plan || 1));
+const barHTML = w => { const p = w.plan || 1;
+  return `<span style="width:${Math.min(100, accepted(w) / p * 100)}%;background:var(--s3)"></span><span style="width:${Math.min(100, pending(w) / p * 100)}%;background:var(--s2)"></span>`; };
 const progress = works => works.length ? works.reduce((s, w) => s + workProgress(w), 0) / works.length : 0;
 const allWorks = units => units.flatMap(u => u.works);
 const blockUnits = b => b.floors.flatMap(f => f.units);
@@ -396,6 +422,10 @@ function renderTabs() {
   }).join("");
 }
 function renderLegend() {
+  if (colorBy === "pending") {
+    $("legend").innerHTML = `<span><span class="dot" style="background:var(--s2)"></span>есть объём к приёмке</span><span><span class="dot" style="background:var(--cell);border:1px solid var(--line)"></span>нечего принимать</span><span><span class="dot" style="background:var(--s4);border-radius:50%"></span>есть замечания</span>`;
+    return;
+  }
   $("legend").innerHTML = colorBy === "progress"
     ? `<span><span class="dot" style="background:var(--cell);border:1px solid var(--line)"></span>0%</span>` +
       [25, 50, 75].map(p => `<span><span class="dot" style="background:color-mix(in oklab, var(--s3) ${p}%, var(--cell))"></span>${p}%</span>`).join("") +
@@ -407,6 +437,10 @@ function cellStyle(u) {
   if (colorBy === "progress") {
     const p = progress(u.works);
     return { bg: p ? `color-mix(in oklab, var(--s3) ${Math.round(p * 100)}%, var(--cell))` : "var(--cell)", dark: p > .62 };
+  }
+  if (colorBy === "pending") {
+    const n = u.works.filter(w => w.status !== 4 && pending(w) > 0).length;
+    return n ? { bg: "var(--s2)", dark: true } : { bg: "var(--cell)" };
   }
   const w = u.works.find(x => x.name === colorBy);
   if (!w) return { bg: "var(--cell)", dim: true };
@@ -442,45 +476,89 @@ function getUnit() {
   return { b, f, u: f.units[openUnit.ui] };
 }
 function histLine(e, w) {
-  if (e.type === "fact") return `+${q(e.qty)} ${w.unit} — факт, ${e.who}${e.note ? `: «${esc(e.note)}»` : ""}`;
-  if (e.type === "plan") return `План ${q(e.from)} → ${q(e.to)} ${w.unit}, ${e.who} (${e.note})`;
-  return `Статус: ${STATUS[e.to].name}, ${e.who}${e.note ? `: «${esc(e.note)}»` : ""}`;
+  const note = e.note ? `: «${esc(e.note)}»` : "";
+  const photos = e.photos?.length ? `<div class="thumbs">${e.photos.map(src => `<button class="thumb" data-photo="${src}" aria-label="Открыть фото"><img src="${src}" alt=""></button>`).join("")}</div>` : "";
+  const text = {
+    fact: () => `+${q(e.qty)} ${w.unit} выполнено, ${e.who}${note}`,
+    accept: () => `Принято ${q(e.qty)} ${w.unit}, ${e.who}${note}`,
+    remark: () => `Замечание, ${e.who}${note}`,
+    fixed: () => `Замечание устранено, ${e.who}${note}`,
+    plan: () => `План ${q(e.from)} → ${q(e.to)} ${w.unit}, ${e.who} (${e.note})`,
+  }[e.type]();
+  return text + photos;
 }
-function editorHTML(w, i) {
-  const f = fact(w), r = rest(w);
+const photoInput = id => `<label class="photo-in">Фото, необязательно<input type="file" id="${id}" accept="image/*" multiple></label>`;
+// уменьшаем фото до 1280 px по длинной стороне, чтобы не хранить многомегабайтные снимки
+function readPhoto(file) {
+  return new Promise(res => {
+    const r = new FileReader();
+    r.onerror = () => res(null);
+    r.onload = () => {
+      const img = new Image();
+      img.onerror = () => res(null);
+      img.onload = () => {
+        const s = Math.min(1, 1280 / Math.max(img.width, img.height)), c = document.createElement("canvas");
+        c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        res(c.toDataURL("image/jpeg", .8));
+      };
+      img.src = r.result;
+    };
+    r.readAsDataURL(file);
+  });
+}
+async function readPhotos(id) {
+  const el = $(id);
+  if (!el?.files?.length) return [];
+  return (await Promise.all([...el.files].map(readPhoto))).filter(Boolean);
+}
+function editorHTML(w) {
+  const f = fact(w), a = accepted(w), pend = pending(w), r = rest(w);
   const planBlock = role === "pto"
     ? `<div class="inline"><input type="number" id="ed-plan" min="0" step="any" value="${w.plan}" aria-label="Плановый объём"><span>${w.unit}</span><button class="btn" data-act="plan">Сохранить план</button></div>`
     : `<b class="num">${q(w.plan)} ${w.unit}</b>`;
   let actions = "";
   if (role === "foreman") {
-    if (w.status === 3) actions = `<div class="note">Работа принята технадзором. Чтобы внести ещё факт, нужно, чтобы ПТО увеличил план.</div>`;
+    if (w.status === 3) actions = `<div class="note">Весь объём принят технадзором. Чтобы внести ещё факт, нужно, чтобы ПТО увеличил план.</div>`;
     else actions = `
+      ${w.status === 4 ? `<div class="label">Замечание технадзора</div>
+      <div class="inline"><input type="text" id="ed-fixnote" placeholder="Что исправлено (необязательно)" style="flex:1" aria-label="Что исправлено"></div>
+      ${photoInput("ed-fixphoto")}
+      <div class="actions"><button class="btn ok" data-act="fixed">Замечание устранено</button></div>` : ""}
       <div class="label">Внести факт выполнения</div>
       <div class="form">
         <input type="number" id="ed-qty" min="0" step="any" placeholder="${q(r)}" aria-label="Объём, ${w.unit}">
         <input type="date" id="ed-date" value="${isoToday()}" aria-label="Дата">
         <input type="text" id="ed-note" name="note" placeholder="Комментарий (необязательно)" aria-label="Комментарий">
       </div>
+      ${photoInput("ed-photo")}
       <div class="actions">
         <button class="btn primary" data-act="fact">Внести объём</button>
         <button class="btn" data-act="full" ${r <= 0 ? "disabled" : ""}>Выполнено полностью (+${q(r)} ${w.unit})</button>
-        ${w.status === 4 ? `<button class="btn ok" data-act="fixed">Замечание устранено</button>` : ""}
       </div>`;
   } else if (role === "tn") {
-    if (w.status === 2) actions = `
-      <div class="actions"><button class="btn ok" data-act="accept">Принять</button></div>
-      <div class="inline"><input type="text" id="ed-remark" placeholder="Текст замечания" style="flex:1" aria-label="Текст замечания"><button class="btn bad" data-act="remark">Выставить замечание</button></div>`;
-    else if (w.status === 4) actions = `<div class="note">Ждёт, пока прораб устранит замечание.</div>`;
-    else if (w.status === 3) actions = `<div class="note">Работа принята.</div>`;
-    else actions = `<div class="note">Принять можно, когда факт достигнет плана.</div>`;
+    if (w.status === 4) actions = `<div class="note">Есть открытое замечание. Принять объём можно после того, как прораб его устранит.</div>`;
+    else if (pend > 0) actions = `
+      <div class="label">Приёмка · к приёмке ${q(pend)} ${w.unit}</div>
+      <div class="inline">
+        <input type="number" id="ed-acc" min="0" step="any" max="${pend}" value="${pend}" aria-label="Принимаемый объём, ${w.unit}"><span>${w.unit}</span>
+        <button class="btn ok" data-act="accept">Принять объём</button>
+      </div>
+      <div class="note">Можно принять часть: например, 60 из ${q(pend)} ${w.unit}. Остаток останется в очереди на приёмку.</div>
+      <div class="label">Или выставить замечание</div>
+      <div class="inline"><input type="text" id="ed-remark" placeholder="Что не так" style="flex:1" aria-label="Текст замечания"></div>
+      ${photoInput("ed-rphoto")}
+      <div class="actions"><button class="btn bad" data-act="remark">Выставить замечание</button></div>`;
+    else actions = `<div class="note">${a >= w.plan ? "Весь объём принят." : "Нет выполненного объёма, который ждёт приёмки."}</div>`;
   } else if (role === "pto") actions = `<div class="note">Если изменить план вручную, шаблон планировки больше не будет менять объём этой работы.</div>`;
   else actions = `<div class="note">Только просмотр.</div>`;
   return `<div class="editor" id="editor">
-    <div class="ed-grid">
-      <div><span class="label">План${w.override ? " · изменён вручную" : ""}</span>${planBlock}</div>
-      <div><span class="label">Факт</span><b class="num">${q(f)} из ${q(w.plan)} ${w.unit}</b>
-        <div class="bar"><span style="width:${Math.min(100, f / (w.plan || 1) * 100)}%;background:${STATUS[w.status].color}"></span></div></div>
+    <div class="stats3">
+      <div><span class="label">План${w.override ? " · вручную" : ""}</span>${planBlock}</div>
+      <div><span class="label">Выполнено</span><b class="num">${q(f)} ${w.unit}</b></div>
+      <div><span class="label">Принято</span><b class="num">${q(a)} ${w.unit}</b></div>
     </div>
+    <div class="bar" title="зелёный — принято, синий — выполнено, ждёт приёмки">${barHTML(w)}</div>
     ${edMsg ? `<div class="msg" role="alert">${edMsg}</div>` : ""}
     ${actions}
     <div class="label">История</div>
@@ -507,10 +585,10 @@ function renderDrawer() {
         <button class="wrow" data-w="${i}" aria-expanded="${openWork === i}">
           <span>${w.name}<small>${w.section} · ${w.crew}</small></span>
           <span class="right"><span class="pill"><span class="dot" style="background:${STATUS[w.status].color}"></span>${STATUS[w.status].name}</span>
-            <span class="num note">${q(fact(w))} / ${q(w.plan)} ${w.unit}</span>
-            <span class="mini"><span style="width:${Math.min(100, fact(w) / (w.plan || 1) * 100)}%"></span></span></span>
+            <span class="num note">${q(fact(w))} / ${q(w.plan)} ${w.unit}${accepted(w) && w.status !== 3 ? ` · принято ${q(accepted(w))}` : ""}${w.entries.some(e => e.photos?.length) ? " · фото" : ""}</span>
+            <span class="mini bar">${barHTML(w)}</span></span>
         </button>
-        ${openWork === i ? editorHTML(w, i) : ""}
+        ${openWork === i ? editorHTML(w) : ""}
       </div>`).join("")}</div>
     <div class="nav-row">
       <button class="btn" data-act="prev" ${ui === 0 ? "disabled" : ""}>← Соседнее</button>
@@ -518,7 +596,7 @@ function renderDrawer() {
       <button class="btn" data-act="up" ${idx === 0 ? "disabled" : ""}>Этаж выше ↑</button>
       <button class="btn" data-act="down" ${idx === b.floors.length - 1 ? "disabled" : ""}>Этаж ниже ↓</button>
     </div>
-    <div class="note">Прототип: изменения хранятся только до перезагрузки страницы. В рабочей версии к факту прикладываются фото, а к скрытым работам — акты.</div>`;
+    <div class="note">Прототип: изменения и фото хранятся только до перезагрузки страницы.</div>`;
   statusBar(u.works, $("d-bar"));
 }
 function openDrawer(floorNo, ui) {
@@ -529,7 +607,9 @@ function openDrawer(floorNo, ui) {
 }
 function closeAll() { $("drawer").hidden = true; $("modal").hidden = true; $("scrim").hidden = true; openUnit = null; }
 
-$("drawer").addEventListener("click", e => {
+$("drawer").addEventListener("click", async e => {
+  const th = e.target.closest("[data-photo]");
+  if (th) { $("lightbox-img").src = th.dataset.photo; $("lightbox").hidden = false; return; }
   const row = e.target.closest(".wrow");
   if (row) { const i = +row.dataset.w; openWork = openWork === i ? null : i; edMsg = ""; renderDrawer(); return; }
   const btn = e.target.closest("[data-act]"); if (!btn) return;
@@ -549,14 +629,27 @@ $("drawer").addEventListener("click", e => {
     const note = $("ed-note").value.trim(), date = isoToRu($("ed-date").value || isoToday());
     if (!(qty > 0)) edMsg = "Укажите объём больше нуля.";
     else if (fact(w) + qty > w.plan * 1.05 && !note) edMsg = `Факт превысит план (${q(fact(w) + qty)} из ${q(w.plan)} ${w.unit}). Укажите причину в комментарии или попросите ПТО изменить план.`;
-    else { addFact(w, qty, date, note); toast(`Внесено: +${q(qty)} ${w.unit}`); }
+    else {
+      const photos = await readPhotos("ed-photo");
+      addFact(w, qty, date, note, photos);
+      toast(`Внесено: +${q(qty)} ${w.unit}${photos.length ? `, фото: ${photos.length}` : ""}`);
+    }
   }
-  if (act === "fixed") { setStatus(w, 2, "замечание устранено"); toast("Отправлено технадзору на повторную приёмку"); }
-  if (act === "accept") { setStatus(w, 3); toast("Работа принята"); }
+  if (act === "fixed") {
+    const photos = await readPhotos("ed-fixphoto");
+    fixRemark(w, $("ed-fixnote").value.trim(), photos);
+    toast("Отправлено технадзору на повторную приёмку");
+  }
+  if (act === "accept") {
+    const qty = parseFloat($("ed-acc").value), pend = pending(w);
+    if (!(qty > 0)) edMsg = "Укажите принимаемый объём больше нуля.";
+    else if (qty > pend) edMsg = `Принять можно не больше, чем выполнено и ещё не принято: ${q(pend)} ${w.unit}.`;
+    else { addAccept(w, qty); toast(`Принято ${q(qty)} ${w.unit}${qty < pend ? `, ещё ${q(pend - qty)} ждут приёмки` : ""}`); }
+  }
   if (act === "remark") {
     const t = $("ed-remark").value.trim();
     if (!t) edMsg = "Опишите замечание, чтобы прорабу было понятно, что исправить.";
-    else { setStatus(w, 4, t); toast("Замечание выставлено"); }
+    else { const photos = await readPhotos("ed-rphoto"); addRemark(w, t, photos); toast("Замечание выставлено"); }
   }
   renderAll();
 });
@@ -573,7 +666,7 @@ function renderBulk() {
   const n = selected.size;
   let act = "";
   if (role === "foreman") act = `<button class="btn primary" data-bulk="done" ${n ? "" : "disabled"}>Отметить выполненной на 100%</button>`;
-  else if (role === "tn") act = `<button class="btn ok" data-bulk="accept" ${n ? "" : "disabled"}>Принять выполненные</button>`;
+  else if (role === "tn") act = `<button class="btn ok" data-bulk="accept" ${n ? "" : "disabled"}>Принять весь выполненный объём</button>`;
   else act = `<span class="note">Массовая отметка доступна прорабу и технадзору.</span>`;
   $("bulk-in").innerHTML = `
     <b class="num">Выбрано: ${n}</b>
@@ -591,7 +684,7 @@ $("bulk-in").addEventListener("click", e => {
   selectedUnits().forEach(u => {
     const w = u.works.find(x => x.name === bulkWork);
     if (a === "done" && w && (w.status === 0 || w.status === 1)) { addFact(w, rest(w), fmt(new Date()), "массовая отметка"); ok++; }
-    else if (a === "accept" && w && w.status === 2) { setStatus(w, 3, "массовая приёмка"); ok++; }
+    else if (a === "accept" && w && w.status !== 4 && pending(w) > 0) { addAccept(w, pending(w), "массовая приёмка"); ok++; }
     else skip++;
   });
   toast(`${bulkWork}: обработано ${ok}${skip ? `, пропущено ${skip} (работы нет или статус не подходит)` : ""}`);
@@ -638,9 +731,9 @@ function toast(t) { const el = $("toast"); el.textContent = t; el.hidden = false
 
 $("role").innerHTML = Object.entries(ROLES).map(([k, v]) => `<option value="${k}" ${k === role ? "selected" : ""}>${v}</option>`).join("");
 $("role").addEventListener("change", e => { role = e.target.value; edMsg = ""; if (!$("modal").hidden) renderModal(); renderAll(); });
-$("colorby").innerHTML = `<option value="progress">По общей готовности</option><optgroup label="По виду работы">` +
+$("colorby").innerHTML = `<option value="progress">По общей готовности</option><option value="pending">Что ждёт приёмки</option><optgroup label="По виду работы">` +
   ALL_WORK_NAMES.map(n => `<option value="${n}">${n}</option>`).join("") + "</optgroup>";
-$("colorby").addEventListener("change", e => { colorBy = e.target.value; if (colorBy !== "progress") bulkWork = colorBy; renderLegend(); renderBoard(); renderBulk(); });
+$("colorby").addEventListener("change", e => { colorBy = e.target.value; if (ALL_WORK_NAMES.includes(colorBy)) bulkWork = colorBy; renderLegend(); renderBoard(); renderBulk(); });
 $("tabs").addEventListener("click", e => { const t = e.target.closest(".tab"); if (!t) return; current = +t.dataset.i; selected.clear(); renderAll(); });
 $("mass-toggle").addEventListener("click", () => setMass(!mass));
 $("board").addEventListener("click", e => {
@@ -656,7 +749,12 @@ $("board").addEventListener("click", e => {
   else openDrawer(+c.dataset.f, +c.dataset.u);
 });
 $("scrim").addEventListener("click", closeAll);
-document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("scrim").hidden) closeAll(); });
+$("lightbox").addEventListener("click", () => { $("lightbox").hidden = true; });
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape") return;
+  if (!$("lightbox").hidden) $("lightbox").hidden = true;
+  else if (!$("scrim").hidden) closeAll();
+});
 
 renderAll();
 </script>
