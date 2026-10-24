@@ -213,6 +213,100 @@ button.chip { cursor: pointer; }
 .hud-late { color: var(--late); font-weight: 600; }
 .pgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
 @media (max-width: 560px) { .pgrid, .task-edit { grid-template-columns: minmax(0, 1fr); } .task-edit, .task-meta { padding-left: 8px; } }
+
+/* Tabs and views */
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); margin-bottom: 18px; overflow-x: auto; scrollbar-width: none; }
+.tab {
+  display: inline-flex; align-items: center; gap: 6px; padding: 10px 14px; border: 0; background: none; cursor: pointer;
+  font-weight: 500; color: var(--muted); border-bottom: 2px solid transparent; white-space: nowrap; margin-bottom: -1px;
+}
+.tab:hover { color: var(--ink); }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.badge { min-width: 18px; height: 18px; padding: 0 6px; border-radius: 99px; display: inline-grid; place-items: center; font-family: var(--f-mono); font-size: 11px; background: var(--late); color: var(--surface); }
+.badge[data-tone="soon"] { background: var(--accent); }
+.alerts { display: grid; gap: 4px; padding: 10px 14px; margin-bottom: 18px; border-radius: 10px; background: var(--late-soft); border: 1px solid var(--late); color: var(--ink); font-size: 13px; }
+.alerts b { color: var(--late); }
+.linkbtn { background: none; border: 0; padding: 0; color: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font: inherit; justify-self: start; }
+.view { display: grid; gap: 18px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; min-width: 0; }
+.view-title { font-size: 18px; font-weight: 700; }
+.muted { color: var(--muted); font-size: 13px; margin: 0; }
+.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* Model */
+.model-grid { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 20px; align-items: start; }
+.model-inputs { display: grid; gap: 18px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); max-height: calc(100vh - 24px); overflow: auto; }
+.fs { border: 0; padding: 0; margin: 0; display: grid; gap: 6px; min-width: 0; }
+.fs legend { padding: 0; margin-bottom: 6px; }
+.inrow { display: grid; grid-template-columns: minmax(0, 1fr) 132px; gap: 8px; align-items: center; font-size: 13px; }
+.inrow label { color: var(--ink); line-height: 1.25; }
+.inbox { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.inbox:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.inbox input { width: 100%; min-width: 0; border: 0; background: none; padding: 6px 8px; font: inherit; font-size: 13px; color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; outline: none; }
+.inbox span { padding-right: 8px; font-size: 11px; color: var(--muted); white-space: nowrap; }
+.inrow input[type="checkbox"] { justify-self: end; width: 18px; height: 18px; accent-color: var(--done); }
+.model-out { display: grid; gap: 18px; min-width: 0; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.kpi { padding: 12px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); display: grid; gap: 2px; }
+.kpi span { font-size: 12px; color: var(--muted); }
+.kpi b { font-family: var(--f-display); font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums; }
+.kpi[data-tone="good"] b { color: var(--done); }
+.kpi[data-tone="warn"] b { color: var(--accent-ink); }
+.kpi[data-tone="bad"] b { color: var(--late); }
+.verdict { padding: 12px 14px; border-radius: 10px; font-size: 13px; background: var(--surface-2); border: 1px solid var(--line); }
+.verdict[data-tone="good"] { background: var(--done-soft); border-color: transparent; }
+.verdict[data-tone="warn"] { background: var(--accent-soft); border-color: transparent; }
+.verdict[data-tone="bad"] { background: var(--late-soft); border-color: transparent; }
+.chart svg { width: 100%; height: auto; display: block; }
+.chart text { fill: var(--muted); font-family: var(--f-mono); font-size: 10px; }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .zero { stroke: var(--muted); stroke-width: 1; }
+.chart .cum-area { fill: var(--accent-soft); }
+.chart .cum-line { fill: none; stroke: var(--accent); stroke-width: 2; }
+.chart .debt-line { fill: none; stroke: var(--late); stroke-width: 2; stroke-dasharray: 5 4; }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--muted); margin-top: 6px; }
+.chart-legend i { display: inline-block; width: 14px; height: 3px; vertical-align: middle; margin-right: 6px; }
+.tablewrap { overflow-x: auto; }
+table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.t th { text-align: left; font-weight: 500; color: var(--muted); font-size: 12px; padding: 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+table.t td { padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+table.t tr.total td { font-weight: 600; border-bottom: 0; }
+table.t th.num { text-align: right; }
+.sens td { text-align: center; font-variant-numeric: tabular-nums; border-radius: 6px; padding: 8px 4px; }
+.sens th { text-align: center; }
+.sens td[data-tone="bad"] { background: var(--late-soft); color: var(--late); }
+.sens td[data-tone="warn"] { background: var(--accent-soft); color: var(--accent-ink); }
+.sens td[data-tone="good"] { background: var(--done-soft); color: var(--done); }
+.sens td.base { outline: 2px solid var(--ink); outline-offset: -2px; font-weight: 700; }
+.sens table { border-collapse: separate; border-spacing: 3px; width: 100%; }
+
+/* Budget */
+.tin { width: 100%; min-width: 110px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 5px 7px; font: inherit; font-size: 13px; color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
+.tin.note { text-align: left; min-width: 140px; }
+.tin:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.tin:disabled { background: var(--surface-2); color: var(--muted); }
+.meter { height: 6px; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; min-width: 70px; }
+.meter i { display: block; height: 100%; background: var(--done); }
+.meter[data-tone="bad"] i { background: var(--late); }
+.dev[data-tone="bad"] { color: var(--late); font-weight: 600; }
+.dev[data-tone="good"] { color: var(--done); }
+.budget-mini { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+
+/* Deadlines */
+.dl-head { display: grid; gap: 10px; }
+.dl-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 16px; padding-top: 8px; border-top: 1px dashed var(--line); }
+.dl-form .wide { grid-column: span 2; }
+.dl-form select { font: inherit; font-size: 14px; color: var(--ink); background: var(--surface); width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; }
+.dl-quick { display: flex; flex-wrap: wrap; gap: 6px; grid-column: 1 / -1; }
+.dl-actions { grid-column: 1 / -1; }
+.dl-title { font-weight: 500; }
+.dl-sub { font-size: 12px; color: var(--muted); }
+@media (max-width: 980px) {
+  .model-grid { grid-template-columns: minmax(0, 1fr); }
+  .model-inputs { position: static; max-height: none; }
+  .dl-form { grid-template-columns: minmax(0, 1fr); }
+  .dl-form .wide { grid-column: auto; }
+}
 .task input[type="checkbox"] { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--done); cursor: pointer; }
 .task input:disabled, .task input:disabled + span { cursor: not-allowed; }
 .task input:disabled + span { color: var(--muted); }
@@ -299,7 +393,15 @@ dialog.viewer::backdrop { background: rgba(10, 20, 35, .55); }
     </div>
   </header>
 
-  <div class="main">
+  <nav class="tabs" role="tablist" aria-label="Разделы">
+    <button class="tab" type="button" role="tab" data-view="tree" aria-selected="true">Дерево этапов</button>
+    <button class="tab" type="button" role="tab" data-view="model" aria-selected="false">Финмодель</button>
+    <button class="tab" type="button" role="tab" data-view="budget" aria-selected="false">Бюджет <span class="badge" id="badge-budget" hidden></span></button>
+    <button class="tab" type="button" role="tab" data-view="deadlines" aria-selected="false">Сроки документов <span class="badge" id="badge-deadlines" hidden></span></button>
+  </nav>
+  <div class="alerts" id="alerts" hidden></div>
+
+  <div class="main" id="view-tree">
     <section class="tree-card" aria-label="Дерево этапов">
       <div class="legend">
         <span><i style="background:var(--done)"></i>Пройден</span>
@@ -318,6 +420,25 @@ dialog.viewer::backdrop { background: rgba(10, 20, 35, .55); }
       <div class="panel-inner" id="panel-inner"></div>
     </aside>
   </div>
+
+  <section id="view-model" class="view" hidden aria-label="Финансовая модель">
+    <div class="model-grid">
+      <form class="card model-inputs" id="model-form" autocomplete="off"></form>
+      <div class="model-out" id="model-out"></div>
+    </div>
+  </section>
+
+  <section id="view-budget" class="view" hidden aria-label="Бюджет"><div id="b-kpis"></div><div id="b-table"></div></section>
+
+  <section id="view-deadlines" class="view" hidden aria-label="Сроки документов">
+    <div class="card dl-head">
+      <div class="section-title"><h2 class="view-title">Сроки действия документов</h2>
+        <div class="row"><button class="btn primary" type="button" id="dl-add">Добавить документ</button><button class="btn" type="button" id="dl-csv">Скачать реестр (Excel)</button></div></div>
+      <p class="muted">У АПЗ, техусловий, лицензий, банковских гарантий и договоров есть срок действия. Внесите его, и страница предупредит за 60 и за 30 дней до окончания.</p>
+      <div id="dl-form-wrap" hidden></div>
+    </div>
+    <div id="dl-list"></div>
+  </section>
 </div>
 
 <dialog class="viewer" id="viewer" aria-labelledby="viewer-title">
@@ -1514,6 +1635,102 @@ window.buildDocx = (function () {
 })();
 </script>
 
+<script id="model-lib">
+// Помесячная финмодель ЖК: выручка, затраты, НДС, финансирование, КПН, IRR.
+window.MODEL_DEFAULTS = {
+  area_sale: 32000, area_comm: 2000, parking: 250, area_total: 45000,
+  price: 550000, price_comm: 700000, price_park: 4000000, growth: 5,
+  land: 2000000000, design: 12000, smr: 260000, nets: 25000,
+  supervision: 2, marketing: 3, admin: 2, reserve: 7,
+  land_m: 1, design_start: 2, design_dur: 8, build_start: 10, build_dur: 26, sales_start: 12, sales_dur: 30,
+  equity: 1500000000, rate: 21, discount: 18,
+  vat: 16, vat_exempt: 1, cit: 20
+};
+window.runModel = function (p, f) {
+  f = f || {};
+  const kP = f.price || 1, kS = f.smr || 1;
+  const N = Math.max(p.land_m, p.design_start + p.design_dur - 1, p.build_start + p.build_dur - 1, p.sales_start + p.sales_dur - 1) + 1;
+  const z = () => new Array(N + 1).fill(0);
+  const even = (start, dur, total) => { const a = z(); for (let m = start; m < start + dur && m <= N; m++) a[m] = total / dur; return a; };
+  const bell = (start, dur, total) => {
+    const a = z(); let s = 0;
+    for (let i = 0; i < dur; i++) s += Math.sin(Math.PI * (i + 0.5) / dur);
+    for (let i = 0; i < dur && start + i <= N; i++) a[start + i] = total * Math.sin(Math.PI * (i + 0.5) / dur) / s;
+    return a;
+  };
+  const v = p.vat / 100;
+  const revH = z(), revC = z(), revP = z();
+  for (let m = p.sales_start; m < p.sales_start + p.sales_dur; m++) {
+    const g = Math.pow(1 + p.growth / 100, (m - p.sales_start) / 12) * kP / p.sales_dur;
+    revH[m] = p.area_sale * p.price * g;
+    revC[m] = p.area_comm * p.price_comm * g;
+    revP[m] = p.parking * p.price_park * g;
+  }
+  const rev = z().map((_, m) => revH[m] + revC[m] + revP[m]);
+  const taxRev = z().map((_, m) => revC[m] + revP[m] + (p.vat_exempt ? 0 : revH[m]));
+  const sum = a => a.reduce((s, x) => s + x, 0);
+  const totalRev = sum(rev);
+  const cat = {
+    land: z(), design: even(p.design_start, p.design_dur, p.design * p.area_total),
+    smr: bell(p.build_start, p.build_dur, p.smr * kS * p.area_total),
+    nets: even(p.build_start, p.build_dur, p.nets * p.area_total)
+  };
+  cat.land[p.land_m] = p.land;
+  cat.supervision = cat.smr.map(x => x * p.supervision / 100);
+  cat.reserve = cat.smr.map(x => x * p.reserve / 100);
+  cat.marketing = rev.map(x => x * p.marketing / 100);
+  cat.admin = even(1, N, totalRev * p.admin / 100);
+  const vatable = ["design", "smr", "nets", "supervision", "reserve", "marketing"];
+  const share = totalRev ? sum(taxRev) / totalRev : 0;
+  const rate = p.rate / 100 / 12, dm = Math.pow(1 + p.discount / 100, 1 / 12) - 1;
+  let cash = 0, debt = 0, eqUsed = 0, vatBal = 0, cum = 0, peakDebt = 0, peakNeed = 0, interestT = 0, vatPaidT = 0, outVatT = 0, credT = 0;
+  const months = [], eq = z();
+  for (let m = 1; m <= N; m++) {
+    const cost = Object.keys(cat).reduce((s, k) => s + cat[k][m], 0);
+    const inVat = vatable.reduce((s, k) => s + cat[k][m], 0) * v / (1 + v);
+    const outVat = taxRev[m] * v / (1 + v);
+    outVatT += outVat; credT += inVat * share;
+    vatBal += outVat - inVat * share;
+    let vatPaid = 0;
+    if (vatBal > 0) { vatPaid = vatBal; vatBal = 0; }
+    vatPaidT += vatPaid;
+    const pre = rev[m] - cost - vatPaid;
+    cum += pre; peakNeed = Math.min(peakNeed, cum);
+    const interest = debt * rate; interestT += interest;
+    cash += pre - interest;
+    if (cash < 0) {
+      const e = Math.min(-cash, p.equity - eqUsed);
+      eqUsed += e; eq[m] -= e; cash += e;
+      if (cash < 0) { debt += -cash; cash = 0; }
+    } else if (debt > 0) { const r = Math.min(cash, debt); debt -= r; cash -= r; }
+    peakDebt = Math.max(peakDebt, debt);
+    months.push({ m, rev: rev[m], cost, vat: vatPaid, interest, debt, cum, cat: Object.fromEntries(Object.keys(cat).map(k => [k, cat[k][m]])) });
+  }
+  const costT = Object.keys(cat).reduce((s, k) => s + sum(cat[k]), 0);
+  const revNet = totalRev - outVatT, costNet = costT - credT;
+  const pbt = revNet - costNet - interestT;
+  const cit = Math.max(0, pbt * p.cit / 100);
+  cash -= cit;
+  eq[N] += cash - debt;
+  const npvAt = r => eq.reduce((s, x, m) => s + x / Math.pow(1 + r, m), 0);
+  let irr = null;
+  if (eq.some(x => x < 0) && eq.some(x => x > 0)) {
+    let lo = -0.99, hi = 1;
+    if (npvAt(lo) * npvAt(hi) < 0) {
+      for (let i = 0; i < 100; i++) { const mid = (lo + hi) / 2; if (npvAt(lo) * npvAt(mid) <= 0) hi = mid; else lo = mid; }
+      irr = Math.pow(1 + (lo + hi) / 2, 12) - 1;
+    }
+  }
+  const byCat = Object.fromEntries(Object.keys(cat).map(k => [k, sum(cat[k])]));
+  return {
+    N, months, byCat, eq,
+    t: { rev: totalRev, revNet, costT, costNet, vatPaid: vatPaidT, interest: interestT, pbt, cit, net: pbt - cit,
+      margin: costNet + interestT ? pbt / (costNet + interestT) : 0, irr, npv: npvAt(dm), peakDebt, peakNeed: -peakNeed, eqUsed,
+      costM2: (costNet + interestT) / ((p.area_sale + p.area_comm) || 1) }
+  };
+};
+</script>
+
 <script>
 (function () {
   const T = window.TREE;
@@ -1527,10 +1744,12 @@ window.buildDocx = (function () {
   const RANKS = [[0, "Стажёр"], [1, "Аналитик"], [4, "Девелопер"], [8, "Застройщик"], [13, "Генеральный застройщик"], [20, "Магнат ЖК"]];
   const STATUS = { locked: "Закрыт", open: "Доступен", active: "В работе", risk: "Начат с риском", done: "Пройден" };
   const LOCAL_KEY = "zhk-skill-tree-v2", LEGACY_KEY = "zhk-skill-tree-v1";
+  const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines"];
+  const VIEWS = ["tree", "model", "budget", "deadlines"];
 
-  // S — всё состояние проекта: отметки, ответственные и сроки, досрочные старты, карточка проекта.
-  let S = { checked: {}, meta: {}, early: {}, project: {} };
-  let selected = null;
+  // S — всё состояние проекта, хранится одним документом.
+  let S;
+  let selected = null, view = "tree";
   let docRef = null, docExists = false, readOnly = false;
   let downloads = null;
   const openEdits = new Set();
@@ -1546,7 +1765,7 @@ window.buildDocx = (function () {
   }
   function normalize(d) {
     d = isObj(d) ? JSON.parse(JSON.stringify(d)) : {};
-    ["checked", "meta", "early", "project"].forEach(k => { if (!isObj(d[k])) d[k] = {}; });
+    KEYS.forEach(k => { if (!isObj(d[k])) d[k] = {}; });
     return d;
   }
   function today() {
@@ -1556,6 +1775,25 @@ window.buildDocx = (function () {
   const fmt = iso => iso ? iso.slice(8, 10) + "." + iso.slice(5, 7) + "." + iso.slice(0, 4) : "";
   const daysTo = iso => Math.round((Date.parse(iso) - Date.parse(today())) / 86400000);
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const NF = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 });
+  const num = n => NF.format(Math.round(n || 0)).replace(/[  ]/g, " ");
+  const money = n => num(n) + " тг";
+  const dec = (x, d) => x.toFixed(d).replace(".", ",");
+  function short(n) {
+    const a = Math.abs(n || 0);
+    if (a >= 1e9) return dec(n / 1e9, 2) + " млрд тг";
+    if (a >= 1e6) return dec(n / 1e6, 1) + " млн тг";
+    return money(n);
+  }
+  const pct = x => x == null || !isFinite(x) ? "—" : dec(x * 100, 1) + "%";
+  function parseNum(s) {
+    if (s == null) return null;
+    const t = String(s).replace(/[\s  ]/g, "").replace(",", ".");
+    if (t === "") return null;
+    const v = Number(t);
+    return isFinite(v) ? v : null;
+  }
+  const uid = () => "d" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
   // --- storage ------------------------------------------------------------
   function loadLocal() {
@@ -1569,7 +1807,7 @@ window.buildDocx = (function () {
   }
   function saveLocal() { try { localStorage.setItem(LOCAL_KEY, JSON.stringify(S)); } catch (e) {} }
   function setSync(mode, text) { const el = document.getElementById("sync"); el.dataset.mode = mode; el.textContent = text; }
-  const hasData = () => ["checked", "meta", "early", "project"].some(k => Object.keys(S[k]).length);
+  const hasData = () => KEYS.some(k => Object.keys(S[k]).length);
 
   let writeChain = Promise.resolve();
   function write(patch) {
@@ -1594,9 +1832,9 @@ window.buildDocx = (function () {
   }
   function commit(patch, opts) {
     merge(S, patch); saveLocal(); write(patch);
-    if (opts && opts.deferPanel) {
-      // Фокус ещё переходит на следующее поле: перерисуем панель, когда он устроится.
-      renderHud(); renderTree(); setTimeout(() => renderPanel(), 0);
+    if (opts && opts.defer) {
+      // Фокус ещё переходит на следующее поле: перерисуем поля ввода, когда он устроится.
+      renderChrome(); setTimeout(() => { renderPanel(); renderView(); }, 0);
     } else renderAll();
   }
 
@@ -1606,7 +1844,7 @@ window.buildDocx = (function () {
     try { downloads = await use("downloads"); } catch (e) { downloads = null; }
     let db = null;
     try { db = await use("db"); } catch (e) { db = null; }
-    if (!db) { setSync("local", "Прогресс сохраняется в этом браузере"); return; }
+    if (!db) { setSync("local", "Прогресс сохраняется в этом браузере"); renderAll(); return; }
     docRef = db.doc("progress/main");
     setSync("pending", "Синхронизация…");
     docRef.onSnapshot(snap => {
@@ -1623,7 +1861,27 @@ window.buildDocx = (function () {
     }, () => setSync("local", "Нет связи с хранилищем, прогресс сохранён в браузере"));
   }
 
-  // --- state --------------------------------------------------------------
+  // --- guarded rendering --------------------------------------------------
+  // Не перерисовываем блок с полями ввода, пока в нём фокус или идёт клик: иначе пропадёт ввод или клик.
+  let pointerDown = false;
+  const dirty = new Map();
+  function busyIn(el) {
+    const a = document.activeElement;
+    return !!a && el.contains(a) && (a.tagName === "TEXTAREA" || a.tagName === "SELECT" || (a.tagName === "INPUT" && a.type !== "checkbox"));
+  }
+  function guarded(el, fn) {
+    const run = force => {
+      if (!force && (busyIn(el) || pointerDown)) { dirty.set(run, true); return; }
+      dirty.delete(run); fn();
+    };
+    return run;
+  }
+  const flush = () => setTimeout(() => { [...dirty.keys()].forEach(r => r()); }, 0);
+  document.addEventListener("pointerdown", () => { pointerDown = true; }, true);
+  document.addEventListener("pointerup", () => { pointerDown = false; flush(); }, true);
+  document.addEventListener("focusout", flush, true);
+
+  // --- stage state --------------------------------------------------------
   const key = (n, i) => n.id + "." + i;
   const doneCount = n => n.tasks.reduce((s, _, i) => s + (S.checked[key(n, i)] ? 1 : 0), 0);
   const isDone = n => doneCount(n) === n.tasks.length;
@@ -1637,6 +1895,33 @@ window.buildDocx = (function () {
     return S.early[n.id] ? "risk" : "locked";
   }
   const editable = n => !readOnly && stateOf(n) !== "locked";
+
+  // --- deadlines state ----------------------------------------------------
+  const deadlineList = () => Object.entries(S.deadlines).filter(([, d]) => d && d.title)
+    .map(([id, d]) => Object.assign({ id }, d))
+    .sort((a, b) => (a.expires || "9999").localeCompare(b.expires || "9999"));
+  function dlStatus(d) {
+    if (!d.expires) return { tone: "", text: "Срок не указан", level: 0 };
+    const n = daysTo(d.expires);
+    if (n < 0) return { tone: "late", text: "Истёк " + fmt(d.expires), level: 3 };
+    if (n <= 30) return { tone: "late", text: (n === 0 ? "Истекает сегодня" : "Осталось " + n + " дн."), level: 2 };
+    if (n <= 60) return { tone: "soon", text: "Осталось " + n + " дн.", level: 1 };
+    return { tone: "ok", text: "Действует до " + fmt(d.expires), level: 0 };
+  }
+
+  // --- budget state -------------------------------------------------------
+  const EXTRA_ROWS = [{ id: "_interest", code: "—", name: "Проценты по кредиту" }, { id: "_admin", code: "—", name: "Административные расходы" }];
+  const budgetRows = () => T.nodes.concat(EXTRA_ROWS);
+  const bOf = id => S.budget[id] || {};
+  function budgetTotals() {
+    let plan = 0, fact = 0, over = 0;
+    budgetRows().forEach(r => {
+      const b = bOf(r.id);
+      plan += b.plan || 0; fact += b.fact || 0;
+      if ((b.fact || 0) > (b.plan || 0) && (b.plan || 0) > 0) over++;
+    });
+    return { plan, fact, over };
+  }
 
   // --- tree ---------------------------------------------------------------
   const treeEl = document.getElementById("tree");
@@ -1686,6 +1971,7 @@ window.buildDocx = (function () {
   }
 
   function drawEdges() {
+    if (view !== "tree") return;
     const box = treeEl.getBoundingClientRect();
     edgesEl.setAttribute("viewBox", "0 0 " + box.width + " " + box.height);
     let out = "";
@@ -1701,7 +1987,7 @@ window.buildDocx = (function () {
     edgesEl.innerHTML = out;
   }
 
-  // --- HUD ----------------------------------------------------------------
+  // --- HUD, tabs, alerts --------------------------------------------------
   function renderHud() {
     const tasksDone = T.nodes.reduce((s, n) => s + doneCount(n), 0);
     const stagesDone = T.nodes.filter(isDone).length;
@@ -1711,10 +1997,10 @@ window.buildDocx = (function () {
     document.getElementById("xp").textContent = (tasksDone * XP_PER_TASK) + " / " + (totalTasks * XP_PER_TASK) + " XP";
     document.getElementById("rank").textContent = rank;
     document.getElementById("stages").textContent = stagesDone + " / " + T.nodes.length + " этапов";
-    const pct = Math.round(tasksDone / totalTasks * 100);
+    const p100 = Math.round(tasksDone / totalTasks * 100);
     const bar = document.getElementById("xpbar");
-    bar.setAttribute("aria-valuenow", pct);
-    bar.querySelector("i").style.width = pct + "%";
+    bar.setAttribute("aria-valuenow", p100);
+    bar.querySelector("i").style.width = p100 + "%";
     const od = document.getElementById("overdue");
     od.hidden = !late;
     od.textContent = "Просрочено пунктов: " + late;
@@ -1724,24 +2010,64 @@ window.buildDocx = (function () {
       : "Девелопмент · Республика Казахстан";
   }
 
-  // --- panel --------------------------------------------------------------
+  function renderTabs() {
+    document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", t.dataset.view === view ? "true" : "false"));
+    const bt = budgetTotals();
+    const bb = document.getElementById("badge-budget");
+    bb.hidden = !bt.over;
+    bb.textContent = bt.over;
+    bb.title = "Этапов с перерасходом: " + bt.over;
+    const list = deadlineList().map(dlStatus);
+    const urgent = list.filter(s => s.level >= 2).length, soon = list.filter(s => s.level === 1).length;
+    const db = document.getElementById("badge-deadlines");
+    db.hidden = !(urgent || soon);
+    db.textContent = urgent || soon;
+    db.dataset.tone = urgent ? "" : "soon";
+  }
+
+  function renderAlerts() {
+    const el = document.getElementById("alerts");
+    const items = deadlineList().filter(d => dlStatus(d).level >= 2);
+    el.hidden = !items.length;
+    if (!items.length) { el.innerHTML = ""; return; }
+    const lines = items.slice(0, 3).map(d => {
+      const n = daysTo(d.expires);
+      return "<span><b>" + esc(d.title) + "</b>: " + (n < 0 ? "срок истёк " + fmt(d.expires) : n === 0 ? "истекает сегодня" : "истекает через " + n + " дн., " + fmt(d.expires)) + "</span>";
+    });
+    if (items.length > 3) lines.push("<span>И ещё " + (items.length - 3) + ".</span>");
+    el.innerHTML = lines.join("") + '<button class="linkbtn" type="button" data-goview="deadlines">Открыть реестр сроков</button>';
+  }
+
+  function renderChrome() { renderHud(); renderTree(); renderTabs(); renderAlerts(); }
+  function renderAll() { renderChrome(); renderPanel(); renderView(); }
+
+  function setView(v, push) {
+    if (VIEWS.indexOf(v) < 0) v = "tree";
+    view = v;
+    VIEWS.forEach(x => { document.getElementById("view-" + x).hidden = x !== v; });
+    if (push) { try { history.replaceState(null, "", "#" + (v === "tree" ? (selected || "") : v)); } catch (e) {} }
+    renderTabs();
+    renderView(true);
+    if (v === "tree") drawEdges();
+  }
+  document.querySelector(".tabs").addEventListener("click", e => { const t = e.target.closest(".tab"); if (t) setView(t.dataset.view, true); });
+  document.addEventListener("click", e => {
+    const g = e.target.closest("[data-goview]");
+    if (!g) return;
+    if (g.dataset.stage) openDeadlineForm(null, g.dataset.stage);
+    setView(g.dataset.goview, true);
+    window.scrollTo({ top: 0 });
+  });
+
+  function renderView(force) {
+    if (view === "model") renderModel(force);
+    else if (view === "budget") renderBudget(force);
+    else if (view === "deadlines") renderDeadlines();
+  }
+
+  // --- stage panel --------------------------------------------------------
   const panel = document.getElementById("panel");
   const inner = document.getElementById("panel-inner");
-  let panelDirty = false;
-  function panelBusy() {
-    const a = document.activeElement;
-    return !!a && panel.contains(a) && (a.tagName === "TEXTAREA" || (a.tagName === "INPUT" && a.type !== "checkbox"));
-  }
-  panel.addEventListener("focusout", () => setTimeout(() => {
-    if (panelDirty && !panelBusy()) { panelDirty = false; renderPanel(); }
-  }, 0));
-  // Не перерисовываем панель посреди клика: иначе кнопка под курсором исчезнет и клик потеряется.
-  let pointerDown = false, pendingPanel = false;
-  document.addEventListener("pointerdown", () => { pointerDown = true; }, true);
-  document.addEventListener("pointerup", () => {
-    pointerDown = false;
-    if (pendingPanel) { pendingPanel = false; setTimeout(() => renderPanel(), 0); }
-  }, true);
 
   function chip(id) {
     const n = byId[id];
@@ -1802,9 +2128,29 @@ window.buildDocx = (function () {
       "</li>";
   }
 
-  function renderPanel(force) {
-    if (!force && panelBusy()) { panelDirty = true; return; }
-    if (!force && pointerDown) { pendingPanel = true; return; }
+  function budgetMiniHtml(n) {
+    const b = bOf(n.id);
+    const dis = readOnly ? " disabled" : "";
+    const dev = (b.fact || 0) - (b.plan || 0);
+    const devTxt = b.plan ? (dev > 0 ? "Перерасход " + money(dev) : "Остаток " + money(-dev)) : "План не задан";
+    return '<div><div class="section-title"><h3 class="eyebrow">Бюджет этапа</h3><span class="dev mono" style="font-size:12px" data-tone="' + (b.plan && dev > 0 ? "bad" : "") + '">' + devTxt + "</span></div>" +
+      '<div class="budget-mini"><label class="field" for="pb-plan"><span>План, тг</span><input class="tin" type="text" inputmode="decimal" id="pb-plan" data-b="plan" data-id="' + n.id + '" value="' + (b.plan ? num(b.plan) : "") + '"' + dis + "></label>" +
+      '<label class="field" for="pb-fact"><span>Факт, тг</span><input class="tin" type="text" inputmode="decimal" id="pb-fact" data-b="fact" data-id="' + n.id + '" value="' + (b.fact ? num(b.fact) : "") + '"' + dis + "></label></div></div>";
+  }
+
+  function deadlinesMiniHtml(n) {
+    const items = deadlineList().filter(d => d.stage === n.id);
+    const rows = items.map(d => {
+      const s = dlStatus(d);
+      return '<div class="doc" style="grid-template-columns:1fr auto"><span class="doc-title">' + esc(d.title) + (d.num ? ' <span class="dl-sub">№ ' + esc(d.num) + "</span>" : "") +
+        '</span><span class="mchip"' + (s.tone ? ' data-tone="' + s.tone + '"' : "") + ">" + s.text + "</span></div>";
+    }).join("");
+    return '<div><div class="section-title"><h3 class="eyebrow">Сроки документов</h3>' +
+      (readOnly ? "" : '<button class="btn ghost" type="button" style="padding:2px 8px;font-size:12px" data-goview="deadlines" data-stage="' + n.id + '">Добавить</button>') + "</div>" +
+      (rows ? '<div class="docs">' + rows + "</div>" : '<p class="muted">Нет документов со сроком действия для этого этапа.</p>') + "</div>";
+  }
+
+  const renderPanel = guarded(panel, function () {
     const n = byId[selected];
     if (!n) { inner.innerHTML = ""; return; }
     const st = stateOf(n);
@@ -1826,18 +2172,36 @@ window.buildDocx = (function () {
       "</dl>" +
       '<div><div class="section-title"><h3 class="eyebrow">Условия перехода</h3><span class="mono" style="font-size:12px;color:var(--muted)">' + dc + " / " + n.tasks.length + " · +" + n.tasks.length * XP_PER_TASK + " XP</span></div>" +
         gateHtml(n, st, dc) + '<ul class="tasks" style="margin-top:8px">' + n.tasks.map((t, i) => taskHtml(n, t, i)).join("") + "</ul></div>" +
+      budgetMiniHtml(n) +
+      deadlinesMiniHtml(n) +
       '<div><div class="section-title"><h3 class="eyebrow">Образцы документов</h3></div><div class="docs">' + docs + "</div></div>" +
       (n.tip ? '<div class="tip"><b>Совет</b>' + esc(n.tip) + "</div>" : "");
+  });
+
+  function onBudgetInput(el) {
+    const id = el.dataset.id, f = el.dataset.b;
+    if (f === "note") {
+      const v = el.value.trim();
+      if ((bOf(id).note || "") === v) return;
+      commit({ budget: { [id]: { note: v } } }, { defer: true });
+      return;
+    }
+    const v = parseNum(el.value);
+    if (el.value.trim() !== "" && v == null) { toast("Введите сумму цифрами"); el.value = bOf(id)[f] ? num(bOf(id)[f]) : ""; return; }
+    const val = v == null ? 0 : Math.round(v);
+    if ((bOf(id)[f] || 0) === val) { el.value = val ? num(val) : ""; return; }
+    commit({ budget: { [id]: { [f]: val } } }, { defer: true });
   }
 
   inner.addEventListener("change", e => {
     const el = e.target;
+    if (el.dataset && el.dataset.b) { onBudgetInput(el); return; }
     const k = el.dataset && el.dataset.k;
     if (!k) return;
     if (el.dataset.meta) {
       const val = el.value.trim();
       if ((metaOf(k)[el.dataset.meta] || "") === val) return;
-      commit({ meta: { [k]: { [el.dataset.meta]: val } } }, { deferPanel: true });
+      commit({ meta: { [k]: { [el.dataset.meta]: val } } }, { defer: true });
       return;
     }
     const nodeId = k.split(".")[0];
@@ -1897,7 +2261,343 @@ window.buildDocx = (function () {
     renderHud(); renderTree(); renderPanel(true);
   }
 
-  function renderAll() { renderHud(); renderTree(); renderPanel(); }
+  // --- financial model ----------------------------------------------------
+  const MODEL_GROUPS = [
+    { title: "Объект", items: [["area_sale", "Продаваемая жилая площадь", "м²"], ["area_comm", "Коммерция", "м²"], ["parking", "Машино-места", "шт"], ["area_total", "Общая площадь здания", "м²"]] },
+    { title: "Цены продажи (с НДС)", items: [["price", "Жильё", "тг/м²"], ["price_comm", "Коммерция", "тг/м²"], ["price_park", "Машино-место", "тг/шт"], ["growth", "Рост цен", "% в год"]] },
+    { title: "Затраты (с НДС)", items: [["land", "Земля", "тг"], ["design", "ИРД, изыскания, проект", "тг/м²"], ["smr", "СМР", "тг/м²"], ["nets", "Внешние сети и подключение", "тг/м²"], ["supervision", "Технадзор, инжиниринг", "% СМР"], ["reserve", "Резерв", "% СМР"], ["marketing", "Маркетинг и продажи", "% выручки"], ["admin", "Административные", "% выручки"]] },
+    { title: "График, месяц от старта", items: [["land_m", "Покупка земли", "мес."], ["design_start", "Начало проектирования", "мес."], ["design_dur", "Длительность проектирования", "мес."], ["build_start", "Начало стройки", "мес."], ["build_dur", "Длительность стройки", "мес."], ["sales_start", "Начало продаж", "мес."], ["sales_dur", "Длительность продаж", "мес."]] },
+    { title: "Финансирование", items: [["equity", "Собственный капитал", "тг"], ["rate", "Ставка кредита", "% год."], ["discount", "Ставка дисконтирования", "% год."]] },
+    { title: "Налоги", items: [["vat", "НДС", "%"], ["vat_exempt", "Продажа жилья освобождена от НДС", "flag"], ["cit", "КПН", "%"]] }
+  ];
+  const INT_KEYS = ["land_m", "design_start", "design_dur", "build_start", "build_dur", "sales_start", "sales_dur"];
+  const modelForm = document.getElementById("model-form");
+  const modelOut = document.getElementById("model-out");
+  const params = () => {
+    const p = Object.assign({}, window.MODEL_DEFAULTS);
+    Object.keys(S.model).forEach(k => { if (typeof S.model[k] === "number") p[k] = S.model[k]; });
+    return p;
+  };
+
+  function buildModelForm() {
+    modelForm.innerHTML = '<div class="section-title"><h2 class="view-title">Исходные данные</h2></div>' +
+      '<p class="muted">Пример заполнен условными цифрами. Замените их своими: расчёт обновляется сразу и сохраняется для всей команды.</p>' +
+      MODEL_GROUPS.map(g => '<fieldset class="fs"><legend class="eyebrow">' + esc(g.title) + "</legend>" + g.items.map(([k, label, unit]) =>
+        unit === "flag"
+          ? '<div class="inrow"><label for="mf-' + k + '">' + esc(label) + '</label><input type="checkbox" id="mf-' + k + '" data-mk="' + k + '"></div>'
+          : '<div class="inrow"><label for="mf-' + k + '">' + esc(label) + '</label><span class="inbox"><input type="text" inputmode="decimal" id="mf-' + k + '" data-mk="' + k + '"><span>' + esc(unit) + "</span></span></div>"
+      ).join("") + "</fieldset>").join("") +
+      '<p class="muted">Освобождение продажи жилья от НДС и ставки налогов проверьте у налогового консультанта по Налоговому кодексу РК, действующему с 2026 года.</p>' +
+      '<div class="row"><button class="btn ghost" type="button" id="model-reset">Вернуть пример</button></div>';
+  }
+  function syncModelForm() {
+    const p = params();
+    modelForm.querySelectorAll("[data-mk]").forEach(el => {
+      if (el === document.activeElement) return;
+      const k = el.dataset.mk;
+      if (el.type === "checkbox") el.checked = !!p[k];
+      else el.value = Math.abs(p[k]) >= 1000 ? num(p[k]) : String(p[k]).replace(".", ",");
+      el.disabled = readOnly;
+    });
+    const r = document.getElementById("model-reset"); if (r) r.hidden = readOnly;
+  }
+  function readModelForm() {
+    const p = params();
+    modelForm.querySelectorAll("[data-mk]").forEach(el => {
+      const k = el.dataset.mk;
+      if (el.type === "checkbox") { p[k] = el.checked ? 1 : 0; return; }
+      const v = parseNum(el.value);
+      if (v != null) p[k] = v;
+    });
+    return clampParams(p);
+  }
+  function clampParams(p) {
+    INT_KEYS.forEach(k => { p[k] = Math.max(1, Math.round(p[k] || 1)); });
+    ["area_sale", "area_comm", "parking", "area_total", "price", "price_comm", "price_park", "land", "design", "smr", "nets", "equity"].forEach(k => { p[k] = Math.max(0, p[k] || 0); });
+    return p;
+  }
+
+  function niceStep(span) {
+    const raw = span / 4, mag = Math.pow(10, Math.floor(Math.log10(raw || 1)));
+    const f = raw / mag;
+    return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * mag;
+  }
+  function chartSvg(R) {
+    const W = 640, H = 240, L = 58, Rp = 12, Tp = 12, B = 26;
+    const cum = R.months.map(m => m.cum), debt = R.months.map(m => m.debt);
+    let lo = Math.min(0, ...cum), hi = Math.max(0, ...cum, ...debt);
+    if (hi === lo) hi = lo + 1;
+    const step = niceStep(hi - lo);
+    lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
+    const x = i => L + (W - L - Rp) * (R.N <= 1 ? 0 : i / (R.N - 1));
+    const y = v => Tp + (H - Tp - B) * (hi - v) / (hi - lo);
+    let g = "";
+    for (let v = lo; v <= hi + step / 2; v += step) {
+      g += '<line class="' + (Math.abs(v) < step / 1e6 ? "zero" : "grid") + '" x1="' + L + '" x2="' + (W - Rp) + '" y1="' + y(v) + '" y2="' + y(v) + '"/>' +
+        '<text x="' + (L - 6) + '" y="' + (y(v) + 3) + '" text-anchor="end">' + dec(v / 1e9, Math.abs(step) < 1e9 ? 1 : 0) + "</text>";
+    }
+    for (let i = 0; i < R.N; i += 6) g += '<text x="' + x(i) + '" y="' + (H - 8) + '" text-anchor="middle">' + (i + 1) + "</text>";
+    const pts = cum.map((v, i) => x(i) + "," + y(v)).join(" ");
+    const area = "M" + x(0) + "," + y(0) + " L" + pts.replace(/ /g, " L") + " L" + x(R.N - 1) + "," + y(0) + " Z";
+    const debtPts = debt.map((v, i) => x(i) + "," + y(v)).join(" ");
+    const minI = cum.indexOf(Math.min(...cum));
+    return '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Накопленный денежный поток и долг банку по месяцам">' + g +
+      '<path class="cum-area" d="' + area + '"/><polyline class="cum-line" points="' + pts + '"/><polyline class="debt-line" points="' + debtPts + '"/>' +
+      '<circle cx="' + x(minI) + '" cy="' + y(cum[minI]) + '" r="4" fill="var(--accent)"/>' +
+      '<text x="' + Math.min(x(minI) + 8, W - 150) + '" y="' + Math.min(y(cum[minI]) + 14, H - B - 4) + '">пик потребности ' + dec(-cum[minI] / 1e9, 2) + " млрд</text></svg>";
+  }
+
+  function renderModelOutput(p) {
+    const R = window.runModel(p), t = R.t;
+    const mTone = t.margin >= 0.2 ? "good" : t.margin >= 0.1 ? "warn" : "bad";
+    const verdict = t.pbt < 0
+      ? "Проект убыточен при этих допущениях. Пересмотрите цену, себестоимость или график."
+      : t.margin < 0.2
+        ? "Маржа ниже ориентира 20–30%. Банки и инвесторы обычно ждут больше: проверьте цену продажи, стоимость СМР и долю собственного капитала."
+        : "Маржа в целевом диапазоне. Проверьте устойчивость по таблице чувствительности ниже.";
+    const kpi = (label, value, tone) => '<div class="kpi"' + (tone ? ' data-tone="' + tone + '"' : "") + "><span>" + label + "</span><b>" + value + "</b></div>";
+    const PF = [0.9, 0.95, 1, 1.05, 1.1], SF = [0.85, 0.925, 1, 1.075, 1.15];
+    const sens = SF.map(sf => "<tr><th>" + (sf === 1 ? "СМР как в модели" : "СМР " + (sf > 1 ? "+" : "−") + dec(Math.abs(sf - 1) * 100, sf === 0.925 || sf === 1.075 ? 1 : 0) + "%") + "</th>" +
+      PF.map(pf => {
+        const m = window.runModel(p, { price: pf, smr: sf }).t.margin;
+        const tone = m < 0 ? "bad" : m < 0.2 ? "warn" : "good";
+        return '<td data-tone="' + tone + '"' + (pf === 1 && sf === 1 ? ' class="base"' : "") + ">" + pct(m) + "</td>";
+      }).join("") + "</tr>").join("");
+    const CAT = [["land", "Земля"], ["design", "ИРД, изыскания, проект"], ["smr", "СМР"], ["nets", "Внешние сети"], ["supervision", "Технадзор, инжиниринг"], ["reserve", "Резерв"], ["marketing", "Маркетинг и продажи"], ["admin", "Административные"]];
+    const costAll = t.costT + t.interest;
+    const catRows = CAT.map(([k, l]) => "<tr><td>" + l + '</td><td class="num">' + money(R.byCat[k]) + '</td><td class="num">' + pct(R.byCat[k] / costAll) + "</td></tr>").join("") +
+      '<tr><td>Проценты по кредиту</td><td class="num">' + money(t.interest) + '</td><td class="num">' + pct(t.interest / costAll) + "</td></tr>" +
+      '<tr class="total"><td>Итого затраты с НДС</td><td class="num">' + money(costAll) + '</td><td class="num">100%</td></tr>';
+
+    modelOut.innerHTML =
+      '<div class="verdict" data-tone="' + mTone + '">' + verdict + "</div>" +
+      '<div class="kpis">' +
+        kpi("Выручка с НДС", short(t.rev)) +
+        kpi("Прибыль до налога", short(t.pbt), t.pbt < 0 ? "bad" : "") +
+        kpi("Чистая прибыль", short(t.net), t.net < 0 ? "bad" : "") +
+        kpi("Маржа к себестоимости", pct(t.margin), mTone) +
+        kpi("IRR на собственный капитал", t.irr == null ? "—" : pct(t.irr), t.irr == null ? "" : t.irr >= 0.25 ? "good" : t.irr >= 0.15 ? "warn" : "bad") +
+        kpi("NPV при " + dec(p.discount, 0) + "%", short(t.npv), t.npv < 0 ? "bad" : "") +
+        kpi("Пиковый долг банку", short(t.peakDebt)) +
+        kpi("Пиковая потребность в деньгах", short(t.peakNeed)) +
+        kpi("Себестоимость 1 м² с процентами", money(t.costM2)) +
+        kpi("НДС к уплате", short(t.vatPaid)) +
+        kpi("Проценты по кредиту", short(t.interest)) +
+        kpi("КПН", short(t.cit)) +
+      "</div>" +
+      '<div class="card chart"><div class="section-title"><h3 class="eyebrow">Денежный поток по месяцам, млрд тг</h3><span class="muted">' + R.N + " мес.</span></div>" + chartSvg(R) +
+        '<div class="chart-legend"><span><i style="background:var(--accent)"></i>Накопленный поток до финансирования</span><span><i style="background:var(--late)"></i>Долг банку</span></div>' +
+        '<p class="muted" style="margin-top:8px">Пока линия ниже нуля, проект финансируется собственным капиталом (' + short(Math.min(p.equity, t.peakNeed)) + "), а затем кредитом.</p></div>" +
+      '<div class="card sens"><div class="section-title"><h3 class="eyebrow">Чувствительность маржи</h3><span class="muted">цена продажи по столбцам</span></div>' +
+        '<div class="tablewrap"><table><tr><th></th>' + PF.map(pf => "<th>" + (pf === 1 ? "Цена" : (pf > 1 ? "+" : "−") + dec(Math.abs(pf - 1) * 100, 0) + "%") + "</th>").join("") + "</tr>" + sens + "</table></div></div>" +
+      '<div class="card"><div class="section-title"><h3 class="eyebrow">Структура затрат</h3></div><div class="tablewrap"><table class="t"><tr><th>Статья</th><th class="num">Сумма</th><th class="num">Доля</th></tr>' + catRows + "</table></div>" +
+        '<div class="row" style="margin-top:12px">' +
+          (downloads ? '<button class="btn" type="button" id="model-csv">Скачать помесячный поток (Excel)</button>' : "") +
+          (readOnly ? "" : '<button class="btn" type="button" data-plan-from-model>Перенести в бюджет как план</button>') +
+        "</div></div>" +
+      '<p class="muted">Упрощения модели: продажи равномерны по месяцам, деньги покупателей поступают в месяц продажи, СМР распределены по S-кривой, входящий НДС зачитывается пропорционально доле облагаемой выручки, КПН платится в конце проекта. Цифры примера условные.</p>';
+  }
+
+  const renderModel = guarded(modelForm, function () {
+    syncModelForm();
+    renderModelOutput(readModelForm());
+  });
+  modelForm.addEventListener("input", e => { if (e.target.dataset.mk) renderModelOutput(readModelForm()); });
+  modelForm.addEventListener("change", e => {
+    const el = e.target, k = el.dataset.mk;
+    if (!k) return;
+    let v;
+    if (el.type === "checkbox") v = el.checked ? 1 : 0;
+    else {
+      v = parseNum(el.value);
+      if (v == null) { toast("Введите число"); syncModelForm(); return; }
+      if (INT_KEYS.indexOf(k) >= 0) v = Math.max(1, Math.round(v));
+      el.value = Math.abs(v) >= 1000 ? num(v) : String(v).replace(".", ",");
+    }
+    if (S.model[k] === v) return;
+    commit({ model: { [k]: v } }, { defer: true });
+  });
+  modelForm.addEventListener("click", e => {
+    if (e.target.id !== "model-reset") return;
+    const patch = {};
+    Object.keys(S.model).forEach(k => { patch[k] = null; });
+    S.model = {};
+    commit({ model: patch });
+    toast("Возвращены значения примера");
+  });
+  modelOut.addEventListener("click", e => {
+    if (e.target.id === "model-csv") {
+      const R = window.runModel(params());
+      const head = ["Месяц", "Выручка", "Земля", "ИРД и проект", "СМР", "Сети", "Технадзор", "Резерв", "Маркетинг", "Административные", "НДС к уплате", "Проценты", "Поток до финансирования", "Накопленный поток", "Долг банку"];
+      const rows = R.months.map(m => [m.m, m.rev, m.cat.land, m.cat.design, m.cat.smr, m.cat.nets, m.cat.supervision, m.cat.reserve, m.cat.marketing, m.cat.admin, m.vat, m.interest, m.rev - m.cost - m.vat, m.cum, m.debt].map(v => Math.round(v)).join(";"));
+      save(fileName({ title: "Финмодель помесячно" }, "csv"), "﻿" + [head.join(";")].concat(rows).join("\r\n"));
+    }
+    if (e.target.closest("[data-plan-from-model]")) { planFromModel(); setView("budget", true); }
+  });
+
+  // --- budget -------------------------------------------------------------
+  const budgetEl = document.getElementById("view-budget");
+  const SPLIT_DESIGN = { ird: 0.10, survey: 0.10, sketch: 0.20, psd: 0.50, expert: 0.10 };
+  const SPLIT_SMR = { start: 0.02, zero: 0.18, frame: 0.35, envelope: 0.17, mep: 0.18, finish: 0.10 };
+  function planFromModel() {
+    const R = window.runModel(params()), c = R.byCat;
+    const plan = {};
+    budgetRows().forEach(r => { plan[r.id] = 0; });
+    plan.land = c.land;
+    Object.keys(SPLIT_DESIGN).forEach(k => { plan[k] += c.design * SPLIT_DESIGN[k]; });
+    Object.keys(SPLIT_SMR).forEach(k => { plan[k] += (c.smr + c.supervision + c.reserve) * SPLIT_SMR[k]; });
+    plan.nets = c.nets; plan.dolevka = c.marketing; plan._admin = c.admin; plan._interest = R.t.interest;
+    const patch = {};
+    Object.keys(plan).forEach(k => { patch[k] = { plan: Math.round(plan[k] / 1000) * 1000 }; });
+    commit({ budget: patch });
+    toast("План бюджета заполнен из финмодели");
+  }
+  let confirmPlan = false;
+  const bKpis = document.getElementById("b-kpis"), bTable = document.getElementById("b-table");
+  function renderBudgetKpis() {
+    const bt = budgetTotals(), dev = bt.fact - bt.plan;
+    bKpis.innerHTML = '<div class="kpis">' +
+      '<div class="kpi"><span>План</span><b>' + short(bt.plan) + "</b></div>" +
+      '<div class="kpi"><span>Факт</span><b>' + short(bt.fact) + "</b></div>" +
+      '<div class="kpi" data-tone="' + (bt.plan && dev > 0 ? "bad" : bt.plan ? "good" : "") + '"><span>' + (dev > 0 ? "Перерасход" : "Остаток") + "</span><b>" + short(Math.abs(dev)) + "</b></div>" +
+      '<div class="kpi"><span>Освоено</span><b>' + (bt.plan ? pct(bt.fact / bt.plan) : "—") + "</b></div>" +
+      '<div class="kpi" data-tone="' + (bt.over ? "bad" : "") + '"><span>Этапов с перерасходом</span><b>' + bt.over + "</b></div></div>";
+  }
+  const renderBudgetTable = guarded(bTable, function () {
+    const bt = budgetTotals();
+    const dev = bt.fact - bt.plan;
+    const dis = readOnly ? " disabled" : "";
+    const rows = budgetRows().map(r => {
+      const b = bOf(r.id);
+      const d = (b.fact || 0) - (b.plan || 0);
+      const over = b.plan > 0 && d > 0;
+      const share = b.plan ? Math.min((b.fact || 0) / b.plan, 1) : 0;
+      return "<tr><td><span class=\"mono\" style=\"color:var(--muted)\">" + r.code + "</span> " + esc(r.name) + "</td>" +
+        '<td><input class="tin" type="text" inputmode="decimal" aria-label="План: ' + esc(r.name) + '" data-b="plan" data-id="' + r.id + '" value="' + (b.plan ? num(b.plan) : "") + '"' + dis + "></td>" +
+        '<td><input class="tin" type="text" inputmode="decimal" aria-label="Факт: ' + esc(r.name) + '" data-b="fact" data-id="' + r.id + '" value="' + (b.fact ? num(b.fact) : "") + '"' + dis + "></td>" +
+        '<td class="num dev" data-tone="' + (over ? "bad" : b.plan && b.fact ? "good" : "") + '">' + (b.plan || b.fact ? (d > 0 ? "+" : "") + num(d) : "") + "</td>" +
+        '<td><div class="meter" data-tone="' + (over ? "bad" : "") + '" title="' + (b.plan ? pct((b.fact || 0) / b.plan) : "") + '"><i style="width:' + Math.round(share * 100) + '%"></i></div></td>' +
+        '<td><input class="tin note" type="text" maxlength="120" aria-label="Комментарий: ' + esc(r.name) + '" data-b="note" data-id="' + r.id + '" value="' + esc(b.note || "") + '"' + dis + "></td></tr>";
+    }).join("");
+    const hasPlan = budgetRows().some(r => bOf(r.id).plan);
+    bTable.innerHTML =
+      '<div class="card"><div class="section-title"><h2 class="view-title">План и факт по этапам</h2><div class="row">' +
+        (readOnly ? "" : confirmPlan
+          ? '<span class="muted">Заменить текущий план расчётом из финмодели?</span><button class="btn primary" type="button" data-plan-yes>Да, заменить</button><button class="btn ghost" type="button" data-plan-no>Отмена</button>'
+          : '<button class="btn" type="button" data-plan-ask>Заполнить план из финмодели</button>') +
+        (downloads ? '<button class="btn" type="button" data-budget-csv>Скачать (Excel)</button>' : "") +
+      "</div></div>" +
+      '<p class="muted">Суммы в тенге с НДС. Факт вводите нарастающим итогом по оплаченным счетам. Строка краснеет, когда факт превышает план.</p>' +
+      '<div class="tablewrap" style="margin-top:10px"><table class="t"><tr><th>Этап</th><th class="num">План, тг</th><th class="num">Факт, тг</th><th class="num">Отклонение</th><th>Освоение</th><th>Комментарий</th></tr>' + rows +
+        '<tr class="total"><td>Итого</td><td class="num">' + num(bt.plan) + '</td><td class="num">' + num(bt.fact) + '</td><td class="num dev" data-tone="' + (bt.plan && dev > 0 ? "bad" : "") + '">' + (dev > 0 ? "+" : "") + num(dev) + "</td><td></td><td></td></tr></table></div>" +
+      (hasPlan ? "" : '<p class="muted" style="margin-top:10px">План пока пуст. Заполните его вручную или нажмите «Заполнить план из финмодели».</p>') + "</div>";
+  });
+  function renderBudget(force) { renderBudgetKpis(); renderBudgetTable(force); }
+  budgetEl.addEventListener("change", e => { if (e.target.dataset.b) onBudgetInput(e.target); });
+  budgetEl.addEventListener("click", e => {
+    if (e.target.closest("[data-plan-ask]")) {
+      if (budgetRows().some(r => bOf(r.id).plan)) { confirmPlan = true; renderBudgetTable(true); } else planFromModel();
+    } else if (e.target.closest("[data-plan-yes]")) { confirmPlan = false; planFromModel(); }
+    else if (e.target.closest("[data-plan-no]")) { confirmPlan = false; renderBudgetTable(true); }
+    else if (e.target.closest("[data-budget-csv]")) {
+      const lines = ["Этап;План, тг;Факт, тг;Отклонение, тг;Комментарий"].concat(budgetRows().map(r => {
+        const b = bOf(r.id);
+        return [r.code + " " + r.name, b.plan || 0, b.fact || 0, (b.fact || 0) - (b.plan || 0), (b.note || "").replace(/;/g, ",")].join(";");
+      }));
+      save(fileName({ title: "Бюджет план факт" }, "csv"), "﻿" + lines.join("\r\n"));
+    }
+  });
+
+  // --- deadlines ----------------------------------------------------------
+  const QUICK_DOCS = [
+    ["АПЗ", "ird"], ["ТУ на электроснабжение", "ird"], ["ТУ на водоснабжение и водоотведение", "ird"], ["ТУ на теплоснабжение или газоснабжение", "ird"],
+    ["ТУ на ливневую канализацию", "ird"], ["Договор аренды земельного участка", "land"], ["Лицензия проектировщика", "sketch"], ["Лицензия генподрядчика", "tender"],
+    ["Банковская гарантия исполнения договора", "tender"], ["Банковская гарантия возврата аванса", "tender"], ["Кредитная линия банка", "finance"],
+    ["Разрешение МИО на привлечение денег дольщиков", "dolevka"], ["Гарантия КЖК", "dolevka"], ["Аттестаты экспертов технадзора", "start"], ["Страхование строительно-монтажных рисков", "start"]
+  ];
+  const dlWrap = document.getElementById("dl-form-wrap");
+  const dlList = document.getElementById("dl-list");
+  let dlEditing = null, dlConfirmDelete = null;
+
+  function openDeadlineForm(id, stage) {
+    dlEditing = id || "new";
+    const d = id ? S.deadlines[id] || {} : { stage: stage || "" };
+    const opts = '<option value="">Без этапа</option>' + T.nodes.map(n => '<option value="' + n.id + '"' + (d.stage === n.id ? " selected" : "") + ">" + n.code + " · " + esc(n.name) + "</option>").join("");
+    dlWrap.innerHTML = '<form class="dl-form" id="dl-form" autocomplete="off">' +
+      (id ? "" : '<div class="dl-quick">' + QUICK_DOCS.map(([t, s]) => '<button class="chip" type="button" data-quick="' + esc(t) + '" data-qstage="' + s + '">' + esc(t) + "</button>").join("") + "</div>") +
+      '<label class="field wide" for="dl-title"><span>Документ *</span><input type="text" id="dl-title" maxlength="120" required placeholder="Например, ТУ на электроснабжение" value="' + esc(d.title || "") + '"></label>' +
+      '<label class="field" for="dl-num"><span>Номер</span><input type="text" id="dl-num" maxlength="60" value="' + esc(d.num || "") + '"></label>' +
+      '<label class="field" for="dl-issued"><span>Выдан</span><input type="date" id="dl-issued" value="' + esc(d.issued || "") + '"></label>' +
+      '<label class="field" for="dl-expires"><span>Действует до *</span><input type="date" id="dl-expires" required value="' + esc(d.expires || "") + '"></label>' +
+      '<label class="field" for="dl-owner"><span>Ответственный</span><input type="text" id="dl-owner" maxlength="80" placeholder="Кто продлевает" value="' + esc(d.owner || "") + '"></label>' +
+      '<label class="field" for="dl-stage"><span>Этап</span><select id="dl-stage">' + opts + "</select></label>" +
+      '<label class="field wide" for="dl-note"><span>Примечание</span><input type="text" id="dl-note" maxlength="200" placeholder="Например, продление подаётся за 30 дней" value="' + esc(d.note || "") + '"></label>' +
+      '<div class="row dl-actions"><button class="btn primary" type="submit">' + (id ? "Сохранить" : "Добавить") + '</button><button class="btn ghost" type="button" data-dl-cancel>Отмена</button></div></form>';
+    dlWrap.hidden = false;
+  }
+  function closeDeadlineForm() { dlEditing = null; dlWrap.hidden = true; dlWrap.innerHTML = ""; }
+  document.getElementById("dl-add").addEventListener("click", () => { openDeadlineForm(null); document.getElementById("dl-title").focus(); });
+  dlWrap.addEventListener("click", e => {
+    const q = e.target.closest("[data-quick]");
+    if (q) {
+      document.getElementById("dl-title").value = q.dataset.quick;
+      document.getElementById("dl-stage").value = q.dataset.qstage;
+      document.getElementById("dl-expires").focus();
+      return;
+    }
+    if (e.target.closest("[data-dl-cancel]")) closeDeadlineForm();
+  });
+  dlWrap.addEventListener("submit", e => {
+    e.preventDefault();
+    if (readOnly) return;
+    const v = id => document.getElementById(id).value.trim();
+    if (!v("dl-title") || !v("dl-expires")) { toast("Укажите документ и дату окончания"); return; }
+    const id = dlEditing === "new" ? uid() : dlEditing;
+    const rec = { title: v("dl-title"), num: v("dl-num"), issued: v("dl-issued"), expires: v("dl-expires"), owner: v("dl-owner"), stage: v("dl-stage"), note: v("dl-note") };
+    closeDeadlineForm();
+    commit({ deadlines: { [id]: rec } });
+    toast("Срок сохранён");
+  });
+
+  function renderDeadlines() {
+    document.getElementById("dl-add").hidden = readOnly;
+    document.getElementById("dl-csv").hidden = !downloads;
+    const items = deadlineList();
+    if (!items.length) {
+      dlList.innerHTML = '<div class="card"><p class="muted">Реестр пуст. Нажмите «Добавить документ» и выберите типовой документ из списка: АПЗ, техусловия, лицензии, гарантии, договор аренды земли.</p></div>';
+      return;
+    }
+    const rows = items.map(d => {
+      const s = dlStatus(d);
+      const st = d.stage && byId[d.stage];
+      const actions = readOnly ? "" : dlConfirmDelete === d.id
+        ? '<button class="btn" type="button" data-dl-del-yes="' + d.id + '">Удалить</button><button class="btn ghost" type="button" data-dl-del-no>Отмена</button>'
+        : '<button class="btn ghost" type="button" data-dl-edit="' + d.id + '">Изменить</button><button class="btn ghost" type="button" data-dl-del="' + d.id + '">Удалить</button>';
+      return "<tr><td><div class=\"dl-title\">" + esc(d.title) + "</div>" + (d.num || d.note ? '<div class="dl-sub">' + esc([d.num ? "№ " + d.num : "", d.note].filter(Boolean).join(" · ")) + "</div>" : "") + "</td>" +
+        "<td>" + (st ? '<button class="chip" type="button" data-open-stage="' + st.id + '" data-state="' + stateOf(st) + '">' + esc(st.code + " · " + st.name) + "</button>" : '<span class="muted">—</span>') + "</td>" +
+        '<td class="num">' + fmt(d.issued) + '</td><td class="num">' + fmt(d.expires) + "</td>" +
+        '<td><span class="mchip"' + (s.tone ? ' data-tone="' + s.tone + '"' : "") + ">" + s.text + "</span></td>" +
+        "<td>" + esc(d.owner || "") + '</td><td><div class="row" style="flex-wrap:nowrap">' + actions + "</div></td></tr>";
+    }).join("");
+    dlList.innerHTML = '<div class="card"><div class="tablewrap"><table class="t"><tr><th>Документ</th><th>Этап</th><th class="num">Выдан</th><th class="num">Действует до</th><th>Статус</th><th>Ответственный</th><th></th></tr>' + rows + "</table></div></div>";
+  }
+  dlList.addEventListener("click", e => {
+    const t = e.target;
+    const ed = t.closest("[data-dl-edit]");
+    if (ed) { openDeadlineForm(ed.dataset.dlEdit); window.scrollTo({ top: 0 }); return; }
+    const del = t.closest("[data-dl-del]");
+    if (del) { dlConfirmDelete = del.dataset.dlDel; renderDeadlines(); return; }
+    if (t.closest("[data-dl-del-no]")) { dlConfirmDelete = null; renderDeadlines(); return; }
+    const yes = t.closest("[data-dl-del-yes]");
+    if (yes) { dlConfirmDelete = null; commit({ deadlines: { [yes.dataset.dlDelYes]: null } }); toast("Документ удалён из реестра"); return; }
+    const os = t.closest("[data-open-stage]");
+    if (os) { setView("tree", false); select(os.dataset.openStage, true); }
+  });
+  document.getElementById("dl-csv").addEventListener("click", () => {
+    const lines = ["Документ;Номер;Этап;Выдан;Действует до;Статус;Ответственный;Примечание"].concat(deadlineList().map(d =>
+      [d.title, d.num, d.stage && byId[d.stage] ? byId[d.stage].name : "", fmt(d.issued), fmt(d.expires), dlStatus(d).text, d.owner, d.note].map(x => String(x || "").replace(/;/g, ",")).join(";")));
+    save(fileName({ title: "Реестр сроков документов" }, "csv"), "﻿" + lines.join("\r\n"));
+  });
 
   // --- project card -------------------------------------------------------
   const pdlg = document.getElementById("project-dlg");
@@ -1944,7 +2644,7 @@ window.buildDocx = (function () {
     document.getElementById("viewer-title").textContent = t.title;
     document.getElementById("viewer-text").textContent = docText(id);
     document.getElementById("viewer-note").textContent = csv
-      ? "Таблица откроется в Excel с формулами. Значения в ней условные."
+      ? "Таблица откроется в Excel с формулами. Значения в ней условные. Для расчёта по месяцам используйте вкладку «Финмодель»."
       : tokens.length && !missing.length
         ? "Данные из карточки проекта уже подставлены. Остальные поля в квадратных скобках заполните вручную."
         : tokens.length
@@ -1997,10 +2697,10 @@ window.buildDocx = (function () {
   const resetZone = document.getElementById("reset-zone");
   resetZone.addEventListener("click", e => {
     if (e.target.id === "reset") {
-      resetZone.innerHTML = '<span class="reset-confirm">Сбросить отметки, сроки и досрочные старты? Карточка проекта останется. <button class="btn" id="reset-yes">Да, сбросить</button><button class="btn ghost" id="reset-no">Отмена</button></span>';
+      resetZone.innerHTML = '<span class="reset-confirm">Сбросить отметки, назначения и досрочные старты? Карточка проекта, финмодель, бюджет и реестр сроков останутся. <button class="btn" id="reset-yes">Да, сбросить</button><button class="btn ghost" id="reset-no">Отмена</button></span>';
     } else if (e.target.id === "reset-yes" || e.target.id === "reset-no") {
       if (e.target.id === "reset-yes" && !readOnly) {
-        S = normalize({ project: S.project });
+        S = normalize({ project: S.project, model: S.model, budget: S.budget, deadlines: S.deadlines });
         openEdits.clear();
         saveLocal();
         if (docRef) writeChain = writeChain.then(() => docRef.set(JSON.parse(JSON.stringify(S))).then(() => { docExists = true; }).catch(() => {}));
@@ -2020,10 +2720,12 @@ window.buildDocx = (function () {
   // --- boot ---------------------------------------------------------------
   S = loadLocal();
   buildTree();
+  buildModelForm();
   const hash = (location.hash || "").slice(1);
   selected = byId[hash] ? hash : firstQuest();
   if (byId[hash] || window.matchMedia("(min-width: 981px)").matches) panel.dataset.open = "true";
-  renderAll();
+  renderChrome(); renderPanel(true);
+  setView(VIEWS.indexOf(hash) >= 0 ? hash : "tree", false);
   if ("ResizeObserver" in window) new ResizeObserver(() => drawEdges()).observe(treeEl);
   else window.addEventListener("resize", drawEdges);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawEdges);
