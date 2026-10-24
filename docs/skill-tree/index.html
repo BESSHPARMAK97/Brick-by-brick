@@ -355,6 +355,40 @@ table.t th.num { text-align: right; }
 table.t tr.closed td { opacity: .55; }
 @media (max-width: 980px) { .risk-grid { grid-template-columns: minmax(0, 1fr); } }
 
+/* Report */
+.rep-tools { display: grid; gap: 10px; }
+.report { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: clamp(18px, 4vw, 40px); display: grid; gap: 22px; max-width: 980px; width: 100%; justify-self: center; box-shadow: var(--shadow); }
+.report:fullscreen { max-width: none; border-radius: 0; overflow: auto; padding: 40px max(40px, 8vw); }
+.rep-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; padding-bottom: 16px; border-bottom: 2px solid var(--ink); }
+.rep-head h2 { font-size: clamp(24px, 3.4vw, 34px); font-weight: 700; margin: 4px 0; }
+.rep-status { font-family: var(--f-display); font-weight: 700; font-size: 14px; padding: 8px 14px; border-radius: 99px; background: var(--surface-2); white-space: nowrap; }
+.rep-status[data-tone="good"] { background: var(--done-soft); color: var(--done); }
+.rep-status[data-tone="warn"] { background: var(--accent-soft); color: var(--accent-ink); }
+.rep-status[data-tone="bad"] { background: var(--late); color: var(--surface); }
+.rep-sec { display: grid; gap: 8px; }
+.rep-sec h3 { font-size: 13px; font-family: var(--f-mono); font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+.rep-kpis { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.rep-kpis .kpi b { font-size: 20px; }
+.rep-line { margin: 0; font-size: 14px; }
+.rep-line.muted { font-size: 12px; }
+.rep-sub { padding-left: 14px; font-size: 13px; color: var(--muted); }
+.rep-list { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: 14px; }
+.rep-bar { display: grid; grid-template-columns: 110px minmax(0, 1fr) 70px; gap: 10px; align-items: center; font-size: 13px; }
+.rep-bar .meter { height: 10px; }
+.rep-bar .mono { text-align: right; color: var(--muted); font-size: 12px; }
+.rep-tl { display: grid; gap: 6px; }
+.rep-tl-row { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 10px; align-items: center; font-size: 12px; color: var(--muted); }
+.rep-tl-row div { height: 12px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+.rep-tl-row i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+.rep-tl-row.late i { background: var(--late); }
+.rep-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 24px; }
+.rep-cols > div { display: grid; gap: 4px; align-content: start; }
+.rep-risks { display: grid; gap: 8px; }
+.rep-risk { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: start; font-size: 14px; }
+.rep-risk .dl-sub { display: block; }
+.rep-foot { font-size: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+@media (max-width: 560px) { .rep-cols { grid-template-columns: minmax(0, 1fr); } .rep-bar { grid-template-columns: 80px minmax(0, 1fr) 56px; } }
+
 /* Region and language */
 .region-bar { display: grid; gap: 6px; margin: 4px 0 14px; padding: 12px 14px; border: 1px dashed var(--line); border-radius: 12px; background: var(--surface); font-size: 13px; }
 .region-bar[data-on="true"] { border-style: solid; border-color: var(--accent); }
@@ -492,6 +526,7 @@ dialog.viewer::backdrop { background: rgba(10, 20, 35, .55); }
     <button class="tab" type="button" role="tab" data-view="budget" aria-selected="false">Бюджет <span class="badge" id="badge-budget" hidden></span></button>
     <button class="tab" type="button" role="tab" data-view="deadlines" aria-selected="false">Сроки документов <span class="badge" id="badge-deadlines" hidden></span></button>
     <button class="tab" type="button" role="tab" data-view="risks" aria-selected="false">Риски <span class="badge" id="badge-risks" hidden></span></button>
+    <button class="tab" type="button" role="tab" data-view="report" aria-selected="false">Отчёт</button>
     <button class="tab" type="button" role="tab" data-view="log" aria-selected="false">Журнал</button>
   </nav>
   <div class="alerts" id="alerts" hidden></div>
@@ -519,6 +554,15 @@ dialog.viewer::backdrop { background: rgba(10, 20, 35, .55); }
 
   <section id="view-gantt" class="view" hidden aria-label="График строительства"></section>
   <section id="view-risks" class="view" hidden aria-label="Реестр рисков"></section>
+  <section id="view-report" class="view" hidden aria-label="Отчёт для банка или инвестора">
+    <div class="card rep-tools">
+      <div class="section-title"><h2 class="view-title">Отчёт для банка или инвестора</h2>
+        <div class="row"><button class="btn primary" type="button" id="rep-dl">Скачать Word</button><button class="btn" type="button" id="rep-copy">Копировать текст</button><button class="btn ghost" type="button" id="rep-full">На весь экран</button></div></div>
+      <p class="muted">Одна страница из данных проекта: статус, прогресс, график, финансы, риски и сроки. Показывайте её на встрече или скачайте в Word. Отчёт собирается на выбранном языке.</p>
+      <label class="field" for="rep-note"><span>Комментарий руководителя (попадёт в отчёт)</span><textarea id="rep-note" rows="2" maxlength="1000" placeholder="Например: в октябре закрыли контур блока 1, переговоры с банком по второй траншевой линии"></textarea></label>
+    </div>
+    <article class="report" id="report-sheet"></article>
+  </section>
   <section id="view-model" class="view" hidden aria-label="Финансовая модель">
     <div class="model-grid">
       <form class="card model-inputs" id="model-form" autocomplete="off"></form>
@@ -3058,7 +3102,24 @@ window.I18N = (function () {
     ["Зимний простой и удорожание бетонирования", "Қысқы тоқтап қалу және бетондаудың қымбаттауы"], ["Каркас в тёплый сезон, контур закрыть до ноября", "Қаңқа жылы маусымда, контурды қарашаға дейін жабу"],
     ["Изменения законодательства", "Заңнаманың өзгеруі"], ["Юрист в команде, мониторинг adilet.zan.kz, запас по срокам", "Командада заңгер, adilet.zan.kz мониторингі, мерзім бойынша қор"],
     ["Проверки ГАСК и штрафы", "МСҚБ тексерулері және айыппұлдар"], ["Полная исполнительная документация с первого дня", "Бірінші күннен толық атқарушы құжаттама"],
-    ["Претензии дольщиков", "Үлескерлердің наразылықтары"], ["Прозрачные отчёты, соблюдение сроков, качественный гарантийный сервис", "Ашық есептер, мерзімдерді сақтау, сапалы кепілдік қызметі"]
+    ["Претензии дольщиков", "Үлескерлердің наразылықтары"], ["Прозрачные отчёты, соблюдение сроков, качественный гарантийный сервис", "Ашық есептер, мерзімдерді сақтау, сапалы кепілдік қызметі"],
+    // отчёт
+    ["Отчёт", "Есеп"], ["Отчёт для банка или инвестора", "Банкке немесе инвесторға арналған есеп"], ["Копировать текст", "Мәтінді көшіру"], ["На весь экран", "Толық экран"],
+    ["Одна страница из данных проекта: статус, прогресс, график, финансы, риски и сроки. Показывайте её на встрече или скачайте в Word. Отчёт собирается на выбранном языке.", "Жоба деректерінен бір бет: мәртебе, прогресс, кесте, қаржы, тәуекелдер және мерзімдер. Оны кездесуде көрсетіңіз немесе Word-қа жүктеп алыңыз. Есеп таңдалған тілде жиналады."],
+    ["Комментарий руководителя (попадёт в отчёт)", "Басшының түсініктемесі (есепке кіреді)"], ["Например: в октябре закрыли контур блока 1, переговоры с банком по второй траншевой линии", "Мысалы: қазанда 1-блоктың контуры жабылды, банкпен екінші транш бойынша келіссөздер"],
+    ["Проект ЖК", "ТҮК жобасы"], ["Заполните карточку проекта, чтобы здесь появились название, город и застройщик.", "Мұнда атауы, қаласы және құрылыс салушысы көрінуі үшін жоба карточкасын толтырыңыз."],
+    ["В графике", "Кесте бойынша"], ["Есть отклонения", "Ауытқулар бар"], ["Требует внимания", "Назар аударуды қажет етеді"], ["Главное", "Негізгі"], ["Готовность", "Дайындық"],
+    ["Этапов пройдено", "Өткен кезеңдер"], ["Маржа модели", "Модель маржасы"], ["Освоено бюджета", "Бюджеттің игерілуі"], ["Красных рисков", "Қызыл тәуекелдер"],
+    ["Существенных отклонений нет: график, бюджет, риски и сроки документов в норме.", "Елеулі ауытқулар жоқ: кесте, бюджет, тәуекелдер және құжат мерзімдері қалыпты."],
+    ["Сейчас в работе:", "Қазір жұмыста:"], ["все этапы пройдены", "барлық кезеңдер өтті"], ["Прогресс по фазам", "Фазалар бойынша прогресс"], ["Прогноз", "Болжам"],
+    ["Отставания нет.", "Артта қалу жоқ."], ["Сдачу определяют:", "Тапсыруды айқындайтындар:"], ["критических незавершённых этапов нет", "аяқталмаған сыни кезеңдер жоқ"], ["Финансы", "Қаржы"],
+    ["Затраты с НДС и процентами", "ҚҚС пен пайыздарды қоса шығындар"], ["Бюджет по плану", "Жоспар бойынша бюджет"], ["Перерасхода по этапам нет", "Кезеңдер бойынша артық шығын жоқ"],
+    ["Финансовые показатели рассчитаны в модели и не являются аудированной отчётностью.", "Қаржылық көрсеткіштер модельде есептелген және аудиттелген есептілік болып табылмайды."],
+    ["Ключевые риски", "Негізгі тәуекелдер"], ["Реестр рисков пуст. Добавьте риски на вкладке «Риски».", "Тәуекелдер тізілімі бос. Тәуекелдерді «Тәуекелдер» қойындысында қосыңыз."],
+    ["Документы и сроки", "Құжаттар және мерзімдер"], ["Документов с истекающим сроком нет.", "Мерзімі аяқталатын құжаттар жоқ."], ["Просроченных пунктов чек-листов нет.", "Чек-парақтардың мерзімі өткен тармақтары жоқ."],
+    ["Комментарий руководителя проекта", "Жоба басшысының түсініктемесі"], ["Модельная маржа ниже 10%", "Модельдік маржа 10%-дан төмен"], ["Модельная маржа ниже ориентира 20%", "Модельдік маржа 20% бағдарынан төмен"],
+    ["Полноэкранный режим недоступен здесь", "Толық экран режимі мұнда қолжетімсіз"], ["Не удалось скопировать. Выделите текст отчёта вручную.", "Көшіру мүмкін болмады. Есеп мәтінін қолмен белгілеңіз."],
+    ["Обновлён комментарий к отчёту", "Есепке түсініктеме жаңартылды"]
   ].forEach(p => add(p[0], p[1]));
 
   const tr = s => D.has(s) ? D.get(s) : s;
@@ -3090,7 +3151,7 @@ window.I18N = (function () {
     [/^И ещё (\d+)\.$/, m => "Тағы " + m[1] + "."],
     [/^Этап (\d+) · LVL (\d+) · (.+)$/, m => "Кезең " + m[1] + " · LVL " + m[2] + " · " + tr(m[3])],
     [/^Срок: (.+)$/, m => "Мерзімі: " + tr(m[1])],
-    [/^(\d\d) · (.+)$/, m => m[1] + " · " + tr(m[2])],
+    [/^(\d\d) · (.+)$/, m => D.has(m[2]) ? m[1] + " · " + D.get(m[2]) : null],
     [/^Ещё не пройдены: (.+)\.$/, m => "Әлі өтпеген: " + trList(m[1]) + "."],
     [/^Сначала пройдите: (.+)\.$/, m => "Алдымен өтіңіз: " + trList(m[1]) + "."],
     [/^Причина: (.+)$/, m => "Себебі: " + m[1]],
@@ -3103,7 +3164,7 @@ window.I18N = (function () {
     [/^Ссылка: (.+)$/, m => "Сілтеме: " + m[1]],
     [/^Ещё вложений: (\d+)$/, m => "Тағы тіркемелер: " + m[1]],
     [/^(PDF|изображение|ссылка)(.*)$/, m => ({ "PDF": "PDF", "изображение": "сурет", "ссылка": "сілтеме" })[m[1]] + m[2].replace(/ КБ/g, " КБ").replace(/ МБ/g, " МБ").replace(/ · Вы$/, " · Сіз").replace(/ · Участник$/, " · Қатысушы")],
-    [/^Перерасход (.+)$/, m => "Артық шығын " + m[1]],
+    [/^Перерасход (\d.*)$/, m => "Артық шығын " + m[1]],
     [/^Остаток (.+)$/, m => "Қалдық " + m[1]],
     [/^Истёк (.+)$/, m => "Мерзімі өтті " + m[1]],
     [/^Осталось (\d+) дн\.$/, m => m[1] + " күн қалды"],
@@ -3139,6 +3200,17 @@ window.I18N = (function () {
     [/^Реестр сроков: удалён документ «(.+)»$/, m => "Мерзімдер тізілімі: «" + tr(m[1]) + "» құжаты жойылды"],
     [/^Обновлена карточка проекта: ЖК «(.+)»$/, m => "Жоба карточкасы жаңартылды: «" + m[1] + "» ТҮК"],
     [/^Регион проекта: (.+)$/, m => "Жоба өңірі: " + tr(m[1])],
+    [/^Отчёт о ходе проекта · на (.+)$/, m => "Жоба барысы туралы есеп · " + m[1] + " жағдай бойынша"],
+    [/^Прогноз ключей отстаёт от плана на (.+) мес\.$/, m => "Кілттер болжамы жоспардан " + m[1] + " айға артта"],
+    [/^Перерасход бюджета: (.+)$/, m => "Бюджеттің артық жұмсалуы: " + m[1]],
+    [/^Истёкших документов: (\d+)$/, m => "Мерзімі өткен құжаттар: " + m[1]],
+    [/^Документов, истекающих в ближайшие 30 дней: (\d+)$/, m => "Жақын 30 күнде аяқталатын құжаттар: " + m[1]],
+    [/^Просроченных пунктов чек-листов: (\d+)$/, m => "Чек-парақтардың мерзімі өткен тармақтары: " + m[1]],
+    [/^За последние 30 дней выполнено пунктов: (\d+)$/, m => "Соңғы 30 күнде орындалған тармақтар: " + m[1]],
+    [/^Отставание: \+(.+) мес\.$/, m => "Артта қалу: +" + m[1] + " ай"],
+    [/^Данные на (.+)\. Отчёт собран автоматически из дорожной карты, графика, финмодели, бюджета и реестров проекта\.$/, m => m[1] + " жағдай бойынша деректер. Есеп жол картасынан, кестеден, қаржы моделінен, бюджеттен және жоба тізілімдерінен автоматты түрде жиналды."],
+    [/^г\. ([^·]+)$/, m => m[1] + " қ."],
+    [/^срок (\d\d\.\d\d\.\d{4})$/, m => "мерзім " + m[1]],
     [/^(\d+(?:,\d)?) мес\.$/, m => m[1] + " ай"],
     [/^\+(\d+(?:,\d)?) мес\.$/, m => "+" + m[1] + " ай"],
     [/^Длительность, мес\.: (.+)$/, m => "Ұзақтығы, ай: " + tr(m[1])],
@@ -3148,7 +3220,6 @@ window.I18N = (function () {
     [/^Рисков в красной зоне: (\d+)$/, m => "Қызыл аймақтағы тәуекелдер: " + m[1]],
     [/^Вероятность (\d), ущерб (\d), рисков: (\d+)$/, m => "Ықтималдық " + m[1] + ", залал " + m[2] + ", тәуекелдер: " + m[3]],
     [/^Мера: (.+)$/, m => "Шара: " + tr(m[1])],
-    [/^· (.+)$/, m => "· " + m[1]],
     [/^График: старт проекта (.+)$/, m => "Кесте: жобаның басталуы " + m[1]],
     [/^График «(.+)»: длительность (.+) → (.+) мес\.$/, m => "«" + tr(m[1]) + "» кестесі: ұзақтығы " + m[2] + " → " + m[3] + " ай"],
     [/^Риск «(.+)» (открыт снова|закрыт)$/, m => "«" + tr(m[1]) + "» тәуекелі " + (m[2] === "закрыт" ? "жабылды" : "қайта ашылды")],
@@ -3165,10 +3236,24 @@ window.I18N = (function () {
     if (D.has(core)) return lead + D.get(core) + trail;
     for (let i = 0; i < P.length; i++) {
       const m = core.match(P[i][0]);
-      if (m) return lead + P[i][1](m) + trail;
+      if (m) { const res = P[i][1](m); if (res != null) return lead + res + trail; }
     }
     // «Имя: действие» в истории этапа: переводим часть после двоеточия
     if (core.indexOf(": ") === 0) { const rest = translate(core.slice(2)); if (rest != null) return lead + ": " + rest + trail; }
+    // Список этапов «01 · Название, 02 · Название»
+    if (/^\d\d · /.test(core) && core.indexOf(", ") > 0) {
+      const parts = core.split(", ");
+      if (parts.every(x => /^\d\d · ./.test(x))) return lead + parts.map(x => x.slice(0, 5) + tr(x.slice(5))).join(", ") + trail;
+    }
+    // Части через « · » и «подпись: значение»
+    if (core.indexOf(" · ") > 0 || core.indexOf("· ") === 0) {
+      const parts = core.split(/( ?· )/);
+      let changed = false;
+      const outp = parts.map(x => { if (/^ ?· $/.test(x) || !CYR.test(x)) return x; const t = translate(x); if (t != null) { changed = true; return t; } return x; });
+      if (changed) return lead + outp.join("") + trail;
+    }
+    const kv = core.match(/^([^:]{2,60}): (.+)$/);
+    if (kv && D.has(kv[1])) return lead + D.get(kv[1]) + ": " + (D.has(kv[2]) ? D.get(kv[2]) : kv[2]) + trail;
     return null;
   }
 
@@ -3184,7 +3269,7 @@ window.I18N = (function () {
     if (res != null && res !== cur) { origText.set(node, cur); outText.set(node, res); node.nodeValue = res; }
   }
   function procAttr(el, a) {
-    if (!el.hasAttribute(a) || el.closest(SKIP)) return;
+    if (!el.hasAttribute(a) || (el.parentElement && el.parentElement.closest(SKIP)) || el.matches("script,style,title,pre,[data-noi18n]")) return;
     const store = origAttr.get(el) || {};
     const cur = el.getAttribute(a);
     if (store[a] && store[a].out === cur) return;
@@ -3273,8 +3358,8 @@ window.I18N = (function () {
   const RANKS = [[0, "Стажёр"], [1, "Аналитик"], [4, "Девелопер"], [8, "Застройщик"], [13, "Генеральный застройщик"], [20, "Магнат ЖК"]];
   const STATUS = { locked: "Закрыт", open: "Доступен", active: "В работе", risk: "Начат с риском", done: "Пройден" };
   const LOCAL_KEY = "zhk-skill-tree-v2", LEGACY_KEY = "zhk-skill-tree-v1";
-  const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines", "sched", "risks"];
-  const VIEWS = ["tree", "gantt", "model", "budget", "deadlines", "risks", "log"];
+  const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines", "sched", "risks", "report"];
+  const VIEWS = ["tree", "gantt", "model", "budget", "deadlines", "risks", "report", "log"];
   const LOG_LOCAL = "zhk-skill-tree-log";
 
   // S — всё состояние проекта, хранится одним документом.
@@ -3755,6 +3840,7 @@ window.I18N = (function () {
     else if (view === "log") renderLogView();
     else if (view === "gantt") renderGantt(force);
     else if (view === "risks") renderRisks(force);
+    else if (view === "report") renderReport(force);
   }
 
   // --- stage panel --------------------------------------------------------
@@ -4628,6 +4714,130 @@ window.I18N = (function () {
       (items.length ? '<div class="docs">' + items.map(r => '<div class="doc" style="grid-template-columns:auto 1fr"><span class="rscore" data-tone="' + riskTone(riskScore(r)) + '">' + riskScore(r) + '</span><span class="doc-title">' + esc(r.title) + (r.owner ? ' <span class="dl-sub">· ' + esc(r.owner) + "</span>" : "") + "</span></div>").join("") + "</div>"
         : '<p class="muted">Открытых рисков по этапу нет.</p>') + "</div>";
   }
+
+  // --- report for bank / investor ----------------------------------------
+  const reportEl = document.getElementById("view-report");
+  const reportBox = document.getElementById("report-sheet");
+  const noteEl = document.getElementById("rep-note");
+  function reportStatus(ctx) {
+    const reasons = [], bad = [], warn = [];
+    if (ctx.delay > 3) bad.push("Прогноз ключей отстаёт от плана на " + mdec(ctx.delay) + " мес.");
+    else if (ctx.delay > 0.25) warn.push("Прогноз ключей отстаёт от плана на " + mdec(ctx.delay) + " мес.");
+    if (ctx.redRisks >= 2) bad.push("Рисков в красной зоне: " + ctx.redRisks);
+    else if (ctx.redRisks === 1) warn.push("Рисков в красной зоне: 1");
+    if (ctx.overPct > 0.1) bad.push("Перерасход бюджета: " + pct(ctx.overPct));
+    else if (ctx.over > 0) warn.push("Этапов с перерасходом: " + ctx.over);
+    if (ctx.expired) bad.push("Истёкших документов: " + ctx.expired);
+    if (ctx.soonDocs) warn.push("Документов, истекающих в ближайшие 30 дней: " + ctx.soonDocs);
+    if (ctx.lateTasks) warn.push("Просроченных пунктов чек-листов: " + ctx.lateTasks);
+    if (ctx.margin < 0.1) bad.push("Модельная маржа ниже 10%");
+    else if (ctx.margin < 0.2) warn.push("Модельная маржа ниже ориентира 20%");
+    reasons.push(...bad, ...warn);
+    return { tone: bad.length ? "bad" : warn.length ? "warn" : "good", text: bad.length ? "Требует внимания" : warn.length ? "Есть отклонения" : "В графике", reasons };
+  }
+  const renderReport = guarded(reportEl, function () {
+    const p = S.project, reg = p.region && REG[p.region] ? REG[p.region].ru.name : "";
+    const tasksDone = T.nodes.reduce((s, n) => s + doneCount(n), 0), tasksAll = totalTasks();
+    const stagesDone = T.nodes.filter(isDone).length;
+    const G = schedule(), delay = G.fend - G.end;
+    const M = window.runModel(params()).t;
+    const bt = budgetTotals(), overPct = bt.plan ? Math.max(0, (bt.fact - bt.plan) / bt.plan) : 0;
+    const docs = deadlineList().map(d => Object.assign({ st: dlStatus(d) }, d)).filter(d => d.st.level >= 1);
+    const risks = riskList().filter(r => r.status !== "closed");
+    const redRisks = risks.filter(r => riskScore(r) >= 15).length;
+    const lateTasks = [];
+    T.nodes.forEach(n => n.tasks.forEach((t, i) => { const k = key(n, i); if (isLate(k)) lateTasks.push({ n, t, due: metaOf(k).due, who: metaOf(k).who }); }));
+    const st = reportStatus({ delay, redRisks, overPct, over: bt.over, expired: docs.filter(d => d.st.level === 3).length, soonDocs: docs.filter(d => d.st.level === 2).length, lateTasks: lateTasks.length, margin: M.margin });
+    const current = T.nodes.filter(n => ["active", "open", "risk"].indexOf(stateOf(n)) >= 0);
+    const phases = [];
+    T.nodes.forEach(n => { let ph = phases.find(x => x.name === n.phase); if (!ph) phases.push(ph = { name: n.phase, done: 0, all: 0 }); ph.done += doneCount(n); ph.all += n.tasks.length; });
+    const since = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
+    const done30 = Object.keys(S.meta).filter(k => S.checked[k] && S.meta[k] && S.meta[k].doneAt && S.meta[k].doneAt >= since).length;
+    const crit = T.nodes.filter(n => G.P[n.id].critical && !isDone(n));
+    const kv = (label, value, tone) => '<div class="kpi" data-line="kv"' + (tone ? ' data-tone="' + tone + '"' : "") + "><span>" + label + "</span><b>" + value + "</b></div>";
+    const line = (html, cls) => '<p class="rep-line' + (cls ? " " + cls : "") + '" data-line>' + html + "</p>";
+    const sec = (title, body) => '<section class="rep-sec"><h3>' + title + "</h3>" + body + "</section>";
+    const span = Math.max(G.end, G.fend, 1);
+    reportBox.innerHTML =
+      '<header class="rep-head"><div><div class="eyebrow" data-line>Отчёт о ходе проекта · на ' + fmt(today()) + '</div>' +
+        '<h2 class="rep-title">' + (p.name ? "ЖК «" + esc(p.name) + "»" : "Проект ЖК") + "</h2>" +
+        '<p class="muted" data-line>' + esc([p.city ? "г. " + p.city : "", p.company, reg].filter(Boolean).join(" · ") || "Заполните карточку проекта, чтобы здесь появились название, город и застройщик.") + "</p></div>" +
+        '<span class="rep-status" data-tone="' + st.tone + '" data-line>' + st.text + "</span></header>" +
+      sec("Главное",
+        '<div class="kpis rep-kpis">' +
+          kv("Готовность", pct(tasksDone / tasksAll)) +
+          kv("Этапов пройдено", stagesDone + " / " + T.nodes.length) +
+          kv("Ключи по прогнозу", ymFmt(ymAdd(G.start, G.fend)), delay > 0.25 ? "bad" : "good") +
+          kv("Маржа модели", pct(M.margin), M.margin >= 0.2 ? "good" : M.margin >= 0.1 ? "warn" : "bad") +
+          kv("Освоено бюджета", bt.plan ? pct(bt.fact / bt.plan) : "—") +
+          kv("Красных рисков", String(redRisks), redRisks ? "bad" : "good") +
+        "</div>" +
+        (st.reasons.length ? '<ul class="rep-list">' + st.reasons.map(r => "<li data-line>" + r + "</li>").join("") + "</ul>" : line("Существенных отклонений нет: график, бюджет, риски и сроки документов в норме.")) +
+        line("<b>Сейчас в работе:</b> " + (current.length ? current.map(n => esc(n.code + " · " + n.name)).join(", ") : "все этапы пройдены"))) +
+      sec("Прогресс по фазам",
+        phases.map(ph => '<div class="rep-bar" data-line><span>' + esc(ph.name) + '</span><div class="meter"><i style="width:' + Math.round(ph.done / ph.all * 100) + '%"></i></div><span class="mono">' + ph.done + " / " + ph.all + "</span></div>").join("") +
+        line("За последние 30 дней выполнено пунктов: " + done30)) +
+      sec("График",
+        line("Старт: " + ymFmt(G.start) + " · Ключи по плану: " + ymFmt(ymAdd(G.start, G.end)) + " · Ключи по прогнозу: " + ymFmt(ymAdd(G.start, G.fend))) +
+        '<div class="rep-tl"><div class="rep-tl-row"><span>План</span><div><i style="width:' + Math.round(G.end / span * 100) + '%"></i></div></div>' +
+        '<div class="rep-tl-row late"><span>Прогноз</span><div><i style="width:' + Math.round(G.fend / span * 100) + '%"></i></div></div></div>' +
+        line(delay > 0.25 ? "Отставание: +" + mdec(delay) + " мес." : "Отставания нет.") +
+        line("<b>Сдачу определяют:</b> " + (crit.length ? crit.slice(0, 6).map(n => esc(n.code + " · " + n.name)).join(", ") : "критических незавершённых этапов нет"))) +
+      sec("Финансы",
+        '<div class="rep-cols"><div>' +
+          line("Выручка с НДС: " + short(M.rev)) + line("Затраты с НДС и процентами: " + short(M.costT + M.interest)) + line("Прибыль до налога: " + short(M.pbt)) +
+          line("IRR на собственный капитал: " + (M.irr == null ? "—" : pct(M.irr))) + line("Пиковый долг банку: " + short(M.peakDebt)) + line("Собственный капитал: " + short(params().equity)) +
+        "</div><div>" +
+          line("Бюджет по плану: " + short(bt.plan)) + line("Факт: " + short(bt.fact)) + line("Освоено: " + (bt.plan ? pct(bt.fact / bt.plan) : "—")) +
+          line(bt.over ? "Этапов с перерасходом: " + bt.over : "Перерасхода по этапам нет") +
+        "</div></div>" + line("Финансовые показатели рассчитаны в модели и не являются аудированной отчётностью.", "muted")) +
+      sec("Ключевые риски",
+        (risks.length ? '<div class="rep-risks">' + risks.slice(0, 5).map(r => '<div class="rep-risk" data-line><span class="rscore" data-tone="' + riskTone(riskScore(r)) + '">' + riskScore(r) + "</span><div><b>" + esc(r.title) + "</b>" +
+          (r.measure ? '<span class="dl-sub">Мера: ' + esc(r.measure) + "</span>" : "") + (r.owner ? '<span class="dl-sub">Ответственный: ' + esc(r.owner) + "</span>" : "") + "</div></div>").join("") + "</div>"
+          : line("Реестр рисков пуст. Добавьте риски на вкладке «Риски»."))) +
+      sec("Документы и сроки",
+        (docs.length ? docs.slice(0, 6).map(d => line("<b>" + esc(d.title) + "</b> · " + d.st.text + (d.owner ? " · " + esc(d.owner) : ""))).join("") : line("Документов с истекающим сроком нет.")) +
+        (lateTasks.length ? line("Просроченных пунктов чек-листов: " + lateTasks.length) + lateTasks.slice(0, 5).map(x => line(esc(x.n.code + " · " + x.t) + " · срок " + fmt(x.due) + (x.who ? " · " + esc(x.who) : ""), "rep-sub")).join("") : line("Просроченных пунктов чек-листов нет."))) +
+      ((S.report && S.report.note) ? sec("Комментарий руководителя проекта", line(esc(S.report.note).replace(/\n/g, "<br>"))) : "") +
+      '<footer class="muted rep-foot" data-line>Данные на ' + fmt(today()) + ". Отчёт собран автоматически из дорожной карты, графика, финмодели, бюджета и реестров проекта.</footer>";
+    if (document.activeElement !== noteEl) { noteEl.value = (S.report && S.report.note) || ""; noteEl.disabled = readOnly; }
+    document.getElementById("rep-dl").hidden = !downloads;
+  });
+  function reportText() {
+    const out = [reportBox.querySelector(".rep-title").innerText.toUpperCase()];
+    reportBox.querySelectorAll(".rep-head [data-line]").forEach(l => out.push(l.textContent.replace(/\s+/g, " ").trim()));
+    reportBox.querySelectorAll(".rep-sec").forEach(sec => {
+      out.push("", sec.querySelector("h3").innerText.toUpperCase());
+      sec.querySelectorAll("[data-line]").forEach(l => {
+        const kv = l.getAttribute("data-line") === "kv";
+        const t = l.innerText.trim().replace(/\s*\n\s*/g, kv ? ": " : " · ");
+        out.push((l.tagName === "LI" ? "— " : "") + t);
+      });
+    });
+    out.push("", reportBox.querySelector(".rep-foot").innerText.trim());
+    return out.join("\n");
+  }
+  noteEl.addEventListener("change", () => {
+    if (readOnly) return;
+    const v = noteEl.value.trim();
+    if (((S.report && S.report.note) || "") === v) return;
+    commit({ report: { note: v } }, { defer: true });
+    logEvent("", "Обновлён комментарий к отчёту");
+  });
+  document.getElementById("rep-dl").addEventListener("click", () => {
+    const name = (L.lang() === "kk" ? "Жоба барысы туралы есеп" : "Отчёт о ходе проекта") + " " + fmt(today());
+    save(fileName({ title: name }, "docx"), window.buildDocx(reportText()));
+  });
+  document.getElementById("rep-copy").addEventListener("click", () => {
+    const text = reportText();
+    try { navigator.clipboard.writeText(text).then(() => toast("Скопировано"), () => toast("Не удалось скопировать. Выделите текст отчёта вручную.")); }
+    catch (e) { toast("Не удалось скопировать. Выделите текст отчёта вручную."); }
+  });
+  document.getElementById("rep-full").addEventListener("click", () => {
+    const req = reportBox.requestFullscreen || reportBox.webkitRequestFullscreen;
+    if (!req) { toast("Полноэкранный режим недоступен здесь"); return; }
+    try { const r = req.call(reportBox); if (r && r.catch) r.catch(() => toast("Полноэкранный режим недоступен здесь")); } catch (e) { toast("Полноэкранный режим недоступен здесь"); }
+  });
 
   // --- project card -------------------------------------------------------
   const pdlg = document.getElementById("project-dlg");
