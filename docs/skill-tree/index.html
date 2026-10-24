@@ -293,6 +293,68 @@ table.t th.num { text-align: right; }
 .dev[data-tone="good"] { color: var(--done); }
 .budget-mini { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 
+/* Gantt */
+.g-wrap { overflow-x: auto; margin-top: 12px; border: 1px solid var(--line); border-radius: 10px; }
+.g-inner { position: relative; }
+.g-body { position: relative; }
+.g-row { display: grid; grid-template-columns: 300px auto; align-items: center; border-bottom: 1px solid var(--line); min-height: 34px; }
+.g-row:last-child { border-bottom: 0; }
+.g-head { min-height: 38px; background: var(--surface-2); }
+.g-label { position: sticky; left: 0; z-index: 3; background: var(--surface); display: flex; gap: 6px; justify-content: space-between; align-items: center; padding: 4px 8px; height: 100%; border-right: 1px solid var(--line); font-size: 12.5px; min-width: 0; }
+.g-head .g-label { background: var(--surface-2); }
+.g-label .linkbtn { text-decoration: none; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.g-label .linkbtn:hover { text-decoration: underline; }
+.g-dur { display: inline-flex; align-items: center; gap: 4px; flex: none; font-size: 11px; color: var(--muted); }
+.g-dur .tin { width: 52px; min-width: 52px; padding: 3px 5px; font-size: 12px; }
+.g-track { position: relative; height: 34px; }
+.g-axis { height: 38px; }
+.g-year { position: absolute; top: 3px; font-family: var(--f-mono); font-size: 10.5px; color: var(--ink); padding-left: 3px; border-left: 1px solid var(--muted); }
+.g-tick { position: absolute; bottom: 3px; font-family: var(--f-mono); font-size: 10px; color: var(--muted); padding-left: 3px; }
+.g-bar { position: absolute; top: 9px; height: 16px; border-radius: 4px; background: var(--accent-soft); border: 1px solid var(--accent); overflow: hidden; }
+.g-bar i { display: block; height: 100%; background: var(--accent); opacity: .55; }
+.g-bar.crit { background: var(--late-soft); border-color: var(--late); }
+.g-bar.crit i { background: var(--late); }
+.g-bar.done { background: var(--done); border-color: var(--done); }
+.g-bar.done i { background: var(--done); opacity: 1; }
+.g-bar.tail { background: var(--surface-2); border-color: var(--line); border-style: dashed; }
+.g-bar.tail i { background: var(--locked); }
+.g-slack { position: absolute; top: 16px; height: 2px; background: repeating-linear-gradient(90deg, var(--muted) 0 4px, transparent 4px 7px); }
+.g-late { position: absolute; top: 9px; height: 16px; border-radius: 0 4px 4px 0; background: repeating-linear-gradient(45deg, var(--late) 0 3px, transparent 3px 7px); opacity: .7; }
+.g-late-name { color: var(--late); font-weight: 600; }
+.g-overlay { position: absolute; top: 0; bottom: 0; pointer-events: none; z-index: 1; }
+.g-ygrid { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px dashed var(--line); }
+.g-now { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px solid var(--ink); }
+.g-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--muted); margin-top: 8px; }
+.g-legend i { display: inline-block; width: 16px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.lg-crit { background: var(--late-soft); border: 1px solid var(--late); }
+.lg-bar { background: var(--accent-soft); border: 1px solid var(--accent); }
+.lg-slack { height: 2px !important; background: repeating-linear-gradient(90deg, var(--muted) 0 4px, transparent 4px 7px); vertical-align: 3px !important; }
+.lg-late { background: repeating-linear-gradient(45deg, var(--late) 0 3px, transparent 3px 7px); }
+.lg-done { background: var(--done); }
+.lg-now { width: 2px !important; background: var(--ink); }
+.g-crit { margin: 8px 0 0; font-size: 13px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+@media (max-width: 560px) { .g-row { grid-template-columns: 180px auto; } .g-overlay { left: 180px !important; } .g-inner { min-width: auto !important; } }
+
+/* Risks */
+.risk-grid { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 18px; align-items: start; }
+.rmatrix { border-collapse: separate; border-spacing: 3px; margin: 0 auto; }
+.rmatrix td[data-tone] { width: 44px; height: 38px; border-radius: 6px; padding: 0; }
+.rmatrix td[data-tone="bad"] { background: var(--late-soft); }
+.rmatrix td[data-tone="warn"] { background: var(--accent-soft); }
+.rmatrix td[data-tone="good"] { background: var(--done-soft); }
+.rmatrix td.sel-cell { outline: 2px solid var(--ink); outline-offset: -2px; }
+.rmatrix button { width: 100%; height: 100%; border: 0; background: none; cursor: pointer; font-family: var(--f-display); font-weight: 700; font-size: 15px; color: var(--ink); }
+.rm-n { font-family: var(--f-mono); font-size: 11px; color: var(--muted); font-weight: 400; }
+.rm-x { text-align: center; font-size: 11px; color: var(--muted); }
+.rm-axis { width: 18px; }
+.rm-axis span { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 11px; color: var(--muted); font-weight: 400; }
+.rscore { display: inline-grid; place-items: center; min-width: 28px; height: 24px; border-radius: 6px; font-family: var(--f-mono); font-size: 12px; font-weight: 600; background: var(--surface-2); border: 1px solid var(--line); }
+.rscore[data-tone="bad"] { background: var(--late); border-color: var(--late); color: var(--surface); }
+.rscore[data-tone="warn"] { background: var(--accent-soft); border-color: transparent; color: var(--accent-ink); }
+.rscore[data-tone="good"] { background: var(--done-soft); border-color: transparent; color: var(--done); }
+table.t tr.closed td { opacity: .55; }
+@media (max-width: 980px) { .risk-grid { grid-template-columns: minmax(0, 1fr); } }
+
 /* Region and language */
 .region-bar { display: grid; gap: 6px; margin: 4px 0 14px; padding: 12px 14px; border: 1px dashed var(--line); border-radius: 12px; background: var(--surface); font-size: 13px; }
 .region-bar[data-on="true"] { border-style: solid; border-color: var(--accent); }
@@ -425,9 +487,11 @@ dialog.viewer::backdrop { background: rgba(10, 20, 35, .55); }
 
   <nav class="tabs" role="tablist" aria-label="Разделы">
     <button class="tab" type="button" role="tab" data-view="tree" aria-selected="true">Дерево этапов</button>
+    <button class="tab" type="button" role="tab" data-view="gantt" aria-selected="false">График <span class="badge" id="badge-gantt" hidden></span></button>
     <button class="tab" type="button" role="tab" data-view="model" aria-selected="false">Финмодель</button>
     <button class="tab" type="button" role="tab" data-view="budget" aria-selected="false">Бюджет <span class="badge" id="badge-budget" hidden></span></button>
     <button class="tab" type="button" role="tab" data-view="deadlines" aria-selected="false">Сроки документов <span class="badge" id="badge-deadlines" hidden></span></button>
+    <button class="tab" type="button" role="tab" data-view="risks" aria-selected="false">Риски <span class="badge" id="badge-risks" hidden></span></button>
     <button class="tab" type="button" role="tab" data-view="log" aria-selected="false">Журнал</button>
   </nav>
   <div class="alerts" id="alerts" hidden></div>
@@ -453,6 +517,8 @@ dialog.viewer::backdrop { background: rgba(10, 20, 35, .55); }
     </aside>
   </div>
 
+  <section id="view-gantt" class="view" hidden aria-label="График строительства"></section>
+  <section id="view-risks" class="view" hidden aria-label="Реестр рисков"></section>
   <section id="view-model" class="view" hidden aria-label="Финансовая модель">
     <div class="model-grid">
       <form class="card model-inputs" id="model-form" autocomplete="off"></form>
@@ -2960,7 +3026,39 @@ window.I18N = (function () {
     ["Этот тип файла не поддерживается. Сохраните в PDF.", "Бұл файл түріне қолдау көрсетілмейді. PDF-ке сақтаңыз."], ["Хранилище файлов заполнено. Удалите ненужные файлы.", "Файлдар қоймасы толды. Қажетсіз файлдарды жойыңыз."],
     ["Слишком часто. Попробуйте через минуту.", "Тым жиі. Бір минуттан кейін қайталаңыз."], ["Не удалось загрузить файл. Попробуйте ещё раз.", "Файлды жүктеу мүмкін болмады. Қайталап көріңіз."],
     ["Удалять файлы могут редакторы страницы", "Файлдарды беттің редакторлары жоя алады"], ["Этот файл может удалить только тот, кто его загрузил", "Бұл файлды тек оны жүктеген адам жоя алады"],
-    ["Не удалось удалить файл. Попробуйте ещё раз.", "Файлды жою мүмкін болмады. Қайталап көріңіз."]
+    ["Не удалось удалить файл. Попробуйте ещё раз.", "Файлды жою мүмкін болмады. Қайталап көріңіз."],
+    // график
+    ["График", "Кесте"], ["График строительства", "Құрылыс кестесі"], ["Старт проекта", "Жобаның басталуы"], ["Ключи по плану", "Жоспар бойынша кілттер"],
+    ["Ключи по прогнозу", "Болжам бойынша кілттер"], ["До ключей", "Кілтке дейін"], ["Отставание", "Артта қалу"], ["нет", "жоқ"], ["Старт", "Басталуы"],
+    ["Типовые длительности", "Үлгілік ұзақтықтар"], ["Сегодня", "Бүгін"], ["отстаёт", "артта қалуда"], ["Срок этапа по плану прошёл", "Кезеңнің жоспарлы мерзімі өтті"], ["Прогноз отставания, мес.", "Артта қалу болжамы, ай"],
+    ["График строится из связей дерева: этап начинается, когда закончены все этапы, которые он требует. Красные этапы лежат на критическом пути: если любой из них задержится, сдвинутся ключи. Длительности можно менять, план пересчитается сразу.", "Кесте ағаш байланыстарынан құрылады: кезең ол талап ететін барлық кезеңдер аяқталғанда басталады. Қызыл кезеңдер сыни жолда жатыр: олардың кез келгені кешіксе, кілттер жылжиды. Ұзақтықтарды өзгертуге болады, жоспар бірден қайта есептеледі."],
+    ["Сдачу сейчас определяют:", "Қазір тапсыруды айқындайтындар:"], ["Критический путь", "Сыни жол"], ["Есть резерв", "Резерві бар"], ["Резерв времени", "Уақыт резерві"],
+    ["Прогноз сдвига", "Жылжу болжамы"], ["Прогноз: пройденный этап заканчивается по дате последней отметки, незавершённый этап, у которого вышел срок, сдвигает все последующие. Гарантия идёт после ключей и в критический путь не входит.", "Болжам: өткен кезең соңғы белгі күні бойынша аяқталады, мерзімі өткен аяқталмаған кезең кейінгілердің бәрін жылжытады. Кепілдік кілттерден кейін жүреді және сыни жолға кірмейді."],
+    ["Введите длительность в месяцах, от 0 до 120", "Ұзақтықты айлармен енгізіңіз, 0-ден 120-ға дейін"], ["Возвращены типовые длительности", "Үлгілік ұзақтықтар қайтарылды"],
+    ["График: возвращены типовые длительности", "Кесте: үлгілік ұзақтықтар қайтарылды"],
+    // риски
+    ["Риски", "Тәуекелдер"], ["Реестр рисков", "Тәуекелдер тізілімі"], ["Карта рисков", "Тәуекелдер картасы"], ["Показать все", "Барлығын көрсету"], ["Добавить риск", "Тәуекел қосу"],
+    ["Открытых рисков", "Ашық тәуекелдер"], ["Красная зона", "Қызыл аймақ"], ["Жёлтая зона", "Сары аймақ"], ["Зелёная зона", "Жасыл аймақ"], ["Закрытых", "Жабылған"],
+    ["Оценка = вероятность × ущерб. 15 и выше: красная зона, нужна мера и ответственный. 8–14: жёлтая, следить. Ниже 8: зелёная. Нажмите на клетку, чтобы отфильтровать список.", "Баға = ықтималдық × залал. 15 және одан жоғары: қызыл аймақ, шара мен жауапты керек. 8–14: сары, бақылау. 8-ден төмен: жасыл. Тізімді сүзу үшін ұяшықты басыңыз."],
+    ["Вероятность", "Ықтималдық"], ["Ущерб", "Залал"], ["Оценка", "Баға"], ["Риск и мера", "Тәуекел және шара"], ["В × У", "Ы × З"], ["Открыт", "Ашық"], ["Открыть", "Ашу"],
+    ["Риск *", "Тәуекел *"], ["Например, задержка подключения электричества", "Мысалы, электрді қосудың кешігуі"], ["Весь проект", "Бүкіл жоба"], ["Мера", "Шара"],
+    ["Кто следит за риском", "Тәуекелді кім бақылайды"], ["Что делаем, чтобы риск не случился или ущерб был меньше", "Тәуекел болмауы немесе залал аз болуы үшін не істейміз"],
+    ["В этой клетке открытых рисков нет.", "Бұл ұяшықта ашық тәуекелдер жоқ."], ["Риски этапа", "Кезең тәуекелдері"], ["Реестр", "Тізілім"], ["Открытых рисков по этапу нет.", "Кезең бойынша ашық тәуекелдер жоқ."],
+    ["Реестр пуст. Нажмите «Добавить риск» и выберите типовой риск из списка: подключения, цены, продажи, банк, экспертиза, грунты, подрядчик.", "Тізілім бос. «Тәуекел қосу» батырмасын басып, тізімнен үлгілік тәуекелді таңдаңыз: қосылулар, бағалар, сату, банк, сараптама, топырақ, мердігер."],
+    ["Опишите риск", "Тәуекелді сипаттаңыз"], ["Риск сохранён", "Тәуекел сақталды"],
+    ["1 · Редко", "1 · Сирек"], ["2 · Маловероятно", "2 · Ықтималдығы аз"], ["3 · Возможно", "3 · Мүмкін"], ["4 · Вероятно", "4 · Ықтимал"], ["5 · Почти наверняка", "5 · Дерлік сөзсіз"],
+    ["1 · Незначительный", "1 · Елеусіз"], ["2 · Малый", "2 · Шағын"], ["3 · Средний", "3 · Орташа"], ["4 · Крупный", "4 · Ірі"], ["5 · Критический", "5 · Сыни"],
+    ["Задержка технических условий и подключений", "Техникалық шарттар мен қосылулардың кешігуі"], ["Подать заявки на ТУ сразу после регистрации земли, заложить в бюджет внеплощадочные сети", "Жерді тіркегеннен кейін бірден ТШ-ға өтінім беру, алаңнан тыс желілерді бюджетке енгізу"],
+    ["Рост цен на материалы и девальвация тенге", "Материалдар бағасының өсуі және теңгенің құнсыздануы"], ["Фиксированная цена с генподрядчиком, предзакупка металла и цемента, резерв 5–10%", "Бас мердігермен тіркелген баға, металл мен цементті алдын ала сатып алу, 5–10% резерв"],
+    ["Слабые продажи", "Әлсіз сату"], ["Анализ рынка, гибкая квартирография, партнёрство с банками и госпрограммами", "Нарықты талдау, икемді пәтерлер құрамы, банктермен және мемлекеттік бағдарламалармен серіктестік"],
+    ["Отказ или задержка банковского финансирования", "Банктік қаржыландырудан бас тарту немесе оның кешігуі"], ["Переговоры с двумя-тремя банками параллельно, подтверждённый собственный вклад", "Екі-үш банкпен қатар келіссөз, расталған меншікті салым"],
+    ["Замечания и задержка экспертизы", "Сараптаманың ескертулері мен кешігуі"], ["Ответственный за снятие замечаний у проектировщика, независимая проверка до подачи", "Жобалаушыда ескертулерді жоюға жауапты адам, беруге дейін тәуелсіз тексеру"],
+    ["Сейсмика и сложные грунты", "Сейсмика және күрделі топырақ"], ["Качественные изыскания, опытный конструктор, строгий технадзор", "Сапалы іздестірулер, тәжірибелі конструктор, қатаң техқадағалау"],
+    ["Недобросовестный подрядчик", "Адал емес мердігер"], ["Проверка подрядчика, гарантийные удержания, оплата по факту выполнения", "Мердігерді тексеру, кепілдік ұстап қалулар, орындалуы бойынша төлеу"],
+    ["Зимний простой и удорожание бетонирования", "Қысқы тоқтап қалу және бетондаудың қымбаттауы"], ["Каркас в тёплый сезон, контур закрыть до ноября", "Қаңқа жылы маусымда, контурды қарашаға дейін жабу"],
+    ["Изменения законодательства", "Заңнаманың өзгеруі"], ["Юрист в команде, мониторинг adilet.zan.kz, запас по срокам", "Командада заңгер, adilet.zan.kz мониторингі, мерзім бойынша қор"],
+    ["Проверки ГАСК и штрафы", "МСҚБ тексерулері және айыппұлдар"], ["Полная исполнительная документация с первого дня", "Бірінші күннен толық атқарушы құжаттама"],
+    ["Претензии дольщиков", "Үлескерлердің наразылықтары"], ["Прозрачные отчёты, соблюдение сроков, качественный гарантийный сервис", "Ашық есептер, мерзімдерді сақтау, сапалы кепілдік қызметі"]
   ].forEach(p => add(p[0], p[1]));
 
   const tr = s => D.has(s) ? D.get(s) : s;
@@ -3040,7 +3138,22 @@ window.I18N = (function () {
     [/^Реестр сроков: (добавлен|изменён) документ «(.+)», действует до (.+)$/, m => "Мерзімдер тізілімі: «" + tr(m[2]) + "» құжаты " + (m[1] === "добавлен" ? "қосылды" : "өзгертілді") + ", " + m[3] + " дейін жарамды"],
     [/^Реестр сроков: удалён документ «(.+)»$/, m => "Мерзімдер тізілімі: «" + tr(m[1]) + "» құжаты жойылды"],
     [/^Обновлена карточка проекта: ЖК «(.+)»$/, m => "Жоба карточкасы жаңартылды: «" + m[1] + "» ТҮК"],
-    [/^Регион проекта: (.+)$/, m => "Жоба өңірі: " + tr(m[1])]
+    [/^Регион проекта: (.+)$/, m => "Жоба өңірі: " + tr(m[1])],
+    [/^(\d+(?:,\d)?) мес\.$/, m => m[1] + " ай"],
+    [/^\+(\d+(?:,\d)?) мес\.$/, m => "+" + m[1] + " ай"],
+    [/^Длительность, мес\.: (.+)$/, m => "Ұзақтығы, ай: " + tr(m[1])],
+    [/^Прогноз: \+(.+) мес\.$/, m => "Болжам: +" + m[1] + " ай"],
+    [/^Резерв (.+) мес\.$/, m => "Резерв " + m[1] + " ай"],
+    [/^(.+): (\d\d\.\d{4}) – (\d\d\.\d{4})$/, m => tr(m[1]) + ": " + m[2] + " – " + m[3]],
+    [/^Рисков в красной зоне: (\d+)$/, m => "Қызыл аймақтағы тәуекелдер: " + m[1]],
+    [/^Вероятность (\d), ущерб (\d), рисков: (\d+)$/, m => "Ықтималдық " + m[1] + ", залал " + m[2] + ", тәуекелдер: " + m[3]],
+    [/^Мера: (.+)$/, m => "Шара: " + tr(m[1])],
+    [/^· (.+)$/, m => "· " + m[1]],
+    [/^График: старт проекта (.+)$/, m => "Кесте: жобаның басталуы " + m[1]],
+    [/^График «(.+)»: длительность (.+) → (.+) мес\.$/, m => "«" + tr(m[1]) + "» кестесі: ұзақтығы " + m[2] + " → " + m[3] + " ай"],
+    [/^Риск «(.+)» (открыт снова|закрыт)$/, m => "«" + tr(m[1]) + "» тәуекелі " + (m[2] === "закрыт" ? "жабылды" : "қайта ашылды")],
+    [/^Удалён риск «(.+)»$/, m => "«" + tr(m[1]) + "» тәуекелі жойылды"],
+    [/^(Добавлен|Изменён) риск «(.+)», оценка (\d+)$/, m => "«" + tr(m[2]) + "» тәуекелі " + (m[1] === "Добавлен" ? "қосылды" : "өзгертілді") + ", баға " + m[3]]
   ];
 
   const CYR = /[А-Яа-яЁё]/;
@@ -3160,8 +3273,8 @@ window.I18N = (function () {
   const RANKS = [[0, "Стажёр"], [1, "Аналитик"], [4, "Девелопер"], [8, "Застройщик"], [13, "Генеральный застройщик"], [20, "Магнат ЖК"]];
   const STATUS = { locked: "Закрыт", open: "Доступен", active: "В работе", risk: "Начат с риском", done: "Пройден" };
   const LOCAL_KEY = "zhk-skill-tree-v2", LEGACY_KEY = "zhk-skill-tree-v1";
-  const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines"];
-  const VIEWS = ["tree", "model", "budget", "deadlines", "log"];
+  const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines", "sched", "risks"];
+  const VIEWS = ["tree", "gantt", "model", "budget", "deadlines", "risks", "log"];
   const LOG_LOCAL = "zhk-skill-tree-log";
 
   // S — всё состояние проекта, хранится одним документом.
@@ -3455,6 +3568,12 @@ window.I18N = (function () {
     db.hidden = !(urgent || soon);
     db.textContent = urgent || soon;
     db.dataset.tone = urgent ? "" : "soon";
+    const redRisks = riskList().filter(r => r.status !== "closed" && riskScore(r) >= 15).length;
+    const br = document.getElementById("badge-risks");
+    br.hidden = !redRisks; br.textContent = redRisks; br.title = "Рисков в красной зоне: " + redRisks;
+    const G = schedule(), lateM = G.fend - G.end;
+    const bg = document.getElementById("badge-gantt");
+    bg.hidden = !(lateM > 0.25); bg.textContent = "+" + mdec(lateM); bg.title = "Прогноз отставания, мес.";
   }
 
   function renderAlerts() {
@@ -3634,6 +3753,8 @@ window.I18N = (function () {
     else if (view === "budget") renderBudget(force);
     else if (view === "deadlines") renderDeadlines();
     else if (view === "log") renderLogView();
+    else if (view === "gantt") renderGantt(force);
+    else if (view === "risks") renderRisks(force);
   }
 
   // --- stage panel --------------------------------------------------------
@@ -3759,6 +3880,7 @@ window.I18N = (function () {
         gateHtml(n, st, dc) + '<ul class="tasks" style="margin-top:8px">' + n.tasks.map((t, i) => taskHtml(n, t, i)).join("") + "</ul></div>" +
       budgetMiniHtml(n) +
       deadlinesMiniHtml(n) +
+      risksMiniHtml(n) +
       historyMiniHtml(n) +
       '<div><div class="section-title"><h3 class="eyebrow">Образцы документов</h3></div><div class="docs">' + docs + "</div></div>" +
       (n.tip ? '<div class="tip"><b>Совет</b>' + esc(n.tip) + "</div>" : "");
@@ -4243,6 +4365,269 @@ window.I18N = (function () {
       [d.title, d.num, d.stage && byId[d.stage] ? byId[d.stage].name : "", fmt(d.issued), fmt(d.expires), dlStatus(d).text, d.owner, d.note].map(x => String(x || "").replace(/;/g, ",")).join(";")));
     save(fileName({ title: "Реестр сроков документов" }, "csv"), "﻿" + lines.join("\r\n"));
   });
+
+  // --- schedule (Gantt, critical path) -----------------------------------
+  // Плановые длительности этапов в месяцах. Продажи по ДДУ идут весь срок стройки, в графике это месяц запуска.
+  const DUR = { idea: 2, land: 3, ird: 2, survey: 1.5, sketch: 2, finance: 4, psd: 4, expert: 2, tender: 1.5, dolevka: 1, start: 1, zero: 4, nets: 12, frame: 11, envelope: 6, mep: 8, finish: 6, commission: 1.5, handover: 2, warranty: 24 };
+  const KEYS_END = "handover";
+  const ganttEl = document.getElementById("view-gantt");
+  const thisMonth = () => today().slice(0, 7);
+  const schedStart = () => (S.sched && /^\d{4}-\d{2}$/.test(S.sched.start || "")) ? S.sched.start : thisMonth();
+  const durOf = id => { const v = S.sched && S.sched.dur && S.sched.dur[id]; return typeof v === "number" && v >= 0 ? v : DUR[id]; };
+  const monthsFrom = (ym, iso) => { const y1 = +ym.slice(0, 4), m1 = +ym.slice(5, 7), y2 = +iso.slice(0, 4), m2 = +iso.slice(5, 7), d = +(iso.slice(8, 10) || 1); return (y2 - y1) * 12 + (m2 - m1) + (d - 1) / 30; };
+  const ymAdd = (ym, m) => { const t = +ym.slice(0, 4) * 12 + (+ym.slice(5, 7) - 1) + Math.floor(m); return String(Math.floor(t / 12)) + "-" + String(t % 12 + 1).padStart(2, "0"); };
+  const ymFmt = ym => ym.slice(5, 7) + "." + ym.slice(0, 4);
+  const mdec = x => dec(Math.round(x * 10) / 10, Math.abs(x - Math.round(x)) < 0.05 ? 0 : 1);
+  function topo() {
+    const out = [], seen = {};
+    const visit = n => { if (seen[n.id]) return; seen[n.id] = true; n.req.forEach(r => visit(byId[r])); out.push(n); };
+    T.nodes.forEach(visit);
+    return out;
+  }
+  function schedule() {
+    const order = topo(), start = schedStart(), now = monthsFrom(start, today());
+    const P = {};
+    order.forEach(n => {
+      const es = n.req.length ? Math.max(...n.req.map(r => P[r].ef)) : 0;
+      P[n.id] = { es, ef: es + durOf(n.id), dur: durOf(n.id) };
+    });
+    const end = P[KEYS_END].ef;
+    // Обратный проход: всё, что не ведёт к ключам (гарантия), в критический путь не входит.
+    [...order].reverse().forEach(n => {
+      const succ = children[n.id].filter(c => c !== "warranty");
+      const lf = n.id === "warranty" ? P[n.id].ef : succ.length ? Math.min(...succ.map(c => P[c].ls)) : end;
+      P[n.id].lf = lf; P[n.id].ls = lf - P[n.id].dur; P[n.id].slack = Math.max(0, P[n.id].ls - P[n.id].es);
+      P[n.id].critical = n.id !== "warranty" && P[n.id].slack < 0.05;
+    });
+    // Прогноз: завершённый этап кончается по дате последней отметки, просроченный сдвигает всё, что после него.
+    order.forEach(n => {
+      const p = P[n.id], frac = n.tasks.length ? doneCount(n) / n.tasks.length : 0;
+      const fs = Math.max(p.es, ...n.req.map(r => P[r].fe));
+      if (isDone(n)) {
+        const dates = n.tasks.map((_, i) => metaOf(key(n, i)).doneAt).filter(Boolean).sort();
+        p.fe = dates.length ? Math.max(monthsFrom(start, dates[dates.length - 1]), fs) : fs + p.dur;
+        p.actual = !!dates.length;
+      } else {
+        p.fe = now > fs ? Math.max(fs + p.dur, now + p.dur * (1 - frac)) : fs + p.dur;
+      }
+      p.fs = fs; p.frac = frac;
+      p.late = !isDone(n) && now > p.ef + 0.05;
+    });
+    return { P, order, start, now, end, fend: P[KEYS_END].fe };
+  }
+
+  const renderGantt = guarded(ganttEl, function () {
+    const G = schedule(), P = G.P;
+    const total = Math.ceil(Math.max(P.warranty.ef, P.warranty.fe, G.now + 1, 1)) + 1;
+    const W = 22;
+    const crit = T.nodes.filter(n => P[n.id].critical);
+    const blocking = crit.filter(n => !isDone(n));
+    const delay = G.fend - G.end;
+    const ticks = [];
+    for (let m = 0; m <= total; m++) {
+      const ym = ymAdd(G.start, m);
+      if (ym.slice(5, 7) === "01" || m === 0) ticks.push('<span class="g-year" style="left:' + (m * W) + 'px">' + ym.slice(0, 4) + "</span>");
+      if (m % 3 === 0) ticks.push('<span class="g-tick" style="left:' + (m * W) + 'px">' + ym.slice(5, 7) + "</span>");
+    }
+    const grid = [];
+    for (let m = 0; m <= total; m++) if (ymAdd(G.start, m).slice(5, 7) === "01") grid.push('<i class="g-ygrid" style="left:' + (m * W) + 'px"></i>');
+    const nowLine = G.now >= 0 && G.now <= total ? '<i class="g-now" style="left:' + (G.now * W) + 'px" title="Сегодня"></i>' : "";
+    const rows = T.nodes.map(n => {
+      const p = P[n.id], st = stateOf(n);
+      const cls = "g-bar" + (p.critical ? " crit" : "") + (st === "done" ? " done" : "") + (n.id === "warranty" ? " tail" : "");
+      const shift = p.fe - p.ef;
+      const ext = shift > 0.25 && !isDone(n) ? '<span class="g-late" style="left:' + (p.ef * W) + "px;width:" + (shift * W) + 'px" title="Прогноз: +' + mdec(shift) + ' мес."></span>' : "";
+      const slack = p.slack > 0.05 && n.id !== "warranty" ? '<span class="g-slack" style="left:' + (p.ef * W) + "px;width:" + (p.slack * W) + 'px" title="Резерв ' + mdec(p.slack) + ' мес."></span>' : "";
+      return '<div class="g-row"><div class="g-label"><button class="linkbtn' + (p.late ? " g-late-name" : "") + '" type="button" data-open-stage="' + n.id + '"' + (p.late ? ' title="Срок этапа по плану прошёл"' : "") + '><span class="mono">' + n.code + "</span> " + esc(n.name) + "</button>" +
+        '<span class="g-dur"><input class="tin" type="text" inputmode="decimal" aria-label="Длительность, мес.: ' + esc(n.name) + '" data-gdur="' + n.id + '" value="' + mdec(p.dur) + '"' + (readOnly ? " disabled" : "") + "><span>мес.</span></span></div>" +
+        '<div class="g-track" style="width:' + (total * W) + 'px">' + slack + ext +
+        '<span class="' + cls + '" style="left:' + (p.es * W) + "px;width:" + Math.max(p.dur * W, 3) + 'px" title="' + esc(n.name) + ": " + ymFmt(ymAdd(G.start, p.es)) + " – " + ymFmt(ymAdd(G.start, Math.max(p.ef - 0.01, p.es))) + '"><i style="width:' + Math.round(p.frac * 100) + '%"></i></span>' +
+        "</div></div>";
+    }).join("");
+    const kpi = (label, value, tone) => '<div class="kpi"' + (tone ? ' data-tone="' + tone + '"' : "") + "><span>" + label + "</span><b>" + value + "</b></div>";
+    ganttEl.innerHTML =
+      '<div class="kpis">' +
+        kpi("Старт проекта", ymFmt(G.start)) +
+        kpi("Ключи по плану", ymFmt(ymAdd(G.start, G.end))) +
+        kpi("Ключи по прогнозу", ymFmt(ymAdd(G.start, G.fend)), delay > 0.25 ? "bad" : "good") +
+        kpi("До ключей", mdec(G.end) + " мес.") +
+        kpi("Отставание", delay > 0.25 ? "+" + mdec(delay) + " мес." : "нет", delay > 0.25 ? "bad" : "good") +
+      "</div>" +
+      '<div class="card"><div class="section-title"><h2 class="view-title">График строительства</h2>' +
+        '<div class="row"><label class="field" for="g-start" style="grid-auto-flow:column;align-items:center;gap:8px"><span>Старт</span><input type="month" id="g-start" class="sel" value="' + G.start + '"' + (readOnly ? " disabled" : "") + "></label>" +
+        (readOnly ? "" : '<button class="btn ghost" type="button" id="g-reset">Типовые длительности</button>') + "</div></div>" +
+        '<p class="muted">График строится из связей дерева: этап начинается, когда закончены все этапы, которые он требует. Красные этапы лежат на критическом пути: если любой из них задержится, сдвинутся ключи. Длительности можно менять, план пересчитается сразу.</p>' +
+        (blocking.length ? '<p class="g-crit"><b>Сдачу сейчас определяют:</b> ' + blocking.slice(0, 6).map(n => '<button class="chip" type="button" data-open-stage="' + n.id + '" data-state="' + stateOf(n) + '">' + esc(n.code + " · " + n.name) + "</button>").join(" ") + "</p>" : "") +
+        '<div class="g-legend"><span><i class="lg-crit"></i>Критический путь</span><span><i class="lg-bar"></i>Есть резерв</span><span><i class="lg-slack"></i>Резерв времени</span><span><i class="lg-late"></i>Прогноз сдвига</span><span><i class="lg-done"></i>Пройден</span><span><i class="lg-now"></i>Сегодня</span></div>' +
+        '<div class="g-wrap"><div class="g-inner" style="min-width:' + (300 + total * W) + 'px"><div class="g-row g-head"><div class="g-label"></div><div class="g-track g-axis" style="width:' + (total * W) + 'px">' + ticks.join("") + "</div></div>" +
+        '<div class="g-body">' + rows + '<div class="g-overlay" style="left:300px;width:' + (total * W) + 'px">' + grid.join("") + nowLine + "</div></div></div></div>" +
+        '<p class="muted" style="margin-top:10px">Прогноз: пройденный этап заканчивается по дате последней отметки, незавершённый этап, у которого вышел срок, сдвигает все последующие. Гарантия идёт после ключей и в критический путь не входит.</p></div>';
+  });
+  ganttEl.addEventListener("change", e => {
+    const el = e.target;
+    if (el.id === "g-start" && /^\d{4}-\d{2}$/.test(el.value)) {
+      commit({ sched: { start: el.value } }, { defer: true });
+      logEvent("", "График: старт проекта " + ymFmt(el.value));
+      return;
+    }
+    const id = el.dataset.gdur;
+    if (!id) return;
+    const v = parseNum(el.value);
+    if (v == null || v < 0 || v > 120) { toast("Введите длительность в месяцах, от 0 до 120"); el.value = mdec(durOf(id)); return; }
+    const val = Math.round(v * 4) / 4;
+    if (val === durOf(id)) { el.value = mdec(val); return; }
+    const old = durOf(id);
+    commit({ sched: { dur: { [id]: val } } }, { defer: true });
+    logEvent(id, "График «" + byId[id].name + "»: длительность " + mdec(old) + " → " + mdec(val) + " мес.");
+  });
+  ganttEl.addEventListener("click", e => {
+    const os = e.target.closest("[data-open-stage]");
+    if (os) { setView("tree", false); select(os.dataset.openStage, true); return; }
+    if (e.target.id === "g-reset") {
+      const patch = {};
+      Object.keys((S.sched && S.sched.dur) || {}).forEach(k => { patch[k] = null; });
+      if (S.sched) S.sched.dur = {};
+      commit({ sched: { dur: patch } });
+      logEvent("", "График: возвращены типовые длительности");
+      toast("Возвращены типовые длительности");
+    }
+  });
+
+  // --- risk register ------------------------------------------------------
+  const risksEl = document.getElementById("view-risks");
+  const QUICK_RISKS = [
+    ["Задержка технических условий и подключений", "ird", 4, 4, "Подать заявки на ТУ сразу после регистрации земли, заложить в бюджет внеплощадочные сети"],
+    ["Рост цен на материалы и девальвация тенге", "tender", 4, 4, "Фиксированная цена с генподрядчиком, предзакупка металла и цемента, резерв 5–10%"],
+    ["Слабые продажи", "dolevka", 3, 5, "Анализ рынка, гибкая квартирография, партнёрство с банками и госпрограммами"],
+    ["Отказ или задержка банковского финансирования", "finance", 2, 5, "Переговоры с двумя-тремя банками параллельно, подтверждённый собственный вклад"],
+    ["Замечания и задержка экспертизы", "expert", 3, 3, "Ответственный за снятие замечаний у проектировщика, независимая проверка до подачи"],
+    ["Сейсмика и сложные грунты", "survey", 3, 4, "Качественные изыскания, опытный конструктор, строгий технадзор"],
+    ["Недобросовестный подрядчик", "tender", 2, 5, "Проверка подрядчика, гарантийные удержания, оплата по факту выполнения"],
+    ["Зимний простой и удорожание бетонирования", "frame", 3, 3, "Каркас в тёплый сезон, контур закрыть до ноября"],
+    ["Изменения законодательства", "idea", 3, 3, "Юрист в команде, мониторинг adilet.zan.kz, запас по срокам"],
+    ["Проверки ГАСК и штрафы", "start", 2, 3, "Полная исполнительная документация с первого дня"],
+    ["Претензии дольщиков", "handover", 3, 3, "Прозрачные отчёты, соблюдение сроков, качественный гарантийный сервис"]
+  ];
+  const riskScore = r => (r.prob || 1) * (r.impact || 1);
+  const riskTone = s => s >= 15 ? "bad" : s >= 8 ? "warn" : "good";
+  const riskList = () => Object.entries(S.risks).filter(([, r]) => r && r.title).map(([id, r]) => Object.assign({ id }, r))
+    .sort((a, b) => (a.status === "closed") - (b.status === "closed") || riskScore(b) - riskScore(a));
+  let riskEditing = null, riskDel = null, riskCell = null;
+  const PROB = ["", "Редко", "Маловероятно", "Возможно", "Вероятно", "Почти наверняка"];
+  const IMP = ["", "Незначительный", "Малый", "Средний", "Крупный", "Критический"];
+
+  function riskFormHtml() {
+    const r = riskEditing === "new" ? { stage: "", prob: 3, impact: 3, status: "open" } : (S.risks[riskEditing] || {});
+    const opt = (arr, v) => [1, 2, 3, 4, 5].map(i => '<option value="' + i + '"' + (+v === i ? " selected" : "") + ">" + i + " · " + arr[i] + "</option>").join("");
+    return '<form class="dl-form" id="risk-form" autocomplete="off">' +
+      (riskEditing === "new" ? '<div class="dl-quick">' + QUICK_RISKS.map((q, i) => '<button class="chip" type="button" data-qrisk="' + i + '">' + esc(q[0]) + "</button>").join("") + "</div>" : "") +
+      '<label class="field wide" for="rk-title"><span>Риск *</span><input type="text" id="rk-title" maxlength="140" required placeholder="Например, задержка подключения электричества" value="' + esc(r.title || "") + '"></label>' +
+      '<label class="field" for="rk-stage"><span>Этап</span><select id="rk-stage"><option value="">Весь проект</option>' + T.nodes.map(n => '<option value="' + n.id + '"' + (r.stage === n.id ? " selected" : "") + ">" + n.code + " · " + esc(n.name) + "</option>").join("") + "</select></label>" +
+      '<label class="field" for="rk-prob"><span>Вероятность</span><select id="rk-prob">' + opt(PROB, r.prob) + "</select></label>" +
+      '<label class="field" for="rk-impact"><span>Ущерб</span><select id="rk-impact">' + opt(IMP, r.impact) + "</select></label>" +
+      '<label class="field" for="rk-owner"><span>Ответственный</span><input type="text" id="rk-owner" maxlength="80" placeholder="Кто следит за риском" value="' + esc(r.owner || "") + '"></label>' +
+      '<label class="field wide" for="rk-measure"><span>Мера</span><input type="text" id="rk-measure" maxlength="240" placeholder="Что делаем, чтобы риск не случился или ущерб был меньше" value="' + esc(r.measure || "") + '"></label>' +
+      '<div class="row dl-actions"><button class="btn primary" type="submit">' + (riskEditing === "new" ? "Добавить" : "Сохранить") + '</button><button class="btn ghost" type="button" data-rk-cancel>Отмена</button></div></form>';
+  }
+  const renderRiskForm = () => { const w = document.getElementById("risk-form-wrap"); if (!w) return; w.hidden = !riskEditing; w.innerHTML = riskEditing ? riskFormHtml() : ""; };
+
+  const renderRisks = guarded(risksEl, function () {
+    const all = riskList(), open = all.filter(r => r.status !== "closed");
+    const red = open.filter(r => riskScore(r) >= 15).length, yellow = open.filter(r => riskScore(r) >= 8 && riskScore(r) < 15).length;
+    const counts = {};
+    open.forEach(r => { const k = r.prob + "x" + r.impact; counts[k] = (counts[k] || 0) + 1; });
+    let matrix = '<table class="rmatrix"><tr><th rowspan="6" class="rm-axis"><span>Вероятность</span></th></tr>';
+    for (let p = 5; p >= 1; p--) {
+      matrix += "<tr>" + [1, 2, 3, 4, 5].map(i => {
+        const k = p + "x" + i, c = counts[k] || 0;
+        return '<td data-tone="' + riskTone(p * i) + '"' + (riskCell === k ? ' class="sel-cell"' : "") + '><button type="button" data-rcell="' + k + '" aria-label="Вероятность ' + p + ", ущерб " + i + ", рисков: " + c + '">' + (c || "") + "</button></td>";
+      }).join("") + '<th class="rm-n">' + p + "</th></tr>";
+    }
+    matrix += '<tr><td></td>' + [1, 2, 3, 4, 5].map(i => '<th class="rm-n">' + i + "</th>").join("") + '<th></th></tr><tr><td></td><td colspan="5" class="rm-x">Ущерб</td><td></td></tr></table>';
+    const shown = riskCell ? all.filter(r => r.status !== "closed" && (r.prob + "x" + r.impact) === riskCell) : all;
+    const rows = shown.map(r => {
+      const s = riskScore(r), st = r.stage && byId[r.stage], closed = r.status === "closed";
+      const act = readOnly ? "" : riskDel === r.id
+        ? '<button class="btn" type="button" data-rk-del-yes="' + r.id + '">Удалить</button><button class="btn ghost" type="button" data-rk-del-no>Отмена</button>'
+        : '<button class="btn ghost" type="button" data-rk-edit="' + r.id + '">Изменить</button><button class="btn ghost" type="button" data-rk-toggle="' + r.id + '">' + (closed ? "Открыть" : "Закрыть") + '</button><button class="btn ghost" type="button" data-rk-del="' + r.id + '">Удалить</button>';
+      return '<tr' + (closed ? ' class="closed"' : "") + '><td><span class="rscore" data-tone="' + (closed ? "" : riskTone(s)) + '">' + s + '</span></td><td><div class="dl-title">' + esc(r.title) + "</div>" + (r.measure ? '<div class="dl-sub">Мера: ' + esc(r.measure) + "</div>" : "") + "</td>" +
+        "<td>" + (st ? '<button class="chip" type="button" data-open-stage="' + st.id + '" data-state="' + stateOf(st) + '">' + esc(st.code + " · " + st.name) + "</button>" : '<span class="muted">Весь проект</span>') + "</td>" +
+        '<td class="num">' + r.prob + " × " + r.impact + "</td><td>" + esc(r.owner || "") + "</td><td>" + (closed ? '<span class="mchip">Закрыт</span>' : '<span class="mchip" data-tone="' + (riskTone(s) === "bad" ? "late" : riskTone(s) === "warn" ? "soon" : "ok") + '">Открыт</span>') + '</td><td><div class="row" style="flex-wrap:nowrap">' + act + "</div></td></tr>";
+    }).join("");
+    risksEl.innerHTML =
+      '<div class="kpis">' +
+        '<div class="kpi"><span>Открытых рисков</span><b>' + open.length + "</b></div>" +
+        '<div class="kpi" data-tone="' + (red ? "bad" : "") + '"><span>Красная зона</span><b>' + red + "</b></div>" +
+        '<div class="kpi" data-tone="' + (yellow ? "warn" : "") + '"><span>Жёлтая зона</span><b>' + yellow + "</b></div>" +
+        '<div class="kpi" data-tone="good"><span>Зелёная зона</span><b>' + (open.length - red - yellow) + "</b></div>" +
+        '<div class="kpi"><span>Закрытых</span><b>' + (all.length - open.length) + "</b></div>" +
+      "</div>" +
+      '<div class="risk-grid"><div class="card"><div class="section-title"><h3 class="eyebrow">Карта рисков</h3>' + (riskCell ? '<button class="btn ghost" type="button" data-rcell-clear style="padding:2px 8px;font-size:12px">Показать все</button>' : "") + "</div>" + matrix +
+        '<p class="muted" style="margin-top:8px">Оценка = вероятность × ущерб. 15 и выше: красная зона, нужна мера и ответственный. 8–14: жёлтая, следить. Ниже 8: зелёная. Нажмите на клетку, чтобы отфильтровать список.</p></div>' +
+      '<div class="card"><div class="section-title"><h2 class="view-title">Реестр рисков</h2>' + (readOnly ? "" : '<button class="btn primary" type="button" id="rk-add">Добавить риск</button>') + "</div>" +
+        '<div id="risk-form-wrap" hidden></div>' +
+        (rows ? '<div class="tablewrap"><table class="t"><tr><th>Оценка</th><th>Риск и мера</th><th>Этап</th><th class="num">В × У</th><th>Ответственный</th><th>Статус</th><th></th></tr>' + rows + "</table></div>"
+          : '<p class="muted">' + (riskCell ? "В этой клетке открытых рисков нет." : "Реестр пуст. Нажмите «Добавить риск» и выберите типовой риск из списка: подключения, цены, продажи, банк, экспертиза, грунты, подрядчик.") + "</p>") +
+      "</div></div>";
+    renderRiskForm();
+  });
+  risksEl.addEventListener("click", e => {
+    const t = e.target;
+    const os = t.closest("[data-open-stage]");
+    if (os) { setView("tree", false); select(os.dataset.openStage, true); return; }
+    const cell = t.closest("[data-rcell]");
+    if (cell) { riskCell = riskCell === cell.dataset.rcell ? null : cell.dataset.rcell; renderRisks(true); return; }
+    if (t.closest("[data-rcell-clear]")) { riskCell = null; renderRisks(true); return; }
+    if (t.id === "rk-add") { riskEditing = "new"; renderRiskForm(); document.getElementById("rk-title").focus(); return; }
+    const q = t.closest("[data-qrisk]");
+    if (q) {
+      const r = QUICK_RISKS[+q.dataset.qrisk];
+      document.getElementById("rk-title").value = r[0]; document.getElementById("rk-stage").value = r[1];
+      document.getElementById("rk-prob").value = r[2]; document.getElementById("rk-impact").value = r[3];
+      document.getElementById("rk-measure").value = r[4]; document.getElementById("rk-owner").focus();
+      return;
+    }
+    if (t.closest("[data-rk-cancel]")) { riskEditing = null; renderRiskForm(); return; }
+    const ed = t.closest("[data-rk-edit]");
+    if (ed) { riskEditing = ed.dataset.rkEdit; renderRiskForm(); window.scrollTo({ top: 0 }); return; }
+    const tg = t.closest("[data-rk-toggle]");
+    if (tg) {
+      const r = S.risks[tg.dataset.rkToggle]; const closed = r.status === "closed";
+      commit({ risks: { [tg.dataset.rkToggle]: { status: closed ? "open" : "closed" } } });
+      logEvent(r.stage, "Риск «" + r.title + "» " + (closed ? "открыт снова" : "закрыт"));
+      return;
+    }
+    const dl = t.closest("[data-rk-del]");
+    if (dl) { riskDel = dl.dataset.rkDel; renderRisks(true); return; }
+    if (t.closest("[data-rk-del-no]")) { riskDel = null; renderRisks(true); return; }
+    const dy = t.closest("[data-rk-del-yes]");
+    if (dy) {
+      const r = S.risks[dy.dataset.rkDelYes] || {};
+      riskDel = null; commit({ risks: { [dy.dataset.rkDelYes]: null } });
+      logEvent(r.stage, "Удалён риск «" + (r.title || "") + "»");
+    }
+  });
+  risksEl.addEventListener("submit", e => {
+    if (e.target.id !== "risk-form") return;
+    e.preventDefault();
+    if (readOnly) return;
+    const v = id => document.getElementById(id).value.trim();
+    if (!v("rk-title")) { toast("Опишите риск"); return; }
+    const isNew = riskEditing === "new", id = isNew ? newId() : riskEditing;
+    const prev = S.risks[id] || {};
+    const rec = { title: v("rk-title"), stage: v("rk-stage"), prob: +v("rk-prob"), impact: +v("rk-impact"), owner: v("rk-owner"), measure: v("rk-measure"), status: prev.status || "open" };
+    riskEditing = null;
+    commit({ risks: { [id]: rec } });
+    logEvent(rec.stage, (isNew ? "Добавлен риск «" : "Изменён риск «") + rec.title + "», оценка " + riskScore(rec));
+    toast("Риск сохранён");
+  });
+  function risksMiniHtml(n) {
+    const items = riskList().filter(r => r.stage === n.id && r.status !== "closed");
+    return '<div><div class="section-title"><h3 class="eyebrow">Риски этапа</h3>' +
+      (readOnly ? "" : '<button class="btn ghost" type="button" style="padding:2px 8px;font-size:12px" data-goview="risks">Реестр</button>') + "</div>" +
+      (items.length ? '<div class="docs">' + items.map(r => '<div class="doc" style="grid-template-columns:auto 1fr"><span class="rscore" data-tone="' + riskTone(riskScore(r)) + '">' + riskScore(r) + '</span><span class="doc-title">' + esc(r.title) + (r.owner ? ' <span class="dl-sub">· ' + esc(r.owner) + "</span>" : "") + "</span></div>").join("") + "</div>"
+        : '<p class="muted">Открытых рисков по этапу нет.</p>') + "</div>";
+  }
 
   // --- project card -------------------------------------------------------
   const pdlg = document.getElementById("project-dlg");
