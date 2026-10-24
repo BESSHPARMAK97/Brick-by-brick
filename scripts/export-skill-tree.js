@@ -7,7 +7,7 @@ const root = path.join(__dirname, "..");
 const html = fs.readFileSync(path.join(root, "docs/skill-tree/index.html"), "utf8");
 const pick = id => html.match(new RegExp('<script id="' + id + '">([\\s\\S]*?)<\\/script>'))[1];
 const ctx = { window: {}, TextEncoder };
-vm.runInNewContext(pick("tree-data") + "\n" + pick("docx-lib"), ctx);
+vm.runInNewContext(pick("tree-data") + "\n" + pick("tree-data-kk") + "\n" + pick("regions") + "\n" + pick("docx-lib"), ctx);
 const T = ctx.window.TREE;
 const label = Object.fromEntries(T.fields.map(f => [f.id, f.blank || f.label]));
 // Поля карточки проекта в выгрузке остаются пустыми: [Название ЖК], [Город] и т.д.
@@ -51,6 +51,63 @@ T.nodes.forEach(n => {
   if (n.tip) checklist.push(`> **Совет.** ${n.tip}`, "");
 });
 
+const REG = ctx.window.REGIONS;
+checklist.push("## Региональные пункты", "", "Добавляются к этапам, когда в дереве выбран регион проекта.", "");
+Object.keys(REG).forEach(rid => {
+  const r = REG[rid];
+  checklist.push(`### ${r.ru.name}`, "", r.ru.hint, "");
+  Object.keys(r.tasks).forEach(sid => {
+    const n = T.nodes.find(x => x.id === sid);
+    r.tasks[sid].forEach(t => checklist.push(`- [ ] **${n.code}. ${n.name}:** ${t.ru}`));
+  });
+  checklist.push("", `> **Совет.** ${r.ru.tip}`, "");
+});
+
 fs.writeFileSync(path.join(outDir, "README.md"), index.join("\n"));
+
+// Казахская версия: docs/kk/checklists.md и docs/kk/templates/
+const KK = ctx.window.TREE_KK;
+const kkDir = path.join(root, "docs/kk"), kkTpl = path.join(kkDir, "templates");
+fs.rmSync(kkDir, { recursive: true, force: true });
+fs.mkdirSync(kkTpl, { recursive: true });
+const kkLabel = Object.fromEntries(T.fields.map(f => [f.id, f.blank === "___" ? "___" : (KK.fields[f.id] || {}).label || f.label]));
+const kkBlank = body => body.replace(/\{\{(\w+)\}\}/g, (m, id) => "[" + kkLabel[id] + "]");
+const kkIndex = ["# Құжат үлгілері", "", "> Танысуға арналған үлгі. Пайдаланар алдында құжатты заңгермен бірге ҚР қолданыстағы заңнамасына бейімдеңіз.", ""];
+const kkCheck = ["# Кезеңдер арасындағы өту чек-парақтары", "", "Барлық тармақтар белгіленгенде кезең өтті деп саналады. Келесі кезең «Талап етеді» жолындағы барлық кезеңдер өткенде ашылады.", ""];
+T.nodes.forEach(n => {
+  const k = KK.nodes[n.id];
+  const phase = KK.phases[n.phase] || n.phase;
+  kkIndex.push(`## ${n.code}. ${k.name}`, "");
+  kkCheck.push(`## ${n.code}. ${k.name} (LVL ${n.lvl}, ${phase})`, "", `**Мерзімі:** ${k.dur}  `);
+  kkCheck.push(`**Талап етеді:** ${n.req.length ? n.req.map(r => KK.nodes[r].name).join(", ") : "бастапқы кезең"}`, "", k.desc, "");
+  k.tasks.forEach(t => kkCheck.push(`- [ ] ${t}`));
+  kkCheck.push("");
+  const links = [];
+  n.docs.forEach(d => {
+    const t = T.templates[d], kt = KK.templates[d] || {};
+    const title = kt.title || t.title, base = `${n.code}-${d}`;
+    if (t.ext === "csv" || !kt.body) {
+      links.push(`${title} (орысша үлгі: ../templates/${base}.${t.ext === "csv" ? "csv" : "md"})`);
+      kkIndex.push(`- ${title}: [../templates/${base}.${t.ext === "csv" ? "csv" : "md"}](../templates/${base}.${t.ext === "csv" ? "csv" : "md"})`);
+      return;
+    }
+    const body = kkBlank(kt.body);
+    fs.writeFileSync(path.join(kkTpl, base + ".md"), `# ${title}\n\n> Танысуға арналған үлгі. Пайдаланар алдында құжатты заңгермен бірге ҚР қолданыстағы заңнамасына бейімдеңіз.\n\n\`\`\`text\n${body}\n\`\`\`\n`);
+    fs.writeFileSync(path.join(kkTpl, base + ".docx"), Buffer.from(ctx.window.buildDocx(KK.disclaimer + "\n\n" + body)));
+    kkIndex.push(`- [${title}](${base}.md) · [Word](${base}.docx)`);
+    links.push(`[${title}](templates/${base}.md)`);
+  });
+  kkIndex.push("");
+  kkCheck.push(`**Құжаттар:** ${links.join(" · ")}`, "", `> **Кеңес.** ${k.tip}`, "");
+});
+kkCheck.push("## Өңірлік тармақтар", "", "Ағашта жоба өңірі таңдалғанда кезеңдерге қосылады.", "");
+Object.keys(REG).forEach(rid => {
+  const r = REG[rid];
+  kkCheck.push(`### ${r.kk.name}`, "", r.kk.hint, "");
+  Object.keys(r.tasks).forEach(sid => r.tasks[sid].forEach(t => kkCheck.push(`- [ ] **${T.nodes.find(x => x.id === sid).code}. ${KK.nodes[sid].name}:** ${t.kk}`)));
+  kkCheck.push("", `> **Кеңес.** ${r.kk.tip}`, "");
+});
+fs.writeFileSync(path.join(kkTpl, "README.md"), kkIndex.join("\n"));
+fs.writeFileSync(path.join(kkDir, "checklists.md"), kkCheck.join("\n"));
 fs.writeFileSync(path.join(root, "docs/checklists.md"), checklist.join("\n"));
 console.log(`templates: ${Object.keys(T.templates).length}, stages: ${T.nodes.length}`);
