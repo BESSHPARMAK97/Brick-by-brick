@@ -19,6 +19,10 @@
   --done: #1d8657;
   --done-soft: #d8f0e4;
   --locked: #9aa8b8;
+  --risk: #c2410c;
+  --risk-soft: #fde4d6;
+  --late: #c62828;
+  --late-soft: #fbe0e0;
   --shadow: 0 1px 2px rgba(19,35,58,.06), 0 8px 24px rgba(19,35,58,.08);
   --f-display: "Unbounded", "Golos Text", system-ui, sans-serif;
   --f-body: "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -30,6 +34,7 @@
     --ink: #e5edf6; --muted: #93a5bc; --line: #2a3e5a;
     --accent: #f4a32a; --accent-soft: #3a2a12; --accent-ink: #ffd08a;
     --done: #43c08a; --done-soft: #143a2b; --locked: #4b5f7a;
+    --risk: #ff8a57; --risk-soft: #3d2014; --late: #ff6b6b; --late-soft: #3d1717;
     --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
     color-scheme: dark;
   }
@@ -39,6 +44,7 @@
   --ink: #e5edf6; --muted: #93a5bc; --line: #2a3e5a;
   --accent: #f4a32a; --accent-soft: #3a2a12; --accent-ink: #ffd08a;
   --done: #43c08a; --done-soft: #143a2b; --locked: #4b5f7a;
+  --risk: #ff8a57; --risk-soft: #3d2014; --late: #ff6b6b; --late-soft: #3d1717;
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
   color-scheme: dark;
 }
@@ -131,6 +137,13 @@ button { font: inherit; color: inherit; }
 .node[data-state="active"] .hex-in { background: var(--accent-soft); color: var(--accent-ink); }
 .node[data-state="done"] .hex { --ring: var(--done); background: var(--done); }
 .node[data-state="done"] .hex-in { background: var(--done); color: var(--surface); }
+.node[data-state="risk"] .hex { --ring: var(--risk); }
+.node[data-state="risk"] .hex-in { background: var(--risk-soft); color: var(--risk); }
+.node-flag {
+  position: absolute; top: -4px; left: calc(50% + 18px); z-index: 2;
+  min-width: 20px; height: 20px; padding: 0 6px; border-radius: 99px; display: grid; place-items: center;
+  background: var(--late); color: var(--surface); font-family: var(--f-mono); font-size: 11px;
+}
 .node[aria-current="true"] .node-name { text-decoration: underline; text-decoration-color: var(--accent); text-decoration-thickness: 2px; text-underline-offset: 4px; }
 .node[aria-current="true"] .hex { transform: scale(1.08); }
 @media (prefers-reduced-motion: no-preference) {
@@ -170,12 +183,37 @@ button.chip { cursor: pointer; }
 .gate b { font-weight: 600; }
 
 .tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
-.task label {
+.task { border-radius: 8px; padding: 2px 0; }
+.task[data-late="true"] { background: var(--late-soft); }
+.task-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px; align-items: start; }
+.task-row label {
   display: grid; grid-template-columns: 20px 1fr; gap: 10px; align-items: start;
-  padding: 8px; border-radius: 8px; cursor: pointer;
+  padding: 8px; border-radius: 8px; cursor: pointer; min-width: 0;
 }
-.task label:hover { background: var(--surface-2); }
-.task input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--done); cursor: pointer; }
+.task-row label:hover { background: var(--surface-2); }
+.task-more { margin: 4px 4px 0 0; padding: 4px 8px; font-size: 12px; }
+.task-meta { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 8px 6px 38px; }
+.task-meta:empty { display: none; }
+.mchip { font-size: 11.5px; padding: 1px 8px; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--line); color: var(--muted); }
+.mchip[data-tone="late"] { background: var(--late); border-color: var(--late); color: var(--surface); }
+.mchip[data-tone="soon"] { background: var(--accent-soft); border-color: transparent; color: var(--accent-ink); }
+.mchip[data-tone="ok"] { background: var(--done-soft); border-color: transparent; color: var(--done); }
+.task-edit { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 8px; padding: 0 8px 10px 38px; }
+.field { display: grid; gap: 4px; font-size: 12px; color: var(--muted); min-width: 0; }
+.field input, .field textarea {
+  font: inherit; font-size: 14px; color: var(--ink); background: var(--surface); width: 100%;
+  border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px;
+}
+.field textarea { resize: vertical; min-height: 70px; }
+.field input:focus, .field textarea:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+.gate[data-state="risk"] { background: var(--risk-soft); border: 1px solid transparent; color: var(--risk); }
+.gate .btn { justify-self: start; margin-top: 6px; }
+.early-form { display: grid; gap: 8px; margin-top: 8px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; }
+.hud-late { color: var(--late); font-weight: 600; }
+.pgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
+@media (max-width: 560px) { .pgrid, .task-edit { grid-template-columns: minmax(0, 1fr); } .task-edit, .task-meta { padding-left: 8px; } }
+.task input[type="checkbox"] { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--done); cursor: pointer; }
 .task input:disabled, .task input:disabled + span { cursor: not-allowed; }
 .task input:disabled + span { color: var(--muted); }
 .task input:checked + span { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line); }
@@ -234,7 +272,7 @@ dialog.viewer::backdrop { background: rgba(10, 20, 35, .55); }
     padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px);
   }
   .panel[data-open="false"] { display: none; }
-  .panel-close { display: inline-flex; position: sticky; top: 0; float: right; margin: 10px 10px 0 0; z-index: 2; }
+  .panel-close { display: flex; position: sticky; top: 8px; width: max-content; margin: 8px 8px 0 auto; z-index: 2; box-shadow: var(--shadow); }
 }
 @media (max-width: 560px) {
   .hud { grid-template-columns: 1fr; }
@@ -248,7 +286,7 @@ dialog.viewer::backdrop { background: rgba(10, 20, 35, .55); }
 <div class="wrap">
   <header class="hud">
     <div>
-      <div class="eyebrow">Девелопмент · Республика Казахстан</div>
+      <div class="eyebrow" id="project-line">Девелопмент · Республика Казахстан</div>
       <h1>Дерево прокачки ЖК</h1>
       <p>Этапы строительства жилого комплекса от идеи до ключей. Этап открывается, когда закрыты все условия перехода на предыдущих. Внутри каждого этапа есть образцы документов.</p>
     </div>
@@ -256,7 +294,8 @@ dialog.viewer::backdrop { background: rgba(10, 20, 35, .55); }
       <div class="rank-row"><span class="eyebrow">Ранг</span><span class="mono" id="xp">0 XP</span></div>
       <div class="rank-row"><span class="rank-name" id="rank">Стажёр</span><span class="mono" id="stages">0 / 20 этапов</span></div>
       <div class="xpbar" role="progressbar" aria-label="Общий прогресс" aria-valuemin="0" aria-valuemax="100" id="xpbar"><i></i></div>
-      <div class="hud-meta"><span class="sync" id="sync" data-mode="pending">Подключение к хранилищу…</span></div>
+      <div class="hud-meta"><span class="sync" id="sync" data-mode="pending">Подключение к хранилищу…</span><span class="hud-late" id="overdue" hidden></span></div>
+      <button class="btn" type="button" id="project-open">Карточка проекта</button>
     </div>
   </header>
 
@@ -286,19 +325,51 @@ dialog.viewer::backdrop { background: rgba(10, 20, 35, .55); }
     <h3 id="viewer-title"></h3>
     <div class="viewer-actions">
       <button class="btn" id="v-copy">Копировать</button>
-      <button class="btn primary" id="v-dl">Скачать</button>
+      <button class="btn primary" id="v-dl">Скачать Word</button>
+      <button class="btn" id="v-txt">.txt</button>
       <button class="btn ghost" id="v-close">Закрыть</button>
     </div>
   </div>
   <div class="viewer-body">
-    <p class="viewer-note">Поля в квадратных скобках [ ] заполните своими данными.</p>
+    <p class="viewer-note" id="viewer-note"></p>
     <pre id="viewer-text"></pre>
   </div>
+</dialog>
+
+<dialog class="viewer" id="project-dlg" aria-labelledby="project-title">
+  <form id="project-form">
+    <div class="viewer-head">
+      <h3 id="project-title">Карточка проекта</h3>
+      <div class="viewer-actions">
+        <button class="btn primary" type="submit" id="p-save">Сохранить</button>
+        <button class="btn ghost" type="button" id="p-close">Закрыть</button>
+      </div>
+    </div>
+    <div class="viewer-body">
+      <p class="viewer-note">Эти данные автоматически подставляются во все образцы документов вместо полей в квадратных скобках.</p>
+      <div class="pgrid" id="project-fields"></div>
+    </div>
+  </form>
 </dialog>
 <div class="toast" id="toast" hidden></div>
 
 <script id="tree-data">
 window.TREE = {
+fields: [
+  { id: "name", label: "Название ЖК", hint: "Алтын Тау" },
+  { id: "city", label: "Город", hint: "Астана" },
+  { id: "address", label: "Адрес участка", hint: "р-н Есиль, ул. ___, уч. ___" },
+  { id: "cadastre", label: "Кадастровый номер", hint: "21-320-000-000" },
+  { id: "area_land", label: "Площадь участка, га", hint: "1,5", blank: "___" },
+  { id: "company", label: "Застройщик", hint: "ТОО «___ Development»" },
+  { id: "bin", label: "БИН застройщика", hint: "12 цифр" },
+  { id: "director", label: "Директор (ФИО)", hint: "Иванов И. И." },
+  { id: "klass", label: "Класс жилья", hint: "комфорт" },
+  { id: "blocks", label: "Количество блоков", hint: "4", blank: "___" },
+  { id: "floors", label: "Этажность", hint: "12", blank: "___" },
+  { id: "area_total", label: "Общая площадь, м²", hint: "45 000", blank: "___" },
+  { id: "flats", label: "Количество квартир", hint: "520", blank: "___" }
+],
 nodes: [
 { id: "idea", lvl: 1, phase: "Идея", code: "01", name: "Анализ и концепция", dur: "1–3 мес.", req: [],
   desc: "Изучить рынок, выбрать город и формат, собрать финансовую модель и принять решение «входим / не входим».",
@@ -568,12 +639,12 @@ nodes: [
 templates: {
 memo: { title: "Инвестиционный меморандум", ext: "txt", body:
 `ИНВЕСТИЦИОННЫЙ МЕМОРАНДУМ
-Проект: ЖК «[Название]», г. [Город], район [Район]
+Проект: ЖК «{{name}}», г. {{city}}, район [Район]
 Дата: [дд.мм.гггг]    Подготовил: [ФИО, должность]
 
 1. РЕЗЮМЕ
-   Формат: [класс жилья], [кол-во блоков] блоков, [этажность] этажей
-   Общая площадь: [___] м², продаваемая жилая: [___] м², коммерция: [___] м²
+   Формат: {{klass}}, {{blocks}} блоков, {{floors}} этажей
+   Общая площадь: {{area_total}} м², продаваемая жилая: [___] м², коммерция: [___] м²
    Срок реализации: [___] мес.   Бюджет: [___] млн тг
    Ожидаемая выручка: [___] млн тг   Прибыль до налога: [___] млн тг
    Маржа к себестоимости: [___]%   IRR: [___]%   Пиковый долг: [___] млн тг
@@ -588,7 +659,7 @@ memo: { title: "Инвестиционный меморандум", ext: "txt", 
    Ипотечные и государственные программы, доступные покупателю: [___]
 
 3. УЧАСТОК
-   Адрес / кадастровый номер: [___]   Площадь: [___] га
+   Адрес / кадастровый номер: {{address}} / {{cadastre}}   Площадь: {{area_land}} га
    Целевое назначение: [___]   Право: [собственность / аренда до ___]
    Сети рядом: эл. [___], вода [___], тепло/газ [___]
    Геология, сейсмичность: [___]
@@ -653,15 +724,15 @@ finmodel: { title: "Финансовая модель (Excel, пример ра�
 land_spa: { title: "Договор купли-продажи земельного участка", ext: "txt", body:
 `ДОГОВОР КУПЛИ-ПРОДАЖИ ЗЕМЕЛЬНОГО УЧАСТКА № [___]
 
-г. [Город]                                              [дд.мм.гггг]
+г. {{city}}                                              [дд.мм.гггг]
 
 [Наименование / ФИО продавца], БИН/ИИН [___], в лице [___], действующего на основании [___], именуемый «Продавец», и
-[Наименование покупателя], БИН [___], в лице [___], действующего на основании [___], именуемый «Покупатель»,
+{{company}}, БИН {{bin}}, в лице директора {{director}}, действующего на основании [___], именуемый «Покупатель»,
 заключили настоящий договор о нижеследующем.
 
 1. ПРЕДМЕТ ДОГОВОРА
 1.1. Продавец передаёт в собственность Покупателя земельный участок:
-     адрес: [___]; кадастровый номер: [___]; площадь: [___] га;
+     адрес: {{address}}; кадастровый номер: {{cadastre}}; площадь: {{area_land}} га;
      целевое назначение: [___]; делимость: [делимый / неделимый].
 1.2. Участок принадлежит Продавцу на праве частной собственности на основании [___],
      идентификационный документ [___] от [___].
@@ -698,11 +769,11 @@ land_jv: { title: "Соглашение о намерениях с собств�
 `СОГЛАШЕНИЕ О НАМЕРЕНИЯХ
 о совместной реализации проекта жилищного строительства
 
-г. [Город]                                              [дд.мм.гггг]
+г. {{city}}                                              [дд.мм.гггг]
 
-[Собственник участка], ИИН/БИН [___] («Собственник»), и [Застройщик], БИН [___] («Застройщик»)
+[Собственник участка], ИИН/БИН [___] («Собственник»), и {{company}}, БИН {{bin}} («Застройщик»)
 выражают намерение совместно реализовать проект ЖК на участке:
-адрес [___], кадастровый номер [___], площадь [___] га.
+адрес {{address}}, кадастровый номер {{cadastre}}, площадь {{area_land}} га.
 
 1. ВКЛАДЫ СТОРОН
    Собственник: земельный участок (рыночная оценка [___] тг).
@@ -739,9 +810,9 @@ apz_list: { title: "Перечень сведений для заявки на �
 [ ] Топографическая съёмка участка
 
 ДАННЫЕ ОБ ОБЪЕКТЕ
-[ ] Наименование объекта: «Многоквартирный жилой комплекс [___]»
+[ ] Наименование объекта: «Многоквартирный жилой комплекс {{name}}»
 [ ] Функциональное назначение, этажность, количество блоков
-[ ] Ориентировочная общая площадь: [___] м²; количество квартир: [___]
+[ ] Ориентировочная общая площадь: {{area_total}} м²; количество квартир: {{flats}}
 [ ] Эскиз (эскизный проект) или ситуационная схема
 
 ИСХОДНЫЕ НАГРУЗКИ ДЛЯ ТУ
@@ -757,7 +828,7 @@ apz_list: { title: "Перечень сведений для заявки на �
 [ ] Стоимость подключения и внеплощадочных сетей внесена в финмодель` },
 
 tu_request: { title: "Письмо-запрос технических условий", ext: "txt", body:
-`[Бланк организации]
+`{{company}}
 Исх. № [___] от [дд.мм.гггг]
 
 [Руководителю энергопередающей организации / водоканала / теплосетей]
@@ -767,10 +838,10 @@ tu_request: { title: "Письмо-запрос технических усло�
 
 Прошу выдать технические условия на подключение к сетям [электроснабжения / водоснабжения и водоотведения / теплоснабжения] проектируемого объекта:
 
-Объект: многоквартирный жилой комплекс «[Название]»
-Адрес: [___], кадастровый номер участка [___]
+Объект: многоквартирный жилой комплекс «{{name}}»
+Адрес: {{address}}, кадастровый номер участка {{cadastre}}
 Этажность / количество блоков: [___]
-Количество квартир: [___], общая площадь: [___] м²
+Количество квартир: {{flats}}, общая площадь: {{area_total}} м²
 
 Расчётные нагрузки:
 — [электрическая мощность ___ кВт, категория надёжности ___]
@@ -784,17 +855,17 @@ tu_request: { title: "Письмо-запрос технических усло�
 2. Ситуационная схема / эскиз.
 3. Расчёт нагрузок.
 
-Директор [ТОО «___»]      ________      [ФИО]
+Директор {{company}}      ________      {{director}}
 Исполнитель: [ФИО, телефон]` },
 
 survey_tz: { title: "Техническое задание на инженерные изыскания", ext: "txt", body:
 `ТЕХНИЧЕСКОЕ ЗАДАНИЕ НА ИНЖЕНЕРНЫЕ ИЗЫСКАНИЯ
 
-1. Объект: многоквартирный жилой комплекс «[Название]»
-2. Адрес: [___], кадастровый номер [___], площадь участка [___] га
-3. Заказчик: [___]   Проектировщик: [___]
+1. Объект: многоквартирный жилой комплекс «{{name}}»
+2. Адрес: {{address}}, кадастровый номер {{cadastre}}, площадь участка {{area_land}} га
+3. Заказчик: {{company}}   Проектировщик: [___]
 4. Стадия проектирования: [эскизный проект / П / РП]
-5. Характеристика объекта: [___] блоков, этажность [___], подземный паркинг [да / нет, глубина ___ м]
+5. Характеристика объекта: {{blocks}} блоков, этажность {{floors}}, подземный паркинг [да / нет, глубина ___ м]
    Предполагаемый тип фундамента: [плита / сваи], нагрузки на фундамент: [___]
 
 6. СОСТАВ РАБОТ
@@ -813,22 +884,22 @@ survey_tz: { title: "Техническое задание на инженерн
 8. СРОК ВЫПОЛНЕНИЯ: [___] календарных дней.
 9. Исполнитель должен иметь лицензию на изыскательскую деятельность соответствующей категории.
 
-Заказчик ________ [ФИО]      Согласовано (ГИП) ________ [ФИО]` },
+Заказчик ________ {{director}}      Согласовано (ГИП) ________ [ФИО]` },
 
 design_task: { title: "Задание на проектирование", ext: "txt", body:
 `ЗАДАНИЕ НА ПРОЕКТИРОВАНИЕ
-многоквартирного жилого комплекса «[Название]»
+многоквартирного жилого комплекса «{{name}}»
 
 1. Основание: АПЗ № [___] от [___]; ТУ: [перечень]
-2. Заказчик: [___]   Генпроектировщик: [___]
-3. Адрес: [___], площадь участка [___] га
+2. Заказчик: {{company}}   Генпроектировщик: [___]
+3. Адрес: {{address}}, площадь участка {{area_land}} га
 4. Вид строительства: новое строительство, [___] очередей
 5. Стадийность: эскизный проект, рабочий проект (П/РП), рабочая документация
 
 6. ТЕХНИКО-ЭКОНОМИЧЕСКИЕ ПОКАЗАТЕЛИ
-   Количество блоков: [___]; этажность: [___]
+   Количество блоков: {{blocks}}; этажность: {{floors}}
    Общая площадь: не более [___] м²; продаваемая жилая: не менее [___] м²
-   Класс комфортности: [___]
+   Класс комфортности: {{klass}}
    Квартирография: студии [__]%, 1-к [__]%, 2-к [__]%, 3-к [__]%, площади: [диапазоны]
    Коммерция на первых этажах: [___] м²; паркинг: [___] мест (подземный / наземный)
 
@@ -853,13 +924,13 @@ design_task: { title: "Задание на проектирование", ext: "
    Формат передачи: PDF + DWG/RVT, [___] экз. на бумаге
    Сопровождение экспертизы и снятие замечаний — силами проектировщика
 
-Заказчик ________ [ФИО]      Генпроектировщик ________ [ФИО]` },
+Заказчик ________ {{director}}      Генпроектировщик ________ [ФИО]` },
 
 design_contract: { title: "Договор на проектирование: ключевые условия", ext: "txt", body:
 `ДОГОВОР НА ВЫПОЛНЕНИЕ ПРОЕКТНЫХ РАБОТ — КЛЮЧЕВЫЕ УСЛОВИЯ (term sheet)
 
-Стороны: Заказчик [___]; Проектировщик [___], лицензия № [___], категория [___]
-Предмет: разработка ПСД стадий [П / РП / РД] по объекту «[___]» согласно Заданию на проектирование (Приложение 1)
+Стороны: Заказчик {{company}}; Проектировщик [___], лицензия № [___], категория [___]
+Предмет: разработка ПСД стадий [П / РП / РД] по объекту «{{name}}» согласно Заданию на проектирование (Приложение 1)
 
 Цена: [___] тг, в т.ч. НДС [___] / без НДС. Фиксированная, изменяется только при изменении Задания.
 Этапы и оплата:
@@ -881,15 +952,15 @@ design_contract: { title: "Договор на проектирование: к�
 Расторжение: Заказчик вправе отказаться с оплатой фактически выполненного.` },
 
 expert_letter: { title: "Сопроводительное письмо на экспертизу и перечень документов", ext: "txt", body:
-`[Бланк организации]
+`{{company}}
 Исх. № [___] от [дд.мм.гггг]
 
 [Руководителю экспертной организации]
 
 Просим провести комплексную вневедомственную экспертизу рабочего проекта
-«Многоквартирный жилой комплекс [Название] по адресу [___]».
+«Многоквартирный жилой комплекс {{name}} по адресу {{address}}».
 
-Сведения об объекте: [___] блоков, этажность [___], общая площадь [___] м², сметная стоимость [___] тг.
+Сведения об объекте: {{blocks}} блоков, этажность {{floors}}, общая площадь {{area_total}} м², сметная стоимость [___] тг.
 Источник финансирования: [собственные / заёмные / бюджетные средства].
 Уровень ответственности: [___].
 
@@ -908,7 +979,7 @@ expert_letter: { title: "Сопроводительное письмо на эк
 
 Ответственный за снятие замечаний: [ФИО, телефон, e-mail]
 
-Директор ________ [ФИО]` },
+Директор ________ {{director}}` },
 
 bank_pack: { title: "Пакет документов на проектное финансирование", ext: "txt", body:
 `ПАКЕТ ДОКУМЕНТОВ ДЛЯ БАНКА / КЖК НА ФИНАНСИРОВАНИЕ ПРОЕКТА
@@ -943,8 +1014,8 @@ tender_invite: { title: "Приглашение к тендеру на генп�
 `ПРИГЛАШЕНИЕ К УЧАСТИЮ В ТЕНДЕРЕ
 на выполнение функций генерального подрядчика
 
-Заказчик: [___]
-Объект: многоквартирный жилой комплекс «[Название]», г. [___]
+Заказчик: {{company}}
+Объект: многоквартирный жилой комплекс «{{name}}», г. {{city}}
 Объём работ: строительство «под ключ» согласно ПСД (положительное заключение № [___])
 Срок строительства: [___] месяцев с даты начала работ
 
@@ -975,8 +1046,8 @@ tender_invite: { title: "Приглашение к тендеру на генп�
 gc_contract: { title: "Договор генподряда: ключевые условия", ext: "txt", body:
 `ДОГОВОР ГЕНЕРАЛЬНОГО ПОДРЯДА — КЛЮЧЕВЫЕ УСЛОВИЯ (term sheet)
 
-Стороны: Заказчик [___]; Генподрядчик [___], лицензия № [___] категории [___]
-Предмет: строительство объекта «[___]» под ключ по ПСД и рабочей документации
+Стороны: Заказчик {{company}}; Генподрядчик [___], лицензия № [___] категории [___]
+Предмет: строительство объекта «{{name}}» под ключ по ПСД и рабочей документации
 
 ЦЕНА
 — [фиксированная / твёрдая договорная цена] [___] тг, НДС [___]
@@ -1028,7 +1099,7 @@ ddu: { title: "Договор о долевом участии: основные
 [ ] Проектную декларацию, планировку квартиры` },
 
 owner_report: { title: "Ежемесячный отчёт застройщика дольщикам", ext: "txt", body:
-`ОТЧЁТ О ХОДЕ СТРОИТЕЛЬСТВА ЖК «[Название]»
+`ОТЧЁТ О ХОДЕ СТРОИТЕЛЬСТВА ЖК «{{name}}»
 за [месяц, год]
 
 1. ОБЩАЯ ГОТОВНОСТЬ: [___]% (план: [___]%)
@@ -1081,8 +1152,8 @@ smr_notice: { title: "Уведомление о начале СМР: переч�
 tn_contract: { title: "Договор технического надзора: ключевые условия", ext: "txt", body:
 `ДОГОВОР НА ОКАЗАНИЕ УСЛУГ ТЕХНИЧЕСКОГО НАДЗОРА — КЛЮЧЕВЫЕ УСЛОВИЯ
 
-Стороны: Заказчик [___]; Исполнитель [___], аккредитация / аттестаты экспертов № [___]
-Объект: «[___]», адрес [___]
+Стороны: Заказчик {{company}}; Исполнитель [___], аккредитация / аттестаты экспертов № [___]
+Объект: «{{name}}», адрес {{address}}
 
 ОБЪЁМ УСЛУГ
 — контроль соответствия работ ПСД, СП РК и техрегламентам
@@ -1103,7 +1174,7 @@ hidden_works: { title: "Акт освидетельствования скрыт
 `АКТ № [___]
 ОСВИДЕТЕЛЬСТВОВАНИЯ СКРЫТЫХ РАБОТ
 
-Объект: [___]                               г. [___]   [дд.мм.гггг]
+Объект: ЖК «{{name}}»      г. {{city}}   [дд.мм.гггг]
 
 Комиссия в составе:
 — представитель генподрядчика: [ФИО, должность]
@@ -1134,7 +1205,7 @@ defect_order: { title: "Предписание об устранении зам�
 `ПРЕДПИСАНИЕ № [___]
 об устранении замечаний
 
-Объект: [___]                               [дд.мм.гггг]
+Объект: ЖК «{{name}}»      [дд.мм.гггг]
 Выдано: [генподрядчику / субподрядчику — наименование, ответственное лицо]
 Выдал: [технический надзор / заказчик — ФИО, должность]
 
@@ -1155,7 +1226,7 @@ test_act: { title: "Акт индивидуального испытания с�
 `АКТ № [___]
 ИНДИВИДУАЛЬНОГО ИСПЫТАНИЯ СИСТЕМЫ / ОБОРУДОВАНИЯ
 
-Объект: [___]                               [дд.мм.гггг]
+Объект: ЖК «{{name}}»      [дд.мм.гггг]
 Система: [например, отопление блока 2 / внутренний водопровод / пожарная сигнализация]
 
 Комиссия: генподрядчик [___], монтажная организация [___], технадзор [___], эксплуатирующая организация [___] (при необходимости)
@@ -1177,7 +1248,7 @@ balance_act: { title: "Акт разграничения балансовой п
 
 [Эксплуатирующая организация] («Сетевая организация») и [застройщик / ОСИ] («Потребитель») составили акт о том, что:
 
-1. Объект: ЖК «[___]», адрес [___]
+1. Объект: ЖК «{{name}}», адрес {{address}}
 2. Вид сетей: [электрические / водопровод / канализация / тепловые / газ]
 3. Граница балансовой принадлежности: [например, наконечники кабелей в РУ-0,4 кВ ТП-___ / первый фланцевый узел после колодца ВК-___]
 4. Граница эксплуатационной ответственности: [совпадает с балансовой / иное]
@@ -1224,7 +1295,7 @@ commission_act: { title: "Акт приёмки объекта в эксплуа
 [ ] Первичная регистрация объекта в НАО «Правительство для граждан»` },
 
 owner_notice: { title: "Уведомление дольщику о готовности к передаче", ext: "txt", body:
-`[Бланк застройщика]
+`{{company}}
 Исх. № [___] от [дд.мм.гггг]
 
 [ФИО дольщика]
@@ -1232,7 +1303,7 @@ owner_notice: { title: "Уведомление дольщику о готовн�
 
 Уважаемый(ая) [Имя Отчество]!
 
-Сообщаем, что объект ЖК «[Название]» по адресу [___] принят в эксплуатацию (акт от [дата]).
+Сообщаем, что объект ЖК «{{name}}» по адресу {{address}} принят в эксплуатацию (акт от [дата]).
 По договору о долевом участии № [___] от [___] Вам подлежит передаче квартира № [___], блок [___], этаж [___].
 
 Фактическая площадь по обмерам: [___] м² (по договору: [___] м²).
@@ -1248,13 +1319,13 @@ owner_notice: { title: "Уведомление дольщику о готовн�
 handover_act: { title: "Акт приёма-передачи квартиры", ext: "txt", body:
 `АКТ ПРИЁМА-ПЕРЕДАЧИ КВАРТИРЫ
 
-г. [___]                                    [дд.мм.гггг]
+г. {{city}}                                    [дд.мм.гггг]
 
-[Застройщик], БИН [___], в лице [___] («Застройщик»), и [ФИО дольщика], ИИН [___] («Дольщик»),
+{{company}}, БИН {{bin}}, в лице директора {{director}} («Застройщик»), и [ФИО дольщика], ИИН [___] («Дольщик»),
 составили акт по договору о долевом участии № [___] от [___].
 
 1. Застройщик передал, а Дольщик принял квартиру:
-   адрес [___], блок [___], этаж [___], квартира № [___]
+   адрес {{address}}, блок [___], этаж [___], квартира № [___]
    количество комнат [___], фактическая общая площадь [___] м²
 2. Состояние квартиры: [черновая / white box / чистовая отделка] согласно приложению к договору.
 3. Показания приборов учёта на дату передачи:
@@ -1269,7 +1340,7 @@ handover_act: { title: "Акт приёма-передачи квартиры", 
 osi_protocol: { title: "Протокол собрания о создании ОСИ", ext: "txt", body:
 `ПРОТОКОЛ № [1]
 собрания собственников квартир, нежилых помещений многоквартирного жилого дома
-по адресу: [___]
+по адресу: {{address}}
 
 Дата: [___]   Форма проведения: [очное / письменный опрос / электронное голосование]
 Общее количество собственников: [___]; приняли участие: [___] ([__]%)
@@ -1300,7 +1371,7 @@ warranty_claim: { title: "Гарантийная заявка собственн
 
 Дата подачи: [___]
 Собственник: [ФИО], телефон [___]
-Адрес: ЖК «[___]», блок [___], квартира [___]
+Адрес: ЖК «{{name}}», блок [___], квартира [___]
 Дата акта приёма-передачи: [___]
 
 ОПИСАНИЕ НЕДОСТАТКА
@@ -1318,7 +1389,7 @@ warranty_claim: { title: "Гарантийная заявка собственн
 Выполнено: [дата]   Подпись собственника о приёмке работ: ________` },
 
 closeout: { title: "Отчёт о закрытии проекта и разбор уроков", ext: "txt", body:
-`ОТЧЁТ О ЗАКРЫТИИ ПРОЕКТА ЖК «[Название]»
+`ОТЧЁТ О ЗАКРЫТИИ ПРОЕКТА ЖК «{{name}}»
 
 1. ИТОГИ ПРОТИВ ПЛАНА
    Показатель            | План       | Факт       | Отклонение
@@ -1350,40 +1421,167 @@ closeout: { title: "Отчёт о закрытии проекта и разбо�
 };
 </script>
 
+<script id="docx-lib">
+// Минимальный генератор .docx: текст шаблона -> документ Word (zip без сжатия).
+window.buildDocx = (function () {
+  const enc = new TextEncoder();
+  const CRC = new Uint32Array(256).map((_, n) => {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+    return c >>> 0;
+  });
+  function crc32(b) {
+    let c = 0xFFFFFFFF;
+    for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 0xFF] ^ (c >>> 8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  }
+  function zip(files) {
+    const parts = [], central = [];
+    let offset = 0;
+    const DATE = ((2026 - 1980) << 9) | (1 << 5) | 1;
+    files.forEach(f => {
+      const name = enc.encode(f.name), data = enc.encode(f.data), crc = crc32(data);
+      const h = new DataView(new ArrayBuffer(30));
+      h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true);
+      h.setUint16(8, 0, true); h.setUint16(10, 0, true); h.setUint16(12, DATE, true);
+      h.setUint32(14, crc, true); h.setUint32(18, data.length, true); h.setUint32(22, data.length, true);
+      h.setUint16(26, name.length, true); h.setUint16(28, 0, true);
+      const c = new DataView(new ArrayBuffer(46));
+      c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true);
+      c.setUint16(10, 0, true); c.setUint16(12, 0, true); c.setUint16(14, DATE, true);
+      c.setUint32(16, crc, true); c.setUint32(20, data.length, true); c.setUint32(24, data.length, true);
+      c.setUint16(28, name.length, true); c.setUint32(42, offset, true);
+      parts.push(new Uint8Array(h.buffer), name, data);
+      central.push(new Uint8Array(c.buffer), name);
+      offset += 30 + name.length + data.length;
+    });
+    const cdSize = central.reduce((s, a) => s + a.length, 0);
+    const e = new DataView(new ArrayBuffer(22));
+    e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true);
+    e.setUint32(12, cdSize, true); e.setUint32(16, offset, true);
+    const all = parts.concat(central, [new Uint8Array(e.buffer)]);
+    const out = new Uint8Array(all.reduce((s, a) => s + a.length, 0));
+    let p = 0;
+    all.forEach(a => { out.set(a, p); p += a.length; });
+    return out;
+  }
+  const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const isHead = t => t.length > 2 && /[А-ЯЁA-Z]{3}/.test(t) && !/[а-яёa-z]/.test(t);
+  function run(t, o) {
+    o = o || {};
+    let pr = "";
+    if (o.mono) pr += '<w:rFonts w:ascii="Courier New" w:hAnsi="Courier New" w:cs="Courier New"/>';
+    if (o.b) pr += "<w:b/>";
+    if (o.i) pr += "<w:i/>";
+    if (o.color) pr += '<w:color w:val="' + o.color + '"/>';
+    if (o.sz) pr += '<w:sz w:val="' + o.sz + '"/><w:szCs w:val="' + o.sz + '"/>';
+    return "<w:r><w:rPr>" + pr + '</w:rPr><w:t xml:space="preserve">' + esc(t) + "</w:t></w:r>";
+  }
+  function para(inner, o) {
+    o = o || {};
+    return "<w:p><w:pPr>" + (o.center ? '<w:jc w:val="center"/>' : "") +
+      '<w:spacing w:before="' + (o.before || 0) + '" w:after="' + (o.after || 0) + '" w:line="264" w:lineRule="auto"/></w:pPr>' + inner + "</w:p>";
+  }
+  return function buildDocx(text) {
+    let body = "", titled = false;
+    text.replace(/\r/g, "").split("\n").forEach((line, i) => {
+      const t = line.replace(/^(\s*)\[ \] /, "$1☐ ");
+      const s = t.trim();
+      if (!s) { body += para(""); return; }
+      if (i === 0 && s.startsWith("ОБРАЗЕЦ")) { body += para(run(s, { i: true, sz: 18, color: "7A7A7A" }), { after: 240 }); return; }
+      if (isHead(s)) {
+        if (!titled) { titled = true; body += para(run(s, { b: true, sz: 28 }), { center: true, after: 120 }); return; }
+        body += para(run(s, { b: true }), { before: 160, after: 60 }); return;
+      }
+      const mono = /\S {5,}\S/.test(t) || t.indexOf(" | ") >= 0;
+      body += para(mono ? run(t, { mono: true, sz: 20 }) : run(t));
+    });
+    const W = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"';
+    const doc = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ' + W + "><w:body>" + body +
+      '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="850" w:bottom="1134" w:left="1701" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>';
+    const styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles ' + W + '><w:docDefaults><w:rPrDefault><w:rPr>' +
+      '<w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman" w:eastAsia="Times New Roman"/>' +
+      '<w:sz w:val="24"/><w:szCs w:val="24"/><w:lang w:val="ru-RU"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr/></w:pPrDefault></w:docDefaults>' +
+      '<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style></w:styles>';
+    return zip([
+      { name: "[Content_Types].xml", data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>' },
+      { name: "_rels/.rels", data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>' },
+      { name: "word/_rels/document.xml.rels", data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>' },
+      { name: "word/document.xml", data: doc },
+      { name: "word/styles.xml", data: styles }
+    ]);
+  };
+})();
+</script>
+
 <script>
 (function () {
   const T = window.TREE;
   const byId = Object.fromEntries(T.nodes.map(n => [n.id, n]));
   const children = Object.fromEntries(T.nodes.map(n => [n.id, []]));
   T.nodes.forEach(n => n.req.forEach(r => children[r].push(n.id)));
+  const fieldLabel = Object.fromEntries(T.fields.map(f => [f.id, f.label]));
+  const fieldBlank = Object.fromEntries(T.fields.map(f => [f.id, f.blank || f.label]));
   const totalTasks = T.nodes.reduce((s, n) => s + n.tasks.length, 0);
   const XP_PER_TASK = 10;
   const RANKS = [[0, "Стажёр"], [1, "Аналитик"], [4, "Девелопер"], [8, "Застройщик"], [13, "Генеральный застройщик"], [20, "Магнат ЖК"]];
-  const STATUS = { locked: "Закрыт", open: "Доступен", active: "В работе", done: "Пройден" };
-  const LOCAL_KEY = "zhk-skill-tree-v1";
+  const STATUS = { locked: "Закрыт", open: "Доступен", active: "В работе", risk: "Начат с риском", done: "Пройден" };
+  const LOCAL_KEY = "zhk-skill-tree-v2", LEGACY_KEY = "zhk-skill-tree-v1";
 
-  let checked = {};
+  // S — всё состояние проекта: отметки, ответственные и сроки, досрочные старты, карточка проекта.
+  let S = { checked: {}, meta: {}, early: {}, project: {} };
   let selected = null;
-  let db = null, docRef = null, docExists = false, readOnly = false;
+  let docRef = null, docExists = false, readOnly = false;
   let downloads = null;
+  const openEdits = new Set();
+  let earlyFormFor = null;
+
+  // --- helpers ------------------------------------------------------------
+  const isObj = v => v && typeof v === "object" && !Array.isArray(v);
+  function merge(t, p) {
+    Object.keys(p).forEach(k => {
+      if (isObj(p[k]) && isObj(t[k])) merge(t[k], p[k]);
+      else t[k] = isObj(p[k]) ? JSON.parse(JSON.stringify(p[k])) : p[k];
+    });
+  }
+  function normalize(d) {
+    d = isObj(d) ? JSON.parse(JSON.stringify(d)) : {};
+    ["checked", "meta", "early", "project"].forEach(k => { if (!isObj(d[k])) d[k] = {}; });
+    return d;
+  }
+  function today() {
+    const d = new Date();
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  }
+  const fmt = iso => iso ? iso.slice(8, 10) + "." + iso.slice(5, 7) + "." + iso.slice(0, 4) : "";
+  const daysTo = iso => Math.round((Date.parse(iso) - Date.parse(today())) / 86400000);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   // --- storage ------------------------------------------------------------
-  function loadLocal() { try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || "{}"); } catch (e) { return {}; } }
-  function saveLocal() { try { localStorage.setItem(LOCAL_KEY, JSON.stringify(checked)); } catch (e) {} }
+  function loadLocal() {
+    try {
+      const v2 = localStorage.getItem(LOCAL_KEY);
+      if (v2) return normalize(JSON.parse(v2));
+      const v1 = localStorage.getItem(LEGACY_KEY);
+      if (v1) return normalize({ checked: JSON.parse(v1) });
+    } catch (e) {}
+    return normalize({});
+  }
+  function saveLocal() { try { localStorage.setItem(LOCAL_KEY, JSON.stringify(S)); } catch (e) {} }
   function setSync(mode, text) { const el = document.getElementById("sync"); el.dataset.mode = mode; el.textContent = text; }
+  const hasData = () => ["checked", "meta", "early", "project"].some(k => Object.keys(S[k]).length);
 
   let writeChain = Promise.resolve();
-  function persist(patch) {
-    saveLocal();
+  function write(patch) {
     if (!docRef || readOnly) return;
     writeChain = writeChain.then(async () => {
       try {
-        if (docExists) await docRef.update({ checked: patch });
-        else { await docRef.set({ checked: { ...checked } }); docExists = true; }
+        if (docExists) await docRef.update(patch);
+        else { await docRef.set(JSON.parse(JSON.stringify(S))); docExists = true; }
       } catch (e) {
         if (e && e.code === "invalid_argument") {
           // update() на несуществующем документе или нет прав на запись
-          try { await docRef.set({ checked: { ...checked } }); docExists = true; return; }
+          try { await docRef.set(JSON.parse(JSON.stringify(S))); docExists = true; return; }
           catch (e2) {
             if (e2 && e2.code === "invalid_argument") {
               readOnly = true; setSync("local", "Только просмотр: изменения не сохраняются"); renderAll(); return;
@@ -1394,25 +1592,30 @@ closeout: { title: "Отчёт о закрытии проекта и разбо�
       }
     });
   }
+  function commit(patch, opts) {
+    merge(S, patch); saveLocal(); write(patch);
+    if (opts && opts.deferPanel) {
+      // Фокус ещё переходит на следующее поле: перерисуем панель, когда он устроится.
+      renderHud(); renderTree(); setTimeout(() => renderPanel(), 0);
+    } else renderAll();
+  }
 
   async function connect() {
     const use = window.claude && window.claude.use;
     if (!use) { setSync("local", "Прогресс сохраняется в этом браузере"); return; }
     try { downloads = await use("downloads"); } catch (e) { downloads = null; }
-    renderPanel();
+    let db = null;
     try { db = await use("db"); } catch (e) { db = null; }
     if (!db) { setSync("local", "Прогресс сохраняется в этом браузере"); return; }
     docRef = db.doc("progress/main");
     setSync("pending", "Синхронизация…");
     docRef.onSnapshot(snap => {
       docExists = snap.exists;
-      const data = snap.exists ? snap.data() : null;
-      const remote = (data && data.checked) || {};
-      if (!snap.exists && Object.keys(checked).some(k => checked[k])) {
+      if (!snap.exists && hasData()) {
         // Первый запуск общего хранилища: переносим локальный прогресс.
-        persist({ ...checked });
+        write({});
       } else {
-        checked = { ...remote };
+        S = normalize(snap.exists ? snap.data() : {});
         saveLocal();
       }
       setSync("shared", readOnly ? "Только просмотр" : "Общий прогресс команды сохраняется");
@@ -1422,14 +1625,18 @@ closeout: { title: "Отчёт о закрытии проекта и разбо�
 
   // --- state --------------------------------------------------------------
   const key = (n, i) => n.id + "." + i;
-  const doneCount = n => n.tasks.reduce((s, _, i) => s + (checked[key(n, i)] ? 1 : 0), 0);
+  const doneCount = n => n.tasks.reduce((s, _, i) => s + (S.checked[key(n, i)] ? 1 : 0), 0);
   const isDone = n => doneCount(n) === n.tasks.length;
   const isUnlocked = n => n.req.every(r => isDone(byId[r]));
+  const metaOf = k => S.meta[k] || {};
+  const isLate = k => !S.checked[k] && metaOf(k).due && daysTo(metaOf(k).due) < 0;
+  const lateCount = n => n.tasks.reduce((s, _, i) => s + (isLate(key(n, i)) ? 1 : 0), 0);
   function stateOf(n) {
     if (isDone(n)) return "done";
-    if (!isUnlocked(n)) return "locked";
-    return doneCount(n) > 0 ? "active" : "open";
+    if (isUnlocked(n)) return doneCount(n) > 0 ? "active" : "open";
+    return S.early[n.id] ? "risk" : "locked";
   }
+  const editable = n => !readOnly && stateOf(n) !== "locked";
 
   // --- tree ---------------------------------------------------------------
   const treeEl = document.getElementById("tree");
@@ -1442,15 +1649,14 @@ closeout: { title: "Отчёт о закрытии проекта и разбо�
     Object.keys(tiers).map(Number).sort((a, b) => a - b).forEach(lvl => {
       const row = document.createElement("div");
       row.className = "tier";
-      const phase = tiers[lvl][0].phase;
       row.innerHTML = '<div class="tier-label"><b>LVL ' + String(lvl).padStart(2, "0") + '</b><span></span></div><div class="tier-nodes"></div>';
-      row.querySelector(".tier-label span").textContent = phase;
+      row.querySelector(".tier-label span").textContent = tiers[lvl][0].phase;
       const wrap = row.querySelector(".tier-nodes");
       tiers[lvl].forEach(n => {
         const b = document.createElement("button");
         b.className = "node";
         b.type = "button";
-        b.innerHTML = '<span class="hex"><span class="hex-in"></span></span><span class="node-name"></span><span class="node-sub mono"></span>';
+        b.innerHTML = '<span class="node-flag" hidden></span><span class="hex"><span class="hex-in"></span></span><span class="node-name"></span><span class="node-sub mono"></span>';
         b.querySelector(".node-name").textContent = n.name;
         b.addEventListener("click", () => select(n.id, true));
         nodeEls[n.id] = b;
@@ -1465,12 +1671,16 @@ closeout: { title: "Отчёт о закрытии проекта и разбо�
       const b = nodeEls[n.id];
       const st = stateOf(n);
       const dc = doneCount(n);
+      const late = lateCount(n);
       b.dataset.state = st;
       b.setAttribute("aria-current", selected === n.id ? "true" : "false");
       b.querySelector(".hex").style.setProperty("--p", Math.round(dc / n.tasks.length * 100));
       b.querySelector(".hex-in").textContent = st === "done" ? "✓" : n.code;
-      b.querySelector(".node-sub").textContent = st === "locked" ? "закрыт" : dc + " / " + n.tasks.length;
-      b.setAttribute("aria-label", n.name + ", " + STATUS[st] + ", выполнено " + dc + " из " + n.tasks.length);
+      b.querySelector(".node-sub").textContent = st === "locked" ? "закрыт" : (st === "risk" ? "досрочно · " : "") + dc + " / " + n.tasks.length;
+      const flag = b.querySelector(".node-flag");
+      flag.hidden = !late;
+      flag.textContent = "!" + late;
+      b.setAttribute("aria-label", n.name + ", " + STATUS[st] + ", выполнено " + dc + " из " + n.tasks.length + (late ? ", просрочено " + late : ""));
     });
     drawEdges();
   }
@@ -1486,7 +1696,7 @@ closeout: { title: "Отчёт о закрытии проекта и разбо�
       const x2 = c.left + c.width / 2 - box.left, y2 = c.top - box.top;
       const my = (y2 - y1) / 2;
       const cls = isDone(byId[r]) ? (isDone(n) ? "done" : "open") : "";
-      out += '<path class="' + cls + '" d="M' + x1 + ' ' + y1 + ' C' + x1 + ' ' + (y1 + my) + ' ' + x2 + ' ' + (y2 - my) + ' ' + x2 + ' ' + y2 + '"/>';
+      out += '<path class="' + cls + '" d="M' + x1 + " " + y1 + " C" + x1 + " " + (y1 + my) + " " + x2 + " " + (y2 - my) + " " + x2 + " " + y2 + '"/>';
     }));
     edgesEl.innerHTML = out;
   }
@@ -1495,6 +1705,7 @@ closeout: { title: "Отчёт о закрытии проекта и разбо�
   function renderHud() {
     const tasksDone = T.nodes.reduce((s, n) => s + doneCount(n), 0);
     const stagesDone = T.nodes.filter(isDone).length;
+    const late = T.nodes.reduce((s, n) => s + lateCount(n), 0);
     let rank = RANKS[0][1];
     RANKS.forEach(([min, name]) => { if (stagesDone >= min) rank = name; });
     document.getElementById("xp").textContent = (tasksDone * XP_PER_TASK) + " / " + (totalTasks * XP_PER_TASK) + " XP";
@@ -1504,101 +1715,245 @@ closeout: { title: "Отчёт о закрытии проекта и разбо�
     const bar = document.getElementById("xpbar");
     bar.setAttribute("aria-valuenow", pct);
     bar.querySelector("i").style.width = pct + "%";
+    const od = document.getElementById("overdue");
+    od.hidden = !late;
+    od.textContent = "Просрочено пунктов: " + late;
+    const p = S.project;
+    document.getElementById("project-line").textContent = p.name
+      ? "ЖК «" + p.name + "»" + (p.city ? " · г. " + p.city : "") + (p.company ? " · " + p.company : "")
+      : "Девелопмент · Республика Казахстан";
   }
 
   // --- panel --------------------------------------------------------------
   const panel = document.getElementById("panel");
   const inner = document.getElementById("panel-inner");
-  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  let panelDirty = false;
+  function panelBusy() {
+    const a = document.activeElement;
+    return !!a && panel.contains(a) && (a.tagName === "TEXTAREA" || (a.tagName === "INPUT" && a.type !== "checkbox"));
+  }
+  panel.addEventListener("focusout", () => setTimeout(() => {
+    if (panelDirty && !panelBusy()) { panelDirty = false; renderPanel(); }
+  }, 0));
+  // Не перерисовываем панель посреди клика: иначе кнопка под курсором исчезнет и клик потеряется.
+  let pointerDown = false, pendingPanel = false;
+  document.addEventListener("pointerdown", () => { pointerDown = true; }, true);
+  document.addEventListener("pointerup", () => {
+    pointerDown = false;
+    if (pendingPanel) { pendingPanel = false; setTimeout(() => renderPanel(), 0); }
+  }, true);
 
   function chip(id) {
     const n = byId[id];
     return '<button class="chip" type="button" data-go="' + n.id + '" data-state="' + stateOf(n) + '">' + esc(n.code + " · " + n.name) + "</button>";
   }
 
-  function renderPanel() {
+  function gateHtml(n, st, dc) {
+    const left = n.tasks.length - dc;
+    const pending = n.req.filter(r => !isDone(byId[r])).map(r => esc(byId[r].name)).join(", ");
+    if (st === "done") {
+      return '<div class="gate" data-state="done"><b>Условия перехода выполнены</b><span>' + (children[n.id].length ? "Следующие этапы открыты." : "Проект завершён. Поздравляем!") + "</span></div>";
+    }
+    if (st === "risk") {
+      const e = S.early[n.id];
+      return '<div class="gate" data-state="risk"><b>Начат досрочно, с риском</b><span>Ещё не пройдены: ' + pending + ".</span>" +
+        "<span>Причина: " + esc(e.reason) + " (" + fmt(e.at) + ")</span><span>Осталось " + left + " из " + n.tasks.length + ".</span>" +
+        (dc === 0 && !readOnly ? '<button class="btn" type="button" data-early-revoke>Отменить досрочный старт</button>' : "") + "</div>";
+    }
+    if (st === "locked") {
+      let html = '<div class="gate" data-state="locked"><b>Этап закрыт</b><span>Сначала пройдите: ' + pending + ".</span>";
+      if (!readOnly && earlyFormFor !== n.id) html += '<button class="btn" type="button" data-early-open>Начать досрочно</button>';
+      html += "</div>";
+      if (!readOnly && earlyFormFor === n.id) {
+        html += '<div class="early-form"><label class="field" for="early-reason"><span>Почему начинаете раньше? Обязательное поле</span>' +
+          '<textarea id="early-reason" rows="3" maxlength="400" placeholder="Например: запускаем тендер параллельно с экспертизой, чтобы не потерять строительный сезон"></textarea></label>' +
+          '<div class="row"><button class="btn primary" type="button" data-early-go disabled>Начать с риском</button><button class="btn ghost" type="button" data-early-cancel>Отмена</button></div></div>';
+      }
+      return html;
+    }
+    return '<div class="gate"><b>Осталось ' + left + " из " + n.tasks.length + "</b><span>Отметьте все пункты, чтобы открыть следующий этап.</span></div>";
+  }
+
+  function taskHtml(n, t, i) {
+    const k = key(n, i);
+    const m = metaOf(k);
+    const done = !!S.checked[k];
+    const late = isLate(k);
+    const dis = editable(n) ? "" : " disabled";
+    const chips = [];
+    if (m.who) chips.push('<span class="mchip">Отв.: ' + esc(m.who) + "</span>");
+    if (done && m.doneAt) chips.push('<span class="mchip" data-tone="ok">Выполнено ' + fmt(m.doneAt) + "</span>");
+    else if (m.due) {
+      const d = daysTo(m.due);
+      const tone = d < 0 ? "late" : d <= 7 ? "soon" : "";
+      const txt = d < 0 ? "Просрочено, срок был " + fmt(m.due) : "Срок " + fmt(m.due) + (d === 0 ? ", сегодня" : "");
+      chips.push('<span class="mchip"' + (tone ? ' data-tone="' + tone + '"' : "") + ">" + txt + "</span>");
+    }
+    const open = openEdits.has(k);
+    const id = "t-" + k;
+    return '<li class="task" data-late="' + late + '">' +
+      '<div class="task-row"><label for="' + id + '"><input type="checkbox" id="' + id + '" data-k="' + k + '"' + (done ? " checked" : "") + dis + "><span>" + esc(t) + "</span></label>" +
+      (editable(n) ? '<button class="btn ghost task-more" type="button" data-edit="' + k + '" aria-expanded="' + open + '">' + (open ? "Готово" : (m.who || m.due ? "Изменить" : "Назначить")) + "</button>" : "") + "</div>" +
+      '<div class="task-meta">' + chips.join("") + "</div>" +
+      (open && editable(n)
+        ? '<div class="task-edit"><label class="field" for="who-' + k + '"><span>Ответственный</span><input type="text" id="who-' + k + '" data-meta="who" data-k="' + k + '" maxlength="80" placeholder="ФИО или роль" value="' + esc(m.who || "") + '"></label>' +
+          '<label class="field" for="due-' + k + '"><span>Срок</span><input type="date" id="due-' + k + '" data-meta="due" data-k="' + k + '" value="' + esc(m.due || "") + '"></label></div>'
+        : "") +
+      "</li>";
+  }
+
+  function renderPanel(force) {
+    if (!force && panelBusy()) { panelDirty = true; return; }
+    if (!force && pointerDown) { pendingPanel = true; return; }
     const n = byId[selected];
     if (!n) { inner.innerHTML = ""; return; }
     const st = stateOf(n);
     const dc = doneCount(n);
-    const left = n.tasks.length - dc;
-    const lockedBy = n.req.filter(r => !isDone(byId[r]));
-    let gate;
-    if (st === "done") gate = '<div class="gate" data-state="done"><b>Условия перехода выполнены</b><span>' + (children[n.id].length ? "Следующие этапы открыты." : "Проект завершён. Поздравляем!") + "</span></div>";
-    else if (st === "locked") gate = '<div class="gate" data-state="locked"><b>Этап закрыт</b><span>Сначала пройдите: ' + lockedBy.map(r => esc(byId[r].name)).join(", ") + ".</span></div>";
-    else gate = '<div class="gate"><b>Осталось ' + left + " из " + n.tasks.length + "</b><span>Отметьте все пункты, чтобы открыть следующий этап.</span></div>";
-
-    const tasks = n.tasks.map((t, i) => {
-      const id = "t-" + n.id + "-" + i;
-      const dis = st === "locked" || readOnly ? " disabled" : "";
-      return '<li class="task"><label for="' + id + '"><input type="checkbox" id="' + id + '" data-k="' + key(n, i) + '"' + (checked[key(n, i)] ? " checked" : "") + dis + "><span>" + esc(t) + "</span></label></li>";
-    }).join("");
-
     const docs = n.docs.map(d => {
       const tpl = T.templates[d];
-      return '<div class="doc"><span class="doc-ext">' + (tpl.ext === "csv" ? "xls" : tpl.ext) + '</span><span class="doc-title">' + esc(tpl.title) + '</span><button class="btn" type="button" data-doc="' + d + '">Открыть</button></div>';
+      return '<div class="doc"><span class="doc-ext">' + (tpl.ext === "csv" ? "xls" : "docx") + '</span><span class="doc-title">' + esc(tpl.title) + '</span><button class="btn" type="button" data-doc="' + d + '">Открыть</button></div>';
     }).join("");
+    const late = lateCount(n);
 
     inner.innerHTML =
       '<div class="panel-head"><div class="eyebrow">Этап ' + n.code + " · LVL " + n.lvl + " · " + esc(n.phase) + "</div>" +
-      "<h2>" + esc(n.name) + '</h2><div class="chips"><span class="chip status" data-state="' + st + '">' + STATUS[st] + '</span><span class="chip">Срок: ' + esc(n.dur) + "</span></div></div>" +
+      "<h2>" + esc(n.name) + '</h2><div class="chips"><span class="chip status" data-state="' + st + '">' + STATUS[st] + '</span><span class="chip">Срок: ' + esc(n.dur) + "</span>" +
+      (late ? '<span class="chip" style="background:var(--late);color:var(--surface);border-color:var(--late)">Просрочено: ' + late + "</span>" : "") + "</div></div>" +
       '<p class="desc">' + esc(n.desc) + "</p>" +
       '<dl class="facts">' +
         (n.req.length ? '<dt>Требует</dt><dd class="chips">' + n.req.map(chip).join("") + "</dd>" : "<dt>Требует</dt><dd>Стартовый этап</dd>") +
         (children[n.id].length ? '<dt>Открывает</dt><dd class="chips">' + children[n.id].map(chip).join("") + "</dd>" : "") +
       "</dl>" +
-      '<div><div class="section-title"><h3 class="eyebrow">Условия перехода</h3><span class="mono" style="font-size:12px;color:var(--muted)">' + dc + " / " + n.tasks.length + " · +" + n.tasks.length * XP_PER_TASK + " XP</span></div>" + gate + '<ul class="tasks" style="margin-top:8px">' + tasks + "</ul></div>" +
+      '<div><div class="section-title"><h3 class="eyebrow">Условия перехода</h3><span class="mono" style="font-size:12px;color:var(--muted)">' + dc + " / " + n.tasks.length + " · +" + n.tasks.length * XP_PER_TASK + " XP</span></div>" +
+        gateHtml(n, st, dc) + '<ul class="tasks" style="margin-top:8px">' + n.tasks.map((t, i) => taskHtml(n, t, i)).join("") + "</ul></div>" +
       '<div><div class="section-title"><h3 class="eyebrow">Образцы документов</h3></div><div class="docs">' + docs + "</div></div>" +
       (n.tip ? '<div class="tip"><b>Совет</b>' + esc(n.tip) + "</div>" : "");
   }
 
   inner.addEventListener("change", e => {
-    const k = e.target.dataset && e.target.dataset.k;
+    const el = e.target;
+    const k = el.dataset && el.dataset.k;
     if (!k) return;
+    if (el.dataset.meta) {
+      const val = el.value.trim();
+      if ((metaOf(k)[el.dataset.meta] || "") === val) return;
+      commit({ meta: { [k]: { [el.dataset.meta]: val } } }, { deferPanel: true });
+      return;
+    }
     const nodeId = k.split(".")[0];
     const wasDone = isDone(byId[nodeId]);
-    checked[k] = e.target.checked;
-    persist({ [k]: e.target.checked });
-    renderAll();
+    commit({ checked: { [k]: el.checked }, meta: { [k]: { doneAt: el.checked ? today() : "" } } });
     if (!wasDone && isDone(byId[nodeId])) {
       const opened = children[nodeId].filter(c => isUnlocked(byId[c])).map(c => byId[c].name);
       toast(opened.length ? "Этап пройден! Открыто: " + opened.join(", ") : "Этап пройден!");
+    }
+  });
+  inner.addEventListener("input", e => {
+    if (e.target.id === "early-reason") {
+      const go = inner.querySelector("[data-early-go]");
+      if (go) go.disabled = e.target.value.trim().length < 10;
     }
   });
   inner.addEventListener("click", e => {
     const go = e.target.closest("[data-go]");
     if (go) { select(go.dataset.go, true); return; }
     const d = e.target.closest("[data-doc]");
-    if (d) openDoc(d.dataset.doc);
+    if (d) { openDoc(d.dataset.doc); return; }
+    const ed = e.target.closest("[data-edit]");
+    if (ed) {
+      const k = ed.dataset.edit;
+      if (openEdits.has(k)) openEdits.delete(k); else openEdits.add(k);
+      renderPanel(true);
+      if (openEdits.has(k)) { const w = document.getElementById("who-" + k); if (w) w.focus(); }
+      return;
+    }
+    if (e.target.closest("[data-early-open]")) {
+      earlyFormFor = selected; renderPanel(true);
+      const ta = document.getElementById("early-reason"); if (ta) ta.focus();
+      return;
+    }
+    if (e.target.closest("[data-early-cancel]")) { earlyFormFor = null; renderPanel(true); return; }
+    if (e.target.closest("[data-early-go]")) {
+      const reason = (document.getElementById("early-reason").value || "").trim();
+      if (reason.length < 10) return;
+      earlyFormFor = null;
+      document.activeElement && document.activeElement.blur();
+      commit({ early: { [selected]: { reason, at: today() } } });
+      toast("Этап начат досрочно. Риск зафиксирован.");
+      return;
+    }
+    if (e.target.closest("[data-early-revoke]")) { commit({ early: { [selected]: null } }); return; }
   });
   document.getElementById("panel-close").addEventListener("click", () => { panel.dataset.open = "false"; });
 
   function select(id, userAction) {
+    if (selected !== id) earlyFormFor = null;
     selected = id;
     if (userAction) {
       panel.dataset.open = "true";
       try { history.replaceState(null, "", "#" + id); } catch (e) {}
       panel.scrollTop = 0;
     }
-    renderAll();
+    renderHud(); renderTree(); renderPanel(true);
   }
 
   function renderAll() { renderHud(); renderTree(); renderPanel(); }
+
+  // --- project card -------------------------------------------------------
+  const pdlg = document.getElementById("project-dlg");
+  document.getElementById("project-fields").innerHTML = T.fields.map(f =>
+    '<label class="field" for="pf-' + f.id + '"><span>' + esc(f.label) + '</span><input type="text" id="pf-' + f.id + '" name="' + f.id + '" maxlength="160" placeholder="' + esc(f.hint) + '"' +
+    (f.id === "bin" ? ' inputmode="numeric"' : "") + "></label>").join("");
+  document.getElementById("project-open").addEventListener("click", () => {
+    T.fields.forEach(f => { const el = document.getElementById("pf-" + f.id); el.value = S.project[f.id] || ""; el.disabled = readOnly; });
+    document.getElementById("p-save").hidden = readOnly;
+    if (pdlg.showModal) pdlg.showModal(); else pdlg.setAttribute("open", "");
+  });
+  document.getElementById("p-close").addEventListener("click", () => pdlg.close());
+  pdlg.addEventListener("click", e => { if (e.target === pdlg) pdlg.close(); });
+  document.getElementById("project-form").addEventListener("submit", e => {
+    e.preventDefault();
+    if (readOnly) return;
+    const project = {};
+    T.fields.forEach(f => { project[f.id] = document.getElementById("pf-" + f.id).value.trim(); });
+    commit({ project });
+    pdlg.close();
+    toast("Карточка сохранена. Данные подставлены в документы.");
+  });
 
   // --- document viewer ----------------------------------------------------
   const viewer = document.getElementById("viewer");
   let currentDoc = null;
   const DISCLAIMER = "ОБРАЗЕЦ ДЛЯ ОЗНАКОМЛЕНИЯ. Перед использованием адаптируйте документ с юристом к действующему законодательству РК.";
+  const fill = body => body.replace(/\{\{(\w+)\}\}/g, (m, id) => (S.project[id] || "").trim() || "[" + (fieldBlank[id] || id) + "]");
   function docText(id) {
     const t = T.templates[id];
-    return t.ext === "csv" ? t.body : DISCLAIMER + "\n\n" + t.body;
+    return t.ext === "csv" ? t.body : DISCLAIMER + "\n\n" + fill(t.body);
+  }
+  function fileName(t, ext) {
+    const base = t.title.replace(/[^\p{L}\p{N}\s-]/gu, "").trim().replace(/\s+/g, "_");
+    const proj = (S.project.name || "").replace(/[^\p{L}\p{N}\s-]/gu, "").trim().replace(/\s+/g, "_");
+    return base + (proj ? "_" + proj : "") + "." + ext;
   }
   function openDoc(id) {
     currentDoc = id;
-    document.getElementById("viewer-title").textContent = T.templates[id].title;
+    const t = T.templates[id];
+    const csv = t.ext === "csv";
+    const tokens = (t.body.match(/\{\{(\w+)\}\}/g) || []).map(s => s.slice(2, -2));
+    const missing = [...new Set(tokens)].filter(f => !(S.project[f] || "").trim());
+    document.getElementById("viewer-title").textContent = t.title;
     document.getElementById("viewer-text").textContent = docText(id);
-    document.getElementById("v-dl").hidden = !downloads;
-    document.getElementById("v-dl").textContent = T.templates[id].ext === "csv" ? "Скачать для Excel" : "Скачать .txt";
+    document.getElementById("viewer-note").textContent = csv
+      ? "Таблица откроется в Excel с формулами. Значения в ней условные."
+      : tokens.length && !missing.length
+        ? "Данные из карточки проекта уже подставлены. Остальные поля в квадратных скобках заполните вручную."
+        : tokens.length
+          ? "Заполните в карточке проекта: " + missing.map(f => fieldLabel[f]).join(", ") + ". Эти данные подставятся автоматически. Остальные поля в квадратных скобках заполните вручную."
+          : "Поля в квадратных скобках заполните своими данными.";
+    const dl = document.getElementById("v-dl"), txt = document.getElementById("v-txt");
+    dl.hidden = !downloads;
+    dl.textContent = csv ? "Скачать для Excel" : "Скачать Word";
+    txt.hidden = !downloads || csv;
     if (viewer.showModal) viewer.showModal(); else viewer.setAttribute("open", "");
   }
   document.getElementById("v-close").addEventListener("click", () => viewer.close());
@@ -1612,17 +1967,23 @@ closeout: { title: "Отчёт о закрытии проекта и разбо�
     };
     try { navigator.clipboard.writeText(text).then(() => toast("Скопировано"), fallback); } catch (e) { fallback(); }
   });
-  document.getElementById("v-dl").addEventListener("click", async () => {
+  async function save(filename, data) {
     if (!downloads) return;
-    const t = T.templates[currentDoc];
-    const name = t.title.replace(/[^\p{L}\p{N}\s-]/gu, "").trim().replace(/\s+/g, "_") + "." + t.ext;
-    const data = t.ext === "csv" ? "﻿" + t.body.replace(/\n/g, "\r\n") : docText(currentDoc).replace(/\n/g, "\r\n");
-    try { await downloads.save({ filename: name, data }); toast("Файл сохранён"); }
+    try { await downloads.save({ filename, data }); toast("Файл сохранён"); }
     catch (e) {
       if (e && e.code === "declined") return;
       if (e && e.code === "rate_limited") { toast("Подождите немного и попробуйте снова"); return; }
       toast("Скачивание недоступно здесь, используйте «Копировать»");
     }
+  }
+  document.getElementById("v-dl").addEventListener("click", () => {
+    const t = T.templates[currentDoc];
+    if (t.ext === "csv") save(fileName(t, "csv"), "﻿" + t.body.replace(/\n/g, "\r\n"));
+    else save(fileName(t, "docx"), window.buildDocx(docText(currentDoc)));
+  });
+  document.getElementById("v-txt").addEventListener("click", () => {
+    const t = T.templates[currentDoc];
+    save(fileName(t, "txt"), docText(currentDoc).replace(/\n/g, "\r\n"));
   });
 
   // --- misc ---------------------------------------------------------------
@@ -1630,18 +1991,19 @@ closeout: { title: "Отчёт о закрытии проекта и разбо�
   function toast(msg) {
     const el = document.getElementById("toast");
     el.textContent = msg; el.hidden = false;
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, 2600);
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, 2800);
   }
 
   const resetZone = document.getElementById("reset-zone");
   resetZone.addEventListener("click", e => {
     if (e.target.id === "reset") {
-      resetZone.innerHTML = '<span class="reset-confirm">Сбросить все отметки? <button class="btn" id="reset-yes">Да, сбросить</button><button class="btn ghost" id="reset-no">Отмена</button></span>';
+      resetZone.innerHTML = '<span class="reset-confirm">Сбросить отметки, сроки и досрочные старты? Карточка проекта останется. <button class="btn" id="reset-yes">Да, сбросить</button><button class="btn ghost" id="reset-no">Отмена</button></span>';
     } else if (e.target.id === "reset-yes" || e.target.id === "reset-no") {
       if (e.target.id === "reset-yes" && !readOnly) {
-        checked = {};
+        S = normalize({ project: S.project });
+        openEdits.clear();
         saveLocal();
-        if (docRef) writeChain = writeChain.then(() => docRef.set({ checked: {} }).then(() => { docExists = true; }).catch(() => {}));
+        if (docRef) writeChain = writeChain.then(() => docRef.set(JSON.parse(JSON.stringify(S))).then(() => { docExists = true; }).catch(() => {}));
         renderAll();
         toast("Прогресс сброшен");
       }
@@ -1650,12 +2012,13 @@ closeout: { title: "Отчёт о закрытии проекта и разбо�
   });
 
   function firstQuest() {
-    const n = T.nodes.find(n => stateOf(n) === "active") || T.nodes.find(n => stateOf(n) === "open") || T.nodes[T.nodes.length - 1];
+    const n = T.nodes.find(n => stateOf(n) === "active") || T.nodes.find(n => stateOf(n) === "risk") ||
+      T.nodes.find(n => stateOf(n) === "open") || T.nodes[T.nodes.length - 1];
     return n.id;
   }
 
   // --- boot ---------------------------------------------------------------
-  checked = loadLocal();
+  S = loadLocal();
   buildTree();
   const hash = (location.hash || "").slice(1);
   selected = byId[hash] ? hash : firstQuest();

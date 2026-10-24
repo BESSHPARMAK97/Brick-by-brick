@@ -1,14 +1,17 @@
-// Генерирует docs/templates/*.md(.csv) и docs/checklists.md из данных docs/skill-tree/index.html
+// Генерирует docs/templates/*.md/.docx/.csv и docs/checklists.md из данных docs/skill-tree/index.html
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
 
 const root = path.join(__dirname, "..");
 const html = fs.readFileSync(path.join(root, "docs/skill-tree/index.html"), "utf8");
-const src = html.match(/<script id="tree-data">([\s\S]*?)<\/script>/)[1];
-const ctx = { window: {} };
-vm.runInNewContext(src, ctx);
+const pick = id => html.match(new RegExp('<script id="' + id + '">([\\s\\S]*?)<\\/script>'))[1];
+const ctx = { window: {}, TextEncoder };
+vm.runInNewContext(pick("tree-data") + "\n" + pick("docx-lib"), ctx);
 const T = ctx.window.TREE;
+const label = Object.fromEntries(T.fields.map(f => [f.id, f.blank || f.label]));
+// Поля карточки проекта в выгрузке остаются пустыми: [Название ЖК], [Город] и т.д.
+const blank = body => body.replace(/\{\{(\w+)\}\}/g, (m, id) => "[" + label[id] + "]");
 
 const outDir = path.join(root, "docs/templates");
 fs.rmSync(outDir, { recursive: true, force: true });
@@ -29,10 +32,18 @@ T.nodes.forEach(n => {
   const docLinks = [];
   n.docs.forEach(d => {
     const t = T.templates[d];
-    const file = `${n.code}-${d}.${t.ext === "csv" ? "csv" : "md"}`;
-    if (t.ext === "csv") fs.writeFileSync(path.join(outDir, file), "﻿" + t.body + "\n");
-    else fs.writeFileSync(path.join(outDir, file), `# ${t.title}\n\n${disclaimer}\n\n\`\`\`text\n${t.body}\n\`\`\`\n`);
-    index.push(`- [${t.title}](${file})`);
+    const base = `${n.code}-${d}`;
+    const file = base + (t.ext === "csv" ? ".csv" : ".md");
+    if (t.ext === "csv") {
+      fs.writeFileSync(path.join(outDir, file), "\uFEFF" + t.body + "\n");
+      index.push(`- [${t.title}](${file})`);
+    } else {
+      const body = blank(t.body);
+      fs.writeFileSync(path.join(outDir, file), `# ${t.title}\n\n${disclaimer}\n\n\`\`\`text\n${body}\n\`\`\`\n`);
+      const docxText = "ОБРАЗЕЦ ДЛЯ ОЗНАКОМЛЕНИЯ. Перед использованием адаптируйте документ с юристом к действующему законодательству РК.\n\n" + body;
+      fs.writeFileSync(path.join(outDir, base + ".docx"), Buffer.from(ctx.window.buildDocx(docxText)));
+      index.push(`- [${t.title}](${file}) · [Word](${base}.docx)`);
+    }
     docLinks.push(`[${t.title}](templates/${file})`);
   });
   index.push("");
