@@ -292,6 +292,26 @@ table.t th.num { text-align: right; }
 .dev[data-tone="good"] { color: var(--done); }
 .budget-mini { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 
+/* Attachments and log */
+.att-chip { text-decoration: none; color: var(--ink); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.att-chip:hover { border-color: var(--ink); }
+.att-box { grid-column: 1 / -1; display: grid; gap: 8px; padding-top: 4px; }
+.att-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font-size: 13px; }
+.att-item a { color: var(--ink); overflow-wrap: anywhere; }
+.att-add { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.att-add input { font: inherit; font-size: 13px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; min-width: 0; }
+.sel { font: inherit; font-size: 13px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; max-width: 100%; }
+.log-day { font-family: var(--f-mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 14px 0 6px; border-bottom: 1px solid var(--line); }
+.log-row { display: grid; grid-template-columns: 52px 150px minmax(0, 1fr) auto; gap: 10px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.log-row time { font-family: var(--f-mono); color: var(--muted); font-size: 12px; }
+.log-who { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.log-text { overflow-wrap: anywhere; }
+.hist { display: grid; gap: 4px; font-size: 12.5px; }
+.hist div { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; }
+.hist time { font-family: var(--f-mono); color: var(--muted); font-size: 11.5px; }
+.section-title { flex-wrap: wrap; }
+@media (max-width: 560px) { .log-row { grid-template-columns: 52px minmax(0, 1fr); } .log-row .log-text, .log-row .chip { grid-column: 2; } .sel { width: 100%; } .section-title > .row { width: 100%; } }
+
 /* Deadlines */
 .dl-head { display: grid; gap: 10px; }
 .dl-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 16px; padding-top: 8px; border-top: 1px dashed var(--line); }
@@ -398,6 +418,7 @@ dialog.viewer::backdrop { background: rgba(10, 20, 35, .55); }
     <button class="tab" type="button" role="tab" data-view="model" aria-selected="false">Финмодель</button>
     <button class="tab" type="button" role="tab" data-view="budget" aria-selected="false">Бюджет <span class="badge" id="badge-budget" hidden></span></button>
     <button class="tab" type="button" role="tab" data-view="deadlines" aria-selected="false">Сроки документов <span class="badge" id="badge-deadlines" hidden></span></button>
+    <button class="tab" type="button" role="tab" data-view="log" aria-selected="false">Журнал</button>
   </nav>
   <div class="alerts" id="alerts" hidden></div>
 
@@ -439,6 +460,16 @@ dialog.viewer::backdrop { background: rgba(10, 20, 35, .55); }
     </div>
     <div id="dl-list"></div>
   </section>
+
+  <section id="view-log" class="view" hidden aria-label="Журнал изменений">
+    <div class="card">
+      <div class="section-title"><h2 class="view-title">Журнал изменений</h2>
+        <div class="row"><select id="log-stage" class="sel" aria-label="Фильтр по этапу"></select><button class="btn" type="button" id="log-csv">Скачать (Excel)</button></div></div>
+      <p class="muted" id="log-note"></p>
+      <div id="log-list" style="margin-top:12px"></div>
+    </div>
+  </section>
+  <input type="file" id="att-input" accept="application/pdf,image/png,image/jpeg,image/webp,image/gif,.pdf,.png,.jpg,.jpeg,.webp,.gif" hidden>
 </div>
 
 <dialog class="viewer" id="viewer" aria-labelledby="viewer-title">
@@ -1745,7 +1776,8 @@ window.runModel = function (p, f) {
   const STATUS = { locked: "Закрыт", open: "Доступен", active: "В работе", risk: "Начат с риском", done: "Пройден" };
   const LOCAL_KEY = "zhk-skill-tree-v2", LEGACY_KEY = "zhk-skill-tree-v1";
   const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines"];
-  const VIEWS = ["tree", "model", "budget", "deadlines"];
+  const VIEWS = ["tree", "model", "budget", "deadlines", "log"];
+  const LOG_LOCAL = "zhk-skill-tree-log";
 
   // S — всё состояние проекта, хранится одним документом.
   let S;
@@ -1754,6 +1786,9 @@ window.runModel = function (p, f) {
   let downloads = null;
   const openEdits = new Set();
   let earlyFormFor = null;
+  let dbCap = null, userCap = null, assetsCap = null, meId = null, logShared = false, logDocs = [];
+  const names = {};
+  let attDel = null, pendingAttKey = null;
 
   // --- helpers ------------------------------------------------------------
   const isObj = v => v && typeof v === "object" && !Array.isArray(v);
@@ -1793,7 +1828,7 @@ window.runModel = function (p, f) {
     const v = Number(t);
     return isFinite(v) ? v : null;
   }
-  const uid = () => "d" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const newId = () => "d" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
   // --- storage ------------------------------------------------------------
   function loadLocal() {
@@ -1842,9 +1877,17 @@ window.runModel = function (p, f) {
     const use = window.claude && window.claude.use;
     if (!use) { setSync("local", "Прогресс сохраняется в этом браузере"); return; }
     try { downloads = await use("downloads"); } catch (e) { downloads = null; }
+    try { assetsCap = await use("assets"); } catch (e) { assetsCap = null; }
+    try { userCap = await use("user"); meId = userCap ? await userCap.id() : null; } catch (e) { userCap = null; meId = null; }
     let db = null;
     try { db = await use("db"); } catch (e) { db = null; }
     if (!db) { setSync("local", "Прогресс сохраняется в этом браузере"); renderAll(); return; }
+    dbCap = db;
+    logShared = true;
+    db.collection("log").orderBy("at", "desc").limit(300).onSnapshot(q => {
+      logDocs = q.docs.map(d => d.data());
+      renderLogs();
+    }, () => {});
     docRef = db.doc("progress/main");
     setSync("pending", "Синхронизация…");
     docRef.onSnapshot(snap => {
@@ -2011,7 +2054,11 @@ window.runModel = function (p, f) {
   }
 
   function renderTabs() {
-    document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", t.dataset.view === view ? "true" : "false"));
+    document.querySelectorAll(".tab").forEach(t => {
+      const on = t.dataset.view === view;
+      if (on && t.getAttribute("aria-selected") !== "true" && t.parentNode.scrollWidth > t.parentNode.clientWidth) t.parentNode.scrollLeft = t.offsetLeft - 16;
+      t.setAttribute("aria-selected", on ? "true" : "false");
+    });
     const bt = budgetTotals();
     const bb = document.getElementById("badge-budget");
     bb.hidden = !bt.over;
@@ -2039,7 +2086,121 @@ window.runModel = function (p, f) {
   }
 
   function renderChrome() { renderHud(); renderTree(); renderTabs(); renderAlerts(); }
-  function renderAll() { renderChrome(); renderPanel(); renderView(); }
+  function renderAll() { renderChrome(); renderPanel(); renderView(); resolveNames(); }
+
+  // --- activity log -------------------------------------------------------
+  const shortText = s => s.length > 90 ? s.slice(0, 88) + "…" : s;
+  function logEvent(stage, text) {
+    if (readOnly) return;
+    const e = { at: new Date().toISOString(), by: meId || "", stage: stage || "", text };
+    if (logShared && dbCap) dbCap.collection("log").add(e).catch(() => {});
+    else {
+      logDocs = [e].concat(logDocs).slice(0, 500);
+      try { localStorage.setItem(LOG_LOCAL, JSON.stringify(logDocs)); } catch (x) {}
+      setTimeout(renderLogs, 0);
+    }
+  }
+  function nameOf(id) {
+    if (!id) return logShared ? "Без имени" : "Вы";
+    if (id === meId) return "Вы";
+    return names[id] || "Участник";
+  }
+  async function resolveNames() {
+    if (!userCap) return;
+    const ids = [...new Set(logDocs.map(e => e.by).concat(Object.values(S.meta).map(m => m && m.doneBy))
+      .filter(x => x && x !== meId && !(x in names)))];
+    if (!ids.length) return;
+    ids.forEach(id => { names[id] = "Участник"; });
+    let ps = {};
+    try { ps = await userCap.profiles(ids); } catch (e) { return; }
+    ids.forEach(id => { names[id] = (ps[id] && ps[id].name) || "Участник"; });
+    renderPanel();
+    if (view === "log") renderLogView();
+  }
+  function renderLogs() {
+    if (view === "log") renderLogView();
+    renderPanel();
+    resolveNames();
+  }
+  const logTime = iso => { const d = new Date(iso); return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); };
+  const logDay = iso => { const d = new Date(iso); return String(d.getDate()).padStart(2, "0") + "." + String(d.getMonth() + 1).padStart(2, "0") + "." + d.getFullYear(); };
+  const logSel = document.getElementById("log-stage");
+  logSel.innerHTML = '<option value="">Все этапы и разделы</option>' + T.nodes.map(n => '<option value="' + n.id + '">' + n.code + " · " + esc(n.name) + "</option>").join("") + '<option value="_other">Финмодель, бюджет, реестр, карточка</option>';
+  logSel.addEventListener("change", () => renderLogView());
+  function filteredLog() {
+    const f = logSel.value;
+    return logDocs.filter(e => e && e.text && (!f || (f === "_other" ? !byId[e.stage] : e.stage === f)));
+  }
+  function renderLogView() {
+    document.getElementById("log-note").textContent = logShared
+      ? "Записи видят все участники проекта. Показаны последние 300 действий: отметки, назначения, вложения, досрочные старты, бюджет, реестр сроков, финмодель и карточка проекта."
+      : "Журнал хранится только в этом браузере. Когда страница открыта в claude.ai, журнал становится общим для команды.";
+    document.getElementById("log-csv").hidden = !downloads;
+    const items = filteredLog();
+    if (!items.length) { document.getElementById("log-list").innerHTML = '<p class="muted">Записей пока нет. Здесь появится каждое действие: кто и когда отметил пункт, назначил срок, прикрепил файл.</p>'; return; }
+    let out = "", day = "";
+    items.forEach(e => {
+      const d = logDay(e.at);
+      if (d !== day) { day = d; out += '<div class="log-day">' + d + "</div>"; }
+      const st = byId[e.stage];
+      out += '<div class="log-row"><time>' + logTime(e.at) + '</time><span class="log-who">' + esc(nameOf(e.by)) + '</span><span class="log-text">' + esc(e.text) + "</span>" +
+        (st ? '<button class="chip" type="button" data-open-stage="' + st.id + '" data-state="' + stateOf(st) + '">' + esc(st.code + " · " + st.name) + "</button>" : "<span></span>") + "</div>";
+    });
+    document.getElementById("log-list").innerHTML = out;
+  }
+  document.getElementById("log-list").addEventListener("click", e => {
+    const os = e.target.closest("[data-open-stage]");
+    if (os) { setView("tree", false); select(os.dataset.openStage, true); }
+  });
+  document.getElementById("log-csv").addEventListener("click", () => {
+    const lines = ["Дата;Время;Кто;Действие;Этап"].concat(filteredLog().map(e =>
+      [logDay(e.at), logTime(e.at), nameOf(e.by), e.text, byId[e.stage] ? byId[e.stage].name : ""].map(x => String(x).replace(/;/g, ",")).join(";")));
+    save(fileName({ title: "Журнал изменений" }, "csv"), "\uFEFF" + lines.join("\r\n"));
+  });
+
+  // --- attachments --------------------------------------------------------
+  const ATT_TYPES = { pdf: "application/pdf", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", webp: "image/webp", gif: "image/gif" };
+  const attList = m => Object.entries((m && m.att) || {}).filter(([, a]) => a && a.name).map(([id, a]) => Object.assign({ id }, a)).sort((a, b) => (a.at || "").localeCompare(b.at || ""));
+  const attHref = a => a.kind === "file" ? "/_blob/" + a.asset : (/^https?:\/\//i.test(a.url || "") ? a.url : "");
+  const fsize = b => b >= 1048576 ? dec(b / 1048576, 1) + " МБ" : Math.max(1, Math.round(b / 1024)) + " КБ";
+  const taskName = k => { const [s, i] = k.split("."); return shortText(byId[s].tasks[+i]); };
+  const attInput = document.getElementById("att-input");
+  attInput.addEventListener("change", async () => {
+    const file = attInput.files && attInput.files[0];
+    const k = pendingAttKey;
+    attInput.value = "";
+    if (!file || !k || !assetsCap) return;
+    const ext = (file.name.split(".").pop() || "").toLowerCase();
+    const type = ATT_TYPES[ext] || (Object.values(ATT_TYPES).indexOf(file.type) >= 0 ? file.type : "");
+    if (!type) { toast("Поддерживаются PDF и изображения (JPG, PNG, WEBP, GIF). Word и Excel сохраните в PDF или добавьте ссылкой."); return; }
+    if (file.size > 20 * 1048576) { toast("Файл больше 20 МБ. Сожмите его или добавьте ссылкой."); return; }
+    toast("Загружаю «" + file.name + "»…");
+    try {
+      const res = await assetsCap.upload(file, { type });
+      const aid = meId ? meId.slice(-4) + Date.now().toString(36) : "a" + Date.now().toString(36);
+      commit({ meta: { [k]: { att: { [aid]: { kind: "file", name: file.name, asset: res.id, size: res.sizeBytes, type: res.contentType, at: today(), by: meId || "" } } } } });
+      logEvent(k.split(".")[0], "Прикреплён файл «" + file.name + "» к пункту «" + taskName(k) + "»");
+      toast("Файл прикреплён");
+    } catch (e) {
+      const c = e && e.code;
+      toast(c === "too_large" ? "Файл слишком большой: до 20 МБ." : c === "unsupported_type" ? "Этот тип файла не поддерживается. Сохраните в PDF." : c === "quota_or_state" ? "Хранилище файлов заполнено. Удалите ненужные файлы." : c === "rate_limited" ? "Слишком часто. Попробуйте через минуту." : "Не удалось загрузить файл. Попробуйте ещё раз.");
+    }
+  });
+  function attBoxHtml(k, m) {
+    const list = attList(m);
+    const items = list.map(a => {
+      const href = attHref(a);
+      const sub = [a.kind === "file" ? (a.type === "application/pdf" ? "PDF" : "изображение") + (a.size ? ", " + fsize(a.size) : "") : "ссылка", fmt(a.at), a.by ? nameOf(a.by) : ""].filter(Boolean).join(" · ");
+      const del = attDel === k + "|" + a.id
+        ? '<span class="row" style="flex-wrap:nowrap"><button class="btn" type="button" data-att-del-yes="' + k + "|" + a.id + '">Удалить</button><button class="btn ghost" type="button" data-att-del-no>Отмена</button></span>'
+        : '<button class="btn ghost" type="button" data-att-del="' + k + "|" + a.id + '">Удалить</button>';
+      return '<div class="att-item"><span>' + (href ? '<a href="' + esc(href) + '" target="_blank" rel="noopener noreferrer">' + esc(a.name) + "</a>" : esc(a.name)) + '<br><span class="dl-sub">' + esc(sub) + "</span></span>" + del + "</div>";
+    }).join("");
+    return '<div class="att-box"><span class="eyebrow">Вложения и подтверждения</span>' + items +
+      (assetsCap ? '<div class="row"><button class="btn" type="button" data-att-file="' + k + '">Прикрепить файл (PDF, фото)</button></div>' : "") +
+      '<div class="att-add"><input type="url" id="lnk-' + k + '" placeholder="Ссылка на документ: https://…" aria-label="Ссылка на документ"><button class="btn" type="button" data-att-link="' + k + '">Добавить ссылку</button></div>' +
+      (assetsCap ? "" : '<span class="dl-sub">Загружать файлы могут редакторы страницы. Остальные участники могут добавить ссылку, например на Google Диск.</span>') + "</div>";
+  }
 
   function setView(v, push) {
     if (VIEWS.indexOf(v) < 0) v = "tree";
@@ -2063,6 +2224,7 @@ window.runModel = function (p, f) {
     if (view === "model") renderModel(force);
     else if (view === "budget") renderBudget(force);
     else if (view === "deadlines") renderDeadlines();
+    else if (view === "log") renderLogView();
   }
 
   // --- stage panel --------------------------------------------------------
@@ -2108,24 +2270,37 @@ window.runModel = function (p, f) {
     const dis = editable(n) ? "" : " disabled";
     const chips = [];
     if (m.who) chips.push('<span class="mchip">Отв.: ' + esc(m.who) + "</span>");
-    if (done && m.doneAt) chips.push('<span class="mchip" data-tone="ok">Выполнено ' + fmt(m.doneAt) + "</span>");
+    if (done && m.doneAt) chips.push('<span class="mchip" data-tone="ok">Выполнено ' + fmt(m.doneAt) + (m.doneBy ? " · " + esc(nameOf(m.doneBy)) : "") + "</span>");
     else if (m.due) {
       const d = daysTo(m.due);
       const tone = d < 0 ? "late" : d <= 7 ? "soon" : "";
       const txt = d < 0 ? "Просрочено, срок был " + fmt(m.due) : "Срок " + fmt(m.due) + (d === 0 ? ", сегодня" : "");
       chips.push('<span class="mchip"' + (tone ? ' data-tone="' + tone + '"' : "") + ">" + txt + "</span>");
     }
+    const atts = attList(m);
+    atts.slice(0, 3).forEach(a => {
+      const href = attHref(a);
+      chips.push(href ? '<a class="mchip att-chip" href="' + esc(href) + '" target="_blank" rel="noopener noreferrer" title="' + esc(a.name) + '">' + (a.kind === "file" ? "Файл: " : "Ссылка: ") + esc(a.name) + "</a>" : '<span class="mchip">' + esc(a.name) + "</span>");
+    });
+    if (atts.length > 3) chips.push('<span class="mchip">Ещё вложений: ' + (atts.length - 3) + "</span>");
     const open = openEdits.has(k);
     const id = "t-" + k;
     return '<li class="task" data-late="' + late + '">' +
       '<div class="task-row"><label for="' + id + '"><input type="checkbox" id="' + id + '" data-k="' + k + '"' + (done ? " checked" : "") + dis + "><span>" + esc(t) + "</span></label>" +
-      (editable(n) ? '<button class="btn ghost task-more" type="button" data-edit="' + k + '" aria-expanded="' + open + '">' + (open ? "Готово" : (m.who || m.due ? "Изменить" : "Назначить")) + "</button>" : "") + "</div>" +
+      (editable(n) ? '<button class="btn ghost task-more" type="button" data-edit="' + k + '" aria-expanded="' + open + '">' + (open ? "Готово" : (m.who || m.due || atts.length ? "Изменить" : "Назначить")) + "</button>" : "") + "</div>" +
       '<div class="task-meta">' + chips.join("") + "</div>" +
       (open && editable(n)
         ? '<div class="task-edit"><label class="field" for="who-' + k + '"><span>Ответственный</span><input type="text" id="who-' + k + '" data-meta="who" data-k="' + k + '" maxlength="80" placeholder="ФИО или роль" value="' + esc(m.who || "") + '"></label>' +
-          '<label class="field" for="due-' + k + '"><span>Срок</span><input type="date" id="due-' + k + '" data-meta="due" data-k="' + k + '" value="' + esc(m.due || "") + '"></label></div>'
+          '<label class="field" for="due-' + k + '"><span>Срок</span><input type="date" id="due-' + k + '" data-meta="due" data-k="' + k + '" value="' + esc(m.due || "") + '"></label>' + attBoxHtml(k, m) + "</div>"
         : "") +
       "</li>";
+  }
+
+  function historyMiniHtml(n) {
+    const items = logDocs.filter(e => e && e.stage === n.id).slice(0, 5);
+    if (!items.length) return "";
+    return '<div><div class="section-title"><h3 class="eyebrow">История этапа</h3><button class="btn ghost" type="button" style="padding:2px 8px;font-size:12px" data-log-stage="' + n.id + '">Весь журнал</button></div><div class="hist">' +
+      items.map(e => "<div><time>" + logDay(e.at).slice(0, 5) + " " + logTime(e.at) + "</time><span><b>" + esc(nameOf(e.by)) + "</b>: " + esc(e.text) + "</span></div>").join("") + "</div></div>";
   }
 
   function budgetMiniHtml(n) {
@@ -2174,6 +2349,7 @@ window.runModel = function (p, f) {
         gateHtml(n, st, dc) + '<ul class="tasks" style="margin-top:8px">' + n.tasks.map((t, i) => taskHtml(n, t, i)).join("") + "</ul></div>" +
       budgetMiniHtml(n) +
       deadlinesMiniHtml(n) +
+      historyMiniHtml(n) +
       '<div><div class="section-title"><h3 class="eyebrow">Образцы документов</h3></div><div class="docs">' + docs + "</div></div>" +
       (n.tip ? '<div class="tip"><b>Совет</b>' + esc(n.tip) + "</div>" : "");
   });
@@ -2190,7 +2366,10 @@ window.runModel = function (p, f) {
     if (el.value.trim() !== "" && v == null) { toast("Введите сумму цифрами"); el.value = bOf(id)[f] ? num(bOf(id)[f]) : ""; return; }
     const val = v == null ? 0 : Math.round(v);
     if ((bOf(id)[f] || 0) === val) { el.value = val ? num(val) : ""; return; }
+    const old = bOf(id)[f] || 0;
     commit({ budget: { [id]: { [f]: val } } }, { defer: true });
+    const rowName = byId[id] ? byId[id].name : (EXTRA_ROWS.find(r => r.id === id) || {}).name;
+    logEvent(byId[id] ? id : "", "Бюджет «" + rowName + "»: " + (f === "plan" ? "план" : "факт") + " " + money(old) + " → " + money(val));
   }
 
   inner.addEventListener("change", e => {
@@ -2202,11 +2381,16 @@ window.runModel = function (p, f) {
       const val = el.value.trim();
       if ((metaOf(k)[el.dataset.meta] || "") === val) return;
       commit({ meta: { [k]: { [el.dataset.meta]: val } } }, { defer: true });
+      const tn = taskName(k);
+      logEvent(k.split(".")[0], el.dataset.meta === "who"
+        ? (val ? "Ответственный за пункт «" + tn + "»: " + val : "Снят ответственный с пункта «" + tn + "»")
+        : (val ? "Срок пункта «" + tn + "»: " + fmt(val) : "Снят срок с пункта «" + tn + "»"));
       return;
     }
     const nodeId = k.split(".")[0];
     const wasDone = isDone(byId[nodeId]);
-    commit({ checked: { [k]: el.checked }, meta: { [k]: { doneAt: el.checked ? today() : "" } } });
+    commit({ checked: { [k]: el.checked }, meta: { [k]: { doneAt: el.checked ? today() : "", doneBy: el.checked ? (meId || "") : "" } } });
+    logEvent(nodeId, (el.checked ? "Выполнен пункт «" : "Снята отметка с пункта «") + taskName(k) + "»");
     if (!wasDone && isDone(byId[nodeId])) {
       const opened = children[nodeId].filter(c => isUnlocked(byId[c])).map(c => byId[c].name);
       toast(opened.length ? "Этап пройден! Открыто: " + opened.join(", ") : "Этап пройден!");
@@ -2243,11 +2427,50 @@ window.runModel = function (p, f) {
       earlyFormFor = null;
       document.activeElement && document.activeElement.blur();
       commit({ early: { [selected]: { reason, at: today() } } });
+      logEvent(selected, "Этап начат досрочно. Причина: " + reason);
       toast("Этап начат досрочно. Риск зафиксирован.");
       return;
     }
-    if (e.target.closest("[data-early-revoke]")) { commit({ early: { [selected]: null } }); return; }
+    if (e.target.closest("[data-early-revoke]")) { commit({ early: { [selected]: null } }); logEvent(selected, "Отменён досрочный старт этапа"); return; }
+    const lg = e.target.closest("[data-log-stage]");
+    if (lg) { logSel.value = lg.dataset.logStage; setView("log", true); window.scrollTo({ top: 0 }); return; }
+    const af = e.target.closest("[data-att-file]");
+    if (af) { pendingAttKey = af.dataset.attFile; attInput.click(); return; }
+    const al = e.target.closest("[data-att-link]");
+    if (al) {
+      const k = al.dataset.attLink, inp = document.getElementById("lnk-" + k);
+      const url = (inp && inp.value || "").trim();
+      if (!/^https?:\/\/\S+\.\S+/i.test(url)) { toast("Вставьте ссылку, которая начинается с https://"); return; }
+      let label = url;
+      try { const u = new URL(url); label = u.hostname.replace(/^www\./, "") + (u.pathname.length > 1 ? u.pathname.slice(0, 30) : ""); } catch (x) {}
+      const aid = "l" + Date.now().toString(36);
+      inp.value = "";
+      commit({ meta: { [k]: { att: { [aid]: { kind: "link", name: label, url, at: today(), by: meId || "" } } } } });
+      logEvent(k.split(".")[0], "Добавлена ссылка «" + label + "» к пункту «" + taskName(k) + "»");
+      return;
+    }
+    const ad = e.target.closest("[data-att-del]");
+    if (ad) { attDel = ad.dataset.attDel; renderPanel(true); return; }
+    if (e.target.closest("[data-att-del-no]")) { attDel = null; renderPanel(true); return; }
+    const ay = e.target.closest("[data-att-del-yes]");
+    if (ay) { removeAttachment(ay.dataset.attDelYes); return; }
   });
+  async function removeAttachment(ref) {
+    attDel = null;
+    const [k, aid] = ref.split("|");
+    const a = ((metaOf(k).att) || {})[aid];
+    if (!a) { renderPanel(true); return; }
+    if (a.kind === "file") {
+      if (!assetsCap) { toast("Удалять файлы могут редакторы страницы"); renderPanel(true); return; }
+      try { await assetsCap.delete(a.asset); }
+      catch (e) {
+        toast(e && e.code === "not_uploader" ? "Этот файл может удалить только тот, кто его загрузил" : "Не удалось удалить файл. Попробуйте ещё раз.");
+        renderPanel(true); return;
+      }
+    }
+    commit({ meta: { [k]: { att: { [aid]: null } } } });
+    logEvent(k.split(".")[0], (a.kind === "file" ? "Удалён файл «" : "Удалена ссылка «") + a.name + "» у пункта «" + taskName(k) + "»");
+  }
   document.getElementById("panel-close").addEventListener("click", () => { panel.dataset.open = "false"; });
 
   function select(id, userAction) {
@@ -2415,7 +2638,10 @@ window.runModel = function (p, f) {
       el.value = Math.abs(v) >= 1000 ? num(v) : String(v).replace(".", ",");
     }
     if (S.model[k] === v) return;
+    const prev = params()[k];
     commit({ model: { [k]: v } }, { defer: true });
+    const lbl = MODEL_GROUPS.reduce((f, g) => f || (g.items.find(it => it[0] === k) || [])[1], "");
+    logEvent("", "Финмодель: «" + lbl + "» " + (k === "vat_exempt" ? (v ? "включено" : "выключено") : num(prev) + " → " + num(v)));
   });
   modelForm.addEventListener("click", e => {
     if (e.target.id !== "model-reset") return;
@@ -2424,6 +2650,7 @@ window.runModel = function (p, f) {
     S.model = {};
     commit({ model: patch });
     toast("Возвращены значения примера");
+    logEvent("", "Финмодель: возвращены значения примера");
   });
   modelOut.addEventListener("click", e => {
     if (e.target.id === "model-csv") {
@@ -2451,6 +2678,7 @@ window.runModel = function (p, f) {
     Object.keys(plan).forEach(k => { patch[k] = { plan: Math.round(plan[k] / 1000) * 1000 }; });
     commit({ budget: patch });
     toast("План бюджета заполнен из финмодели");
+    logEvent("", "План бюджета заполнен из финмодели");
   }
   let confirmPlan = false;
   const bKpis = document.getElementById("b-kpis"), bTable = document.getElementById("b-table");
@@ -2552,10 +2780,12 @@ window.runModel = function (p, f) {
     if (readOnly) return;
     const v = id => document.getElementById(id).value.trim();
     if (!v("dl-title") || !v("dl-expires")) { toast("Укажите документ и дату окончания"); return; }
-    const id = dlEditing === "new" ? uid() : dlEditing;
+    const id = dlEditing === "new" ? newId() : dlEditing;
     const rec = { title: v("dl-title"), num: v("dl-num"), issued: v("dl-issued"), expires: v("dl-expires"), owner: v("dl-owner"), stage: v("dl-stage"), note: v("dl-note") };
     closeDeadlineForm();
+    const isNew = dlEditing === null && !S.deadlines[id];
     commit({ deadlines: { [id]: rec } });
+    logEvent(rec.stage, "Реестр сроков: " + (isNew ? "добавлен" : "изменён") + " документ «" + rec.title + "», действует до " + fmt(rec.expires));
     toast("Срок сохранён");
   });
 
@@ -2589,7 +2819,12 @@ window.runModel = function (p, f) {
     if (del) { dlConfirmDelete = del.dataset.dlDel; renderDeadlines(); return; }
     if (t.closest("[data-dl-del-no]")) { dlConfirmDelete = null; renderDeadlines(); return; }
     const yes = t.closest("[data-dl-del-yes]");
-    if (yes) { dlConfirmDelete = null; commit({ deadlines: { [yes.dataset.dlDelYes]: null } }); toast("Документ удалён из реестра"); return; }
+    if (yes) {
+      const old = S.deadlines[yes.dataset.dlDelYes] || {};
+      dlConfirmDelete = null; commit({ deadlines: { [yes.dataset.dlDelYes]: null } }); toast("Документ удалён из реестра");
+      logEvent(old.stage, "Реестр сроков: удалён документ «" + (old.title || "") + "»");
+      return;
+    }
     const os = t.closest("[data-open-stage]");
     if (os) { setView("tree", false); select(os.dataset.openStage, true); }
   });
@@ -2617,6 +2852,7 @@ window.runModel = function (p, f) {
     const project = {};
     T.fields.forEach(f => { project[f.id] = document.getElementById("pf-" + f.id).value.trim(); });
     commit({ project });
+    logEvent("", "Обновлена карточка проекта" + (project.name ? ": ЖК «" + project.name + "»" : ""));
     pdlg.close();
     toast("Карточка сохранена. Данные подставлены в документы.");
   });
@@ -2706,6 +2942,7 @@ window.runModel = function (p, f) {
         if (docRef) writeChain = writeChain.then(() => docRef.set(JSON.parse(JSON.stringify(S))).then(() => { docExists = true; }).catch(() => {}));
         renderAll();
         toast("Прогресс сброшен");
+        logEvent("", "Сброшены отметки, назначения и досрочные старты по всем этапам");
       }
       resetZone.innerHTML = '<button class="btn ghost" id="reset">Сбросить прогресс</button>';
     }
@@ -2719,6 +2956,7 @@ window.runModel = function (p, f) {
 
   // --- boot ---------------------------------------------------------------
   S = loadLocal();
+  try { logDocs = JSON.parse(localStorage.getItem(LOG_LOCAL) || "[]"); } catch (e) { logDocs = []; }
   buildTree();
   buildModelForm();
   const hash = (location.hash || "").slice(1);
