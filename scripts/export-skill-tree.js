@@ -48,6 +48,7 @@ T.nodes.forEach(n => {
   });
   index.push("");
   checklist.push(`**Документы:** ${docLinks.join(" · ")}`, "");
+  if ((T.refs || {})[n.id]) checklist.push(`**Нормы:** ${T.refs[n.id].join("; ")} (перечень на ${T.refsDate})`, "");
   if (n.tip) checklist.push(`> **Совет.** ${n.tip}`, "");
 });
 
@@ -98,7 +99,9 @@ T.nodes.forEach(n => {
     links.push(`[${title}](templates/${base}.md)`);
   });
   kkIndex.push("");
-  kkCheck.push(`**Құжаттар:** ${links.join(" · ")}`, "", `> **Кеңес.** ${k.tip}`, "");
+  kkCheck.push(`**Құжаттар:** ${links.join(" · ")}`, "");
+  if ((KK.refs || {})[n.id]) kkCheck.push(`**Нормалар:** ${KK.refs[n.id].join("; ")} (${KK.refsDate} жағдай бойынша)`, "");
+  kkCheck.push(`> **Кеңес.** ${k.tip}`, "");
 });
 kkCheck.push("## Өңірлік тармақтар", "", "Ағашта жоба өңірі таңдалғанда кезеңдерге қосылады.", "");
 Object.keys(REG).forEach(rid => {
