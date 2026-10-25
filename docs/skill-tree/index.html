@@ -3771,14 +3771,18 @@ window.I18N = (function () {
   let writeChain = Promise.resolve();
   function write(patch) {
     if (!docRef || readOnly) return;
+    // Документ и состояние фиксируем в момент правки: к выполнению очереди пользователь мог переключить проект.
+    const ref = docRef, proj = curProject, full = JSON.parse(JSON.stringify(S));
+    const mark = () => { if (proj === curProject) docExists = true; };
     writeChain = writeChain.then(async () => {
+      const exists = proj === curProject ? docExists : !!(projects && projects[proj]);
       try {
-        if (docExists) await docRef.update(patch);
-        else { await docRef.set(JSON.parse(JSON.stringify(S))); docExists = true; }
+        if (exists) await ref.update(patch);
+        else { await ref.set(full); mark(); }
       } catch (e) {
         if (e && e.code === "invalid_argument") {
           // update() на несуществующем документе или нет прав на запись
-          try { await docRef.set(JSON.parse(JSON.stringify(S))); docExists = true; return; }
+          try { await ref.set(full); mark(); return; }
           catch (e2) {
             if (e2 && e2.code === "invalid_argument") {
               readOnly = true; setSync("local", "Только просмотр: изменения не сохраняются"); renderAll(); return;
@@ -3788,6 +3792,14 @@ window.I18N = (function () {
         setSync("local", "Нет связи с хранилищем, прогресс сохранён в браузере");
       }
     });
+  }
+  // Запись в конкретный проект: нужна, когда между действием и записью было ожидание (загрузка файла).
+  function writeTo(proj, patch) {
+    if (proj === curProject) { commit(patch); return; }
+    if (readOnly) return;
+    if (dbCap) { const ref = dbCap.doc("progress/" + proj); writeChain = writeChain.then(() => ref.update(patch).catch(() => {})); return; }
+    const d = loadLocal(proj); merge(d, patch);
+    try { localStorage.setItem(localKey(proj), JSON.stringify(d)); } catch (e) {}
   }
   function commit(patch, opts) {
     merge(S, patch); saveLocal(); write(patch);
@@ -4141,10 +4153,11 @@ window.I18N = (function () {
     if (!type) { toast("Поддерживаются PDF и изображения (JPG, PNG, WEBP, GIF). Word и Excel сохраните в PDF или добавьте ссылкой."); return; }
     if (file.size > 20 * 1048576) { toast("Файл больше 20 МБ. Сожмите его или добавьте ссылкой."); return; }
     toast("Загружаю «" + file.name + "»…");
+    const proj = curProject;
     try {
       const res = await assetsCap.upload(file, { type });
       const aid = meId ? meId.slice(-4) + Date.now().toString(36) : "a" + Date.now().toString(36);
-      commit({ meta: { [k]: { att: { [aid]: { kind: "file", name: file.name, asset: res.id, size: res.sizeBytes, type: res.contentType, at: today(), by: meId || "" } } } } });
+      writeTo(proj, { meta: { [k]: { att: { [aid]: { kind: "file", name: file.name, asset: res.id, size: res.sizeBytes, type: res.contentType, at: today(), by: meId || "" } } } } });
       logEvent(k.split(".")[0], "Прикреплён файл «" + file.name + "» к пункту «" + taskName(k) + "»");
       toast("Файл прикреплён");
     } catch (e) {
@@ -4431,6 +4444,7 @@ window.I18N = (function () {
   async function removeAttachment(ref) {
     attDel = null;
     const [k, aid] = ref.split("|");
+    const proj = curProject;
     const a = ((metaOf(k).att) || {})[aid];
     if (!a) { renderPanel(true); return; }
     if (a.kind === "file") {
@@ -4441,7 +4455,7 @@ window.I18N = (function () {
         renderPanel(true); return;
       }
     }
-    commit({ meta: { [k]: { att: { [aid]: null } } } });
+    writeTo(proj, { meta: { [k]: { att: { [aid]: null } } } });
     logEvent(k.split(".")[0], (a.kind === "file" ? "Удалён файл «" : "Удалена ссылка «") + a.name + "» у пункта «" + taskName(k) + "»");
   }
   document.getElementById("panel-close").addEventListener("click", () => { panel.dataset.open = "false"; });
@@ -5499,7 +5513,7 @@ window.I18N = (function () {
         S = normalize({ project: S.project, model: S.model, budget: S.budget, deadlines: S.deadlines, sched: S.sched, risks: S.risks, report: S.report });
         openEdits.clear();
         saveLocal();
-        if (docRef) writeChain = writeChain.then(() => docRef.set(JSON.parse(JSON.stringify(S))).then(() => { docExists = true; }).catch(() => {}));
+        if (docRef) { const ref = docRef, proj = curProject, full = JSON.parse(JSON.stringify(S)); writeChain = writeChain.then(() => ref.set(full).then(() => { if (proj === curProject) docExists = true; }).catch(() => {})); }
         renderAll();
         toast("Прогресс сброшен");
         logEvent("", "Сброшены отметки, назначения и досрочные старты по всем этапам");
