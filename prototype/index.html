@@ -186,6 +186,11 @@ button { cursor: pointer }
 .blocks-t input.vin:not(.num) { width: 110px; min-width: 0 }
 .blocks-t select { max-width: 130px }
 .smeta-obj summary { display: flex; justify-content: space-between; gap: 12px; cursor: pointer; padding: 6px 0; border-bottom: 1px solid var(--line) }
+.wi-params { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin: 6px 0; min-width: 420px }
+.wi-params label { display: flex; flex-direction: column; gap: 2px; font-size: .7rem; color: var(--muted) }
+.wi-params span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.wi-params .vin { width: 100% }
+.wi-table td { vertical-align: top } .wi-base td { background: var(--surface-2) }
 .pnr-kpis { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) }
 .pnr-kpis .sl-kpi span { font-size: .8rem } .pnr-kpis .sl-kpi b { font-size: 1.2rem }
 .b0-roof { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 6px 16px; font-size: .9rem }
@@ -4388,6 +4393,7 @@ window.I18N = (function () {
     ["Показатели ПНР для ОРС", "ОРС үшін ӨҮШ көрсеткіштері"], ["Скачать для калькулятора (Excel)", "Калькулятор үшін жүктеу (Excel)"], ["Кто вносит", "Кім енгізеді"], ["Вводятся здесь", "Осында енгізіледі"], ["Из данных проекта", "Жоба деректерінен"], ["Все строки", "Барлық жолдар"], ["ФМ проекта", "Жоба ҚМ"], ["ОРС Общестрой", "ОРС Жалпы құрылыс"], ["ОРС Сети", "ОРС Желілер"], ["Контур без примыканий, м", "Жанасусыз контур, м"],
     ["Смета из 1С", "1С-тен смета"], ["Загрузить смету (Excel из 1С)", "Сметаны жүктеу (1С-тен Excel)"], ["Использовать смету в финмодели", "Сметаны қаржы моделінде пайдалану"], ["Суммы сметы без НДС (финмодель добавит НДС)", "Смета сомалары ҚҚС-сыз (қаржы моделі ҚҚС қосады)"], ["Объекты и конструктивы", "Объектілер мен конструктивтер"], ["Статья финмодели", "Қаржы моделінің бабы"], ["По смете", "Смета бойынша"], ["В финмодели", "Қаржы моделінде"], ["Строки сметы", "Смета жолдары"], ["Расчёт ПНР по калькулятору ОРС", "ОРС калькуляторы бойынша ӨҮШ есебі"], ["Выбрать файл калькулятора", "Калькулятор файлын таңдау"], ["Рассчитать", "Есептеу"],
     ["Локация и клиент", "Орналасу және клиент"], ["Преимущества локации", "Орналасудың артықшылықтары"], ["Концепция фасада и сложные узлы", "Қасбет тұжырымдамасы және күрделі түйіндер"], ["Портрет покупателя и решения под него", "Сатып алушы портреті және оған арналған шешімдер"], ["Локация и фасад", "Орналасу және қасбет"], ["Клиент", "Клиент"], ["Закупки", "Сатып алу"], ["Средняя квартира", "Орташа пәтер"], ["Средний чек", "Орташа чек"], ["Квартирография", "Пәтерлер құрамы"],
+    ["Что если", "Егер де"], ["Пессимистичный", "Пессимистік"], ["Оптимистичный", "Оптимистік"], ["Стресс-тест банка", "Банктің стресс-тесті"], ["Свой сценарий", "Өз сценарийі"], ["Базовый", "Базалық"], ["Пиковый долг", "Ең жоғары қарыз"], ["Ключи", "Кілттер"], ["Сценарии «что если»", "«Егер де» сценарийлері"], ["Добавить:", "Қосу:"], ["Сценарий и изменения к базовому", "Сценарий және базалыққа өзгерістер"],
     ["Казначей", "Қазынашы"], ["Факт бюджета внесён по 5+ этапам", "5+ кезең бойынша бюджет фактісі енгізілді"], ["План из финмодели, тг", "Қаржы моделінен жоспар, тг"], ["План считается из финмодели автоматически: земля, проектирование по этапам проекта, СМР с технадзором и резервом по этапам стройки, сети, маркетинг, административные расходы и проценты. Чтобы изменить план, измените исходные данные финмодели или сроки в графике.", "Жоспар қаржы моделінен автоматты түрде есептеледі: жер, жоба кезеңдері бойынша жобалау, құрылыс кезеңдері бойынша техқадағалау мен резервті қоса ҚМЖ, желілер, маркетинг, әкімшілік шығыстар және пайыздар. Жоспарды өзгерту үшін қаржы моделінің бастапқы деректерін немесе кестедегі мерзімдерді өзгертіңіз."],
     ["Документы под контролем", "Құжаттар бақылауда"], ["5+ документов в реестре сроков, ни одного истёкшего", "Мерзімдер тізілімінде 5+ құжат, бірде-біреуінің мерзімі өтпеген"],
     ["Полный архив", "Толық мұрағат"], ["10+ вложений к пунктам чек-листов", "Чек-парақ тармақтарына 10+ тіркеме"],
@@ -4590,7 +4596,7 @@ window.ZHK_BOOT = function (document) {
   const RANKS = [[0, "Стажёр"], [1, "Аналитик"], [4, "Девелопер"], [8, "Застройщик"], [13, "Генеральный застройщик"], [21, "Магнат ЖК"]];
   const STATUS = { locked: "Закрыт", open: "Доступен", active: "В работе", risk: "Начат с риском", done: "Пройден" };
   const LOCAL_KEY = "zhk-skill-tree-v2", LEGACY_KEY = "zhk-skill-tree-v1";
-  const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines", "sched", "vars", "baseline", "risks", "team", "partners", "blocks", "b0", "pnr", "pnrCalc", "smeta"];
+  const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines", "sched", "vars", "baseline", "risks", "team", "partners", "blocks", "b0", "pnr", "pnrCalc", "smeta", "scenarios"];
   const VIEWS = ["tree", "gantt", "model", "budget", "deadlines", "projects"];
 
   // S — всё состояние проекта, хранится одним документом.
@@ -5910,7 +5916,8 @@ window.ZHK_BOOT = function (document) {
   // Списки проекта: S.risks и S.team — объекты {id: запись}; удалённая запись хранится как null, чтобы удаление дошло до команды.
   // Ответственный за риск хранится ссылкой на участника команды (who): переименовали роль или вписали ФИО — риск показывает новое.
   const LIST_FIELDS = { risks: ["kind", "level", "title", "measure", "who"], team: ["role", "name", "zone"], partners: ["role", "org", "subject", "status"],
-    blocks: ["name", "kind", "floors", "under", "entrances", "lifts", "flats", "frame", "design", "contour"] };
+    blocks: ["name", "kind", "floors", "under", "entrances", "lifts", "flats", "frame", "design", "contour"],
+    scenarios: ["name", "price", "smr", "delay", "sales", "rate"] };
   function listOf(k) {
     const o = S[k] || {};
     return Object.keys(o).filter(id => isObj(o[id])).map(id => Object.assign({ id }, o[id])).sort((a, b) => (a.o || 0) - (b.o || 0) || (a.id < b.id ? -1 : 1));
@@ -6091,7 +6098,7 @@ window.ZHK_BOOT = function (document) {
       resetZone.innerHTML = '<span class="reset-confirm">Сбросить отметки, назначения и досрочные старты? Карточка проекта, финмодель, бюджет и реестр сроков останутся. <button class="btn" id="reset-yes">Да, сбросить</button><button class="btn ghost" id="reset-no">Отмена</button></span>';
     } else if (e.target.id === "reset-yes" || e.target.id === "reset-no") {
       if (e.target.id === "reset-yes" && !readOnly) {
-        S = normalize({ project: S.project, model: S.model, budget: S.budget, deadlines: S.deadlines, sched: S.sched, vars: S.vars, baseline: S.baseline, risks: S.risks, team: S.team, partners: S.partners, blocks: S.blocks, b0: S.b0, pnr: S.pnr, pnrCalc: S.pnrCalc, smeta: S.smeta });
+        S = normalize({ project: S.project, model: S.model, budget: S.budget, deadlines: S.deadlines, sched: S.sched, vars: S.vars, baseline: S.baseline, risks: S.risks, team: S.team, partners: S.partners, blocks: S.blocks, b0: S.b0, pnr: S.pnr, pnrCalc: S.pnrCalc, smeta: S.smeta, scenarios: S.scenarios });
         openEdits.clear();
         saveLocal();
         if (docRef) { const ref = docRef, proj = curProject, full = JSON.parse(JSON.stringify(S)); writeChain = writeChain.then(() => ref.set(full).then(() => { if (proj === curProject) docExists = true; }).catch(() => {})); }
@@ -6295,6 +6302,16 @@ window.ZHK_BOOT = function (document) {
     // Риски и команда проекта: общие списки для портала и презентации ПК Start.
     list: k => listOf(k),
     blockTotals: () => blockTotals(),
+    // «Что если»: пересчёт финмодели с изменёнными допущениями; данные проекта не меняются.
+    whatIf: sc => {
+      sc = sc || {};
+      const p = params(), G = schedule(), x = k => { const v = parseNum(sc[k]); return v == null ? 0 : v; }, d = Math.round(x("delay"));
+      p.build_start += d; p.sales_start += d;
+      if (x("sales")) p.sales_dur = Math.max(1, Math.round(p.sales_dur * (1 + x("sales") / 100)));
+      if (x("rate")) p.rate = Math.max(0, p.rate + x("rate"));
+      const t = window.runModel(p, { price: 1 + x("price") / 100, smr: 1 + x("smr") / 100 }).t;
+      return { rev: t.rev, cost: t.costT, net: t.net, margin: t.margin * 100, irr: t.irr == null ? null : t.irr * 100, npv: t.npv, peakDebt: t.peakDebt, keys: ymAdd(G.start, G.end + d) };
+    },
     // Чек-лист B0: ответы хранятся плоско, ключ — раздел и поле («p.usp», «b.<блок>.len», «f.<фасад>.<блок>»…)
     b0: () => S.b0 || {},
     pnr: () => S.pnr || {},
@@ -6501,6 +6518,7 @@ const VIEWS = {
   model: { g: "Проект", p: "kpi", z: "model", t: "Финмодель", cnt: () => "", r: Z("Финансовая модель", "Помесячный денежный поток, НДС, кредит, КПН, IRR и NPV.") },
   pk: { g: "Дорожная карта", t: "Презентация ПК Start", cnt: () => "", r: viewDeck },
   budget: { g: "Дорожная карта", z: "budget", t: "Бюджет", cnt: () => "", r: Z("Бюджет: план и факт", "План по этапам заполняется из финмодели, факт вносит команда.") },
+  whatif: { g: "Проект", p: "kpi", t: "Что если", cnt: () => "", r: viewWhatIf },
   deadlines: { g: "Проект", p: "kpi", z: "deadlines", t: "Сроки документов", cnt: () => "", r: Z("Сроки документов", "АПЗ, техусловия, лицензии и гарантии с предупреждением за 60 и 30 дней.") },
   projects: { g: "Компания", z: "projects", t: "Портфель проектов", cnt: () => "", r: Z("Портфель проектов", "Все ЖК компании и их прогресс по дорожной карте.") },
 };
@@ -6900,6 +6918,38 @@ function pnrXlsx() {
   window.ZHK.save(fn, window.buildXlsx([{ name: "Показатели проекта", widths: [6, 70, 12, 22, 18, 34], bold: [0], rows }]));
 }
 
+// ---------- Что если ----------
+// Сценарии меняют допущения только для расчёта: цену, СМР, сроки, темп продаж, ставку. Данные проекта остаются как есть.
+const WI_PARAMS = [["price", "Цена продажи", "%"], ["smr", "Стоимость СМР", "%"], ["delay", "Задержка старта СМР и продаж", "мес."], ["sales", "Длительность продаж", "%"], ["rate", "Ставка кредита", "п.п."]];
+const WI_PRESETS = [
+  { name: "Пессимистичный", price: "-5", smr: "10", delay: "3", sales: "20", rate: "2" },
+  { name: "Оптимистичный", price: "5", smr: "-3", delay: "0", sales: "-10", rate: "-1" },
+  { name: "Стресс-тест банка", price: "-10", smr: "15", delay: "6", sales: "30", rate: "4" }];
+const wiAssume = sc => WI_PARAMS.filter(([f]) => +String(sc[f] || "").replace(",", ".")).map(([f, l, u]) => { const v = +String(sc[f]).replace(",", "."); return l.split(" ")[0] + " " + (v > 0 ? "+" : "−") + Math.abs(v).toLocaleString("ru-RU") + (u === "%" ? "%" : " " + u); }).join(", ") || "как в базовом";
+const WI_OUT = [["net", "Чистая прибыль", "m", 1], ["margin", "Маржа", "%", 1], ["irr", "IRR", "%", 1], ["npv", "NPV", "m", 1], ["peakDebt", "Пиковый долг", "m", -1], ["keys", "Ключи", "ym", -1]];
+const wiFmt = (v, k) => v == null || (typeof v === "number" && !isFinite(v)) ? "—" : k === "m" ? bln(v) + " млрд" : k === "%" ? v.toLocaleString("ru-RU", { maximumFractionDigits: 1 }) + "%" : k === "ym" ? v.slice(5, 7) + "." + v.slice(0, 4) : String(v);
+function wiDelta(b, v, k, better) {
+  if (v == null || b == null) return "";
+  if (k === "ym") { const d = (+v.slice(0, 4) * 12 + +v.slice(5, 7)) - (+b.slice(0, 4) * 12 + +b.slice(5, 7)); return d ? `<div class="delta ${d * better > 0 ? "good" : "bad"}">${d > 0 ? "+" : "−"}${Math.abs(d)} мес.</div>` : ""; }
+  const d = v - b; if (Math.abs(d) < (k === "m" ? 5e5 : 0.05)) return "";
+  return `<div class="delta ${d * better > 0 ? "good" : "bad"}">${d > 0 ? "+" : "−"}${k === "m" ? bln(Math.abs(d)) + " млрд" : Math.abs(d).toLocaleString("ru-RU", { maximumFractionDigits: 1 }) + " п.п."}</div>`;
+}
+function viewWhatIf() {
+  const list = window.ZHK.list("scenarios"), ro = window.ZHK.readOnly() ? " disabled" : "", B = window.ZHK.whatIf({});
+  const cells = R => WI_OUT.map(([k, , f, better]) => `<td class="num">${wiFmt(R[k], f)}${R === B ? "" : wiDelta(B[k], R[k], f, better)}</td>`).join("");
+  const rows = list.map(sc => { const R = window.ZHK.whatIf(sc); return `<tr><td><input type="text" class="vin" data-item="scenarios:${sc.id}:name" value="${esc(sc.name || "")}" aria-label="Название сценария" placeholder="Сценарий" maxlength="60"${ro}>
+      <div class="wi-params">${WI_PARAMS.map(([f, l, u]) => `<label title="${l}"><span>${l}, ${u}</span><input type="text" inputmode="decimal" class="vin num" data-item="scenarios:${sc.id}:${f}" value="${esc(sc[f] || "")}" placeholder="0"${ro}></label>`).join("")}</div>
+      ${ro ? "" : `<button class="btn ghost mini" data-item-del="scenarios:${sc.id}" aria-label="Удалить сценарий">Удалить</button>`}</td>${cells(R)}</tr>`; }).join("");
+  return head("Что если", "Сценарии для обсуждения на комитете: как изменятся прибыль, IRR, долг и срок ключей, если цена, СМР, сроки, темп продаж или ставка будут другими. Данные проекта не меняются.") + `
+  <section class="panel stack">
+    ${ro ? "" : `<div class="row"><span class="muted">Добавить:</span>${WI_PRESETS.map((x, i) => `<button class="btn" data-wi-preset="${i}">${x.name}</button>`).join("")}<button class="btn ghost" data-item-add="scenarios">Свой сценарий</button></div>`}
+    <div class="tbl"><table class="wi-table"><thead><tr><th>Сценарий и изменения к базовому</th>${WI_OUT.map(([, l]) => `<th class="num">${l}</th>`).join("")}</tr></thead><tbody>
+      <tr class="wi-base"><td><b>Базовый</b><div class="muted vsrc">текущие данные проекта и финмодели</div></td>${cells(B)}</tr>${rows}</tbody></table></div>
+    ${list.length ? "" : '<p class="muted" style="margin:0">Сценариев пока нет. Добавьте типовой или свой: цена, СМР и длительность продаж — в процентах к базовым, задержка — в месяцах, ставка — в процентных пунктах.</p>'}
+    <p class="muted" style="margin:0">Сценарии сохраняются в проекте и попадают в презентацию ПК Start отдельным слайдом. Задержка сдвигает старт СМР, продажи и ключи; проектирование и покупка земли остаются как в графике.</p>
+  </section>`;
+}
+
 // ---------- Чек-лист B0 ----------
 // Анкета для сметы ОРС на стадии эскиза. Что уже есть в данных проекта, подставляется само и вручную не вводится.
 function b0Ctx(lite) {
@@ -7143,7 +7193,8 @@ function deckData() {
   const rooms = [1, 2, 3, 4, 5].map(k => ({ k, n: blocks.reduce((s, b) => s + nb(A["b." + b.id + ".r" + k]), 0) })).filter(r => r.n > 0);
   const tech = [["Профиль окон", A["o.win.profile"]], ["Тип труб", A["n.pipes"]], ["Магистрали ГВС/ХВС", A["n.mains"]], ["Радиаторы", A["n.radiator"]], ["Кабели в квартире", A["n.cable"]], ["Вентиляция", A["n.vent"]], ["Домофон", A["n.intercom"]]].filter(x => x[1]);
   const partners = window.ZHK.list("partners").filter(x => x.role || x.org), smeta = window.ZHK.smeta();
-  return { V, t, d: window.ZHK.deck(), base: window.ZHK.baseline(), title: projTitle(), risks, team, pm: pm && pm.name ? pm.name : "[ФИО]",
+  const scen = window.ZHK.list("scenarios").map(sc => ({ sc, R: window.ZHK.whatIf(sc) })), scenBase = window.ZHK.whatIf({});
+  return { V, t, d: window.ZHK.deck(), base: window.ZHK.baseline(), title: projTitle(), risks, team, pm: pm && pm.name ? pm.name : "[ФИО]", scen, scenBase,
     facade, rooms, tech, partners, materials: smeta && smeta.materials ? smeta.materials : null };
 }
 const bln = n => (n / 1e9).toLocaleString("ru-RU", { maximumFractionDigits: 2 });
@@ -7200,6 +7251,8 @@ function deckSlides(D) {
     { k: "costs", h: "Затраты", html: `<p class="sl-lead">Всего с НДС: <b>${esc(t("fin_cost"))}</b> · себестоимость 1 м²: <b>${esc(t("fin_cost_m2"))}</b></p>${costs}` },
     { k: "finance", h: "Финансовый результат", html: `<div class="sl-kpis">${kpi("Выручка", "fin_rev")}${kpi("Затраты", "fin_cost")}${kpi("Чистая прибыль", "fin_net")}${kpi("Маржа", "fin_margin")}${kpi("IRR", "fin_irr")}${kpi("NPV", "fin_npv")}${kpi("Пиковый долг", "fin_peak_debt")}${kpi("Собственный капитал", "equity")}</div>
       <p class="sl-lead">Накопленный денежный поток, млрд тг</p>${cash}` },
+    ...(D.scen.length ? [{ k: "whatif", h: "Сценарии «что если»", html: `<table class="sl-wide"><tr><th>Сценарий</th><th>Допущения</th>${WI_OUT.map(([, l]) => `<th>${l}</th>`).join("")}</tr>
+      ${[{ sc: { name: "Базовый" }, R: D.scenBase }].concat(D.scen).map(({ sc, R }) => `<tr><td>${esc(sc.name || "Сценарий")}</td><td>${esc(wiAssume(sc))}</td>${WI_OUT.map(([k, , f]) => `<td>${wiFmt(R[k], f)}</td>`).join("")}</tr>`).join("")}</table>` }] : []),
     { k: "data", h: D.base ? "Отклонения от базовой версии" : "Статус данных проекта", html: D.base
       ? (changed.length ? `<table class="sl-wide"><tr><th>Показатель</th><th>Утверждено</th><th>Сейчас</th><th>Отклонение</th></tr>${changed.map(v => `<tr><td>${esc(v.name)}</td><td>${esc(v.base)}</td><td>${esc(v.text)}</td><td class="${v.delta.tone}">${esc(v.delta.text)}</td></tr>`).join("")}</table>`
         : `<p class="sl-lead">Отклонений от базовой версии нет.</p>`)
@@ -7319,6 +7372,12 @@ async function deckPptx() {
   kp(s, [["Выручка", t("fin_rev")], ["Затраты", t("fin_cost")], ["Чистая прибыль", t("fin_net")], ["Маржа", t("fin_margin")], ["IRR", t("fin_irr")], ["NPV", t("fin_npv")], ["Пиковый долг", t("fin_peak_debt")], ["Собственный капитал", t("equity")]], 1.2);
   s.addChart(x.ChartType.line, [{ name: "Накопленный денежный поток, млрд тг", labels: d.cash.map(m => m.ym), values: d.cash.map(m => Math.round(m.cum / 1e7) / 100) }],
     { x: 0.5, y: 3.6, w: 12.3, h: 3.6, chartColors: [ACC], lineDataSymbol: "none", lineSize: 2, catAxisLabelFontSize: 9, valAxisLabelFontSize: 10, showLegend: true, legendPos: "t", legendFontSize: 11, catAxisLabelFrequency: 6 });
+  // Сценарии «что если»
+  if (D.scen.length) {
+    s = page("Сценарии «что если»");
+    s.addTable([["Сценарий", "Допущения"].concat(WI_OUT.map(([, l]) => l)).map(h => ({ text: h, options: { bold: true, color: MUT } }))].concat([{ sc: { name: "Базовый" }, R: D.scenBase }].concat(D.scen).map(({ sc, R }) => [sc.name || "Сценарий", wiAssume(sc)].concat(WI_OUT.map(([k, , f]) => wiFmt(R[k], f))))),
+      { x: 0.5, y: 1.2, w: 12.3, fontFace: F, fontSize: 11, color: INK, border: { type: "solid", color: "E3E6EA", pt: 0.75 }, colW: [1.8, 3.3, 1.3, 1.0, 1.0, 1.3, 1.4, 1.2] });
+  }
   // 7. Данные
   const all = Object.values(V).filter(v => !v.calc), ap = all.filter(v => v.st === "approved").length, ag = all.filter(v => v.st === "agreed").length;
   if (D.base) {
@@ -7359,7 +7418,7 @@ async function deckPptx() {
 function subTabs(v) {
   const fam = v === "kpi" || VIEWS[v].p === "kpi"; if (!fam) return "";
   const tab = (k, t) => { const b = k === "kpi" ? "" : zhkBadge(k); return `<a href="#${k}"${k === v ? ' aria-current="page"' : ""}>${t}${b ? ` <span class="cnt alert">${b}</span>` : ""}</a>` };
-  return `<nav class="subtabs" aria-label="Разделы показателей">${tab("kpi", "Сводка")}${tab("model", "Финмодель")}${tab("deadlines", "Сроки документов")}</nav>`;
+  return `<nav class="subtabs" aria-label="Разделы показателей">${tab("kpi", "Сводка")}${tab("model", "Финмодель")}${tab("whatif", "Что если")}${tab("deadlines", "Сроки документов")}</nav>`;
 }
 
 // ---------- Дорожная карта (приложение дерева этапов) ----------
@@ -7439,11 +7498,17 @@ function bind(m) {
   const fx = m.querySelector("#f-clear"); if (fx) fx.onclick = () => { filt = { region: "", city: "", klass: "", stage: "", work: "", construct: "", dir: "", status: "" }; route() };
   m.querySelectorAll("[data-std]").forEach(b => b.onclick = () => openStd(b.dataset.std));
   m.querySelectorAll("[data-kind]").forEach(b => b.onclick = () => { const k = b.dataset.kind; evKinds.has(k) ? evKinds.delete(k) : evKinds.add(k); route() });
-  m.querySelectorAll("[data-item]").forEach(el => el.onchange = () => { const [k, id, f] = el.dataset.item.split(":"); window.ZHK.setItem(k, id, { [f]: el.value }); if (el.tagName === "SELECT") route() });
+  m.querySelectorAll("[data-item]").forEach(el => el.onchange = () => {
+    const [k, id, f] = el.dataset.item.split(":");
+    window.ZHK.setItem(k, id, { [f]: el.value });
+    if (el.tagName === "SELECT") route();
+    // Сценарии «что если»: итоги пересчитываются сразу, курсор остаётся в поле, куда перешёл пользователь.
+    else if (k === "scenarios") setTimeout(() => { const a = document.activeElement, sel = a && a.dataset ? a.dataset.item : null; route(); const nx = sel && document.querySelector(`[data-item="${sel}"]`); if (nx) nx.focus(); }, 0);
+  });
   m.querySelectorAll("[data-item-del]").forEach(b => b.onclick = () => { const [k, id] = b.dataset.itemDel.split(":"); window.ZHK.setItem(k, id, null) });
   m.querySelectorAll("[data-item-add]").forEach(b => b.onclick = () => {
-    const k = b.dataset.itemAdd, id = window.ZHK.setItem(k, null, k === "risks" ? { kind: "risk", level: "mid" } : k === "partners" ? { status: "tender" } : k === "blocks" ? { name: "Блок " + (window.ZHK.list("blocks").length + 1), kind: "res" } : { role: "" });
-    const el = id && document.querySelector(`[data-item="${k}:${id}:${{ risks: "title", partners: "org", blocks: "floors" }[k] || "role"}"]`); if (el) el.focus();
+    const k = b.dataset.itemAdd, id = window.ZHK.setItem(k, null, k === "risks" ? { kind: "risk", level: "mid" } : k === "partners" ? { status: "tender" } : k === "blocks" ? { name: "Блок " + (window.ZHK.list("blocks").length + 1), kind: "res" } : k === "scenarios" ? { name: "Свой сценарий" } : { role: "" });
+    const el = id && document.querySelector(`[data-item="${k}:${id}:${{ risks: "title", partners: "org", blocks: "floors", scenarios: "price" }[k] || "role"}"]`); if (el) el.focus();
   });
   m.querySelectorAll("[data-b0]").forEach(el => el.onchange = () => { window.ZHK.setB0(el.dataset.b0, el.type === "checkbox" ? (el.checked ? "1" : "") : el.value); if (el.tagName === "SELECT" || el.type === "checkbox") route() });
   const bx = m.querySelector("#b0-xlsx"); if (bx) bx.onclick = b0Xlsx;
@@ -7465,6 +7530,7 @@ function bind(m) {
     const p = window.ZHK.project(), k = Math.max(1, Math.min(30, parseInt(p.blocks) || 1)), fl = parseInt(p.floors) || "", fq = parseInt(p.flats) || 0;
     window.ZHK.addItems("blocks", Array.from({ length: k }, (_, i) => ({ name: "Блок " + (i + 1), kind: "res", floors: fl, flats: fq ? Math.round(fq / k) + (i === k - 1 ? fq - Math.round(fq / k) * k : 0) : "" })));
   };
+  m.querySelectorAll("[data-wi-preset]").forEach(b => b.onclick = () => window.ZHK.addItems("scenarios", [WI_PRESETS[+b.dataset.wiPreset]]));
   const pr = m.querySelector("#partner-roles"); if (pr) pr.onclick = () => window.ZHK.addItems("partners", PARTNER_ROLES.map(([role, subject]) => ({ role, subject, status: "tender" })));
   const tr = m.querySelector("#team-roles"); if (tr) tr.onclick = () => window.ZHK.addItems("team", TEAM_ROLES.map(([role, zone]) => ({ role, zone })));
 }
