@@ -185,6 +185,8 @@ button { cursor: pointer }
 .blocks-t input.vin.num { width: 64px; min-width: 0 }
 .blocks-t input.vin:not(.num) { width: 110px; min-width: 0 }
 .blocks-t select { max-width: 130px }
+.pnr-kpis { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) }
+.pnr-kpis .sl-kpi span { font-size: .8rem } .pnr-kpis .sl-kpi b { font-size: 1.2rem }
 .b0-roof { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 6px 16px; font-size: .9rem }
 .b0-roof label { flex-wrap: nowrap; align-items: flex-start }
 .b0-roof input { margin-top: 3px; flex: none }
@@ -3855,6 +3857,238 @@ window.PNR = [
 ];
 </script>
 
+<script id="xlsx-engine">
+// Чтение .xlsx и расчёт формул в браузере — для калькуляторов отделов (ПНР ОРС): цены и формулы остаются в файле отдела,
+// портал подставляет данные проекта и считает по формулам файла. Функции: IF, IFS, AND, OR, SUM, AVERAGE, ROUND, ROUNDUP,
+// VLOOKUP, ISNUMBER, YEAR, MONTH. Незнакомая функция даёт ошибку #NAME? в своей ячейке, остальной расчёт продолжается.
+window.XLSXEngine = (function () {
+  const dec = new TextDecoder();
+  const xml = s => s.replace(/&(lt|gt|quot|apos|amp|#(\d+)|#x([0-9a-fA-F]+));/g, (m, k, d, h) =>
+    d ? String.fromCodePoint(+d) : h ? String.fromCodePoint(parseInt(h, 16)) : { lt: "<", gt: ">", quot: '"', apos: "'", amp: "&" }[k]);
+  async function inflate(data) {
+    const ds = new DecompressionStream("deflate-raw");
+    const out = new Response(new Blob([data]).stream().pipeThrough(ds));
+    return new Uint8Array(await out.arrayBuffer());
+  }
+  async function unzip(buf) {
+    const u8 = new Uint8Array(buf), dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength), files = {};
+    let e = u8.length - 22;
+    while (e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--;
+    if (e < 0) throw new Error("Это не файл Excel (.xlsx)");
+    let p = dv.getUint32(e + 16, true);
+    const n = dv.getUint16(e + 10, true);
+    for (let i = 0; i < n; i++) {
+      const method = dv.getUint16(p + 10, true), size = dv.getUint32(p + 20, true), nl = dv.getUint16(p + 28, true),
+        el = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), off = dv.getUint32(p + 42, true);
+      const name = dec.decode(u8.subarray(p + 46, p + 46 + nl));
+      const start = off + 30 + dv.getUint16(off + 26, true) + dv.getUint16(off + 28, true);
+      files[name] = { method, data: u8.subarray(start, start + size) };
+      p += 46 + nl + el + cl;
+    }
+    return async name => { const f = files[name]; if (!f) return null; return dec.decode(f.method === 0 ? f.data : await inflate(f.data)); };
+  }
+  // --- адреса ---
+  const colNum = s => s.split("").reduce((a, c) => a * 26 + c.charCodeAt(0) - 64, 0);
+  const colStr = n => { let s = ""; while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = (n - m - 1) / 26; } return s; };
+  const SHEET = "(?:'((?:[^']|'')+)'|([A-Za-zА-Яа-яЁё_][\\wА-Яа-яЁё.]*))!";
+  const REF_RE = new RegExp("(" + SHEET + ")?(?:(\\$?)([A-Z]{1,3})(\\$?)(\\d+)(?::(\\$?)([A-Z]{1,3})(\\$?)(\\d+))?|(\\$?)([A-Z]{1,3}):(\\$?)([A-Z]{1,3}))(?![\\w(])", "y");
+  // Сдвиг относительных ссылок общей (shared) формулы на dr строк и dc колонок.
+  function shift(f, dr, dc) {
+    let out = "", i = 0;
+    const re = new RegExp("(\"(?:[^\"]|\"\")*\")|(" + SHEET + ")?(\\$?)([A-Z]{1,3})(\\$?)(\\d+)(?![\\w(])|(" + SHEET + ")?(\\$?)([A-Z]{1,3}):(\\$?)([A-Z]{1,3})(?![\\w(\\d])", "g");
+    return f.replace(re, (m, str, sh, q1, u1, d1, c, d2, r, sh2, q2, u2, d3, ca, d4, cb, off, all) => {
+      if (str) return m;
+      const prev = off > 0 ? all[off - 1] : "";
+      if (/[\wА-Яа-яЁё.$]/.test(prev)) return m;
+      if (c) return (sh || "") + d1 + (d1 ? c : colStr(colNum(c) + dc)) + d2 + (d2 ? r : +r + dr);
+      return (sh2 || "") + d3 + (d3 ? ca : colStr(colNum(ca) + dc)) + ":" + d4 + (d4 ? cb : colStr(colNum(cb) + dc));
+    });
+  }
+  // --- чтение книги ---
+  async function read(buf) {
+    const get = await unzip(buf);
+    const wbx = await get("xl/workbook.xml"), rels = await get("xl/_rels/workbook.xml.rels");
+    if (!wbx) throw new Error("Это не файл Excel (.xlsx)");
+    const target = {};
+    rels.replace(/<Relationship [^>]*>/g, t => { const id = /Id="([^"]+)"/.exec(t), tg = /Target="([^"]+)"/.exec(t); if (id && tg) target[id[1]] = tg[1].replace(/^\/?xl\//, ""); });
+    const sst = [];
+    const ss = await get("xl/sharedStrings.xml");
+    if (ss) ss.replace(/<si>([\s\S]*?)<\/si>/g, (m, si) => { sst.push(xml((si.match(/<t[^>]*>[\s\S]*?<\/t>/g) || []).map(t => t.replace(/<[^>]+>/g, "")).join(""))); });
+    const sheets = {};
+    for (const m of wbx.matchAll(/<sheet [^>]*?name="([^"]+)"[^>]*?r:id="([^"]+)"/g)) {
+      const name = xml(m[1]), x = await get("xl/" + target[m[2]]);
+      if (!x) continue;
+      const cells = new Map(), master = {};
+      for (const c of x.matchAll(/<c r="([A-Z]+)(\d+)"([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)) {
+        const col = colNum(c[1]), row = +c[2], attrs = c[3], body = c[4] || "", t = (/ t="(\w+)"/.exec(attrs) || [])[1];
+        const cell = { r: row, c: col };
+        const fm = /<f([^>]*)>([\s\S]*?)<\/f>|<f([^>]*)\/>/.exec(body);
+        if (fm) {
+          const fa = fm[1] || fm[3] || "", si = (/si="(\d+)"/.exec(fa) || [])[1];
+          if (fm[2] != null && fm[2] !== "") { cell.f = xml(fm[2]); if (si != null && / t="shared"/.test(fa)) master[si] = { f: cell.f, r: row, c: col }; }
+          else if (si != null && master[si]) cell.f = shift(master[si].f, row - master[si].r, col - master[si].c);
+        }
+        const v = /<v>([\s\S]*?)<\/v>/.exec(body);
+        if (t === "s" && v) cell.v = sst[+v[1]];
+        else if (t === "inlineStr") cell.v = xml((body.match(/<t[^>]*>[\s\S]*?<\/t>/g) || []).map(s => s.replace(/<[^>]+>/g, "")).join(""));
+        else if (t === "str" && v) cell.v = xml(v[1]);
+        else if (t === "b" && v) cell.v = v[1] === "1";
+        else if (t === "e" && v) cell.v = { err: xml(v[1]) };
+        else if (v) cell.v = +v[1];
+        if (cell.f != null || cell.v != null) cells.set(row * 16384 + col, cell);
+      }
+      sheets[name] = cells;
+    }
+    return { sheets };
+  }
+  // --- формулы ---
+  const ERR = e => ({ err: e }), isErr = x => x && typeof x === "object" && "err" in x;
+  function tokenize(s) {
+    const T = []; let i = 0;
+    while (i < s.length) {
+      const ch = s[i];
+      if (/\s/.test(ch)) { i++; continue; }
+      if (ch === '"') { let j = i + 1, v = ""; for (; j < s.length; j++) { if (s[j] === '"') { if (s[j + 1] === '"') { v += '"'; j++; } else break; } else v += s[j]; } T.push({ t: "str", v }); i = j + 1; continue; }
+      if (ch === "#") { const m = /^#(N\/A|REF!|VALUE!|DIV\/0!|NAME\?|NUM!|NULL!)/.exec(s.slice(i)); if (m) { T.push({ t: "err", v: m[0] }); i += m[0].length; continue; } }
+      const num = /^\d+(\.\d+)?([eE][+-]?\d+)?/.exec(s.slice(i));
+      if (num && !/^[A-Z]/.test(s.slice(i + num[0].length, i + num[0].length + 1))) { T.push({ t: "num", v: +num[0] }); i += num[0].length; continue; }
+      REF_RE.lastIndex = i;
+      const r = REF_RE.exec(s);
+      if (r && r.index === i) {
+        const sheet = r[2] != null ? r[2].replace(/''/g, "'") : r[3] || null;
+        if (r[5]) T.push({ t: "ref", sheet, c1: colNum(r[5]), r1: +r[7], c2: r[9] ? colNum(r[9]) : colNum(r[5]), r2: r[9] ? +r[11] : +r[7] });
+        else T.push({ t: "ref", sheet, c1: colNum(r[13]), r1: 1, c2: colNum(r[15]), r2: 1048576 });
+        i += r[0].length; continue;
+      }
+      const fn = /^([A-Za-z_][\w.]*)\(/.exec(s.slice(i));
+      if (fn) { T.push({ t: "fn", v: fn[1].replace(/^_xlfn\./, "").toUpperCase() }); i += fn[0].length; continue; }
+      const bool = /^(TRUE|FALSE)(?![\w(])/.exec(s.slice(i));
+      if (bool) { T.push({ t: "bool", v: bool[1] === "TRUE" }); i += bool[0].length; continue; }
+      const op = /^(<>|<=|>=|[-+*/^&=<>%(),;])/.exec(s.slice(i));
+      if (op) { T.push({ t: "op", v: op[1] === ";" ? "," : op[1] }); i += op[0].length; continue; }
+      throw new Error("Не разобрать формулу: " + s.slice(i, i + 20));
+    }
+    return T;
+  }
+  function parse(s) {
+    const T = tokenize(s); let p = 0;
+    const peek = () => T[p], take = () => T[p++], isOp = v => T[p] && T[p].t === "op" && T[p].v === v;
+    const bin = (next, ops) => () => { let a = next(); while (T[p] && T[p].t === "op" && ops.indexOf(T[p].v) >= 0) { const o = take().v; a = { k: "bin", o, a, b: next() }; } return a; };
+    const prim = () => {
+      const t = take();
+      if (!t) throw new Error("Неполная формула");
+      if (t.t === "num" || t.t === "str" || t.t === "bool") return { k: "lit", v: t.v };
+      if (t.t === "err") return { k: "lit", v: ERR(t.v) };
+      if (t.t === "ref") return { k: "ref", ...t };
+      if (t.t === "fn") { const args = []; if (!isOp(")")) { do { args.push(isOp(",") || isOp(")") ? { k: "lit", v: null } : cmp()); } while (isOp(",") && take()); } take(); return { k: "fn", n: t.v, args }; }
+      if (t.t === "op" && t.v === "(") { const e = cmp(); take(); return e; }
+      if (t.t === "op" && (t.v === "-" || t.v === "+")) return { k: "neg", s: t.v === "-", a: pct() };
+      throw new Error("Неожиданно: " + t.v);
+    };
+    const pct = () => { let a = prim(); while (isOp("%")) { take(); a = { k: "bin", o: "/", a, b: { k: "lit", v: 100 } }; } return a; };
+    const pow = bin(pct, ["^"]), mul = bin(pow, ["*", "/"]), add = bin(mul, ["+", "-"]), cat = bin(add, ["&"]), cmp = bin(cat, ["=", "<>", "<", ">", "<=", ">="]);
+    const e = cmp();
+    if (p < T.length) throw new Error("Лишнее в формуле: " + T[p].v);
+    return e;
+  }
+  // --- вычисление ---
+  function evaluator(wb, overrides) {
+    const memo = new Map(), ast = new Map(), stack = new Set();
+    const cellOf = (sh, r, c) => { const S = wb.sheets[sh]; return S ? S.get(r * 16384 + c) : undefined; };
+    function value(sh, r, c) {
+      const key = sh + "!" + r + "," + c;
+      if (memo.has(key)) return memo.get(key);
+      const cell = cellOf(sh, r, c), ov = overrides && overrides[sh + "!" + colStr(c) + r];
+      let v;
+      if (ov !== undefined && !(cell && cell.f)) v = ov;
+      else if (!cell) v = null;
+      else if (cell.f == null) v = cell.v == null ? null : cell.v;
+      else {
+        if (stack.has(key)) return ERR("#REF!");
+        stack.add(key);
+        try { let a = ast.get(cell.f); if (!a) { a = parse(cell.f); ast.set(cell.f, a); } v = ev(a, sh); if (v && v.range) v = single(v); }
+        catch (e) { v = ERR("#NAME?"); }
+        stack.delete(key);
+      }
+      memo.set(key, v);
+      return v;
+    }
+    const single = rg => rg.r1 === rg.r2 && rg.c1 === rg.c2 ? value(rg.sh, rg.r1, rg.c1) : ERR("#VALUE!");
+    function* cells(rg) {
+      const S = wb.sheets[rg.sh]; if (!S) return;
+      if ((rg.r2 - rg.r1 + 1) * (rg.c2 - rg.c1 + 1) > 20000) { for (const cell of S.values()) if (cell.r >= rg.r1 && cell.r <= rg.r2 && cell.c >= rg.c1 && cell.c <= rg.c2) yield value(rg.sh, cell.r, cell.c); return; }
+      for (let r = rg.r1; r <= rg.r2; r++) for (let c = rg.c1; c <= rg.c2; c++) yield value(rg.sh, r, c);
+    }
+    const num = v => { if (isErr(v)) return v; if (v == null || v === "") return 0; if (typeof v === "boolean") return v ? 1 : 0; if (typeof v === "number") return v; const n = Number(String(v).replace(",", ".")); return isFinite(n) && String(v).trim() !== "" ? n : ERR("#VALUE!"); };
+    const str = v => v == null ? "" : typeof v === "boolean" ? (v ? "TRUE" : "FALSE") : String(v);
+    const bool = v => { if (isErr(v)) return v; if (typeof v === "boolean") return v; if (v == null || v === "") return false; if (typeof v === "number") return v !== 0; const s = String(v).toUpperCase(); return s === "TRUE" ? true : s === "FALSE" ? false : ERR("#VALUE!"); };
+    const rank = v => typeof v === "number" ? 0 : typeof v === "string" ? 1 : 2;
+    function compare(a, b) {
+      if (a == null) a = typeof b === "string" ? "" : typeof b === "boolean" ? false : 0;
+      if (b == null) b = typeof a === "string" ? "" : typeof a === "boolean" ? false : 0;
+      if (rank(a) !== rank(b)) return rank(a) - rank(b);
+      if (typeof a === "string") { a = a.toLowerCase(); b = b.toLowerCase(); }
+      return a < b ? -1 : a > b ? 1 : 0;
+    }
+    const roundX = (x, n, up) => { const f = Math.pow(10, n), y = Math.abs(x) * f, z = up ? Math.ceil(y - 1e-9) : Math.round(y + 1e-9); return Math.sign(x) * z / f; };
+    const date = s => new Date(Date.UTC(1899, 11, 30) + Math.floor(s) * 86400000);
+    function ev(a, sh) {
+      switch (a.k) {
+        case "lit": return a.v;
+        case "ref": return { range: true, sh: a.sheet || sh, r1: a.r1, c1: a.c1, r2: a.r2, c2: a.c2 };
+        case "neg": { const v = num(scalar(a.a, sh)); return isErr(v) ? v : a.s ? -v : v; }
+        case "bin": {
+          const x = scalar(a.a, sh), y = scalar(a.b, sh);
+          if (isErr(x)) return x; if (isErr(y)) return y;
+          if (a.o === "&") return str(x) + str(y);
+          if (["=", "<>", "<", ">", "<=", ">="].indexOf(a.o) >= 0) { const c = compare(x, y); return { "=": c === 0, "<>": c !== 0, "<": c < 0, ">": c > 0, "<=": c <= 0, ">=": c >= 0 }[a.o]; }
+          const p = num(x), q = num(y); if (isErr(p)) return p; if (isErr(q)) return q;
+          if (a.o === "/" && q === 0) return ERR("#DIV/0!");
+          return { "+": p + q, "-": p - q, "*": p * q, "/": p / q, "^": Math.pow(p, q) }[a.o];
+        }
+        case "fn": return fn(a.n, a.args, sh);
+      }
+    }
+    function scalar(a, sh) { const v = ev(a, sh); return v && v.range ? single(v) : v; }
+    function* flat(args, sh) { for (const a of args) { const v = ev(a, sh); if (v && v.range) { for (const x of cells(v)) yield { v: x, ref: true }; } else yield { v, ref: false }; } }
+    function fn(n, args, sh) {
+      switch (n) {
+        case "IF": { const c = bool(scalar(args[0], sh)); if (isErr(c)) return c; const b = c ? args[1] : args[2]; return b ? scalar(b, sh) : c ? 0 : false; }
+        case "IFS": { for (let i = 0; i + 1 < args.length; i += 2) { const c = bool(scalar(args[i], sh)); if (isErr(c)) return c; if (c) return scalar(args[i + 1], sh); } return ERR("#N/A"); }
+        case "AND": case "OR": {
+          let res = n === "AND", any = false;
+          for (const { v, ref } of flat(args, sh)) { if (isErr(v)) return v; if (ref && (v == null || typeof v === "string")) continue; const b = bool(v); if (isErr(b)) return b; any = true; res = n === "AND" ? res && b : res || b; }
+          return any ? res : ERR("#VALUE!");
+        }
+        case "SUM": case "AVERAGE": {
+          let s = 0, k = 0;
+          for (const { v, ref } of flat(args, sh)) { if (isErr(v)) return v; if (ref && typeof v !== "number") continue; const x = num(v); if (isErr(x)) return x; s += x; k++; }
+          return n === "SUM" ? s : k ? s / k : ERR("#DIV/0!");
+        }
+        case "ROUND": case "ROUNDUP": { const x = num(scalar(args[0], sh)), d = num(args[1] ? scalar(args[1], sh) : 0); if (isErr(x)) return x; if (isErr(d)) return d; return roundX(x, d, n === "ROUNDUP"); }
+        case "ISNUMBER": return typeof scalar(args[0], sh) === "number";
+        case "YEAR": case "MONTH": { const x = num(scalar(args[0], sh)); if (isErr(x)) return x; const d = date(x); return n === "YEAR" ? d.getUTCFullYear() : d.getUTCMonth() + 1; }
+        case "VLOOKUP": {
+          const key = scalar(args[0], sh), rg = ev(args[1], sh), col = num(scalar(args[2], sh)), approx = args[3] ? bool(scalar(args[3], sh)) : true;
+          if (isErr(key)) return key; if (isErr(col)) return col;
+          if (!rg || !rg.range) return ERR("#VALUE!");
+          if (col < 1) return ERR("#VALUE!"); if (col > rg.c2 - rg.c1 + 1) return ERR("#REF!");
+          const S = wb.sheets[rg.sh] || new Map(), rows = [];
+          for (const cell of S.values()) if (cell.c === rg.c1 && cell.r >= rg.r1 && cell.r <= rg.r2) rows.push(cell.r);
+          rows.sort((x, y) => x - y);
+          let hit = null;
+          for (const r of rows) { const v = value(rg.sh, r, rg.c1); if (approx === false || approx === 0) { if (compare(v, key) === 0) { hit = r; break; } } else if (compare(v, key) <= 0) hit = r; else break; }
+          return hit == null ? ERR("#N/A") : value(rg.sh, hit, rg.c1 + col - 1);
+        }
+      }
+      return ERR("#NAME?");
+    }
+    return { value: (sh, ref) => { const m = /^([A-Z]+)(\d+)$/.exec(ref); return value(sh, +m[2], colNum(m[1])); }, valueRC: value };
+  }
+  return { read, evaluator, parse, shift, colNum, colStr, isErr };
+})();
+</script>
+
 <script id="vars-data">
 // Словарь данных проекта («Кирпич за кирпичом»): каждая переменная вводится в одном месте, остальные инструменты читают её оттуда.
 // path — где хранится значение в данных проекта; calc — значение считает инструмент, вручную не вводится.
@@ -4327,7 +4561,7 @@ window.ZHK_BOOT = function (document) {
   const RANKS = [[0, "Стажёр"], [1, "Аналитик"], [4, "Девелопер"], [8, "Застройщик"], [13, "Генеральный застройщик"], [21, "Магнат ЖК"]];
   const STATUS = { locked: "Закрыт", open: "Доступен", active: "В работе", risk: "Начат с риском", done: "Пройден" };
   const LOCAL_KEY = "zhk-skill-tree-v2", LEGACY_KEY = "zhk-skill-tree-v1";
-  const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines", "sched", "vars", "baseline", "risks", "team", "partners", "blocks", "b0", "pnr"];
+  const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines", "sched", "vars", "baseline", "risks", "team", "partners", "blocks", "b0", "pnr", "pnrCalc"];
   const VIEWS = ["tree", "gantt", "model", "budget", "deadlines", "projects"];
 
   // S — всё состояние проекта, хранится одним документом.
@@ -5822,7 +6056,7 @@ window.ZHK_BOOT = function (document) {
       resetZone.innerHTML = '<span class="reset-confirm">Сбросить отметки, назначения и досрочные старты? Карточка проекта, финмодель, бюджет и реестр сроков останутся. <button class="btn" id="reset-yes">Да, сбросить</button><button class="btn ghost" id="reset-no">Отмена</button></span>';
     } else if (e.target.id === "reset-yes" || e.target.id === "reset-no") {
       if (e.target.id === "reset-yes" && !readOnly) {
-        S = normalize({ project: S.project, model: S.model, budget: S.budget, deadlines: S.deadlines, sched: S.sched, vars: S.vars, baseline: S.baseline, risks: S.risks, team: S.team, partners: S.partners, blocks: S.blocks, b0: S.b0, pnr: S.pnr });
+        S = normalize({ project: S.project, model: S.model, budget: S.budget, deadlines: S.deadlines, sched: S.sched, vars: S.vars, baseline: S.baseline, risks: S.risks, team: S.team, partners: S.partners, blocks: S.blocks, b0: S.b0, pnr: S.pnr, pnrCalc: S.pnrCalc });
         openEdits.clear();
         saveLocal();
         if (docRef) { const ref = docRef, proj = curProject, full = JSON.parse(JSON.stringify(S)); writeChain = writeChain.then(() => ref.set(full).then(() => { if (proj === curProject) docExists = true; }).catch(() => {})); }
@@ -6011,6 +6245,10 @@ window.ZHK_BOOT = function (document) {
     // Чек-лист B0: ответы хранятся плоско, ключ — раздел и поле («p.usp», «b.<блок>.len», «f.<фасад>.<блок>»…)
     b0: () => S.b0 || {},
     pnr: () => S.pnr || {},
+    // Итоги расчёта ПНР по файлу калькулятора ОРС: файл с ценами остаётся у ОРС, в проект сохраняются только итоги.
+    pnrCalc: () => S.pnrCalc && S.pnrCalc.at ? S.pnrCalc : null,
+    setPnrCalc: r => { if (!readOnly) commit({ pnrCalc: Object.assign({ by: meId || "" }, r) }); },
+    who: id => nameOf(id),
     setB0: (key, val) => { if (!readOnly && /^[\w.\-]{1,80}$/.test(key)) commit({ b0: { [key]: val === "" || val == null ? null : String(val).slice(0, 300) } }); },
     setItem: (k, id, patch) => setItem(k, id, patch),
     addItems: (k, rows) => addItems(k, rows),
@@ -6458,7 +6696,62 @@ function viewPnr() {
     <div class="row">${chip("who", "", "Все")}${Object.entries(PNR_WHO).map(([k, t]) => chip("who", k, t)).join("")}<span class="muted">·</span>${chip("src", "", "Все строки")}${chip("src", "in", "Вводятся здесь")}${chip("src", "auto", "Из данных проекта")}</div>
     <p class="muted" style="margin:0">Этажность, лифты, остановки, каркас, подъезды и контур — по <a href="#blocks">блокам проекта</a>; краны, мойки колёс, паркинг и благоустройство — из <a href="#b0">чек-листа B0</a>. Каждое значение вводится один раз.</p>
   </section>
+  ${pnrCalcHtml()}
   <div class="panel tbl vtable"><table><thead><tr><th>№</th><th>Показатель</th><th>Значение</th><th>Кто вносит</th></tr></thead><tbody>${rows.map(p => `<tr><td class="mono muted">${p[0]}</td><td>${esc(p[1])}${p[2] ? `, ${esc(p[2])}` : ""}</td><td class="vval">${cell(p)}</td><td>${PNR_WHO[p[3]]}</td></tr>`).join("") || '<tr><td colspan="4" class="muted">Нет строк по фильтру.</td></tr>'}</tbody></table></div>`;
+}
+// Файл калькулятора ОРС хранится только в этом браузере (IndexedDB); в данные проекта попадают итоги.
+const pnrIdb = (mode, fn) => new Promise((ok, no) => { try { const r = indexedDB.open("bbb-pnr", 1); r.onupgradeneeded = () => r.result.createObjectStore("f"); r.onsuccess = () => { const tx = r.result.transaction("f", mode); const q = fn(tx.objectStore("f")); tx.oncomplete = () => ok(q && q.result); tx.onerror = () => no(tx.error); }; r.onerror = () => no(r.error); } catch (e) { no(e); } });
+let pnrFile = null, pnrMsg = "";
+async function pnrLoadCached() { if (pnrFile) return pnrFile; try { pnrFile = await pnrIdb("readonly", st => st.get("calc")) || null; } catch (e) { pnrFile = null; } return pnrFile; }
+function pnrSay(m) { pnrMsg = m; const el = document.getElementById("pnr-msg"); if (el) el.textContent = m; }
+async function pnrCalcRun() {
+  const F = await pnrLoadCached();
+  if (!F) { pnrSay("Выберите файл калькулятора ПНР (.xlsx)."); return false; }
+  pnrSay("Считаю…");
+  try {
+    const E = window.XLSXEngine, wb = await E.read(F.buf);
+    const calc = wb.sheets["Калькулятор"], ind = wb.sheets["Показатели проекта"];
+    if (!calc || !ind) { pnrSay("В файле нет листов «Калькулятор» и «Показатели проекта». Это калькулятор ПНР?"); return false; }
+    const C = pnrCtx(), ov = {};
+    let mism = 0;
+    window.PNR.forEach(p => {
+      const val = pnrVal(p, C), x = val.x;
+      ov["Показатели проекта!D" + (p[0] + 1)] = x == null ? null : typeof x === "object" ? x.d : x;
+      const lab = ind.get((p[0] + 1) * 16384 + 2);
+      const nl = t => String(t || "").replace(/\s+/g, " ").replace(/\s*\((выбрать из списка|вып\. список)[^)]*\)/gi, "").replace(/м2/g, "м²").trim().toLowerCase().slice(0, 25);
+      if (!lab || nl(lab.v) !== nl(p[1])) mism++;
+    });
+    const ev = E.evaluator(wb, ov), get = (r, c) => ev.valueRC("Калькулятор", r, c);
+    let maxR = 0; for (const c of calc.values()) maxR = Math.max(maxR, c.r);
+    const rows = [];
+    for (let r = 2; r <= maxR; r++) { const a = get(r, 1); if (a != null && /^\d+(\.\d+)*$/.test(String(a).trim())) rows.push({ r, a: String(a).trim(), name: String(get(r, 3) || "").trim(), g: get(r, 7), stat: String(get(r, 9) || "").trim() }); }
+    // Сумма по строкам без вложенных сумм: итоги разделов в калькуляторе стоят не везде, двойного счёта нет.
+    const hasNum = x => typeof x.g === "number";
+    const leaf = rows.filter((x, i) => (hasNum(x) || E.isErr(x.g)) && !rows.slice(i + 1).some(y => y.a.indexOf(x.a + ".") === 0 && (hasNum(y) || E.isErr(y.g))));
+    const top = rows.filter(x => x.a.split(".").length === 1), lvl2 = rows.filter(x => x.a.split(".").length === 2);
+    const sumUnder = a => leaf.filter(x => (x.a + ".").indexOf(a + ".") === 0).reduce((s, x) => s + (hasNum(x) ? x.g : 0), 0);
+    const errUnder = a => leaf.filter(x => (x.a + ".").indexOf(a + ".") === 0 && E.isErr(x.g)).length;
+    const items = lvl2.map(x => ({ a: x.a, name: x.name, sum: Math.round(sumUnder(x.a)), err: errUnder(x.a) }));
+    const sections = top.map(x => ({ a: x.a, name: x.name, sum: Math.round(sumUnder(x.a)), err: errUnder(x.a) }));
+    const total = sections.reduce((s, x) => s + x.sum, 0);
+    window.ZHK.setPnrCalc({ at: new Date().toISOString(), file: F.name, total, sections, items, mism, left: pnrLeft() });
+    setTimeout(() => pnrSay(mism > 5 ? `Посчитано. Внимание: ${mism} строк листа «Показатели проекта» в файле не совпадают с порталом — возможно, другая версия калькулятора.` : "Посчитано и сохранено в проект."), 0);
+    return true;
+  } catch (e) { pnrSay("Не удалось прочитать файл: " + (e && e.message ? e.message : "ошибка") + "."); return false; }
+}
+function pnrCalcHtml() {
+  const R = window.ZHK.pnrCalc(), ro = window.ZHK.readOnly(), mln = x => (x / 1e6).toLocaleString("ru-RU", { maximumFractionDigits: 1 });
+  const errs = R ? R.items.filter(x => x.err) : [];
+  return `<section class="panel stack" id="pnr-calc">
+    <div class="row between"><h2>Расчёт ПНР по калькулятору ОРС</h2>
+      <div class="row">${ro ? "" : `<label class="btn">Выбрать файл калькулятора<input type="file" id="pnr-file" accept=".xlsx" hidden></label><button class="btn primary" id="pnr-run">Рассчитать</button>`}</div></div>
+    <p class="muted" style="margin:0">Портал считает по формулам и ценам из файла ОРС: показатели подставляются из этой страницы. Файл остаётся в этом браузере, в проект сохраняются только итоги. Цены обновит ОРС в своём файле.</p>
+    <div class="muted" aria-live="polite" id="pnr-msg">${esc(pnrMsg)}</div>
+    ${R ? `<div class="sl-kpis sl-k3 pnr-kpis"><div class="sl-kpi"><span>ПНР всего, без НДС</span><b>${mln(R.total)} млн тг</b></div>${R.sections.map(x => `<div class="sl-kpi"><span>${esc(x.name)}</span><b>${mln(x.sum)} млн</b></div>`).join("")}</div>
+      <div class="tbl"><table><thead><tr><th>№</th><th>Статья</th><th class="num">Сумма без НДС, тг</th><th></th></tr></thead><tbody>${R.items.map(x => `<tr><td class="mono muted">${x.a}</td><td>${esc(x.name)}</td><td class="num">${x.sum.toLocaleString("ru-RU")}</td><td>${x.err ? `<span class="chip s-fail">не посчитано строк: ${x.err}</span>` : ""}</td></tr>`).join("")}</tbody></table></div>
+      <p class="muted" style="margin:0">Рассчитано ${new Date(R.at).toLocaleString("ru-RU")}${R.by ? ", " + esc(window.ZHK.who(R.by)) : ""}, файл «${esc(R.file)}».${R.left ? ` Не заполнено показателей: ${R.left} — часть статей может быть занижена.` : ""}${errs.length ? " Статьи с непосчитанными строками ждут показателей или выбора из списков в файле ОРС (район изысканий, вид проектирования)." : ""}</p>`
+      : `<div class="empty">Расчёта ещё нет. Выберите файл калькулятора ПНР и нажмите «Рассчитать».</div>`}
+  </section>`;
 }
 function pnrXlsx() {
   const C = pnrCtx();
@@ -6977,6 +7270,15 @@ function bind(m) {
   m.querySelectorAll("[data-b0]").forEach(el => el.onchange = () => { window.ZHK.setB0(el.dataset.b0, el.type === "checkbox" ? (el.checked ? "1" : "") : el.value); if (el.tagName === "SELECT" || el.type === "checkbox") route() });
   const bx = m.querySelector("#b0-xlsx"); if (bx) bx.onclick = b0Xlsx;
   const px = m.querySelector("#pnr-xlsx"); if (px) px.onclick = pnrXlsx;
+  const pf = m.querySelector("#pnr-file"); if (pf) pf.onchange = async () => {
+    const f = pf.files && pf.files[0]; if (!f) return;
+    if (f.size > 30 * 1048576) { pnrSay("Файл больше 30 МБ."); return; }
+    const prev = await pnrLoadCached();
+    pnrFile = { name: f.name, buf: await f.arrayBuffer(), at: new Date().toISOString() };
+    if (await pnrCalcRun()) { try { await pnrIdb("readwrite", st => st.put(pnrFile, "calc")); } catch (e) {} }
+    else pnrFile = prev;   // неподходящий файл не заменяет сохранённый
+  };
+  const pr2 = m.querySelector("#pnr-run"); if (pr2) pr2.onclick = pnrCalcRun;
   m.querySelectorAll("[data-pnrf]").forEach(b => b.onclick = () => { const [k, v] = b.dataset.pnrf.split(":"); pnrF[k] = v; route() });
   const bl = m.querySelector("#blocks-legacy"); if (bl) bl.onclick = () => {
     const p = window.ZHK.project(), k = Math.max(1, Math.min(30, parseInt(p.blocks) || 1)), fl = parseInt(p.floors) || "", fq = parseInt(p.flats) || 0;
