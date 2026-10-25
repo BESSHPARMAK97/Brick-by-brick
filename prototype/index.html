@@ -147,6 +147,41 @@ button { cursor: pointer }
 .prog { font-family: var(--f-mono); font-size: .8rem; color: var(--muted); white-space: nowrap }
 .empty { padding: 28px; text-align: center; color: var(--muted) }
 
+/* Презентация ПК Start: слайды 16:9 — «бумага», всегда светлые, чтобы совпадать с выгрузкой */
+.deck { display: grid; gap: 20px }
+.deck:fullscreen { background: #1b2129; overflow-y: auto; padding: 24px; align-content: start }
+.slide { aspect-ratio: 16 / 9; container-type: inline-size; background: #ffffff; color: #1b2129; border: 1px solid #d9dde3; border-radius: 10px; padding: 3.2cqw 4cqw; display: flex; flex-direction: column; gap: 1.6cqw; overflow: hidden; max-width: 100% }
+.sl-head { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #d9dde3; padding-bottom: 1cqw }
+.sl-head h2 { font-family: var(--f-display); font-size: 2.6cqw; color: #1b2129 }
+.sl-head span { font-size: 1.1cqw; color: #5d6672 }
+.sl-body { display: flex; flex-direction: column; gap: 1.4cqw; min-height: 0; font-size: 1.45cqw }
+.sl-body svg { width: 100%; height: auto; max-height: 30cqw }
+.sl-txt { font: 15px var(--f-body); fill: #1b2129 }
+.sl-mut { fill: #5d6672 }
+.sl-bar { fill: #c9d8f5; stroke: #1f5fd1 }
+.sl-crit { fill: #f3c8c4; stroke: #c2382f }
+.sl-late { fill: #c2382f; opacity: .35 }
+.sl-axis { stroke: #8a929c; stroke-width: 1 }
+.sl-line { fill: none; stroke: #1f5fd1; stroke-width: 3 }
+.sl-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 3cqw }
+.slide table { border-collapse: collapse; width: 100%; font-size: 1.35cqw }
+.slide td, .slide th { border-bottom: 1px solid #e3e6ea; padding: .55cqw .4cqw; text-align: left; vertical-align: top; color: #1b2129 }
+.slide td:first-child { color: #5d6672 }
+.slide td:nth-child(2) { font-weight: 600 }
+.slide th { font-size: 1.1cqw; color: #5d6672; text-transform: none; letter-spacing: 0 }
+.sl-wide td:nth-child(n+2) { font-weight: 600 }
+.slide td.bad { color: #c2382f } .slide td.good { color: #1f8a54 }
+.sl-cover { display: flex; flex-direction: column; justify-content: center; gap: 1.4cqw; height: 100% }
+.sl-cover h1 { font-family: var(--f-display); font-size: 4.6cqw; color: #1b2129; line-height: 1.1 }
+.sl-cover p { font-size: 1.8cqw; color: #5d6672; margin: 0 }
+.sl-eyebrow { font-size: 1.3cqw; letter-spacing: .12em; text-transform: uppercase; color: #1f5fd1; font-weight: 700 }
+.sl-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.2cqw }
+.sl-kpi { background: #f5f6f8; border: 1px solid #d9dde3; border-radius: .8cqw; padding: 1cqw 1.2cqw; display: grid; gap: .3cqw }
+.sl-kpi span { font-size: 1.1cqw; color: #5d6672 }
+.sl-kpi b { font-family: var(--f-display); font-size: 1.9cqw; font-weight: 500; color: #1b2129 }
+.sl-lead { margin: 0; font-size: 1.5cqw; color: #1b2129 }
+.sl-note { margin: auto 0 0; font-size: 1.2cqw; color: #5d6672; font-style: italic }
+.sl-list { margin: 0; padding-left: 2.4cqw; display: grid; gap: 1.2cqw; font-size: 2cqw; color: #1b2129 }
 /* Шторка стандарта */
 .scrim { position: fixed; inset: 0; background: rgb(10 14 20 / .45); z-index: 20 }
 .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(620px, 100%); background: var(--surface); z-index: 21; overflow-y: auto; padding: calc(20px + env(safe-area-inset-top, 0px)) max(22px, env(safe-area-inset-right, 0px)) calc(28px + env(safe-area-inset-bottom, 0px)) 22px; display: flex; flex-direction: column; gap: 18px; box-shadow: -12px 0 40px rgb(0 0 0 / .18) }
@@ -518,6 +553,9 @@ table.t th.num { text-align: right; }
 .lg-late { background: repeating-linear-gradient(45deg, var(--late) 0 3px, transparent 3px 7px); }
 .lg-done { background: var(--done); }
 .lg-now { width: 2px !important; background: var(--ink); }
+.g-mode { display: flex; gap: 6px; flex-wrap: wrap; }
+.g-mode .chip { cursor: pointer; padding: 6px 12px; font-size: 13px; }
+.g-mode .chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
 .g-crit { margin: 8px 0 0; font-size: 13px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 @media (max-width: 560px) { .g-row { grid-template-columns: 180px auto; } .g-overlay { left: 180px !important; } .g-inner { min-width: auto !important; } }
 
@@ -3668,7 +3706,7 @@ window.I18N = (function () {
     ["Ключи по прогнозу", "Болжам бойынша кілттер"], ["До ключей", "Кілтке дейін"], ["Отставание", "Артта қалу"], ["нет", "жоқ"], ["Старт", "Басталуы"],
     ["Типовые длительности", "Үлгілік ұзақтықтар"], ["Сегодня", "Бүгін"], ["отстаёт", "артта қалуда"], ["Срок этапа по плану прошёл", "Кезеңнің жоспарлы мерзімі өтті"], ["Прогноз отставания, мес.", "Артта қалу болжамы, ай"],
     ["График строится из связей дерева: этап начинается, когда закончены все этапы, которые он требует. Красные этапы лежат на критическом пути: если любой из них задержится, сдвинутся ключи. Длительности можно менять, план пересчитается сразу.", "Кесте ағаш байланыстарынан құрылады: кезең ол талап ететін барлық кезеңдер аяқталғанда басталады. Қызыл кезеңдер сыни жолда жатыр: олардың кез келгені кешіксе, кілттер жылжиды. Ұзақтықтарды өзгертуге болады, жоспар бірден қайта есептеледі."],
-    ["Сдачу сейчас определяют:", "Қазір тапсыруды айқындайтындар:"], ["Критический путь", "Сыни жол"], ["Есть резерв", "Резерві бар"], ["Резерв времени", "Уақыт резерві"],
+    ["Сдачу сейчас определяют:", "Қазір тапсыруды айқындайтындар:"], ["Весь проект", "Бүкіл жоба"], ["Старт СМР", "ҚМЖ бастау"], ["Только СМР (ГПР)", "Тек ҚМЖ (ЖЖК)"], ["ГПР: строительно-монтажные работы", "ЖЖК: құрылыс-монтаж жұмыстары"], ["Ввод по плану", "Жоспар бойынша пайдалануға беру"], ["Ввод по прогнозу", "Болжам бойынша пайдалануға беру"], ["Длительность СМР", "ҚМЖ ұзақтығы"], ["Отставание ввода", "Пайдалануға беруден қалу"], ["Критический путь", "Сыни жол"], ["Есть резерв", "Резерві бар"], ["Резерв времени", "Уақыт резерві"],
     ["Прогноз сдвига", "Жылжу болжамы"], ["Прогноз: пройденный этап заканчивается по дате последней отметки, незавершённый этап, у которого вышел срок, сдвигает все последующие. Гарантия идёт после ключей и в критический путь не входит.", "Болжам: өткен кезең соңғы белгі күні бойынша аяқталады, мерзімі өткен аяқталмаған кезең кейінгілердің бәрін жылжытады. Кепілдік кілттерден кейін жүреді және сыни жолға кірмейді."],
     ["Введите длительность в месяцах, от 0 до 120", "Ұзақтықты айлармен енгізіңіз, 0-ден 120-ға дейін"], ["Возвращены типовые длительности", "Үлгілік ұзақтықтар қайтарылды"],
     ["График: возвращены типовые длительности", "Кесте: үлгілік ұзақтықтар қайтарылды"],
@@ -5006,51 +5044,68 @@ window.ZHK_BOOT = function (document) {
     return { P, order, start, now, end, fend: P[KEYS_END].fe };
   }
 
+  // Этапы СМР для режима «Только СМР (ГПР)» и презентации ПК Start.
+  const SMR_IDS = ["start", "zero", "nets", "frame", "envelope", "mep", "finish", "commission"];
+  let ganttMode = "all";
+  try { if (localStorage.getItem("zhk-gantt-mode") === "smr") ganttMode = "smr"; } catch (e) {}
   const renderGantt = guarded(ganttEl, function () {
     const G = schedule(), P = G.P;
-    const total = Math.ceil(Math.max(P.warranty.ef, P.warranty.fe, G.now + 1, 1)) + 1;
+    // Режим «Только СМР»: ГПР от старта СМР до ввода в эксплуатацию, шкала начинается со старта СМР.
+    const smr = ganttMode === "smr";
+    const list = smr ? T.nodes.filter(n => SMR_IDS.indexOf(n.id) >= 0) : T.nodes;
+    const t0 = smr ? Math.floor(P.start.es) : 0;
+    const total = smr ? Math.ceil(Math.max(P.commission.ef, P.commission.fe)) + 1 : Math.ceil(Math.max(P.warranty.ef, P.warranty.fe, G.now + 1, 1)) + 1;
+    const span = total - t0;
     const W = 22;
-    const crit = T.nodes.filter(n => P[n.id].critical);
+    const crit = list.filter(n => P[n.id].critical);
     const blocking = crit.filter(n => !isDone(n));
     const delay = G.fend - G.end;
     const ticks = [];
-    for (let m = 0; m <= total; m++) {
+    for (let m = t0; m <= total; m++) {
       const ym = ymAdd(G.start, m);
-      if (ym.slice(5, 7) === "01" || m === 0) ticks.push('<span class="g-year" style="left:' + (m * W) + 'px">' + ym.slice(0, 4) + "</span>");
-      if (m % 3 === 0) ticks.push('<span class="g-tick" style="left:' + (m * W) + 'px">' + ym.slice(5, 7) + "</span>");
+      if (ym.slice(5, 7) === "01" || m === t0) ticks.push('<span class="g-year" style="left:' + ((m - t0) * W) + 'px">' + ym.slice(0, 4) + "</span>");
+      if ((m - t0) % 3 === 0) ticks.push('<span class="g-tick" style="left:' + ((m - t0) * W) + 'px">' + ym.slice(5, 7) + "</span>");
     }
     const grid = [];
-    for (let m = 0; m <= total; m++) if (ymAdd(G.start, m).slice(5, 7) === "01") grid.push('<i class="g-ygrid" style="left:' + (m * W) + 'px"></i>');
-    const nowLine = G.now >= 0 && G.now <= total ? '<i class="g-now" style="left:' + (G.now * W) + 'px" title="Сегодня"></i>' : "";
-    const rows = T.nodes.map(n => {
+    for (let m = t0; m <= total; m++) if (ymAdd(G.start, m).slice(5, 7) === "01") grid.push('<i class="g-ygrid" style="left:' + ((m - t0) * W) + 'px"></i>');
+    const nowLine = G.now >= t0 && G.now <= total ? '<i class="g-now" style="left:' + ((G.now - t0) * W) + 'px" title="Сегодня"></i>' : "";
+    const rows = list.map(n => {
       const p = P[n.id], st = stateOf(n);
       const cls = "g-bar" + (p.critical ? " crit" : "") + (st === "done" ? " done" : "") + (n.id === "warranty" ? " tail" : "");
       const shift = p.fe - p.ef;
-      const ext = shift > 0.25 && !isDone(n) ? '<span class="g-late" style="left:' + (p.ef * W) + "px;width:" + (shift * W) + 'px" title="Прогноз: +' + mdec(shift) + ' мес."></span>' : "";
-      const slack = p.slack > 0.05 && n.id !== "warranty" ? '<span class="g-slack" style="left:' + (p.ef * W) + "px;width:" + (p.slack * W) + 'px" title="Резерв ' + mdec(p.slack) + ' мес."></span>' : "";
+      const ext = shift > 0.25 && !isDone(n) ? '<span class="g-late" style="left:' + ((p.ef - t0) * W) + "px;width:" + (shift * W) + 'px" title="Прогноз: +' + mdec(shift) + ' мес."></span>' : "";
+      const slack = p.slack > 0.05 && n.id !== "warranty" ? '<span class="g-slack" style="left:' + ((p.ef - t0) * W) + "px;width:" + (p.slack * W) + 'px" title="Резерв ' + mdec(p.slack) + ' мес."></span>' : "";
       return '<div class="g-row"><div class="g-label"><button class="linkbtn' + (p.late ? " g-late-name" : "") + '" type="button" data-open-stage="' + n.id + '"' + (p.late ? ' title="Срок этапа по плану прошёл"' : "") + '><span class="mono">' + n.code + "</span> " + esc(n.name) + "</button>" +
         '<span class="g-dur"><input class="tin" type="text" inputmode="decimal" aria-label="Длительность, мес.: ' + esc(n.name) + '" data-gdur="' + n.id + '" value="' + mdec(p.dur) + '"' + (readOnly ? " disabled" : "") + "><span>мес.</span></span></div>" +
-        '<div class="g-track" style="width:' + (total * W) + 'px">' + slack + ext +
-        '<span class="' + cls + '" style="left:' + (p.es * W) + "px;width:" + Math.max(p.dur * W, 3) + 'px" title="' + esc(n.name) + ": " + ymFmt(ymAdd(G.start, p.es)) + " – " + ymFmt(ymAdd(G.start, Math.max(p.ef - 0.01, p.es))) + '"><i style="width:' + Math.round(p.frac * 100) + '%"></i></span>' +
+        '<div class="g-track" style="width:' + (span * W) + 'px">' + slack + ext +
+        '<span class="' + cls + '" style="left:' + ((p.es - t0) * W) + "px;width:" + Math.max(p.dur * W, 3) + 'px" title="' + esc(n.name) + ": " + ymFmt(ymAdd(G.start, p.es)) + " – " + ymFmt(ymAdd(G.start, Math.max(p.ef - 0.01, p.es))) + '"><i style="width:' + Math.round(p.frac * 100) + '%"></i></span>' +
         "</div></div>";
     }).join("");
     const kpi = (label, value, tone) => '<div class="kpi"' + (tone ? ' data-tone="' + tone + '"' : "") + "><span>" + label + "</span><b>" + value + "</b></div>";
+    const cm = P.commission, cDelay = cm.fe - cm.ef;
     ganttEl.innerHTML =
-      '<div class="kpis">' +
+      '<div class="g-mode" role="group" aria-label="Что показать"><button class="chip" type="button" data-gmode="all" aria-pressed="' + !smr + '">Весь проект</button><button class="chip" type="button" data-gmode="smr" aria-pressed="' + smr + '">Только СМР (ГПР)</button></div>' +
+      (smr ? '<div class="kpis">' +
+        kpi("Старт СМР", ymFmt(ymAdd(G.start, P.start.es))) +
+        kpi("Ввод по плану", ymFmt(ymAdd(G.start, Math.max(cm.ef - 0.01, 0)))) +
+        kpi("Ввод по прогнозу", ymFmt(ymAdd(G.start, Math.max(cm.fe - 0.01, 0))), cDelay > 0.25 ? "bad" : "good") +
+        kpi("Длительность СМР", mdec(cm.ef - P.start.es) + " мес.") +
+        kpi("Отставание ввода", cDelay > 0.25 ? "+" + mdec(cDelay) + " мес." : "нет", cDelay > 0.25 ? "bad" : "good") +
+      "</div>" : '<div class="kpis">' +
         kpi("Старт проекта", ymFmt(G.start)) +
         kpi("Ключи по плану", ymFmt(ymAdd(G.start, G.end))) +
         kpi("Ключи по прогнозу", ymFmt(ymAdd(G.start, G.fend)), delay > 0.25 ? "bad" : "good") +
         kpi("До ключей", mdec(G.end) + " мес.") +
         kpi("Отставание", delay > 0.25 ? "+" + mdec(delay) + " мес." : "нет", delay > 0.25 ? "bad" : "good") +
-      "</div>" +
-      '<div class="card"><div class="section-title"><h2 class="view-title">График строительства</h2>' +
+      "</div>") +
+      '<div class="card"><div class="section-title"><h2 class="view-title">' + (smr ? "ГПР: строительно-монтажные работы" : "График строительства") + '</h2>' +
         '<div class="row"><label class="field" for="g-start" style="grid-auto-flow:column;align-items:center;gap:8px"><span>Старт</span><input type="month" id="g-start" class="sel" value="' + G.start + '"' + (readOnly ? " disabled" : "") + "></label>" +
         (readOnly ? "" : '<button class="btn ghost" type="button" id="g-reset">Типовые длительности</button>') + "</div></div>" +
         '<p class="muted">График строится из связей дерева: этап начинается, когда закончены все этапы, которые он требует. Красные этапы лежат на критическом пути: если любой из них задержится, сдвинутся ключи. Длительности можно менять, план пересчитается сразу.</p>' +
         (blocking.length ? '<p class="g-crit"><b>Сдачу сейчас определяют:</b> ' + blocking.slice(0, 6).map(n => '<button class="chip" type="button" data-open-stage="' + n.id + '" data-state="' + stateOf(n) + '">' + esc(n.code + " · " + n.name) + "</button>").join(" ") + "</p>" : "") +
         '<div class="g-legend"><span><i class="lg-crit"></i>Критический путь</span><span><i class="lg-bar"></i>Есть резерв</span><span><i class="lg-slack"></i>Резерв времени</span><span><i class="lg-late"></i>Прогноз сдвига</span><span><i class="lg-done"></i>Пройден</span><span><i class="lg-now"></i>Сегодня</span></div>' +
-        '<div class="g-wrap"><div class="g-inner" style="min-width:' + (300 + total * W) + 'px"><div class="g-row g-head"><div class="g-label"></div><div class="g-track g-axis" style="width:' + (total * W) + 'px">' + ticks.join("") + "</div></div>" +
-        '<div class="g-body">' + rows + '<div class="g-overlay" style="left:300px;width:' + (total * W) + 'px">' + grid.join("") + nowLine + "</div></div></div></div>" +
+        '<div class="g-wrap"><div class="g-inner" style="min-width:' + (300 + total * W) + 'px"><div class="g-row g-head"><div class="g-label"></div><div class="g-track g-axis" style="width:' + (span * W) + 'px">' + ticks.join("") + "</div></div>" +
+        '<div class="g-body">' + rows + '<div class="g-overlay" style="left:300px;width:' + (span * W) + 'px">' + grid.join("") + nowLine + "</div></div></div></div>" +
         '<p class="muted" style="margin-top:10px">Прогноз: пройденный этап заканчивается по дате последней отметки, незавершённый этап, у которого вышел срок, сдвигает все последующие. Гарантия идёт после ключей и в критический путь не входит.</p></div>';
   });
   ganttEl.addEventListener("change", e => {
@@ -5068,6 +5123,8 @@ window.ZHK_BOOT = function (document) {
     commit({ sched: { dur: { [id]: val } } }, { defer: true });
   });
   ganttEl.addEventListener("click", e => {
+    const gm = e.target.closest("[data-gmode]");
+    if (gm) { ganttMode = gm.dataset.gmode; try { localStorage.setItem("zhk-gantt-mode", ganttMode); } catch (x) {} renderGantt(true); return; }
     const os = e.target.closest("[data-open-stage]");
     if (os) { setView("tree", false); select(os.dataset.openStage, true); return; }
     if (e.target.id === "g-reset") {
@@ -5512,6 +5569,22 @@ window.ZHK_BOOT = function (document) {
     setVar,
     setVarStatus: (id, st) => { if (!readOnly) commit({ vars: { [id]: { st, sby: meId || "", sat: new Date().toISOString() } } }); },
     baseline: () => S.baseline && S.baseline.at ? { at: S.baseline.at, who: nameOf(S.baseline.by) } : null,
+    // Данные для презентации ПК Start: структура затрат, денежный поток по месяцам, ГПР СМР.
+    deck: () => {
+      const R = window.runModel(params()), G = schedule(), P = G.P, s0 = P.start.es, ym = t => ymFmt(ymAdd(G.start, t));
+      const CATS = [["land", "Земля"], ["design", "ИРД, изыскания, проект"], ["smr", "СМР"], ["nets", "Внешние сети"], ["supervision", "Технадзор, инжиниринг"],
+        ["reserve", "Резерв"], ["marketing", "Маркетинг и продажи"], ["admin", "Административные"]];
+      return {
+        cats: CATS.map(([k, name]) => ({ name, sum: R.byCat[k] || 0 })).concat([{ name: "Проценты по кредиту", sum: R.t.interest }]),
+        cash: R.months.map(m => ({ ym: ym(m.m - 1), cum: m.cum, debt: m.debt })),
+        smr: SMR_IDS.map(id => ({ code: byId[id].code, name: byId[id].name, s: P[id].es - s0, e: P[id].ef - s0, fe: P[id].fe - s0, crit: !!P[id].critical,
+          from: ym(P[id].es), to: ym(Math.max(P[id].ef - 0.01, P[id].es)) })),
+        smrStart: ym(s0), smrEnd: ym(Math.max(P.commission.ef - 0.01, s0)), smrDur: mdec(P.commission.ef - s0),
+        today: today().split("-").reverse().join(".")
+      };
+    },
+    save: (filename, data) => save(filename, data),
+    canSave: () => !!downloads,
     fixBaseline: () => {
       if (readOnly) return;
       const C = calcAll(), vals = {};
@@ -5683,6 +5756,7 @@ const VIEWS = {
   roadmap: { g: "Дорожная карта", z: "tree", t: "Этапы и чек-листы", cnt: () => "", r: Z("Этапы и чек-листы", "От анализа рынка до гарантии, включая проектный комитет «Start». Этап открывается, когда закрыты условия перехода на предыдущих.") },
   gantt: { g: "Дорожная карта", z: "gantt", t: "График", cnt: () => "", r: Z("График строительства", "Диаграмма Ганта из связей этапов, критический путь и прогноз даты ключей.") },
   model: { g: "Проект", p: "kpi", z: "model", t: "Финмодель", cnt: () => "", r: Z("Финансовая модель", "Помесячный денежный поток, НДС, кредит, КПН, IRR и NPV.") },
+  pk: { g: "Дорожная карта", t: "Презентация ПК Start", cnt: () => "", r: viewDeck },
   budget: { g: "Дорожная карта", z: "budget", t: "Бюджет", cnt: () => "", r: Z("Бюджет: план и факт", "План по этапам заполняется из финмодели, факт вносит команда.") },
   deadlines: { g: "Проект", p: "kpi", z: "deadlines", t: "Сроки документов", cnt: () => "", r: Z("Сроки документов", "АПЗ, техусловия, лицензии и гарантии с предупреждением за 60 и 30 дней.") },
   projects: { g: "Компания", z: "projects", t: "Портфель проектов", cnt: () => "", r: Z("Портфель проектов", "Все ЖК компании и их прогресс по дорожной карте.") },
@@ -5946,6 +6020,167 @@ function viewData() {
   ${secs.map(sec => `<section class="stack"><h2>${esc(sec)}</h2><div class="panel tbl vtable"><table><thead><tr><th>Переменная</th><th>Значение</th><th>Владелец</th><th>Статус</th><th>ПК Start</th><th>Где используется</th></tr></thead><tbody>${list.filter(v => v.sec === sec).map(row).join("")}</tbody></table></div></section>`).join("") || '<div class="empty">Ничего не найдено. Сбросьте фильтры.</div>'}`;
 }
 
+// ---------- Презентация ПК Start ----------
+// Слайды собираются из данных проекта: ничего не вводится повторно. Выгрузка в PowerPoint и PDF.
+const DECK_MANUAL = ["Миссия и KPI", "Локация и фасад", "Клиент", "Закупки", "Риски и уроки", "Люди"];
+let deckMsg = "";
+function deckData() {
+  const V = Object.fromEntries(window.ZHK.vars().map(v => [v.id, v]));
+  const t = id => V[id] ? V[id].text : "—";
+  return { V, t, d: window.ZHK.deck(), base: window.ZHK.baseline(), title: projTitle() };
+}
+const bln = n => (n / 1e9).toLocaleString("ru-RU", { maximumFractionDigits: 2 });
+function deckSlides(D) {
+  const { V, t, d } = D;
+  const row = (l, id) => `<tr><td>${esc(l)}</td><td>${esc(t(id))}</td></tr>`;
+  const W = 1000, smrMax = Math.max(...d.smr.map(x => Math.max(x.e, x.fe)), 1);
+  const gpr = `<svg viewBox="0 0 ${W} ${d.smr.length * 46 + 30}" role="img" aria-label="ГПР СМР">${d.smr.map((x, i) => {
+    const y = i * 46 + 6, X = v => 300 + v / smrMax * (W - 520); // справа 200 единиц под даты
+    return `<text x="0" y="${y + 24}" class="sl-txt">${esc(x.code + " " + x.name)}</text>
+      <rect x="${X(x.s)}" y="${y + 8}" width="${Math.max(X(x.e) - X(x.s), 4)}" height="22" rx="4" class="${x.crit ? "sl-crit" : "sl-bar"}"/>
+      ${x.fe - x.e > 0.25 ? `<rect x="${X(x.e)}" y="${y + 8}" width="${X(x.fe) - X(x.e)}" height="22" rx="4" class="sl-late"/>` : ""}
+      <text x="${W}" y="${y + 24}" text-anchor="end" class="sl-txt sl-mut">${x.from} – ${x.to}</text>`;
+  }).join("")}</svg>`;
+  const cats = d.cats.filter(c => c.sum > 0).sort((a, b) => b.sum - a.sum), cmax = cats[0] ? cats[0].sum : 1;
+  const costs = `<svg viewBox="0 0 ${W} ${cats.length * 40}" role="img" aria-label="Структура затрат">${cats.map((c, i) =>
+    `<text x="0" y="${i * 40 + 25}" class="sl-txt">${esc(c.name)}</text><rect x="320" y="${i * 40 + 8}" width="${Math.max(c.sum / cmax * 520, 3)}" height="24" rx="4" class="sl-bar"/>
+     <text x="${330 + c.sum / cmax * 520}" y="${i * 40 + 26}" class="sl-txt">${bln(c.sum)} млрд</text>`).join("")}</svg>`;
+  const cv = d.cash.map(m => m.cum), lo = Math.min(0, ...cv), hi = Math.max(0, ...cv), H = 260, Y = v => 10 + (hi - v) / ((hi - lo) || 1) * (H - 20);
+  const pts = cv.map((v, i) => `${(i / Math.max(cv.length - 1, 1) * W).toFixed(1)},${Y(v).toFixed(1)}`).join(" ");
+  const cash = `<svg viewBox="0 0 ${W} ${H + 24}" role="img" aria-label="Накопленный денежный поток"><line x1="0" x2="${W}" y1="${Y(0)}" y2="${Y(0)}" class="sl-axis"/>
+    <polyline points="${pts}" class="sl-line"/><text x="0" y="${H + 20}" class="sl-txt sl-mut">${d.cash[0] ? d.cash[0].ym : ""}</text>
+    <text x="${W}" y="${H + 20}" text-anchor="end" class="sl-txt sl-mut">${d.cash.length ? d.cash[d.cash.length - 1].ym : ""}</text>
+    <text x="4" y="${Math.max(Y(lo) - 6, 14)}" class="sl-txt sl-mut">минимум ${bln(lo)} млрд</text><text x="${W - 4}" y="22" text-anchor="end" class="sl-txt sl-mut">итог ${bln(cv[cv.length - 1] || 0)} млрд</text></svg>`;
+  const kpi = (l, id) => `<div class="sl-kpi"><span>${esc(l)}</span><b>${esc(t(id))}</b></div>`;
+  const all = Object.values(V).filter(v => !v.calc), ap = all.filter(v => v.st === "approved").length, ag = all.filter(v => v.st === "agreed").length;
+  const changed = Object.values(V).filter(v => v.delta && v.delta.text !== "без изменений").slice(0, 9);
+  const drafts = ["area_total", "area_sale", "price", "smr", "land", "design", "nets", "rate", "equity"].map(id => V[id]).filter(v => v && v.st === "draft");
+  return [
+    { k: "title", h: "", html: `<div class="sl-cover"><span class="sl-eyebrow">Проектный комитет Start · ${d.today}</span><h1>${esc(D.title)}</h1>
+      <p>${esc([t("city") !== "—" ? "г. " + t("city") : "", t("klass") !== "—" ? t("klass") + "-класс" : "", t("company") !== "—" ? t("company") : ""].filter(Boolean).join(" · "))}</p>
+      <div class="sl-kpis">${kpi("Общая площадь", "area_total")}${kpi("Квартир", "flats")}${kpi("Старт СМР", "build_start").replace(esc(t("build_start")), d.smrStart)}${kpi("Ключи по плану", "keys_plan")}</div></div>` },
+    { k: "passport", h: "Паспорт и ТЭП", html: `<div class="sl-cols"><table>${row("Тип здания", "building")}${row("Класс", "klass")}${row("Блоков", "blocks")}${row("Этажность", "floors")}${row("Квартир", "flats")}${row("Общая площадь", "area_total")}${row("Продаваемая жилая", "area_sale")}${row("Коммерция", "area_comm")}${row("Машино-места", "parking")}</table>
+      <table>${row("Адрес", "address")}${row("Участок", "area_land")}${row("Кадастровый номер", "cadastre")}${row("Застройщик", "company")}${row("Климат и сейсмика", "zone")}${row("Заключение ГЭ", "ge")}<tr><td>Старт СМР</td><td>${d.smrStart}</td></tr>${row("Ключи по плану", "keys_plan")}${row("Ключи по прогнозу", "keys_fc")}</table></div>` },
+    { k: "gpr", h: "ГПР строительно-монтажных работ", html: `<p class="sl-lead">Старт СМР ${d.smrStart}, ввод ${d.smrEnd}, ${d.smrDur} мес. Красным — критический путь.</p>${gpr}` },
+    { k: "market", h: "Рынок и цена", html: `<div class="sl-cols"><table>${row("Цена жилья с НДС", "price")}${row("Цена коммерции с НДС", "price_comm")}${row("Цена машино-места", "price_park")}${row("Рост цен", "growth")}</table>
+      <table>${row("Начало продаж", "sales_start")}${row("Длительность продаж", "sales_dur")}${row("Условия продаж", "sales")}${row("Себестоимость 1 м²", "fin_cost_m2")}</table></div>
+      <p class="sl-note">Бенчмаркинг цен конкурентов и обоснование цены добавляются вручную.</p>` },
+    { k: "costs", h: "Затраты", html: `<p class="sl-lead">Всего с НДС: <b>${esc(t("fin_cost"))}</b> · себестоимость 1 м²: <b>${esc(t("fin_cost_m2"))}</b></p>${costs}` },
+    { k: "finance", h: "Финансовый результат", html: `<div class="sl-kpis">${kpi("Выручка", "fin_rev")}${kpi("Затраты", "fin_cost")}${kpi("Чистая прибыль", "fin_net")}${kpi("Маржа", "fin_margin")}${kpi("IRR", "fin_irr")}${kpi("NPV", "fin_npv")}${kpi("Пиковый долг", "fin_peak_debt")}${kpi("Собственный капитал", "equity")}</div>
+      <p class="sl-lead">Накопленный денежный поток, млрд тг</p>${cash}` },
+    { k: "data", h: D.base ? "Отклонения от базовой версии" : "Статус данных проекта", html: D.base
+      ? (changed.length ? `<table class="sl-wide"><tr><th>Показатель</th><th>Утверждено</th><th>Сейчас</th><th>Отклонение</th></tr>${changed.map(v => `<tr><td>${esc(v.name)}</td><td>${esc(v.base)}</td><td>${esc(v.text)}</td><td class="${v.delta.tone}">${esc(v.delta.text)}</td></tr>`).join("")}</table>`
+        : `<p class="sl-lead">Отклонений от базовой версии нет.</p>`)
+      : `<div class="sl-kpis">${[["Утверждено", ap], ["Согласовано", ag], ["Черновик", all.length - ap - ag]].map(([l, n]) => `<div class="sl-kpi"><span>${l}</span><b>${n} из ${all.length}</b></div>`).join("")}</div>
+        ${drafts.length ? `<p class="sl-lead">Ключевые данные в статусе «черновик»:</p><p>${drafts.map(v => esc(v.name)).join(", ")}.</p>` : `<p class="sl-lead">Ключевые данные согласованы.</p>`}
+        <p class="sl-note">Базовая версия ещё не зафиксирована: её фиксируют по решению комитета.</p>` },
+    { k: "decision", h: "Предлагаемое решение", html: `<ol class="sl-list"><li>Одобрить запуск проекта ${esc(D.title)}.</li><li>Утвердить бюджет ${esc(t("fin_cost"))} с НДС и цену продажи жилья ${esc(t("price"))}.</li>
+      <li>Утвердить старт СМР ${d.smrStart} и передачу ключей ${esc(t("keys_plan"))}.</li><li>Назначить руководителя проекта: [ФИО].</li><li>Зафиксировать базовую версию данных проекта на дату комитета.</li></ol>` }
+  ];
+}
+function viewDeck() {
+  const D = deckData(), slides = deckSlides(D);
+  return head("Презентация ПК Start", "Собирается из данных проекта: паспорт, ГПР, цены, затраты, финмодель. Цифры не вводятся повторно.") + `
+  <section class="panel stack">
+    <div class="row between"><div class="row"><button class="btn primary" id="deck-pptx">Скачать PowerPoint</button><button class="btn" id="deck-pdf">Скачать PDF</button><button class="btn ghost" id="deck-full">На весь экран</button></div>
+      <span class="muted" aria-live="polite" id="deck-msg">${esc(deckMsg)}</span></div>
+    <p class="muted" style="margin:0">Пока добавляются вручную, данных для них в системе ещё нет: ${DECK_MANUAL.join(", ")}. Шаблон структуры — образец «Структура презентации на ПК Start» в этапе 10 дорожной карты.</p>
+  </section>
+  <div class="deck" id="deck">${slides.map((sl, i) => `<section class="slide" data-slide="${sl.k}">${sl.h ? `<header class="sl-head"><h2>${esc(sl.h)}</h2><span>${esc(D.title)} · ${i + 1}</span></header>` : ""}<div class="sl-body">${sl.html}</div></section>`).join("")}</div>`;
+}
+const libs = {};
+function loadLib(url) {
+  return libs[url] || (libs[url] = new Promise((ok, no) => { const s = document.createElement("script"); s.src = url; s.onload = ok; s.onerror = () => { delete libs[url]; no(new Error(url)) }; document.head.appendChild(s) }));
+}
+function deckSay(m) { deckMsg = m; const el = document.getElementById("deck-msg"); if (el) el.textContent = m }
+async function deckPdf() {
+  deckSay("Готовлю PDF…");
+  try {
+    await Promise.all([loadLib("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"), loadLib("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js")]);
+    const els = [...document.querySelectorAll("#deck .slide")];
+    const pdf = new window.jspdf.jsPDF({ orientation: "landscape", unit: "px", format: [1280, 720], hotfixes: ["px_scaling"] });
+    for (let i = 0; i < els.length; i++) {
+      const c = await window.html2canvas(els[i], { scale: 1280 / els[i].offsetWidth, backgroundColor: "#ffffff" });
+      if (i) pdf.addPage([1280, 720], "landscape");
+      pdf.addImage(c.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, 1280, 720);
+    }
+    await window.ZHK.save(deckFile("pdf"), pdf.output("blob"));
+    deckSay("PDF готов.");
+  } catch (e) { deckSay("Не удалось собрать PDF: нет доступа к библиотеке. Проверьте интернет и повторите.") }
+}
+function deckFile(ext) { return ("ПК Start " + (card.name || "проект")).replace(/[^\p{L}\p{N}\s-]/gu, "").trim().replace(/\s+/g, "_") + "." + ext }
+async function deckPptx() {
+  deckSay("Готовлю PowerPoint…");
+  try { await loadLib("https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js") } catch (e) { deckSay("Не удалось собрать PowerPoint: нет доступа к библиотеке. Проверьте интернет и повторите."); return }
+  const D = deckData(), { t, d, V } = D, x = new window.PptxGenJS();
+  x.layout = "LAYOUT_WIDE"; x.title = "ПК Start — " + D.title;
+  const F = "Arial", INK = "1B2129", MUT = "5D6672", ACC = "1F5FD1", BAD = "C2382F";
+  const page = (h, n) => { const s = x.addSlide(); s.background = { color: "FFFFFF" }; s.addText(h, { x: 0.5, y: 0.3, w: 9.5, h: 0.6, fontFace: F, fontSize: 26, bold: true, color: INK });
+    s.addText(D.title + " · " + n, { x: 9.5, y: 0.35, w: 3.3, h: 0.5, fontFace: F, fontSize: 11, color: MUT, align: "right" });
+    s.addShape(x.ShapeType.line, { x: 0.5, y: 0.95, w: 12.3, h: 0, line: { color: "D9DDE3", width: 1 } }); return s };
+  const tbl = (s, rows, o) => s.addTable(rows.map(([l, id]) => [{ text: l, options: { color: MUT } }, { text: id && V[id] ? t(id) : String(id), options: { bold: true, color: INK } }]),
+    Object.assign({ fontFace: F, fontSize: 13, border: { type: "solid", color: "E3E6EA", pt: 0.75 }, colW: [2.6, 3.3], rowH: 0.42 }, o));
+  const kp = (s, items, y) => items.forEach(([l, v], i) => { const c = i % 4, r = Math.floor(i / 4);
+    s.addShape(x.ShapeType.roundRect, { x: 0.5 + c * 3.1, y: y + r * 1.15, w: 2.95, h: 1.0, fill: { color: "F5F6F8" }, line: { color: "D9DDE3" }, rectRadius: 0.08 });
+    s.addText([{ text: l + "\n", options: { fontSize: 11, color: MUT } }, { text: v, options: { fontSize: 18, bold: true, color: INK } }], { x: 0.65 + c * 3.1, y: y + r * 1.15 + 0.08, w: 2.7, h: 0.85, fontFace: F, valign: "top" }) });
+  // 1. Титул
+  let s = x.addSlide(); s.background = { color: "FFFFFF" };
+  s.addText("ПРОЕКТНЫЙ КОМИТЕТ START · " + d.today, { x: 0.7, y: 1.2, w: 12, h: 0.4, fontFace: F, fontSize: 14, color: ACC, bold: true, charSpacing: 2 });
+  s.addText(D.title, { x: 0.7, y: 1.7, w: 12, h: 1.2, fontFace: F, fontSize: 44, bold: true, color: INK });
+  s.addText([t("city") !== "—" ? "г. " + t("city") : "", t("klass") !== "—" ? t("klass") + "-класс" : "", t("company") !== "—" ? t("company") : ""].filter(Boolean).join(" · "), { x: 0.7, y: 2.9, w: 12, h: 0.5, fontFace: F, fontSize: 18, color: MUT });
+  kp(s, [["Общая площадь", t("area_total")], ["Квартир", t("flats")], ["Старт СМР", d.smrStart], ["Ключи по плану", t("keys_plan")]], 4.6);
+  // 2. Паспорт
+  s = page("Паспорт и ТЭП", 2);
+  tbl(s, [["Тип здания", "building"], ["Класс", "klass"], ["Блоков", "blocks"], ["Этажность", "floors"], ["Квартир", "flats"], ["Общая площадь", "area_total"], ["Продаваемая жилая", "area_sale"], ["Коммерция", "area_comm"], ["Машино-места", "parking"]], { x: 0.5, y: 1.2, w: 5.9 });
+  tbl(s, [["Адрес", "address"], ["Участок", "area_land"], ["Кадастровый номер", "cadastre"], ["Застройщик", "company"], ["Климат и сейсмика", "zone"], ["Заключение ГЭ", "ge"], ["Старт СМР", d.smrStart], ["Ключи по плану", "keys_plan"], ["Ключи по прогнозу", "keys_fc"]], { x: 6.9, y: 1.2, w: 5.9 });
+  // 3. ГПР
+  s = page("ГПР строительно-монтажных работ", 3);
+  s.addText(`Старт СМР ${d.smrStart}, ввод ${d.smrEnd}, ${d.smrDur} мес. Красным — критический путь.`, { x: 0.5, y: 1.1, w: 12.3, h: 0.4, fontFace: F, fontSize: 14, color: MUT });
+  const mx = Math.max(...d.smr.map(r => Math.max(r.e, r.fe)), 1), X0 = 4.0, XW = 6.6;
+  d.smr.forEach((r, i) => { const y = 1.75 + i * 0.62;
+    s.addText(r.code + " " + r.name, { x: 0.5, y, w: 3.4, h: 0.45, fontFace: F, fontSize: 12, color: INK });
+    s.addShape(x.ShapeType.roundRect, { x: X0 + r.s / mx * XW, y: y + 0.08, w: Math.max((r.e - r.s) / mx * XW, 0.05), h: 0.3, fill: { color: r.crit ? "F3C8C4" : "C9D8F5" }, line: { color: r.crit ? BAD : ACC }, rectRadius: 0.05 });
+    s.addText(r.from + " – " + r.to, { x: 10.7, y, w: 2.1, h: 0.45, fontFace: F, fontSize: 11, color: MUT, align: "right" }) });
+  // 4. Рынок
+  s = page("Рынок и цена", 4);
+  tbl(s, [["Цена жилья с НДС", "price"], ["Цена коммерции с НДС", "price_comm"], ["Цена машино-места", "price_park"], ["Рост цен", "growth"]], { x: 0.5, y: 1.2, w: 5.9 });
+  tbl(s, [["Начало продаж", "sales_start"], ["Длительность продаж", "sales_dur"], ["Условия продаж", "sales"], ["Себестоимость 1 м²", "fin_cost_m2"]], { x: 6.9, y: 1.2, w: 5.9 });
+  s.addText("Бенчмаркинг цен конкурентов и обоснование цены добавляются вручную.", { x: 0.5, y: 6.6, w: 12.3, h: 0.4, fontFace: F, fontSize: 12, italic: true, color: MUT });
+  // 5. Затраты
+  s = page("Затраты", 5);
+  s.addText(`Всего с НДС: ${t("fin_cost")} · себестоимость 1 м²: ${t("fin_cost_m2")}`, { x: 0.5, y: 1.1, w: 12.3, h: 0.4, fontFace: F, fontSize: 14, color: INK });
+  const cats = d.cats.filter(c => c.sum > 0).sort((a, b) => a.sum - b.sum);
+  s.addChart(x.ChartType.bar, [{ name: "млрд тг", labels: cats.map(c => c.name), values: cats.map(c => Math.round(c.sum / 1e7) / 100) }],
+    { x: 0.5, y: 1.6, w: 12.3, h: 5.4, barDir: "bar", chartColors: [ACC], showValue: true, dataLabelFontSize: 11, dataLabelFormatCode: "0.00", catAxisLabelFontSize: 12, valAxisHidden: true, valGridLine: { style: "none" }, showLegend: false, catAxisLabelFontFace: F });
+  // 6. Финансы
+  s = page("Финансовый результат", 6);
+  kp(s, [["Выручка", t("fin_rev")], ["Затраты", t("fin_cost")], ["Чистая прибыль", t("fin_net")], ["Маржа", t("fin_margin")], ["IRR", t("fin_irr")], ["NPV", t("fin_npv")], ["Пиковый долг", t("fin_peak_debt")], ["Собственный капитал", t("equity")]], 1.2);
+  s.addChart(x.ChartType.line, [{ name: "Накопленный денежный поток, млрд тг", labels: d.cash.map(m => m.ym), values: d.cash.map(m => Math.round(m.cum / 1e7) / 100) }],
+    { x: 0.5, y: 3.6, w: 12.3, h: 3.6, chartColors: [ACC], lineDataSymbol: "none", lineSize: 2, catAxisLabelFontSize: 9, valAxisLabelFontSize: 10, showLegend: true, legendPos: "t", legendFontSize: 11, catAxisLabelFrequency: 6 });
+  // 7. Данные
+  const all = Object.values(V).filter(v => !v.calc), ap = all.filter(v => v.st === "approved").length, ag = all.filter(v => v.st === "agreed").length;
+  if (D.base) {
+    s = page("Отклонения от базовой версии", 7);
+    const ch = Object.values(V).filter(v => v.delta && v.delta.text !== "без изменений").slice(0, 9);
+    if (ch.length) s.addTable([["Показатель", "Утверждено", "Сейчас", "Отклонение"].map(h => ({ text: h, options: { bold: true, color: MUT } }))].concat(ch.map(v => [v.name, v.base, v.text, { text: v.delta.text, options: { color: v.delta.tone === "bad" ? BAD : v.delta.tone === "good" ? "1F8A54" : INK } }])),
+      { x: 0.5, y: 1.2, w: 12.3, fontFace: F, fontSize: 13, border: { type: "solid", color: "E3E6EA", pt: 0.75 }, colW: [4.5, 2.6, 2.6, 2.6] });
+    else s.addText("Отклонений от базовой версии нет.", { x: 0.5, y: 1.2, w: 12, h: 0.5, fontFace: F, fontSize: 16, color: INK });
+  } else {
+    s = page("Статус данных проекта", 7);
+    kp(s, [["Утверждено", ap + " из " + all.length], ["Согласовано", ag + " из " + all.length], ["Черновик", (all.length - ap - ag) + " из " + all.length]], 1.2);
+    const dr = ["area_total", "area_sale", "price", "smr", "land", "design", "nets", "rate", "equity"].map(id => V[id]).filter(v => v && v.st === "draft");
+    s.addText(dr.length ? "Ключевые данные в статусе «черновик»: " + dr.map(v => v.name).join(", ") + "." : "Ключевые данные согласованы.", { x: 0.5, y: 2.6, w: 12.3, h: 1.2, fontFace: F, fontSize: 15, color: INK, valign: "top" });
+    s.addText("Базовая версия ещё не зафиксирована: её фиксируют по решению комитета.", { x: 0.5, y: 6.6, w: 12.3, h: 0.4, fontFace: F, fontSize: 12, italic: true, color: MUT });
+  }
+  // 8. Решение
+  s = page("Предлагаемое решение", 8);
+  s.addText([`Одобрить запуск проекта ${D.title}.`, `Утвердить бюджет ${t("fin_cost")} с НДС и цену продажи жилья ${t("price")}.`, `Утвердить старт СМР ${d.smrStart} и передачу ключей ${t("keys_plan")}.`,
+    "Назначить руководителя проекта: [ФИО].", "Зафиксировать базовую версию данных проекта на дату комитета."].map(l => ({ text: l, options: { bullet: { type: "number" }, paraSpaceAfter: 10 } })),
+    { x: 0.5, y: 1.3, w: 12.3, h: 4.5, fontFace: F, fontSize: 20, color: INK, valign: "top" });
+  try { await window.ZHK.save(deckFile("pptx"), await x.write({ outputType: "blob" })); deckSay("PowerPoint готов.") }
+  catch (e) { deckSay("Не удалось собрать PowerPoint.") }
+}
+
 // Показатели: сводка, финмодель и сроки документов — подразделы одной страницы.
 function subTabs(v) {
   const fam = v === "kpi" || VIEWS[v].p === "kpi"; if (!fam) return "";
@@ -6016,6 +6251,9 @@ function bind(m) {
     if (el.tagName !== "INPUT") return route();
     clearTimeout(window.dfT); window.dfT = setTimeout(() => { route(); const q = document.getElementById("df-q"); q.focus(); q.setSelectionRange(q.value.length, q.value.length) }, 250);
   } });
+  const dp = m.querySelector("#deck-pptx"); if (dp) dp.onclick = deckPptx;
+  const df = m.querySelector("#deck-pdf"); if (df) df.onclick = deckPdf;
+  const du = m.querySelector("#deck-full"); if (du) du.onclick = () => { const d = document.getElementById("deck"); (d.requestFullscreen ? d.requestFullscreen() : Promise.reject()).catch(() => deckSay("Полноэкранный режим здесь недоступен.")) };
   const bf = m.querySelector("#base-fix"); if (bf) bf.onclick = () => { baseAsk = true; route() };
   const by = m.querySelector("#base-yes"); if (by) by.onclick = () => { baseAsk = false; window.ZHK.fixBaseline() };
   const bn = m.querySelector("#base-no"); if (bn) bn.onclick = () => { baseAsk = false; route() };
