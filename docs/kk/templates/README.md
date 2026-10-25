@@ -5,7 +5,7 @@
 ## 01. Талдау және тұжырымдама
 
 - [Инвестициялық меморандум](01-memo.md) · [Word](01-memo.docx)
-- Қаржы моделі (Excel, есептеу мысалы): [../templates/01-finmodel.csv](../templates/01-finmodel.csv)
+- Қаржы моделі (Excel, есептеу мысалы): [../../templates/01-finmodel.csv](../../templates/01-finmodel.csv)
 
 ## 02. Жер учаскесі
 
@@ -65,7 +65,7 @@
 
 ## 14. Қаңқа
 
-- Бетон жұмыстарының журналы (нысан): [../templates/14-concrete_log.csv](../templates/14-concrete_log.csv)
+- Бетон жұмыстарының журналы (нысан): [../../templates/14-concrete_log.csv](../../templates/14-concrete_log.csv)
 - [Орындалған жұмыстарды қабылдау актісі (2-нысан)](14-ks2.md) · [Word](14-ks2.docx)
 - [Орындалған жұмыстардың құны туралы анықтама (3-нысан)](14-ks3.md) · [Word](14-ks3.docx)
 
@@ -80,7 +80,7 @@
 
 ## 17. Әрлеу және абаттандыру
 
-- Ескертулер тізімі (алдын ала қабылдау): [../templates/17-punch_list.csv](../templates/17-punch_list.csv)
+- Ескертулер тізімі (алдын ала қабылдау): [../../templates/17-punch_list.csv](../../templates/17-punch_list.csv)
 
 ## 18. Пайдалануға беру
 
