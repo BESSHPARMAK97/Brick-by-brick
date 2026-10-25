@@ -7062,7 +7062,7 @@ function viewWhatIf() {
 // ---------- Шахматка ----------
 const CH_LAYERS = [["smr", "СМР: факт"], ["plan", "СМР: план"], ["vol", "Объём: план и факт"], ["sales", "Продажи"], ["apts", "Квартиры"], ["flats", "Число квартир"]];
 const chUI = { layer: "smr", brush: 1, at: "", sel: "" };
-const chArea = v => String(Math.round(v * 10) / 10).replace(".", ",");
+const chArea = v => (Math.round(v * 10) / 10).toLocaleString("ru-RU").replace(/[  ]/g, " ");
 try { const x = localStorage.getItem("zhk-chess-layer"); if (CH_LAYERS.some(l => l[0] === x)) chUI.layer = x; } catch (e) {}
 const chMoney = n => { const a = Math.abs(n || 0); return a >= 1e9 ? (n / 1e9).toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + " млрд тг" : a >= 1e6 ? (n / 1e6).toLocaleString("ru-RU", { maximumFractionDigits: 1 }) + " млн тг" : Math.round(n || 0).toLocaleString("ru-RU") + " тг"; };
 const chPct = (a, b) => b ? Math.round(a / b * 100) + "%" : "—";
