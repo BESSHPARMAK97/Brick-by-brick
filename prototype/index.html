@@ -7125,7 +7125,7 @@ function viewPlans() {
     <div class="pl-sum"><span><b>${chArea(p.area)} м²</b> площадь квартиры</span><span>${chArea(p.live)} м² жилая</span><span>комнат: ${p.nLive}</span><span>квартир с этой планировкой: ${use[p.id] || 0}</span></div>
     ${p.rooms.length ? `<div class="tbl"><table class="pl-t"><thead><tr><th>Помещение</th><th>Название</th><th class="num">Площадь, м²</th><th></th></tr></thead><tbody>${p.rooms.map(r => `<tr>
       <td><select data-item="planRooms:${r.id}:kind" aria-label="Вид помещения"${dis}>${K.map(k => `<option${r.kind === k.v ? " selected" : ""}>${esc(k.v)}</option>`).join("")}</select></td>
-      <td><input type="text" class="vin" data-item="planRooms:${r.id}:name" value="${esc(r.name || "")}" placeholder="Спальня" maxlength="40" aria-label="Название помещения"${dis}></td>
+      <td><input type="text" class="vin" data-item="planRooms:${r.id}:name" value="${esc(r.name || "")}" placeholder="—" maxlength="40" aria-label="Название помещения"${dis}></td>
       <td><input type="text" inputmode="decimal" class="vin num" style="width:90px" data-item="planRooms:${r.id}:area" value="${esc(r.area || "")}" maxlength="8" aria-label="Площадь помещения"${dis}></td>
       <td>${ro ? "" : `<button class="btn ghost mini" data-item-del="planRooms:${r.id}" aria-label="Удалить помещение">×</button>`}</td></tr>`).join("")}</tbody></table></div>` : '<p class="muted" style="margin:0">Помещений пока нет.</p>'}
     ${ro ? "" : `<div class="row"><button class="btn" data-plan-room="${p.id}">Добавить помещение</button></div>`}
