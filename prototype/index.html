@@ -190,6 +190,31 @@ button { cursor: pointer }
 .wi-params label { display: flex; flex-direction: column; gap: 2px; font-size: .7rem; color: var(--muted) }
 .wi-params span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
 .wi-params .vin { width: 100% }
+.ch-k { grid-template-columns: repeat(4, minmax(0, 1fr)) }
+.ch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 12px; align-items: start }
+.ch-t { border-collapse: separate; border-spacing: 3px; width: auto }
+.ch-t th, .ch-t td { padding: 0; border: 0; text-align: center; font-size: .75rem }
+.ch-t thead th { color: var(--muted); font-weight: 500; padding-bottom: 2px }
+.ch-t tbody th { color: var(--muted); font-weight: 500; min-width: 34px; padding-right: 4px; text-align: right }
+.ch-c { display: flex; align-items: center; justify-content: center; width: 52px; height: 26px; border-radius: 5px; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); font: 600 .72rem var(--f-body); padding: 0 }
+button.ch-c { cursor: pointer } button.ch-c:disabled { cursor: default }
+.ch-c.st1, .ch-sw.st1 { background: var(--info-soft); border-color: var(--info) }
+.ch-c.st2, .ch-sw.st2 { background: var(--accent-soft); border-color: var(--accent) }
+.ch-c.st3, .ch-sw.st3 { background: var(--warn-soft); border-color: var(--warn) }
+.ch-c.st4, .ch-sw.st4 { background: var(--ok-soft); border-color: var(--ok) }
+.ch-c.late { box-shadow: 0 0 0 2px var(--bad) }
+.ch-c.behind { background: var(--bad-soft); border-color: var(--bad) } .ch-c.ahead { background: var(--ok-soft); border-color: var(--ok) }
+.ch-c.na { color: var(--muted); background: transparent; border-style: dashed }
+.ch-sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--line); background: var(--surface-2); margin-right: 6px; vertical-align: -1px }
+.ch-legend { gap: 14px; font-size: .85rem }
+.ch-fl { border: 0; background: none; color: var(--accent); font: 600 .75rem var(--f-body); cursor: pointer; padding: 2px 4px; border-radius: 4px } .ch-fl:hover { background: var(--accent-soft) }
+.ch-in { display: flex; align-items: center; width: 52px; height: 26px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); overflow: hidden }
+.ch-in.full { background: var(--ok-soft); border-color: var(--ok) }
+.ch-in .vin { width: 26px; height: 24px; border: 0; padding: 0 2px; text-align: right; background: transparent; font-size: .75rem }
+.ch-in span { color: var(--muted); font-size: .7rem }
+.ch-n { width: 52px; height: 26px; padding: 0 4px; font-size: .75rem; text-align: center }
+.ch-foot { font-size: .82rem } .bad-t { color: var(--bad) }
+@media (max-width: 1000px) { .ch-k { grid-template-columns: repeat(2, minmax(0, 1fr)) } }
 .wi-table td { vertical-align: top } .wi-base td { background: var(--surface-2) }
 .pnr-kpis { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) }
 .pnr-kpis .sl-kpi span { font-size: .8rem } .pnr-kpis .sl-kpi b { font-size: 1.2rem }
@@ -3550,6 +3575,8 @@ window.DICTS = {
   cctv: { name: "Модель видеонаблюдения", items: [{ v: "Дахуа" }, { v: "Хиквижн" }] },
   cable: { name: "Кабели в квартире", items: [{ v: "Алюминий" }, { v: "Медь" }] },
   vent: { name: "Тип вентиляции", items: [{ v: "Оцинковка" }, { v: "Вент блоки" }] },
+  // Шахматка: стадии СМР на этаже по порядку; stage — этап графика, из которого считается план по этажам
+  chessStage: { name: "Стадия СМР на этаже", items: [{ v: "Каркас", a: "К", stage: "frame" }, { v: "Ограждение", a: "Ог", stage: "envelope" }, { v: "Инженерия", a: "Ин", stage: "mep" }, { v: "Отделка", a: "От", stage: "finish" }] },
   // Списки калькулятора ПНР
   projectKind: { name: "Вид проекта", items: [{ v: "Жилые комплексы" }, { v: "Коттеджные городки" }] },
   ecoCat: { name: "Категория здания по влиянию на окружающую среду", items: [{ v: "2 категория" }, { v: "3 категория" }] }
@@ -4165,6 +4192,7 @@ window.VARS = {
     { id: "growth", name: "Рост цен", unit: "% в год", sec: "Продажи", owner: "Продажи", type: "num", path: "model.growth", better: "up", used: ["Финмодель"] },
     { id: "sales_start", name: "Начало продаж", unit: "мес. от старта", sec: "Продажи", owner: "Продажи", calc: "График", better: "down", used: ["Финмодель", "ПК Start"] },
     { id: "sales_dur", name: "Длительность продаж", unit: "мес.", sec: "Продажи", owner: "Продажи", calc: "График", better: "down", used: ["Финмодель", "ПК Start"] },
+    { id: "sold_flats", name: "Продано квартир", unit: "шт", sec: "Продажи", owner: "Продажи", calc: "Шахматка", better: "up", used: ["Шахматка"] },
     { id: "sales", name: "Условия продаж", sec: "Продажи", owner: "Продажи", type: "text", path: "project.sales", used: ["Карточка", "ПК Start"] },
 
     { id: "land", name: "Стоимость земли", unit: "тг", sec: "Затраты", owner: "Развитие", type: "num", path: "model.land", better: "down", used: ["Финмодель", "Бюджет"] },
@@ -4204,7 +4232,9 @@ window.VARS = {
     { id: "stages_done", name: "Пройдено этапов", unit: "шт", sec: "Ход проекта", owner: "Команда проекта", calc: "Дорожная карта", better: "up", used: ["Портфель", "Отчёты"] },
     { id: "keys_plan", name: "Ключи по плану", sec: "Ход проекта", owner: "Команда проекта", calc: "График", used: ["Карточка", "ПК Start"] },
     { id: "keys_fc", name: "Ключи по прогнозу", sec: "Ход проекта", owner: "Команда проекта", calc: "График", better: "down", used: ["Карточка", "Портфель", "Отчёты"] },
-    { id: "delay", name: "Отставание от плана", unit: "мес.", sec: "Ход проекта", owner: "Команда проекта", calc: "График", better: "down", used: ["Портфель", "Отчёты"] }
+    { id: "delay", name: "Отставание от плана", unit: "мес.", sec: "Ход проекта", owner: "Команда проекта", calc: "График", better: "down", used: ["Портфель", "Отчёты"] },
+    { id: "smr_ready", name: "Готовность СМР по шахматке", unit: "%", sec: "Ход проекта", owner: "Команда проекта", calc: "Шахматка", better: "up", used: ["Шахматка"] },
+    { id: "smr_fact", name: "Выполнено СМР по шахматке", unit: "тг", sec: "Ход проекта", owner: "Команда проекта", calc: "Шахматка", better: "up", used: ["Шахматка"] }
   ]
 };
 
@@ -4394,6 +4424,7 @@ window.I18N = (function () {
     ["Смета из 1С", "1С-тен смета"], ["Загрузить смету (Excel из 1С)", "Сметаны жүктеу (1С-тен Excel)"], ["Использовать смету в финмодели", "Сметаны қаржы моделінде пайдалану"], ["Суммы сметы без НДС (финмодель добавит НДС)", "Смета сомалары ҚҚС-сыз (қаржы моделі ҚҚС қосады)"], ["Объекты и конструктивы", "Объектілер мен конструктивтер"], ["Статья финмодели", "Қаржы моделінің бабы"], ["По смете", "Смета бойынша"], ["В финмодели", "Қаржы моделінде"], ["Строки сметы", "Смета жолдары"], ["Расчёт ПНР по калькулятору ОРС", "ОРС калькуляторы бойынша ӨҮШ есебі"], ["Выбрать файл калькулятора", "Калькулятор файлын таңдау"], ["Рассчитать", "Есептеу"],
     ["Локация и клиент", "Орналасу және клиент"], ["Преимущества локации", "Орналасудың артықшылықтары"], ["Концепция фасада и сложные узлы", "Қасбет тұжырымдамасы және күрделі түйіндер"], ["Портрет покупателя и решения под него", "Сатып алушы портреті және оған арналған шешімдер"], ["Локация и фасад", "Орналасу және қасбет"], ["Клиент", "Клиент"], ["Закупки", "Сатып алу"], ["Средняя квартира", "Орташа пәтер"], ["Средний чек", "Орташа чек"], ["Квартирография", "Пәтерлер құрамы"],
     ["Что если", "Егер де"], ["Пессимистичный", "Пессимистік"], ["Оптимистичный", "Оптимистік"], ["Стресс-тест банка", "Банктің стресс-тесті"], ["Свой сценарий", "Өз сценарийі"], ["Базовый", "Базалық"], ["Пиковый долг", "Ең жоғары қарыз"], ["Ключи", "Кілттер"], ["Сценарии «что если»", "«Егер де» сценарийлері"], ["Добавить:", "Қосу:"], ["Сценарий и изменения к базовому", "Сценарий және базалыққа өзгерістер"],
+    ["Шахматка", "Шахматка"], ["СМР: факт", "ҚМЖ: факт"], ["СМР: план", "ҚМЖ: жоспар"], ["Объём: план и факт", "Көлем: жоспар және факт"], ["Продажи", "Сату"], ["Квартиры по этажам", "Қабаттар бойынша пәтерлер"], ["Готовность СМР", "ҚМЖ дайындығы"], ["Выполнено СМР", "Орындалған ҚМЖ"], ["Отстают от плана", "Жоспардан қалып жатыр"], ["Продано квартир", "Сатылған пәтерлер"], ["План на месяц", "Ай бойынша жоспар"], ["Стадия:", "Кезең:"], ["Очистить", "Тазалау"], ["Каркас", "Қаңқа"], ["Ограждение", "Қоршау"], ["Инженерия", "Инженерия"], ["Отделка", "Әрлеу"], ["Не начат", "Басталмаған"], ["Этаж", "Қабат"], ["Готовность СМР по шахматке", "Шахматка бойынша ҚМЖ дайындығы"], ["Выполнено СМР по шахматке", "Шахматка бойынша орындалған ҚМЖ"], ["Стадия СМР на этаже", "Қабаттағы ҚМЖ кезеңі"], ["Этажи и подъезды каждого блока строятся из «Блоков проекта». План по этажам считается из графика, объём СМР — из финмодели. Команда вносит только факт: стадию на этаже и продажи.", "Әр блоктың қабаттары мен кіреберістері «Жоба блоктарынан» құрылады. Қабаттар бойынша жоспар кестеден, ҚМЖ көлемі қаржы моделінен есептеледі. Команда тек фактіні енгізеді: қабаттағы кезең мен сату."], ["Выберите стадию и нажмите на ячейку. Номер этажа ставит стадию на весь этаж и на этажи ниже, где она ещё не достигнута. Красная рамка — фактическая стадия ниже плановой.", "Кезеңді таңдап, ұяшықты басыңыз. Қабат нөмірі кезеңді бүкіл қабатқа және ол әлі жетпеген төменгі қабаттарға қояды. Қызыл жиек — нақты кезең жоспардағыдан төмен."], ["Сколько квартир продано на этаже подъезда. План продаж — равномерно от старта продаж до передачи ключей по графику.", "Кіреберіс қабатында қанша пәтер сатылды. Сату жоспары — кесте бойынша сату басталғаннан кілт тапсыруға дейін біркелкі."], ["Квартиры блока по умолчанию разложены поровну по надземным этажам и подъездам. Если на этаже их другое количество, впишите его — серое число подсказка.", "Блок пәтерлері әдепкі бойынша жерүсті қабаттар мен кіреберістерге тең бөлінген. Қабатта саны басқа болса, оны жазыңыз — сұр сан кеңес."], ["Факт продаж и СМР пока вносится здесь. Когда подключим CRM продаж и журналы технадзора, он будет приходить оттуда, без повторного ввода.", "Сату мен ҚМЖ фактісі әзірге осында енгізіледі. Сату CRM-і мен техқадағалау журналдарын қосқанда, ол сол жерден қайта енгізусіз келеді."], ["Качество и охрана труда появятся, когда подключим журналы технадзора и БиОТ: вписывать эти цифры вручную здесь не нужно. Факт СМР и продаж по этажам — во вкладке «Шахматка».", "Сапа мен еңбек қорғау техқадағалау және ҚжЕҚ журналдарын қосқанда пайда болады: бұл сандарды мұнда қолмен жазудың қажеті жоқ. Қабаттар бойынша ҚМЖ мен сату фактісі — «Шахматка» қойындысында."],
     ["Казначей", "Қазынашы"], ["Факт бюджета внесён по 5+ этапам", "5+ кезең бойынша бюджет фактісі енгізілді"], ["План из финмодели, тг", "Қаржы моделінен жоспар, тг"], ["План считается из финмодели автоматически: земля, проектирование по этапам проекта, СМР с технадзором и резервом по этапам стройки, сети, маркетинг, административные расходы и проценты. Чтобы изменить план, измените исходные данные финмодели или сроки в графике.", "Жоспар қаржы моделінен автоматты түрде есептеледі: жер, жоба кезеңдері бойынша жобалау, құрылыс кезеңдері бойынша техқадағалау мен резервті қоса ҚМЖ, желілер, маркетинг, әкімшілік шығыстар және пайыздар. Жоспарды өзгерту үшін қаржы моделінің бастапқы деректерін немесе кестедегі мерзімдерді өзгертіңіз."],
     ["Документы под контролем", "Құжаттар бақылауда"], ["5+ документов в реестре сроков, ни одного истёкшего", "Мерзімдер тізілімінде 5+ құжат, бірде-біреуінің мерзімі өтпеген"],
     ["Полный архив", "Толық мұрағат"], ["10+ вложений к пунктам чек-листов", "Чек-парақ тармақтарына 10+ тіркеме"],
@@ -4596,7 +4627,7 @@ window.ZHK_BOOT = function (document) {
   const RANKS = [[0, "Стажёр"], [1, "Аналитик"], [4, "Девелопер"], [8, "Застройщик"], [13, "Генеральный застройщик"], [21, "Магнат ЖК"]];
   const STATUS = { locked: "Закрыт", open: "Доступен", active: "В работе", risk: "Начат с риском", done: "Пройден" };
   const LOCAL_KEY = "zhk-skill-tree-v2", LEGACY_KEY = "zhk-skill-tree-v1";
-  const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines", "sched", "vars", "baseline", "risks", "team", "partners", "blocks", "b0", "pnr", "pnrCalc", "smeta", "scenarios"];
+  const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines", "sched", "vars", "baseline", "risks", "team", "partners", "blocks", "b0", "pnr", "pnrCalc", "smeta", "scenarios", "chess"];
   const VIEWS = ["tree", "gantt", "model", "budget", "deadlines", "projects"];
 
   // S — всё состояние проекта, хранится одним документом.
@@ -6098,7 +6129,7 @@ window.ZHK_BOOT = function (document) {
       resetZone.innerHTML = '<span class="reset-confirm">Сбросить отметки, назначения и досрочные старты? Карточка проекта, финмодель, бюджет и реестр сроков останутся. <button class="btn" id="reset-yes">Да, сбросить</button><button class="btn ghost" id="reset-no">Отмена</button></span>';
     } else if (e.target.id === "reset-yes" || e.target.id === "reset-no") {
       if (e.target.id === "reset-yes" && !readOnly) {
-        S = normalize({ project: S.project, model: S.model, budget: S.budget, deadlines: S.deadlines, sched: S.sched, vars: S.vars, baseline: S.baseline, risks: S.risks, team: S.team, partners: S.partners, blocks: S.blocks, b0: S.b0, pnr: S.pnr, pnrCalc: S.pnrCalc, smeta: S.smeta, scenarios: S.scenarios });
+        S = normalize({ project: S.project, model: S.model, budget: S.budget, deadlines: S.deadlines, sched: S.sched, vars: S.vars, baseline: S.baseline, risks: S.risks, team: S.team, partners: S.partners, blocks: S.blocks, b0: S.b0, pnr: S.pnr, pnrCalc: S.pnrCalc, smeta: S.smeta, scenarios: S.scenarios, chess: S.chess });
         openEdits.clear();
         saveLocal();
         if (docRef) { const ref = docRef, proj = curProject, full = JSON.parse(JSON.stringify(S)); writeChain = writeChain.then(() => ref.set(full).then(() => { if (proj === curProject) docExists = true; }).catch(() => {})); }
@@ -6129,10 +6160,50 @@ window.ZHK_BOOT = function (document) {
     const lo = fl.length ? Math.min(...fl) : null, hi = fl.length ? Math.max(...fl) : null;
     return { blocks: res.length, floors: lo == null ? null : lo === hi ? lo : lo + "–" + hi, flats: L.reduce((a, b) => a + (parseNum(b.flats) || 0), 0) || null };
   }
+  // Шахматка: этажи и подъезды — из блоков проекта, план по этажам — из графика, объём СМР — из финмодели.
+  // Команда вносит только факт: стадию СМР на этаже подъезда и проданные квартиры. Ключ — «блок.подъезд.этаж.поле».
+  const CHESS_KEY = /^[\w\-]{1,40}\.\d{1,2}\.-?\d{1,3}\.(st|s|n)$/;
+  function chessCalc(at, R) {
+    const G = schedule(), P = G.P, C = S.chess || {};
+    const t = /^\d{4}-\d{2}$/.test(at || "") ? monthsFrom(G.start, at + "-01") + 1 : G.now;
+    const ST = window.DICTS.chessStage.items, W = ST.map(x => P[x.stage].dur || 0), Ws = W.reduce((a, b) => a + b, 0) || 1;
+    const part = k => W.slice(0, k).reduce((a, b) => a + b, 0) / Ws;
+    const smr = (R || window.runModel(params())).byCat.smr || 0;
+    const int = k => { const v = parseNum(C[k]); return v == null ? null : Math.max(0, Math.round(v)); };
+    const all = listOf("blocks"), L = all.map(b => ({ b, fl: Math.min(150, Math.max(0, Math.round(parseNum(b.floors) || 0))), un: Math.min(10, Math.max(0, Math.round(parseNum(b.under) || 0))), en: Math.min(30, Math.max(1, Math.round(parseNum(b.entrances) || 1))) })).filter(x => x.fl + x.un > 0);
+    // Объём СМР из финмодели делится поровну на этаж подъезда, внутри этажа — по длительности стадий в графике.
+    const nCells = L.reduce((a, x) => a + (x.fl + x.un) * x.en, 0), unit = nCells ? smr / nCells : 0;
+    const sp = P.handover.ef - P.dolevka.es, share = sp > 0 ? Math.min(1, Math.max(0, (t - P.dolevka.es) / sp)) : 0;
+    const zero = () => ({ cells: 0, pw: 0, fw: 0, plan: 0, fact: 0, flats: 0, sold: 0, late: 0 }), tot = zero();
+    const blocks = L.map(x => {
+      const res = (x.b.kind || "res") === "res", floors = [], cells = {}, bt = zero();
+      for (let f = x.fl; f >= 1; f--) floors.push(f);
+      for (let f = -1; f >= -x.un; f--) floors.push(f);
+      // Квартиры блока — поровну по надземным этажам и подъездам, остаток на верхние; свою раскладку можно задать по ячейкам.
+      const F = res ? Math.round(parseNum(x.b.flats) || 0) : 0, nc = x.fl * x.en, base = nc ? Math.floor(F / nc) : 0, rem = nc ? F - base * nc : 0;
+      floors.forEach(f => { for (let e = 1; e <= x.en; e++) {
+        const k = x.b.id + "." + e + "." + f, i = f < 0 ? x.un + f + 1 : f;
+        // План: этажи идут снизу вверх, подземные — в этапе «нулевой цикл»; остальные стадии подземных этажей — вместе с первым.
+        const due = ST.map((y, j) => { const q = P[f < 0 && j === 0 ? "zero" : y.stage], fr = f < 0 ? (j === 0 ? i / x.un : x.fl ? 1 / x.fl : 1) : i / x.fl; return q.es + q.dur * fr; });
+        let pl = 0; while (pl < ST.length && t >= due[pl] - 1e-9) pl++;
+        const st = Math.min(ST.length, int(k + ".st") || 0), flat = res && f > 0;
+        const nAuto = flat ? base + ((f - 1) * x.en + (e - 1) >= nc - rem ? 1 : 0) : 0, nSet = flat ? int(k + ".n") : null, n = nSet == null ? nAuto : nSet;
+        const c = { st, pl, late: st < pl, due: due.map(m => ymAdd(G.start, Math.max(0, m - 0.01))), pd: part(pl), fd: part(st), n, nAuto, nSet, s: Math.min(n, int(k + ".s") || 0), flat };
+        c.plan = unit * c.pd; c.fact = unit * c.fd; cells[e + "." + f] = c;
+        bt.cells++; bt.pw += c.pd; bt.fw += c.fd; bt.plan += c.plan; bt.fact += c.fact; bt.flats += c.n; bt.sold += c.s; if (c.late) bt.late++;
+      } });
+      Object.keys(bt).forEach(k => tot[k] += bt[k]);
+      bt.soldPlan = Math.round(bt.flats * share);
+      return { id: x.b.id, name: x.b.name || "Блок", kind: x.b.kind || "res", floors, en: x.en, cells, flatsBlock: F, tot: bt };
+    });
+    tot.soldPlan = Math.round(tot.flats * share); tot.cost = smr;
+    return { blocks, tot, stages: ST, at: ymAdd(G.start, Math.max(0, t - 0.01)), skipped: all.length - L.length };
+  }
   function calcAll() {
-    const t = window.runModel(params()).t, G = schedule(), cur = byId[firstQuest()], M = schedMonths(), B = blockTotals();
+    const R = window.runModel(params()), t = R.t, G = schedule(), cur = byId[firstQuest()], M = schedMonths(), B = blockTotals(), X = chessCalc(null, R), ch = X.blocks.length > 0;
     return {
       blocks: B.blocks, floors: B.floors, flats: B.flats,
+      smr_ready: ch ? X.tot.fw / X.tot.cells * 100 : null, smr_fact: ch ? X.tot.fact : null, sold_flats: ch ? X.tot.sold : null,
       fin_rev: t.rev, fin_cost: t.costT, fin_cost_m2: t.costM2, fin_pbt: t.pbt, fin_net: t.net,
       fin_margin: t.margin * 100, fin_irr: t.irr == null ? null : t.irr * 100, fin_npv: t.npv, fin_peak_debt: t.peakDebt,
       cur_stage: cur.code + " · " + cur.name, stages_done: T.nodes.filter(isDone).length,
@@ -6311,6 +6382,14 @@ window.ZHK_BOOT = function (document) {
       if (x("rate")) p.rate = Math.max(0, p.rate + x("rate"));
       const t = window.runModel(p, { price: 1 + x("price") / 100, smr: 1 + x("smr") / 100 }).t;
       return { rev: t.rev, cost: t.costT, net: t.net, margin: t.margin * 100, irr: t.irr == null ? null : t.irr * 100, npv: t.npv, peakDebt: t.peakDebt, keys: ymAdd(G.start, G.end + d) };
+    },
+    // Шахматка: сетка этажей и подъездов из блоков проекта; at — месяц «ГГГГ-ММ» для плана (по умолчанию текущий).
+    chess: at => chessCalc(at),
+    setChess: patch => {
+      if (readOnly || !isObj(patch)) return;
+      const d = {};
+      Object.keys(patch).forEach(k => { if (!CHESS_KEY.test(k)) return; const v = parseNum(patch[k]); d[k] = v == null || v < 0 || (v === 0 && !/\.n$/.test(k)) ? null : String(Math.round(Math.min(v, 9999))); });
+      if (Object.keys(d).length) commit({ chess: d });
     },
     // Чек-лист B0: ответы хранятся плоско, ключ — раздел и поле («p.usp», «b.<блок>.len», «f.<фасад>.<блок>»…)
     b0: () => S.b0 || {},
@@ -6504,6 +6583,7 @@ const Z = (t, sub) => () => head(t, sub);
 const VIEWS = {
   card: { g: "Проект", t: "Карточка проекта", cnt: () => "", r: viewCard },
   blocks: { g: "Проект", t: "Блоки проекта", cnt: () => window.ZHK ? window.ZHK.list("blocks").length || "" : "", r: viewBlocks },
+  chess: { g: "Проект", t: "Шахматка", cnt: () => "", r: viewChess },
   smeta: { g: "Проект", t: "Смета из 1С", cnt: () => "", r: viewSmeta },
   pnr: { g: "Проект", t: "Показатели ПНР для ОРС", cnt: () => window.ZHK ? pnrLeft() || "" : "", r: viewPnr },
   b0: { g: "Проект", t: "Чек-лист B0 для ОРС", cnt: () => window.ZHK ? b0Progress().left || "" : "", r: viewB0 },
@@ -6950,6 +7030,60 @@ function viewWhatIf() {
   </section>`;
 }
 
+// ---------- Шахматка ----------
+const CH_LAYERS = [["smr", "СМР: факт"], ["plan", "СМР: план"], ["vol", "Объём: план и факт"], ["sales", "Продажи"], ["flats", "Квартиры по этажам"]];
+const chUI = { layer: "smr", brush: 1, at: "" };
+try { const x = localStorage.getItem("zhk-chess-layer"); if (CH_LAYERS.some(l => l[0] === x)) chUI.layer = x; } catch (e) {}
+const chMoney = n => { const a = Math.abs(n || 0); return a >= 1e9 ? (n / 1e9).toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + " млрд тг" : a >= 1e6 ? (n / 1e6).toLocaleString("ru-RU", { maximumFractionDigits: 1 }) + " млн тг" : Math.round(n || 0).toLocaleString("ru-RU") + " тг"; };
+const chPct = (a, b) => b ? Math.round(a / b * 100) + "%" : "—";
+const chYm = ym => ym.slice(5, 7) + "." + ym.slice(0, 4);
+function viewChess() {
+  const X = window.ZHK.chess(chUI.at), ro = window.ZHK.readOnly(), L = chUI.layer, ST = X.stages, T = X.tot, at = chYm(X.at), dis = ro ? " disabled" : "";
+  const sw = k => `<span class="ch-sw st${k}"></span>`;
+  const stName = k => k ? ST[k - 1].v : "Не начат";
+  const top = head("Шахматка", "Этажи и подъезды каждого блока строятся из «Блоков проекта». План по этажам считается из графика, объём СМР — из финмодели. Команда вносит только факт: стадию на этаже и продажи.");
+  if (!X.blocks.length) return top + `<section class="panel"><div class="empty">Шахматка появится, когда в «Блоках проекта» будет этажность. <a href="#blocks">Заполнить блоки</a></div></section>`;
+  const K = [
+    ["Готовность СМР", chPct(T.fw, T.cells), "план на " + at + ": " + chPct(T.pw, T.cells)],
+    ["Выполнено СМР", chMoney(T.fact), "план " + chMoney(T.plan) + " из " + chMoney(T.cost)],
+    ["Отстают от плана", String(T.late), "этажей подъездов из " + T.cells],
+    ["Продано квартир", T.sold + " из " + T.flats, "план на " + at + ": " + T.soldPlan]
+  ];
+  const cell = (b, e, f) => {
+    const c = b.cells[e + "." + f], k = b.id + "." + e + "." + f, where = "подъезд " + e + ", этаж " + f;
+    if (L === "smr") return `<button class="ch-c st${c.st}${c.late ? " late" : ""}" data-ch-cell="${k}" title="${esc(where + ": " + stName(c.st) + (c.late ? ". По плану: " + stName(c.pl) : ""))}" aria-label="${esc(where + ": " + stName(c.st))}"${dis}>${c.st ? ST[c.st - 1].a : ""}</button>`;
+    if (L === "plan") return `<span class="ch-c st${c.pl}" title="${esc(where + ". " + ST.map((s, j) => s.v + " — " + chYm(c.due[j])).join(", "))}">${c.pl ? ST[c.pl - 1].a : ""}</span>`;
+    if (L === "vol") { const d = c.fd - c.pd; return `<span class="ch-c ${d < -1e-6 ? "behind" : d > 1e-6 ? "ahead" : ""}" title="${esc(where + ": план " + chMoney(c.plan) + ", факт " + chMoney(c.fact))}">${Math.round(c.fd * 100)}%</span>`; }
+    if (!c.flat) return `<span class="ch-c na" title="${esc(where + ": квартир нет")}">—</span>`;
+    if (L === "sales") return `<label class="ch-in${c.n && c.s >= c.n ? " full" : ""}"><input type="text" inputmode="numeric" class="vin num" data-ch-in="${k}.s" value="${c.s || ""}" placeholder="0" maxlength="3" aria-label="${esc("Продано: " + where)}"${dis}><span>/${c.n}</span></label>`;
+    return `<input type="text" inputmode="numeric" class="vin num ch-n" data-ch-in="${k}.n" value="${c.nSet == null ? "" : c.nSet}" placeholder="${c.nAuto}" maxlength="3" aria-label="${esc("Квартир: " + where)}"${dis}>`;
+  };
+  const foot = b => {
+    const t = b.tot;
+    if (L === "sales") return `Продано ${t.sold} из ${t.flats} кв. (${chPct(t.sold, t.flats)}), план на ${at}: ${t.soldPlan}`;
+    if (L === "flats") return `Квартир по этажам: ${t.flats}, в «Блоках проекта»: ${b.flatsBlock}` + (t.flats !== b.flatsBlock && b.kind === "res" ? ` <span class="bad-t">— не совпадает, проверьте раскладку</span>` : "");
+    return `Готовность: факт ${chPct(t.fw, t.cells)}, план ${chPct(t.pw, t.cells)} · выполнено ${chMoney(t.fact)} из плана ${chMoney(t.plan)}` + (t.late ? ` · <span class="bad-t">отстают: ${t.late}</span>` : "");
+  };
+  const grid = b => `<div class="panel stack ch-block"><div class="row" style="justify-content:space-between"><h3>${esc(b.name)}</h3><span class="muted">${[(n => n ? "этажей: " + n : "")(b.floors.filter(f => f > 0).length), (n => n ? "подземных: " + n : "")(b.floors.filter(f => f < 0).length), "подъездов: " + b.en].filter(Boolean).join(" · ")}</span></div>
+    <div class="tbl"><table class="ch-t"><thead><tr><th>Этаж</th>${Array.from({ length: b.en }, (_, i) => `<th>П${i + 1}</th>`).join("")}</tr></thead><tbody>${b.floors.map(f => `<tr><th>${L === "smr" && !ro ? `<button class="ch-fl" data-ch-floor="${b.id}.${f}" title="Поставить выбранную стадию на этаж ${f} и ниже">${f}</button>` : f}</th>${Array.from({ length: b.en }, (_, i) => `<td>${cell(b, i + 1, f)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+    <div class="muted ch-foot">${foot(b)}</div></div>`;
+  const tools = L === "smr" ? (ro ? "" : `<div class="row ch-brush"><span class="muted">Стадия:</span>${[0].concat(ST.map((_, i) => i + 1)).map(k => `<button class="btn${chUI.brush === k ? " primary" : ""}" data-ch-brush="${k}" aria-pressed="${chUI.brush === k}">${sw(k)}${k ? esc(ST[k - 1].v) : "Очистить"}</button>`).join("")}</div>
+      <p class="muted" style="margin:0">Выберите стадию и нажмите на ячейку. Номер этажа ставит стадию на весь этаж и на этажи ниже, где она ещё не достигнута. Красная рамка — фактическая стадия ниже плановой.</p>`)
+    : L === "plan" ? `<div class="row ch-legend">${[0].concat(ST.map((_, i) => i + 1)).map(k => `<span>${sw(k)}${esc(stName(k))}</span>`).join("")}</div><p class="muted" style="margin:0">Стадия, которая по графику должна быть закончена к концу выбранного месяца. Этажи идут снизу вверх равномерно в пределах этапа графика; наведите на ячейку, чтобы увидеть месяцы.</p>`
+    : L === "vol" ? `<p class="muted" style="margin:0">Доля выполненного объёма СМР на этаже подъезда по факту. Зелёный — опережение плана, красный — отставание. Объём СМР из финмодели (${chMoney(T.cost)}) распределён поровну на этажи подъездов, внутри этажа — по длительности стадий в графике.</p>`
+    : L === "sales" ? `<p class="muted" style="margin:0">Сколько квартир продано на этаже подъезда. План продаж — равномерно от старта продаж до передачи ключей по графику.</p>`
+    : `<p class="muted" style="margin:0">Квартиры блока по умолчанию разложены поровну по надземным этажам и подъездам. Если на этаже их другое количество, впишите его — серое число подсказка.</p>`;
+  return top + `<div class="grid ch-k">${K.map(([l, v, d]) => `<div class="panel kpi"><span class="label">${l}</span><div class="big num">${esc(v)}</div><div class="muted" style="font-size:.85rem">${esc(d)}</div></div>`).join("")}</div>
+  <section class="panel stack">
+    <div class="row" style="justify-content:space-between;align-items:flex-end"><div class="row ch-layers" role="group" aria-label="Слой шахматки">${CH_LAYERS.map(([k, l]) => `<button class="btn${L === k ? " primary" : ""}" data-ch-layer="${k}" aria-pressed="${L === k}">${l}</button>`).join("")}</div>
+      <label class="field" style="margin:0"><span class="label">План на месяц</span><input type="month" id="ch-at" value="${X.at}"></label></div>
+    ${tools}
+  </section>
+  <div class="ch-grid">${X.blocks.map(grid).join("")}</div>
+  ${X.skipped ? `<p class="muted">Блоков без этажности: ${X.skipped}. Укажите этажи в <a href="#blocks">«Блоках проекта»</a>, и они появятся здесь.</p>` : ""}
+  <p class="muted">Факт продаж и СМР пока вносится здесь. Когда подключим CRM продаж и журналы технадзора, он будет приходить оттуда, без повторного ввода.</p>`;
+}
+
 // ---------- Чек-лист B0 ----------
 // Анкета для сметы ОРС на стадии эскиза. Что уже есть в данных проекта, подставляется само и вручную не вводится.
 function b0Ctx(lite) {
@@ -7078,7 +7212,7 @@ function viewKpi() {
   ];
   return head("Показатели проекта", "Все показатели считаются из данных проекта: графика, бюджета, финмодели, реестра документов.") + `
   <div class="grid g5">${K.map(([l, v, d, dl, dir, href]) => `<a class="panel kpi" href="#${href}" style="text-decoration:none;color:inherit"><span class="label">${l}</span><div class="big num">${esc(v)}</div><div class="muted" style="font-size:.85rem">${esc(d)}</div><div class="delta ${dir}">${esc(dl)}</div></a>`).join("")}</div>
-  <p class="muted">Качество, охрана труда, оперативный факт и шахматка продаж появятся, когда подключим журналы технадзора и БиОТ и данные продаж: вписывать эти цифры вручную здесь не нужно.</p>`;
+  <p class="muted">Качество и охрана труда появятся, когда подключим журналы технадзора и БиОТ: вписывать эти цифры вручную здесь не нужно. Факт СМР и продаж по этажам — во вкладке «Шахматка».</p>`;
 }
 
 function viewPartners() {
@@ -7530,6 +7664,21 @@ function bind(m) {
     const p = window.ZHK.project(), k = Math.max(1, Math.min(30, parseInt(p.blocks) || 1)), fl = parseInt(p.floors) || "", fq = parseInt(p.flats) || 0;
     window.ZHK.addItems("blocks", Array.from({ length: k }, (_, i) => ({ name: "Блок " + (i + 1), kind: "res", floors: fl, flats: fq ? Math.round(fq / k) + (i === k - 1 ? fq - Math.round(fq / k) * k : 0) : "" })));
   };
+  m.querySelectorAll("[data-ch-layer]").forEach(b => b.onclick = () => { chUI.layer = b.dataset.chLayer; try { localStorage.setItem("zhk-chess-layer", chUI.layer) } catch (e) {} route() });
+  m.querySelectorAll("[data-ch-brush]").forEach(b => b.onclick = () => { chUI.brush = +b.dataset.chBrush; route() });
+  const cat = m.querySelector("#ch-at"); if (cat) cat.onchange = () => { chUI.at = cat.value; route() };
+  m.querySelectorAll("[data-ch-cell]").forEach(b => b.onclick = () => window.ZHK.setChess({ [b.dataset.chCell + ".st"]: chUI.brush }));
+  m.querySelectorAll("[data-ch-floor]").forEach(b => b.onclick = () => {
+    // Этаж и все ниже (подземные — раньше надземных), где стадия ещё не достигнута; «Очистить» — только этот этаж.
+    const [bid, fs] = b.dataset.chFloor.split("."), f = +fs, B = window.ZHK.chess().blocks.find(x => x.id === bid), d = {}, k = chUI.brush;
+    if (!B) return;
+    B.floors.filter(g => k ? g <= f : g === f).forEach(g => { for (let e = 1; e <= B.en; e++) { const c = B.cells[e + "." + g]; if (!k || c.st < k) d[bid + "." + e + "." + g + ".st"] = k; } });
+    window.ZHK.setChess(d);
+  });
+  m.querySelectorAll("[data-ch-in]").forEach(el => el.onchange = () => {
+    window.ZHK.setChess({ [el.dataset.chIn]: el.value });
+    setTimeout(() => { const a = document.activeElement, sel = a && a.dataset ? a.dataset.chIn : null; route(); const nx = sel && document.querySelector(`[data-ch-in="${sel}"]`); if (nx) nx.focus(); }, 0);
+  });
   m.querySelectorAll("[data-wi-preset]").forEach(b => b.onclick = () => window.ZHK.addItems("scenarios", [WI_PRESETS[+b.dataset.wiPreset]]));
   const pr = m.querySelector("#partner-roles"); if (pr) pr.onclick = () => window.ZHK.addItems("partners", PARTNER_ROLES.map(([role, subject]) => ({ role, subject, status: "tender" })));
   const tr = m.querySelector("#team-roles"); if (tr) tr.onclick = () => window.ZHK.addItems("team", TEAM_ROLES.map(([role, zone]) => ({ role, zone })));
