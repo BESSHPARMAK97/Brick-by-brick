@@ -11,8 +11,8 @@ const fail = msg => errors.push(msg);
 const scripts = [...html.matchAll(/<script(?: id="([\w-]+)")?>([\s\S]*?)<\/script>/g)];
 scripts.forEach(([, id, src], i) => { try { new Function(src); } catch (e) { fail(`script ${id || i}: ${e.message}`); } });
 const pick = id => (scripts.find(s => s[1] === id) || [])[2] || "";
-const ctx = { window: {}, TextEncoder };
-vm.runInNewContext(["tree-data", "tree-data-kk", "regions", "docx-lib", "model-lib", "dicts", "pnr-data", "vars-data"].map(pick).join("\n"), ctx);
+const ctx = { window: {}, TextEncoder, TextDecoder };
+vm.runInNewContext(["tree-data", "tree-data-kk", "regions", "docx-lib", "model-lib", "dicts", "pnr-data", "xlsx-engine", "vars-data"].map(pick).join("\n"), ctx);
 const { TREE: T, TREE_KK: KK, REGIONS: REG } = ctx.window;
 
 const ids = new Set(T.nodes.map(n => n.id));
@@ -79,6 +79,24 @@ DKEYS.forEach(k => {
   vals.forEach(v => { if (/,/.test(v)) fail(`dict ${k}: comma in value "${v}"`); });
 });
 ["klass", "city"].forEach(id => { if (!DICTS[id]) fail(`variable ${id}: no dictionary`); });
+// Движок формул калькуляторов отделов: синтетическая книга вместо файла ОРС (его нет в репозитории)
+{
+  const E = ctx.window.XLSXEngine, cell = (r, c, v, f) => [r * 16384 + c, { r, c, v, f }];
+  const wb = { sheets: {
+    "Показатели проекта": new Map([cell(2, 4, "Караганда"), cell(3, 4, 45685), cell(4, 4, 46178), cell(5, 4, null, "IF(AND(ISNUMBER(D3),ISNUMBER(D4)),(YEAR(D4)-YEAR(D3))*12+MONTH(D4)-MONTH(D3)+1,\"\")")]),
+    "Ресурсы": new Map([cell(12, 1, "29-01"), cell(12, 5, 100), cell(12, 10, 120), cell(13, 1, "29-02"), cell(13, 5, 7), cell(13, 10, 9)]),
+    "Калькулятор": new Map([
+      cell(6, 2, "29-01"), cell(6, 5, null, "ROUNDUP('Показатели проекта'!$D$5/4,0)"),
+      cell(6, 6, null, "_xlfn.IFS('Показатели проекта'!$D$2=\"Караганда\",VLOOKUP(B6,Ресурсы!$A:$J,10,FALSE),'Показатели проекта'!$D$2=\"Астана\",VLOOKUP(B6,Ресурсы!$A:$J,5,FALSE))*1.12"),
+      cell(7, 2, "29-02"), cell(7, 5, 3), cell(7, 6, null, E.shift("_xlfn.IFS('Показатели проекта'!$D$2=\"Караганда\",VLOOKUP(B6,Ресурсы!$A:$J,10,FALSE),'Показатели проекта'!$D$2=\"Астана\",VLOOKUP(B6,Ресурсы!$A:$J,5,FALSE))*1.12", 1, 0)),
+      cell(8, 7, null, "ROUND(SUM(E6*F6,E7*F7),2)"), cell(9, 7, null, "VLOOKUP(B6,Ресурсы!$A:$I,10,FALSE)")]) } };
+  const ev = E.evaluator(wb, {}), v = r => ev.value("Калькулятор", r);
+  const want = { E6: 5, F6: 134.4, F7: 10.08, G8: 702.24 };
+  Object.keys(want).forEach(k => { const g = v(k); if (Math.abs(g - want[k]) > 1e-9) fail(`xlsx-engine: ${k} = ${JSON.stringify(g)}, ожидалось ${want[k]}`); });
+  if (!E.isErr(v("G9")) || v("G9").err !== "#REF!") fail("xlsx-engine: VLOOKUP за пределами диапазона должен давать #REF!");
+  const ov = E.evaluator(wb, { "Показатели проекта!D2": "Астана" });
+  if (Math.abs(ov.value("Калькулятор", "F6") - 112) > 1e-9) fail("xlsx-engine: подстановка показателя не сработала");
+}
 const m = ctx.window.runModel(ctx.window.MODEL_DEFAULTS).t;
 if (!isFinite(m.margin) || !isFinite(m.pbt)) fail("model: non-finite result with default inputs");
 const docx = ctx.window.buildDocx("ПРОВЕРКА\nстрока");
