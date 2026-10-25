@@ -7,7 +7,7 @@ const root = path.join(__dirname, "..");
 const html = fs.readFileSync(path.join(root, "prototype/index.html"), "utf8");
 const pick = id => html.match(new RegExp('<script id="' + id + '">([\\s\\S]*?)<\\/script>'))[1];
 const ctx = { window: {}, TextEncoder };
-vm.runInNewContext(pick("tree-data") + "\n" + pick("tree-data-kk") + "\n" + pick("regions") + "\n" + pick("docx-lib"), ctx);
+vm.runInNewContext(pick("tree-data") + "\n" + pick("tree-data-kk") + "\n" + pick("regions") + "\n" + pick("docx-lib") + "\n" + pick("vars-data"), ctx);
 const T = ctx.window.TREE;
 const label = Object.fromEntries(T.fields.map(f => [f.id, f.blank || f.label]));
 // Поля карточки проекта в выгрузке остаются пустыми: [Название ЖК], [Город] и т.д.
@@ -113,4 +113,19 @@ Object.keys(REG).forEach(rid => {
 fs.writeFileSync(path.join(kkTpl, "README.md"), kkIndex.join("\n"));
 fs.writeFileSync(path.join(kkDir, "checklists.md"), kkCheck.join("\n"));
 fs.writeFileSync(path.join(root, "docs/checklists.md"), checklist.join("\n"));
-console.log(`templates: ${Object.keys(T.templates).length}, stages: ${T.nodes.length}`);
+
+// Словарь данных проекта: docs/variables.md
+const V = ctx.window.VARS;
+const HOME = { project: "Карточка проекта", model: "Финмодель", sched: "График" };
+const TYPE = { text: "текст", num: "число", sel: "список", month: "месяц", flag: "да/нет" };
+const vd = ["# Словарь данных проекта", "",
+  "Каждая переменная вводится в одном месте (столбец «Где вводится»), остальные инструменты читают её оттуда. Расчётные значения считает инструмент, вручную они не вводятся.", "",
+  "Источник: `window.VARS` в [prototype/index.html](../prototype/index.html). Файл собирается скриптом `node scripts/export-skill-tree.js`. Владельцы — черновик, отделы холдинга уточняются.", "",
+  `Всего переменных: ${V.items.length}, из них расчётных: ${V.items.filter(v => v.calc).length}.`, ""];
+V.sections.forEach(sec => {
+  vd.push(`## ${sec}`, "", "| Код | Переменная | Ед. | Тип | Владелец | Где вводится | Где используется |", "|---|---|---|---|---|---|---|");
+  V.items.filter(v => v.sec === sec).forEach(v => vd.push(`| \`${v.id}\` | ${v.name}${v.dup ? ` (дублирует раздел «${v.dup}»)` : ""} | ${v.unit || ""} | ${v.calc ? "расчёт" : TYPE[v.type]} | ${v.owner} | ${v.calc ? "расчёт: " + v.calc : HOME[v.path.split(".")[0]]} | ${v.used.join(", ")} |`));
+  vd.push("");
+});
+fs.writeFileSync(path.join(root, "docs/variables.md"), vd.join("\n"));
+console.log(`templates: ${Object.keys(T.templates).length}, stages: ${T.nodes.length}, variables: ${V.items.length}`);

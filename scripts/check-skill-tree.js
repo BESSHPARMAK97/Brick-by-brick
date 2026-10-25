@@ -12,7 +12,7 @@ const scripts = [...html.matchAll(/<script(?: id="([\w-]+)")?>([\s\S]*?)<\/scrip
 scripts.forEach(([, id, src], i) => { try { new Function(src); } catch (e) { fail(`script ${id || i}: ${e.message}`); } });
 const pick = id => (scripts.find(s => s[1] === id) || [])[2] || "";
 const ctx = { window: {}, TextEncoder };
-vm.runInNewContext(["tree-data", "tree-data-kk", "regions", "docx-lib", "model-lib"].map(pick).join("\n"), ctx);
+vm.runInNewContext(["tree-data", "tree-data-kk", "regions", "docx-lib", "model-lib", "vars-data"].map(pick).join("\n"), ctx);
 const { TREE: T, TREE_KK: KK, REGIONS: REG } = ctx.window;
 
 const ids = new Set(T.nodes.map(n => n.id));
@@ -46,10 +46,28 @@ Object.entries(REG).forEach(([rid, r]) => {
     });
   });
 });
+// Словарь данных проекта: уникальные коды, известные разделы и владельцы, пути к существующим полям.
+const V = ctx.window.VARS, vids = new Set();
+const PROJECT_EXTRA = ["regcode", "stage", "work", "construct", "region", "building", "ge", "sales"];
+const CALC = (html.match(/function calcAll\(\)[\s\S]*?\n  \}/) || [""])[0];
+V.items.forEach(v => {
+  if (vids.has(v.id)) fail(`variable ${v.id}: duplicate id`);
+  vids.add(v.id);
+  if (!V.sections.includes(v.sec)) fail(`variable ${v.id}: unknown section ${v.sec}`);
+  if (!V.owners.includes(v.owner)) fail(`variable ${v.id}: unknown owner ${v.owner}`);
+  if (!(v.used || []).length) fail(`variable ${v.id}: no consumers`);
+  if (v.calc) { if (!new RegExp("\\b" + v.id + ":").test(CALC)) fail(`variable ${v.id}: not computed in calcAll()`); return; }
+  const [root, k] = (v.path || "").split(".");
+  if (!["text", "num", "sel", "month", "flag"].includes(v.type)) fail(`variable ${v.id}: bad type ${v.type}`);
+  if (root === "model" && !(k in ctx.window.MODEL_DEFAULTS)) fail(`variable ${v.id}: unknown model input ${k}`);
+  else if (root === "project" && !fields.has(k) && !PROJECT_EXTRA.includes(k)) fail(`variable ${v.id}: unknown project field ${k}`);
+  else if (root === "sched" && k !== "start") fail(`variable ${v.id}: unknown schedule field ${k}`);
+  else if (!["model", "project", "sched"].includes(root)) fail(`variable ${v.id}: bad path ${v.path}`);
+});
 const m = ctx.window.runModel(ctx.window.MODEL_DEFAULTS).t;
 if (!isFinite(m.margin) || !isFinite(m.pbt)) fail("model: non-finite result with default inputs");
 const docx = ctx.window.buildDocx("ПРОВЕРКА\nстрока");
 if (!(docx[0] === 0x50 && docx[1] === 0x4b)) fail("docx: not a zip file");
 
 if (errors.length) { console.error(errors.map(e => "✗ " + e).join("\n")); process.exit(1); }
-console.log(`✓ ${scripts.length} scripts, ${T.nodes.length} stages, ${Object.keys(T.templates).length} templates, ${Object.keys(REG).length} regions: all checks passed`);
+console.log(`✓ ${scripts.length} scripts, ${T.nodes.length} stages, ${Object.keys(T.templates).length} templates, ${Object.keys(REG).length} regions, ${V.items.length} variables: all checks passed`);

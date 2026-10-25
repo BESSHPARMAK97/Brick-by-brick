@@ -19,3 +19,12 @@ jobs:
         run: |
           node scripts/export-skill-tree.js
           git diff --exit-code -- docs || (echo "::error::Run 'node scripts/export-skill-tree.js' and commit the result" && exit 1)
+
+  db:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Database schema rules
+        run: |
+          sudo systemctl start postgresql
+          cat docs/db/project-data.sql docs/db/project-data-check.sql | sudo -u postgres psql -v ON_ERROR_STOP=1 -q
