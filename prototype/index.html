@@ -4120,11 +4120,14 @@ window.XLSXEngine = (function () {
 // Владельцы — черновик: отделы холдинга уточняются.
 window.VARS = {
   owners: ["Команда проекта", "Развитие", "Юристы", "Продажи", "ОРС", "Финансы"],
-  sections: ["Миссия и KPI", "Паспорт и ТЭП", "Участок и реквизиты", "Подбор стандартов", "Продажи", "Затраты", "Финансирование и налоги", "Сроки", "Результаты финмодели", "Ход проекта"],
+  sections: ["Миссия и KPI", "Локация и клиент", "Паспорт и ТЭП", "Участок и реквизиты", "Подбор стандартов", "Продажи", "Затраты", "Финансирование и налоги", "Сроки", "Результаты финмодели", "Ход проекта"],
   items: [
     { id: "mission", name: "Миссия проекта", sec: "Миссия и KPI", owner: "Команда проекта", type: "text", path: "project.mission", used: ["Карточка", "ПК Start"] },
     { id: "kpi_nps", name: "Целевой NPS клиентов", unit: "баллов", sec: "Миссия и KPI", owner: "Команда проекта", type: "num", path: "project.kpi_nps", better: "up", used: ["Карточка", "ПК Start"] },
     { id: "kpi_engagement", name: "Целевая вовлечённость команды", unit: "%", sec: "Миссия и KPI", owner: "Команда проекта", type: "num", path: "project.kpi_engagement", better: "up", used: ["Карточка", "ПК Start"] },
+    { id: "loc_text", name: "Преимущества локации", sec: "Локация и клиент", owner: "Команда проекта", type: "text", path: "project.loc_text", used: ["Карточка", "ПК Start"] },
+    { id: "facade_text", name: "Концепция фасада и сложные узлы", sec: "Локация и клиент", owner: "Команда проекта", type: "text", path: "project.facade_text", used: ["Карточка", "ПК Start"] },
+    { id: "client_text", name: "Портрет покупателя и решения под него", sec: "Локация и клиент", owner: "Продажи", type: "text", path: "project.client_text", used: ["Карточка", "ПК Start"] },
     { id: "name", name: "Название ЖК", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "text", path: "project.name", used: ["Карточка", "Образцы документов", "ПК Start", "Портфель"] },
     { id: "building", name: "Тип здания", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "text", path: "project.building", used: ["Карточка", "ПК Start"] },
     { id: "klass", name: "Класс жилья", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "sel", path: "project.klass", used: ["Стандарты", "Образцы документов", "ПК Start"] },
@@ -4384,6 +4387,7 @@ window.I18N = (function () {
     ["Чек-лист B0 для ОРС", "ОРС үшін B0 чек-парағы"], ["Скачать для ОРС (Excel)", "ОРС үшін жүктеу (Excel)"], ["Общие данные", "Жалпы деректер"], ["Блоки", "Блоктар"], ["Фасад", "Қасбет"], ["Пирог кровли", "Шатыр қабаттары"], ["Заполнение проёмов", "Ойықтарды толтыру"], ["Благоустройство", "Абаттандыру"], ["Дополнительно", "Қосымша"], ["Внутренние сети", "Ішкі желілер"], ["Эскизный проект в формате dwg прикладывается к письму в ОРС отдельно.", "dwg пішіміндегі эскиздік жоба ОРС-қа хатқа бөлек тіркеледі."],
     ["Показатели ПНР для ОРС", "ОРС үшін ӨҮШ көрсеткіштері"], ["Скачать для калькулятора (Excel)", "Калькулятор үшін жүктеу (Excel)"], ["Кто вносит", "Кім енгізеді"], ["Вводятся здесь", "Осында енгізіледі"], ["Из данных проекта", "Жоба деректерінен"], ["Все строки", "Барлық жолдар"], ["ФМ проекта", "Жоба ҚМ"], ["ОРС Общестрой", "ОРС Жалпы құрылыс"], ["ОРС Сети", "ОРС Желілер"], ["Контур без примыканий, м", "Жанасусыз контур, м"],
     ["Смета из 1С", "1С-тен смета"], ["Загрузить смету (Excel из 1С)", "Сметаны жүктеу (1С-тен Excel)"], ["Использовать смету в финмодели", "Сметаны қаржы моделінде пайдалану"], ["Суммы сметы без НДС (финмодель добавит НДС)", "Смета сомалары ҚҚС-сыз (қаржы моделі ҚҚС қосады)"], ["Объекты и конструктивы", "Объектілер мен конструктивтер"], ["Статья финмодели", "Қаржы моделінің бабы"], ["По смете", "Смета бойынша"], ["В финмодели", "Қаржы моделінде"], ["Строки сметы", "Смета жолдары"], ["Расчёт ПНР по калькулятору ОРС", "ОРС калькуляторы бойынша ӨҮШ есебі"], ["Выбрать файл калькулятора", "Калькулятор файлын таңдау"], ["Рассчитать", "Есептеу"],
+    ["Локация и клиент", "Орналасу және клиент"], ["Преимущества локации", "Орналасудың артықшылықтары"], ["Концепция фасада и сложные узлы", "Қасбет тұжырымдамасы және күрделі түйіндер"], ["Портрет покупателя и решения под него", "Сатып алушы портреті және оған арналған шешімдер"], ["Локация и фасад", "Орналасу және қасбет"], ["Клиент", "Клиент"], ["Закупки", "Сатып алу"], ["Средняя квартира", "Орташа пәтер"], ["Средний чек", "Орташа чек"], ["Квартирография", "Пәтерлер құрамы"],
     ["Казначей", "Қазынашы"], ["Факт бюджета внесён по 5+ этапам", "5+ кезең бойынша бюджет фактісі енгізілді"], ["План из финмодели, тг", "Қаржы моделінен жоспар, тг"], ["План считается из финмодели автоматически: земля, проектирование по этапам проекта, СМР с технадзором и резервом по этапам стройки, сети, маркетинг, административные расходы и проценты. Чтобы изменить план, измените исходные данные финмодели или сроки в графике.", "Жоспар қаржы моделінен автоматты түрде есептеледі: жер, жоба кезеңдері бойынша жобалау, құрылыс кезеңдері бойынша техқадағалау мен резервті қоса ҚМЖ, желілер, маркетинг, әкімшілік шығыстар және пайыздар. Жоспарды өзгерту үшін қаржы моделінің бастапқы деректерін немесе кестедегі мерзімдерді өзгертіңіз."],
     ["Документы под контролем", "Құжаттар бақылауда"], ["5+ документов в реестре сроков, ни одного истёкшего", "Мерзімдер тізілімінде 5+ құжат, бірде-біреуінің мерзімі өтпеген"],
     ["Полный архив", "Толық мұрағат"], ["10+ вложений к пунктам чек-листов", "Чек-парақ тармақтарына 10+ тіркеме"],
@@ -6284,6 +6288,7 @@ window.ZHK_BOOT = function (document) {
         smr: SMR_IDS.map(id => ({ code: byId[id].code, name: byId[id].name, s: P[id].es - s0, e: P[id].ef - s0, fe: P[id].fe - s0, crit: !!P[id].critical,
           from: ym(P[id].es), to: ym(Math.max(P[id].ef - 0.01, P[id].es)) })),
         smrStart: ym(s0), smrEnd: ym(Math.max(P.commission.ef - 0.01, s0)), smrDur: mdec(P.commission.ef - s0),
+        tender: { from: ym(P.tender.es), to: ym(Math.max(P.tender.ef - 0.01, P.tender.es)), name: byId.tender.code + " · " + byId.tender.name },
         today: today().split("-").reverse().join(".")
       };
     },
@@ -6522,6 +6527,10 @@ function viewCard() {
       <label class="field" for="card-kpi_engagement"><span class="label">Целевая вовлечённость команды, %</span><input type="text" inputmode="decimal" id="card-kpi_engagement" data-var="kpi_engagement" value="${esc(p.kpi_engagement || "")}"${ro}></label>
       ${out("Бюджет и маржа", `считаются в <a href="#model">финмодели</a>`)}${out("Срок ключей", `считается в <a href="#gantt">графике</a>`)}
     </div></section>
+  <section class="panel stack"><h2>Локация и клиент</h2>
+    ${[["loc_text", "Преимущества локации", "Транспорт, школы, парки, виды, чем район лучше конкурентов"], ["facade_text", "Концепция фасада и сложные узлы", "Материалы, архитектурная идея, нестандартные узлы"], ["client_text", "Портрет покупателя и решения под него", "Кто покупает и какие технические решения сделаны под его требования"]].map(([k, l, ph]) => `<label class="field" for="card-${k}"><span class="label">${l}</span><textarea id="card-${k}" data-var="${k}" rows="2" maxlength="600" placeholder="${ph}"${ro}>${esc(p[k] || "")}</textarea></label>`).join("")}
+    <p class="muted" style="margin:0">Материалы фасада и квартирография — из <a href="#b0">чек-листа B0</a>, цена и площади — из <a href="#data">данных проекта</a>. Всё это попадает в презентацию ПК Start.</p>
+  </section>
   <section class="panel stack"><h2>Параметры подбора стандартов</h2><div class="fields">
     ${sel("region", "regcode", "Не выбран")}${sel("city", "city", "Не выбран")}${sel("klass", "klass", "Не выбран")}
     ${sel("stage", "stage", "Как в дорожной карте")}${sel("work", "work", "Не выбран")}${sel("construct", "construct", "Не выбран")}
@@ -6707,11 +6716,14 @@ function smetaAnalyze(R) {
   const cats = { nets: 0, design: 0, supervision: 0, reserve: 0 }, matched = { nets: [], design: [], supervision: [], reserve: [] };
   objects.forEach(o => SMETA_RULES.forEach(([k, lvl, re]) => (lvl === 1 ? o.cons : o.works).forEach(x => { if (re.test(x.name)) { cats[k] += x.sum; matched[k].push(x.name); } })));
   cats.smr = total - cats.nets - cats.design - cats.supervision - cats.reserve;
+  const mat = {};
+  R.forEach(r => { if (typeof r.B === "string" && /^(2\d|51)-\d{6}-\d{4}-\d\d$/.test(r.B) && n(r.K) != null && r.r < T.r) { const m = mat[r.B] || (mat[r.B] = { code: r.B, name: String(r.C || "").trim(), unit: String(r.D || "").trim(), qty: 0, sum: 0 }); m.qty += n(r.E) || 0; m.sum += n(r.K); } });
+  const materials = Object.values(mat).sort((a, b) => b.sum - a.sum).slice(0, 10).map(m => ({ name: m.name, unit: m.unit, qty: Math.round(m.qty * 100) / 100, sum: Math.round(m.sum) }));
   const pnrObj = objects.find(o => /накладные расходы/i.test(o.name));
   const sumObj = objects.reduce((s, o) => s + o.sum, 0);
   return { project: meta("Проект"), contractor: meta("Подрядчик"), total, objects: objects.map(o => ({ name: o.name, sum: Math.round(o.sum), cons: o.cons.map(c => ({ name: c.name, sum: Math.round(c.sum) })) })),
     cats: Object.fromEntries(Object.entries(cats).map(([k, v]) => [k, Math.round(v)])), matched: Object.fromEntries(Object.entries(matched).map(([k, v]) => [k, [...new Set(v)]])),
-    pnr: pnrObj ? Math.round(pnrObj.sum) : null, diff: Math.round(sumObj - total) };
+    pnr: pnrObj ? Math.round(pnrObj.sum) : null, diff: Math.round(sumObj - total), materials };
 }
 let smetaMsg = "";
 function smetaSay(m) { smetaMsg = m; const el = document.getElementById("smeta-msg"); if (el) el.textContent = m; }
@@ -6719,7 +6731,7 @@ async function smetaLoad(f) {
   smetaSay("Читаю смету «" + f.name + "»… большие выгрузки 1С читаются несколько секунд.");
   await new Promise(r => setTimeout(r, 30));
   try {
-    const A = smetaAnalyze(await window.XLSXEngine.rows(await f.arrayBuffer(), ["A", "B", "C", "H"]));
+    const A = smetaAnalyze(await window.XLSXEngine.rows(await f.arrayBuffer(), ["A", "B", "C", "D", "E", "H", "K"]));
     const prev = window.ZHK.smeta();
     window.ZHK.setSmeta(Object.assign({ at: new Date().toISOString(), file: f.name, use: true, vatIncl: prev ? !!prev.vatIncl : false }, A));
     setTimeout(() => smetaSay(A.diff ? `Загружено. Внимание: сумма объектов отличается от итога сметы на ${A.diff.toLocaleString("ru-RU")} тг.` : "Загружено. Итоги сметы применены в финмодели."), 0);
@@ -7117,7 +7129,7 @@ function viewData() {
 
 // ---------- Презентация ПК Start ----------
 // Слайды собираются из данных проекта: ничего не вводится повторно. Выгрузка в PowerPoint и PDF.
-const DECK_MANUAL = ["Локация и фасад", "Клиент", "Закупки"];
+const avgFlat = V => { const s = V.area_sale && V.area_sale.raw, f = V.flats && V.flats.raw; return s > 0 && f > 0 ? s / f : null; };
 let deckMsg = "";
 function deckData() {
   const V = Object.fromEntries(window.ZHK.vars().map(v => [v.id, v]));
@@ -7125,9 +7137,17 @@ function deckData() {
   const teamAll = window.ZHK.list("team");
   const risks = window.ZHK.list("risks").filter(r => r.title).sort((a, b) => (LEVEL_ORDER[a.level] ?? 1) - (LEVEL_ORDER[b.level] ?? 1)).map(r => Object.assign({}, r, { owner: riskOwner(r, teamAll) }));
   const team = teamAll.filter(m => m.role || m.name), pm = team.find(m => /^руководитель проекта/i.test(m.role || ""));
-  return { V, t, d: window.ZHK.deck(), base: window.ZHK.baseline(), title: projTitle(), risks, team, pm: pm && pm.name ? pm.name : "[ФИО]" };
+  // Чек-лист B0: материалы фасада по площади, квартирография, ключевые технические решения
+  const A = window.ZHK.b0(), blocks = window.ZHK.list("blocks"), nb = x => { const v = parseFloat(String(x == null ? "" : x).replace(",", ".")); return isFinite(v) ? v : 0; };
+  const facade = window.B0.facade.map((name, i) => ({ name, area: blocks.reduce((s, b) => s + nb(A["f." + i + "." + b.id]), 0) })).filter(f => f.area > 0).sort((a, b) => b.area - a.area);
+  const rooms = [1, 2, 3, 4, 5].map(k => ({ k, n: blocks.reduce((s, b) => s + nb(A["b." + b.id + ".r" + k]), 0) })).filter(r => r.n > 0);
+  const tech = [["Профиль окон", A["o.win.profile"]], ["Тип труб", A["n.pipes"]], ["Магистрали ГВС/ХВС", A["n.mains"]], ["Радиаторы", A["n.radiator"]], ["Кабели в квартире", A["n.cable"]], ["Вентиляция", A["n.vent"]], ["Домофон", A["n.intercom"]]].filter(x => x[1]);
+  const partners = window.ZHK.list("partners").filter(x => x.role || x.org), smeta = window.ZHK.smeta();
+  return { V, t, d: window.ZHK.deck(), base: window.ZHK.baseline(), title: projTitle(), risks, team, pm: pm && pm.name ? pm.name : "[ФИО]",
+    facade, rooms, tech, partners, materials: smeta && smeta.materials ? smeta.materials : null };
 }
 const bln = n => (n / 1e9).toLocaleString("ru-RU", { maximumFractionDigits: 2 });
+const dec1 = n => n.toLocaleString("ru-RU", { maximumFractionDigits: 1 });
 function deckSlides(D) {
   const { V, t, d } = D;
   const row = (l, id) => `<tr><td>${esc(l)}</td><td>${esc(t(id))}</td></tr>`;
@@ -7161,6 +7181,18 @@ function deckSlides(D) {
       <div class="sl-kpis sl-k3">${kpi("Бюджет с НДС", "fin_cost")}${kpi("Ключи по плану", "keys_plan")}${kpi("Маржа", "fin_margin")}${kpi("IRR", "fin_irr")}${kpi("NPS клиентов", "kpi_nps")}${kpi("Вовлечённость команды", "kpi_engagement")}</div>` },
     { k: "passport", h: "Паспорт и ТЭП", html: `<div class="sl-cols"><table>${row("Тип здания", "building")}${row("Класс", "klass")}${row("Блоков", "blocks")}${row("Этажность", "floors")}${row("Квартир", "flats")}${row("Общая площадь", "area_total")}${row("Продаваемая жилая", "area_sale")}${row("Коммерция", "area_comm")}${row("Машино-места", "parking")}</table>
       <table>${row("Адрес", "address")}${row("Участок", "area_land")}${row("Кадастровый номер", "cadastre")}${row("Застройщик", "company")}${row("Климат и сейсмика", "zone")}${row("Заключение ГЭ", "ge")}<tr><td>Старт СМР</td><td>${d.smrStart}</td></tr>${row("Ключи по плану", "keys_plan")}${row("Ключи по прогнозу", "keys_fc")}</table></div>` },
+    { k: "location", h: "Локация и фасад", html: `<div class="sl-cols"><div><table>${row("Город", "city")}${row("Адрес", "address")}${row("Участок", "area_land")}${row("Климат и сейсмика", "zone")}</table>
+      <p class="sl-lead">${t("loc_text") !== "—" ? esc(t("loc_text")) : '<span class="sl-mut">Преимущества локации не заполнены: карточка проекта.</span>'}</p></div>
+      <div><p class="sl-lead">${t("facade_text") !== "—" ? esc(t("facade_text")) : '<span class="sl-mut">Концепция фасада не заполнена: карточка проекта.</span>'}</p>
+      ${D.facade.length ? `<table class="sl-wide"><tr><th>Материал фасада</th><th>Площадь, м²</th></tr>${D.facade.slice(0, 6).map(f => `<tr><td>${esc(f.name)}</td><td>${f.area.toLocaleString("ru-RU")}</td></tr>`).join("")}</table>` : '<p class="sl-note">Площади фасада по материалам — в чек-листе B0.</p>'}</div></div>` },
+    { k: "client", h: "Клиент", html: (() => { const af = avgFlat(V), pr = V.price && V.price.raw, tot = D.rooms.reduce((s, r) => s + r.n, 0);
+      return `<p class="sl-lead">${t("client_text") !== "—" ? esc(t("client_text")) : '<span class="sl-mut">Портрет покупателя не заполнен: карточка проекта.</span>'}</p>
+      <div class="sl-kpis">${kpi("Класс жилья", "klass")}${kpi("Цена жилья", "price")}<div class="sl-kpi"><span>Средняя квартира</span><b>${af ? dec1(af) + " м²" : "—"}</b></div><div class="sl-kpi"><span>Средний чек</span><b>${af && pr ? bln(af * pr) + " млрд" : "—"}</b></div></div>
+      ${D.rooms.length ? `<table class="sl-wide"><tr><th>Квартирография</th><th>Квартир</th><th>Доля</th></tr>${D.rooms.map(r => `<tr><td>${r.k}-комнатные</td><td>${r.n}</td><td>${Math.round(r.n / tot * 100)}%</td></tr>`).join("")}</table>` : '<p class="sl-note">Квартирография по комнатности — в чек-листе B0.</p>'}`; })() },
+    { k: "procurement", h: "Закупки", html: `<p class="sl-lead">Тендер на генподряд и поставщиков: ${esc(d.tender.from)} – ${esc(d.tender.to)} (этап ${esc(d.tender.name)}).</p>
+      <div class="sl-cols"><div>${D.partners.length ? `<table class="sl-wide"><tr><th>Партнёр</th><th>Организация</th><th>Статус</th></tr>${D.partners.slice(0, 8).map(x => `<tr><td>${esc(x.role || "—")}</td><td>${esc(x.org || "выбирается")}</td><td>${x.status === "contract" ? "Договор" : "Тендер"}</td></tr>`).join("")}</table>` : '<p class="sl-note">Партнёры не заполнены.</p>'}
+      ${D.tech.length ? `<table class="sl-wide"><tr><th>Ключевое решение</th><th>Выбор</th></tr>${D.tech.map(([l, v]) => `<tr><td>${esc(l)}</td><td>${esc(v)}</td></tr>`).join("")}</table>` : ""}</div>
+      <div>${D.materials ? `<table class="sl-wide"><tr><th>10 самых капиталоёмких материалов</th><th>млн тг</th></tr>${D.materials.map(m => `<tr><td>${esc(m.name.slice(0, 60))}</td><td>${(m.sum / 1e6).toLocaleString("ru-RU", { maximumFractionDigits: 1 })}</td></tr>`).join("")}</table>` : '<p class="sl-note">10 самых капиталоёмких материалов появятся после загрузки сметы из 1С.</p>'}</div></div>` },
     { k: "gpr", h: "ГПР строительно-монтажных работ", html: `<p class="sl-lead">Старт СМР ${d.smrStart}, ввод ${d.smrEnd}, ${d.smrDur} мес. Красным — критический путь.</p>${gpr}` },
     { k: "market", h: "Рынок и цена", html: `<div class="sl-cols"><table>${row("Цена жилья с НДС", "price")}${row("Цена коммерции с НДС", "price_comm")}${row("Цена машино-места", "price_park")}${row("Рост цен", "growth")}</table>
       <table>${row("Начало продаж", "sales_start")}${row("Длительность продаж", "sales_dur")}${row("Условия продаж", "sales")}${row("Себестоимость 1 м²", "fin_cost_m2")}</table></div>
@@ -7184,11 +7216,11 @@ function deckSlides(D) {
 }
 function viewDeck() {
   const D = deckData(), slides = deckSlides(D);
-  return head("Презентация ПК Start", "Собирается из данных проекта: миссия и KPI, паспорт, ГПР, цены, затраты, финмодель, риски, команда. Цифры не вводятся повторно.") + `
+  return head("Презентация ПК Start", "Собирается из данных проекта: миссия и KPI, паспорт, локация, клиент, закупки, ГПР, цены, затраты, финмодель, риски, команда. Цифры не вводятся повторно.") + `
   <section class="panel stack">
     <div class="row between"><div class="row"><button class="btn primary" id="deck-pptx">Скачать PowerPoint</button><button class="btn" id="deck-pdf">Скачать PDF</button><button class="btn ghost" id="deck-full">На весь экран</button></div>
       <span class="muted" aria-live="polite" id="deck-msg">${esc(deckMsg)}</span></div>
-    <p class="muted" style="margin:0">Пока добавляются вручную, данных для них в системе ещё нет: ${DECK_MANUAL.join(", ")}. Шаблон структуры — образец «Структура презентации на ПК Start» в этапе 10 дорожной карты.</p>
+    <p class="muted" style="margin:0">Все слайды собираются из данных проекта, порядок — как в образце «Структура презентации на ПК Start» (этап 10 дорожной карты). Пустые места подсказывают, где заполнить данные.</p>
   </section>
   <div class="deck" id="deck">${slides.map((sl, i) => `<section class="slide" data-slide="${sl.k}">${sl.h ? `<header class="sl-head"><h2>${esc(sl.h)}</h2><span>${esc(D.title)} · ${i + 1}</span></header>` : ""}<div class="sl-body">${sl.html}</div></section>`).join("")}</div>`;
 }
@@ -7242,7 +7274,28 @@ async function deckPptx() {
   s = page("Паспорт и ТЭП");
   tbl(s, [["Тип здания", "building"], ["Класс", "klass"], ["Блоков", "blocks"], ["Этажность", "floors"], ["Квартир", "flats"], ["Общая площадь", "area_total"], ["Продаваемая жилая", "area_sale"], ["Коммерция", "area_comm"], ["Машино-места", "parking"]], { x: 0.5, y: 1.2, w: 5.9 });
   tbl(s, [["Адрес", "address"], ["Участок", "area_land"], ["Кадастровый номер", "cadastre"], ["Застройщик", "company"], ["Климат и сейсмика", "zone"], ["Заключение ГЭ", "ge"], ["Старт СМР", d.smrStart], ["Ключи по плану", "keys_plan"], ["Ключи по прогнозу", "keys_fc"]], { x: 6.9, y: 1.2, w: 5.9 });
-  // 3. ГПР
+  // Локация и фасад
+  s = page("Локация и фасад");
+  tbl(s, [["Город", "city"], ["Адрес", "address"], ["Участок", "area_land"], ["Климат и сейсмика", "zone"]], { x: 0.5, y: 1.2, w: 5.9 });
+  s.addText(t("loc_text") !== "—" ? t("loc_text") : "Преимущества локации не заполнены: карточка проекта.", { x: 0.5, y: 3.2, w: 5.9, h: 3.2, fontFace: F, fontSize: 14, color: t("loc_text") !== "—" ? INK : MUT, valign: "top" });
+  s.addText(t("facade_text") !== "—" ? t("facade_text") : "Концепция фасада не заполнена: карточка проекта.", { x: 6.9, y: 1.2, w: 5.9, h: 1.6, fontFace: F, fontSize: 14, color: t("facade_text") !== "—" ? INK : MUT, valign: "top" });
+  if (D.facade.length) s.addTable([["Материал фасада", "Площадь, м²"].map(h => ({ text: h, options: { bold: true, color: MUT } }))].concat(D.facade.slice(0, 6).map(f => [f.name, f.area.toLocaleString("ru-RU")])), { x: 6.9, y: 3.0, w: 5.9, fontFace: F, fontSize: 12, color: INK, border: { type: "solid", color: "E3E6EA", pt: 0.75 }, colW: [4.3, 1.6] });
+  // Клиент
+  s = page("Клиент");
+  s.addText(t("client_text") !== "—" ? t("client_text") : "Портрет покупателя не заполнен: карточка проекта.", { x: 0.5, y: 1.1, w: 12.3, h: 1.1, fontFace: F, fontSize: 15, color: t("client_text") !== "—" ? INK : MUT, valign: "top" });
+  { const af = avgFlat(V), pr = V.price && V.price.raw;
+    kp(s, [["Класс жилья", t("klass")], ["Цена жилья", t("price")], ["Средняя квартира", af ? dec1(af) + " м²" : "—"], ["Средний чек", af && pr ? bln(af * pr) + " млрд" : "—"]], 2.4);
+    if (D.rooms.length) s.addChart(x.ChartType.bar, [{ name: "Квартир", labels: D.rooms.map(r => r.k + "-комн."), values: D.rooms.map(r => r.n) }], { x: 0.5, y: 3.7, w: 12.3, h: 3.4, chartColors: [ACC], showValue: true, dataLabelFontSize: 12, catAxisLabelFontSize: 12, valAxisHidden: true, valGridLine: { style: "none" }, showLegend: false, catAxisLabelFontFace: F, barDir: "col" });
+    else s.addText("Квартирография по комнатности — в чек-листе B0.", { x: 0.5, y: 4.0, w: 12.3, h: 0.5, fontFace: F, fontSize: 13, italic: true, color: MUT });
+  }
+  // Закупки
+  s = page("Закупки");
+  s.addText("Тендер на генподряд и поставщиков: " + d.tender.from + " – " + d.tender.to + " (этап " + d.tender.name + ").", { x: 0.5, y: 1.1, w: 12.3, h: 0.4, fontFace: F, fontSize: 14, color: INK });
+  if (D.partners.length) s.addTable([["Партнёр", "Организация", "Статус"].map(h => ({ text: h, options: { bold: true, color: MUT } }))].concat(D.partners.slice(0, 7).map(p2 => [p2.role || "—", p2.org || "выбирается", p2.status === "contract" ? "Договор" : "Тендер"])), { x: 0.5, y: 1.7, w: 5.9, fontFace: F, fontSize: 11, color: INK, border: { type: "solid", color: "E3E6EA", pt: 0.75 }, colW: [2.2, 2.5, 1.2] });
+  if (D.tech.length) s.addTable([["Ключевое решение", "Выбор"].map(h => ({ text: h, options: { bold: true, color: MUT } }))].concat(D.tech.map(([l, v]) => [l, String(v)])), { x: 0.5, y: 4.6, w: 5.9, fontFace: F, fontSize: 11, color: INK, border: { type: "solid", color: "E3E6EA", pt: 0.75 }, colW: [2.6, 3.3] });
+  if (D.materials) s.addTable([["10 самых капиталоёмких материалов", "млн тг"].map(h => ({ text: h, options: { bold: true, color: MUT } }))].concat(D.materials.map(m => [m.name.slice(0, 60), (m.sum / 1e6).toLocaleString("ru-RU", { maximumFractionDigits: 1 })])), { x: 6.9, y: 1.7, w: 5.9, fontFace: F, fontSize: 10, color: INK, border: { type: "solid", color: "E3E6EA", pt: 0.75 }, colW: [4.7, 1.2] });
+  else s.addText("10 самых капиталоёмких материалов появятся после загрузки сметы из 1С.", { x: 6.9, y: 1.7, w: 5.9, h: 0.8, fontFace: F, fontSize: 13, italic: true, color: MUT });
+  // ГПР
   s = page("ГПР строительно-монтажных работ");
   s.addText(`Старт СМР ${d.smrStart}, ввод ${d.smrEnd}, ${d.smrDur} мес. Красным — критический путь.`, { x: 0.5, y: 1.1, w: 12.3, h: 0.4, fontFace: F, fontSize: 14, color: MUT });
   const mx = Math.max(...d.smr.map(r => Math.max(r.e, r.fe)), 1), X0 = 4.0, XW = 6.6;
