@@ -185,6 +185,10 @@ button { cursor: pointer }
 .blocks-t input.vin.num { width: 64px; min-width: 0 }
 .blocks-t input.vin:not(.num) { width: 110px; min-width: 0 }
 .blocks-t select { max-width: 130px }
+.b0-roof { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 6px 16px; font-size: .9rem }
+.b0-roof label { flex-wrap: nowrap; align-items: flex-start }
+.b0-roof input { margin-top: 3px; flex: none }
+.b0-warn { margin: 0; padding-left: 18px; color: var(--bad) }
 .sl-mission { margin: 0; font-family: var(--f-display); font-size: 2.3cqw; line-height: 1.3; color: #1b2129 }
 .sl-k3 { grid-template-columns: repeat(3, 1fr) }
 .sl-risks td:nth-child(n+2) { font-weight: 400 }
@@ -2119,6 +2123,30 @@ window.buildDocx = (function () {
     return "<w:p><w:pPr>" + (o.center ? '<w:jc w:val="center"/>' : "") +
       '<w:spacing w:before="' + (o.before || 0) + '" w:after="' + (o.after || 0) + '" w:line="264" w:lineRule="auto"/></w:pPr>' + inner + "</w:p>";
   }
+  // Минимальный .xlsx: листы [{ name, rows: [[ячейка, …]], widths: [ширина колонок], bold: [номера строк] }], строки — inline, числа — числа.
+  window.buildXlsx = function (sheets) {
+    const X = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    const col = i => { let s = ""; i++; while (i) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = (i - m - 1) / 26; } return s; };
+    const sheetXml = sh => '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+      (sh.widths ? "<cols>" + sh.widths.map((w, i) => '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>').join("") + "</cols>" : "") +
+      "<sheetData>" + sh.rows.map((r, ri) => '<row r="' + (ri + 1) + '">' + r.map((v, ci) => {
+        if (v == null || v === "") return "";
+        const ref = col(ci) + (ri + 1), st = (sh.bold || []).indexOf(ri) >= 0 ? ' s="1"' : "";
+        return typeof v === "number" ? '<c r="' + ref + '"' + st + "><v>" + v + "</v></c>" : '<c r="' + ref + '"' + st + ' t="inlineStr"><is><t xml:space="preserve">' + X(v) + "</t></is></c>";
+      }).join("") + "</row>").join("") + "</sheetData></worksheet>";
+    const NS = "http://schemas.openxmlformats.org/";
+    return zip([
+      { name: "[Content_Types].xml", data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="' + NS + 'package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
+        sheets.map((_, i) => '<Override PartName="/xl/worksheets/sheet' + (i + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join("") + "</Types>" },
+      { name: "_rels/.rels", data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="' + NS + 'package/2006/relationships"><Relationship Id="rId1" Type="' + NS + 'officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>' },
+      { name: "xl/workbook.xml", data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="' + NS + 'spreadsheetml/2006/main" xmlns:r="' + NS + 'officeDocument/2006/relationships"><sheets>' +
+        sheets.map((sh, i) => '<sheet name="' + X(sh.name.slice(0, 31)) + '" sheetId="' + (i + 1) + '" r:id="rId' + (i + 1) + '"/>').join("") + "</sheets></workbook>" },
+      { name: "xl/_rels/workbook.xml.rels", data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="' + NS + 'package/2006/relationships">' +
+        sheets.map((_, i) => '<Relationship Id="rId' + (i + 1) + '" Type="' + NS + 'officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (i + 1) + '.xml"/>').join("") +
+        '<Relationship Id="rId' + (sheets.length + 1) + '" Type="' + NS + 'officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>' },
+      { name: "xl/styles.xml", data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="' + NS + 'spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>' }
+    ].concat(sheets.map((sh, i) => ({ name: "xl/worksheets/sheet" + (i + 1) + ".xml", data: sheetXml(sh) }))));
+  };
   return function buildDocx(text) {
     let body = "", titled = false;
     text.replace(/\r/g, "").split("\n").forEach((line, i) => {
@@ -3498,9 +3526,127 @@ window.DICTS = {
     { v: "Кирпич", pnr: "Кирпич" }, { v: "ОБД", pnr: "ОБД" }, { v: "КПД", pnr: "КПД" }] },
   design: { name: "Вид проектирования", items: [
     { v: "Уникальное", pnr: "Уникальное", k: 1 }, { v: "Зеркальное", pnr: "Зеркальное", k: 0.5 }, { v: "Повтор", pnr: "Повтор", k: 0.3 }] },
-  blockKind: { name: "Назначение блока", items: [{ v: "res", t: "Жилой блок" }, { v: "parking", t: "Паркинг" }, { v: "other", t: "Нежилой" }] }
+  blockKind: { name: "Назначение блока", items: [{ v: "res", t: "Жилой блок" }, { v: "parking", t: "Паркинг" }, { v: "other", t: "Нежилой" }] },
+  // Списки чек-листа B0 (стадия эскиза, для сметы ОРС)
+  foundation: { name: "Тип фундамента", items: [{ v: "Плита" }, { v: "Лента/Стакан" }] },
+  rebar: { name: "Диаметр рабочей арматуры, мм", items: [6, 8, 10, 12, 14, 16, 18, 20, 22, 25, 28, 32, 36, 40, 45, 50, 55, 60, 70, 80].map(d => ({ v: String(d) })) },
+  uspBase: { name: "База УСП", items: [{ v: "Север 1" }, { v: "Север 2" }] },
+  formwork: { name: "Тип опалубки", items: [{ v: "Туннельная" }, { v: "Классическая" }] },
+  facadeTrim: { name: "Материал парапета, воздушной зоны, откосов", items: [{ v: "Оцинковка" }, { v: "Основной фасад" }] },
+  profile: { name: "Профиль окон и балконных пар", items: [{ v: "Алюминиевый" }, { v: "ПВХ" }] },
+  pipes: { name: "Тип труб", items: [{ v: "Kan-therm" }, { v: "LD FORS" }, { v: "One Plus" }] },
+  mains: { name: "Магистральные сети ГВС/ХВС", items: [{ v: "Оцинковка" }, { v: "ППР" }] },
+  radiator: { name: "Тип радиатора", items: [{ v: "Стальной панельный 500" }, { v: "Стальной панельный 200" }, { v: "Конвектор напольный" }, { v: "Конвектор внутрипольный" }] },
+  intercom: { name: "Модель домофона", items: [{ v: "Гибрид" }, { v: "Дахуа" }, { v: "Хиквижн" }] },
+  cctv: { name: "Модель видеонаблюдения", items: [{ v: "Дахуа" }, { v: "Хиквижн" }] },
+  cable: { name: "Кабели в квартире", items: [{ v: "Алюминий" }, { v: "Медь" }] },
+  vent: { name: "Тип вентиляции", items: [{ v: "Оцинковка" }, { v: "Вент блоки" }] }
 };
 window.DICTS.values = k => window.DICTS[k].items.map(i => i.v);
+</script>
+
+<script id="b0-data">
+// Чек-лист B0: анкета проекта для сметы ОРС на стадии эскиза (структура файла «Check_list_B0.xlsx»).
+// auto — значение уже есть в данных проекта и не вводится повторно. d — справочник из window.DICTS.
+window.B0 = {
+  project: [
+    { id: "area_total", label: "Общая площадь", unit: "м²", auto: "area_total" },
+    { id: "area_real", label: "Реализуемая площадь (жильё + коммерция)", unit: "м²", auto: "area_real" },
+    { id: "start", label: "Планируемая дата начала строительства", auto: "smr_start" },
+    { id: "rebar_found", label: "Рабочая арматура: фундамент", unit: "мм", d: "rebar" },
+    { id: "rebar_slab", label: "Рабочая арматура: плита", unit: "мм", d: "rebar" },
+    { id: "usp", label: "База УСП", d: "uspBase" },
+    { id: "formwork", label: "Тип опалубки", d: "formwork" }
+  ],
+  block: [
+    { id: "kind", label: "Назначение", auto: "kind" },
+    { id: "floors", label: "Количество этажей", unit: "шт", auto: "floors" },
+    { id: "under", label: "Подземных этажей (минус 1, минус 2)", unit: "шт", auto: "under" },
+    { id: "design", label: "Вид проектирования", auto: "design" },
+    { id: "len", label: "Длина по осям", unit: "м", t: "num" },
+    { id: "wid", label: "Ширина по осям", unit: "м", t: "num" },
+    { id: "found", label: "Тип фундамента", d: "foundation" },
+    { id: "socle", label: "Цокольный этаж", t: "flag" },
+    { id: "flats", label: "Квартир всего", unit: "шт", auto: "flats" },
+    { id: "r1", label: "Квартир 1-комнатных", unit: "шт", t: "num", rooms: 1 },
+    { id: "r2", label: "Квартир 2-комнатных", unit: "шт", t: "num", rooms: 1 },
+    { id: "r3", label: "Квартир 3-комнатных", unit: "шт", t: "num", rooms: 1 },
+    { id: "r4", label: "Квартир 4-комнатных", unit: "шт", t: "num", rooms: 1 },
+    { id: "r5", label: "Квартир 5-комнатных", unit: "шт", t: "num", rooms: 1 },
+    { id: "booth", label: "Будок выхода на кровлю", unit: "шт", t: "num" },
+    { id: "offices", label: "Офисов", unit: "шт", t: "num" },
+    { id: "heat", label: "Тепловой узел", t: "flag" },
+    { id: "pump", label: "Насосная станция", t: "flag" },
+    { id: "vru", label: "ВРУ", unit: "шт", t: "num" },
+    { id: "lifts", label: "Лифтов всего", unit: "шт", auto: "lifts" },
+    { id: "lift_big", label: "Лифтов 1000–1350 кг", unit: "шт", t: "num", lift: 1 },
+    { id: "lift_small", label: "Лифтов 450–630 кг", unit: "шт", t: "num", lift: 1 },
+    { id: "h_base", label: "Высота подвала", unit: "м", t: "num" },
+    { id: "h_1", label: "Высота 1 этажа", unit: "м", t: "num" },
+    { id: "h_typ", label: "Высота типового этажа", unit: "м", t: "num" },
+    { id: "h_top", label: "Высота последнего этажа", unit: "м", t: "num" }
+  ],
+  parking: [
+    { id: "transit", label: "Транзит труб через паркинг", t: "flag" },
+    { id: "floors", label: "Этажей паркинга", unit: "шт", t: "num" },
+    { id: "area", label: "Площадь паркинга общая", unit: "м²", t: "num" },
+    { id: "len", label: "Длина", unit: "м", t: "num" },
+    { id: "wid", label: "Ширина", unit: "м", t: "num" },
+    { id: "cols", label: "Колонн (стакан)", unit: "шт", t: "num" },
+    { id: "h_m2", label: "Высота подвала −2", unit: "м", t: "num" },
+    { id: "h_m1", label: "Высота подвала −1", unit: "м", t: "num" },
+    { id: "h_1", label: "Высота 1 этажа", unit: "м", t: "num" },
+    { id: "h_typ", label: "Высота типового этажа", unit: "м", t: "num" },
+    { id: "store", label: "Кладовых", unit: "шт", t: "num" },
+    { id: "tech", label: "Технических помещений", unit: "шт", t: "num" },
+    { id: "exits", label: "Выходов из паркинга на улицу", unit: "шт", t: "num" }
+  ],
+  facade: ["HPL панели, видимое крепление", "HPL панели, невидимое крепление", "Алюминиевые кассеты", "Алюминиевые композитные панели, готовые", "Алюминиевые композитные панели, изготовление",
+    "Гранит", "Декоративные элементы из алюминиевых листов (узор)", "Клинкерная плитка на металлической подконструкции", "Клинкерная плитка на клею",
+    "Клинкерный кирпич на металлической подконструкции", "Клинкерный кирпич на гибкой связи", "Окраска стен", "Стеклофибробетон",
+    "Травертин, Limestone, видимое крепление", "Травертин, Limestone, невидимое крепление", "Фиброцементные панели"],
+  facadeTrim: ["Облицовка парапета", "Облицовка воздушной зоны", "Откосы"],
+  roof: ["Щебёночный подстилающий слой 100 мм", "Разделительно-дренажный слой из геотекстиля", "Утепление плитами насухо в 2 слоя", "Утепление плитами насухо в 1 слой",
+    "Песчаный подстилающий слой 100 мм", "Гидроизоляция жидкой резиной 2 мм", "Гидроизоляция жидкой резиной 2 мм (примыкания)", "Уклонообразующие цементно-песчаные стяжки",
+    "Выравнивающие цементно-песчаные стяжки 100 мм", "Оклеечная пароизоляция на битумной мастике в 1 слой", "Наплавляемые рулонные материалы в 2 слоя",
+    "Примыкания к железобетонным парапетам рулонными материалами в 1 слой", "Монтаж готовых плоских арматурных сеток", "Огрунтовка битумным праймером",
+    "Наплавляемые рулонные материалы в 1 слой", "Утепление керамзитом", "Сборная стяжка из цементно-стружечных плит в 1 слой", "Бетонное покрытие (жилые блоки)",
+    "Изготовление плоских арматурных сеток", "Пароизоляция из полиэтиленовой плёнки насухо в 1 слой", "Наплавляемые рулонные материалы в 3 слоя",
+    "Примыкания к стенам и парапетам на битумной мастике", "Выравнивающие цементно-песчаные стяжки 45 мм", "Шлифовка бетонных покрытий",
+    "Обмазочная гидроизоляция битумной мастикой в 2 слоя", "Сборная стяжка из цементно-стружечных плит в 2 слоя", "Оклеечная гидроизоляция на битумной мастике в 1 слой",
+    "Кровельный фартук из оцинкованной стали", "Террасная доска", "Покрытие из профилированного оцинкованного листа"],
+  openings: [{ id: "win", label: "Блоки оконные" }, { id: "balc", label: "Балконные пары" }],
+  zones: [{ id: "alley", label: "Аллея" }, { id: "roof", label: "Эксплуатируемая кровля над паркингом" }, { id: "yard", label: "Придомовая территория" }],
+  covers: ["Брусчатка", "Асфальт", "Тартан", "Газон"],
+  extra: [
+    { id: "ac_grid", label: "Кондиционерные решётки", unit: "шт", t: "num" },
+    { id: "glass", label: "Стеклянные ограждения террас", unit: "м²", t: "num" },
+    { id: "pit", label: "Проект котлована или объёмы земляных работ предоставлены", t: "flag" },
+    { id: "cranes", label: "Башенных кранов", unit: "шт", t: "num" },
+    { id: "rebar_shop", label: "Арматурных цехов", unit: "шт", t: "num" },
+    { id: "rebar_shop_area", label: "Площадь одного арматурного цеха", unit: "м²", t: "num" },
+    { id: "wash", label: "Моек колёс", unit: "шт", t: "num" },
+    { id: "note", label: "Нестандартные решения (фонтан, бассейн, сложное благоустройство)", t: "text" }
+  ],
+  nets: [
+    { id: "k1", label: "Стояков К1", unit: "шт", t: "num" },
+    { id: "k3", label: "Стояков К3 (кондиционер)", unit: "шт", t: "num" },
+    { id: "pumps", label: "Насосных станций хоз-пит", unit: "шт", auto: "pumps" },
+    { id: "fire_pumps", label: "Насосных станций пожаротушения (свыше 9 этажей)", unit: "шт", t: "num" },
+    { id: "store", label: "Кладовые помещения", t: "flag" },
+    { id: "pipes", label: "Тип труб", d: "pipes" },
+    { id: "mains", label: "Магистральные сети ГВС/ХВС", d: "mains" },
+    { id: "heat_n", label: "Тепловых пунктов ИТП/БТП", unit: "шт", auto: "heat" },
+    { id: "kw_res", label: "Тепловая нагрузка жилья", unit: "кВт", t: "num" },
+    { id: "kw_off", label: "Тепловая нагрузка офисов", unit: "кВт", t: "num" },
+    { id: "radiator", label: "Тип радиатора", d: "radiator" },
+    { id: "intercom", label: "Модель домофона", d: "intercom" },
+    { id: "cctv", label: "Модель видеонаблюдения", d: "cctv" },
+    { id: "vru_n", label: "ВРУ", unit: "шт", auto: "vru" },
+    { id: "cable", label: "Кабели в квартире", d: "cable" },
+    { id: "vent", label: "Тип вентиляции", d: "vent" }
+  ]
+};
 </script>
 
 <script id="vars-data">
@@ -3759,6 +3905,7 @@ window.I18N = (function () {
     ["Миссия проекта", "Жоба миссиясы"], ["Целевой NPS клиентов", "Клиенттердің мақсатты NPS"], ["Целевая вовлечённость команды", "Команданың мақсатты тартылуы"], ["Целевой NPS клиентов, баллов", "Клиенттердің мақсатты NPS, балл"], ["Целевая вовлечённость команды, %", "Команданың мақсатты тартылуы, %"], ["Бюджет и маржа", "Бюджет және маржа"], ["Срок ключей", "Кілттер мерзімі"], ["Риски и возможности", "Тәуекелдер мен мүмкіндіктер"], ["Риск", "Тәуекел"], ["Возможность", "Мүмкіндік"], ["Тип", "Түрі"], ["Описание", "Сипаттама"], ["Мера реагирования", "Әрекет ету шарасы"], ["Добавить риск", "Тәуекел қосу"], ["ФИО", "Аты-жөні"], ["Зона ответственности", "Жауапкершілік аймағы"], ["Добавить роль", "Рөл қосу"], ["Добавить типовые роли", "Үлгілік рөлдерді қосу"], ["Не назначен", "Тағайындалмаған"], ["Команда ещё не заполнена. Добавьте типовые роли и впишите ФИО.", "Команда әлі толтырылмаған. Үлгілік рөлдерді қосып, аты-жөнін жазыңыз."], ["Рисков пока нет. Добавьте риски и возможности проекта: они попадут в презентацию ПК Start.", "Әзірге тәуекелдер жоқ. Жобаның тәуекелдері мен мүмкіндіктерін қосыңыз: олар ПК Start презентациясына түседі."], ["Роли, ФИО и зоны ответственности. Команда попадает в презентацию ПК Start и в список ответственных за риски.", "Рөлдер, аты-жөні және жауапкершілік аймақтары. Команда ПК Start презентациясына және тәуекелдерге жауаптылар тізіміне түседі."], ["Пустое ФИО в презентации показывается как «Не назначен».", "Бос аты-жөні презентацияда «Тағайындалмаған» болып көрсетіледі."],
     ["Передача ключей по плану", "Жоспар бойынша кілт табыстау"], ["Передача ключей по прогнозу", "Болжам бойынша кілт табыстау"], ["Праздник единства народа Казахстана", "Қазақстан халқының бірлігі мерекесі"], ["День защитника Отечества", "Отан қорғаушы күні"], ["День Победы", "Жеңіс күні"], ["День столицы", "Астана күні"], ["День Конституции", "Конституция күні"], ["День Республики", "Республика күні"], ["День Независимости", "Тәуелсіздік күні"], ["Добавить партнёра", "Серіктес қосу"], ["Организация", "Ұйым"], ["Предмет", "Пәні"], ["Не выбран", "Таңдалмаған"], ["Партнёров пока нет. Добавьте типовые роли и впишите организации.", "Әзірге серіктестер жоқ. Үлгілік рөлдерді қосып, ұйымдарды жазыңыз."], ["Подрядчики, поставщики и финансовые партнёры проекта. Хранятся в данных проекта.", "Жобаның мердігерлері, жеткізушілері және қаржы серіктестері. Жоба деректерінде сақталады."], ["Показатели проекта", "Жоба көрсеткіштері"], ["Сроки", "Мерзімдер"], ["Данные проекта", "Жоба деректері"], ["Все показатели считаются из данных проекта: графика, бюджета, финмодели, реестра документов.", "Барлық көрсеткіштер жоба деректерінен есептеледі: кесте, бюджет, қаржы моделі, құжаттар тізілімі."], ["Собирается из данных проекта: старты этапов и ключи — из графика, сроки — из чек-листов дорожной карты и реестра документов. Праздники РК — справочник.", "Жоба деректерінен жиналады: кезеңдердің басталуы мен кілттер — кестеден, мерзімдер — жол картасының чек-парақтары мен құжаттар тізілімінен. ҚР мерекелері — анықтамалық."], ["Сначала заполните", "Алдымен толтырыңыз"],
     ["Блоки проекта", "Жоба блоктары"], ["Жилой блок", "Тұрғын блок"], ["Паркинг", "Паркинг"], ["Нежилой", "Тұрғын емес"], ["Назначение", "Мақсаты"], ["Этажей над землёй", "Жер үстіндегі қабаттар"], ["Подземных этажей", "Жер асты қабаттары"], ["Подъездов", "Кіреберістер"], ["Лифтов", "Лифтілер"], ["Тип каркаса", "Қаңқа түрі"], ["Вид проектирования", "Жобалау түрі"], ["Зеркальное", "Айналы"], ["Повтор", "Қайталау"], ["Кирпич", "Кірпіш"], ["Добавить блок", "Блок қосу"], ["Создать блоки из карточки", "Карточкадан блоктар құру"], ["Заполнить блоки", "Блоктарды толтыру"], ["Блоки, этажность, квартиры", "Блоктар, қабаттылық, пәтерлер"], ["Количество жилых блоков", "Тұрғын блоктар саны"], ["Монолит до 12 этажей", "12 қабатқа дейінгі монолит"], ["Монолит выше 12 этажей", "12 қабаттан жоғары монолит"], ["Каждый блок и паркинг вводятся один раз. Количество блоков, этажность и квартиры в карточке, данных проекта, документах и презентации считаются отсюда.", "Әр блок пен паркинг бір рет енгізіледі. Карточкадағы, жоба деректеріндегі, құжаттар мен презентациядағы блоктар саны, қабаттылық және пәтерлер осы жерден есептеледі."], ["Из этих данных будут заполняться чек-лист B0 и показатели калькулятора ПНР: этажность, подъезды, лифты и тип каркаса по каждому блоку.", "Осы деректерден B0 чек-парағы мен ӨҮШ калькуляторының көрсеткіштері толтырылады: әр блок бойынша қабаттылық, кіреберістер, лифтілер және қаңқа түрі."],
+    ["Чек-лист B0 для ОРС", "ОРС үшін B0 чек-парағы"], ["Скачать для ОРС (Excel)", "ОРС үшін жүктеу (Excel)"], ["Общие данные", "Жалпы деректер"], ["Блоки", "Блоктар"], ["Фасад", "Қасбет"], ["Пирог кровли", "Шатыр қабаттары"], ["Заполнение проёмов", "Ойықтарды толтыру"], ["Благоустройство", "Абаттандыру"], ["Дополнительно", "Қосымша"], ["Внутренние сети", "Ішкі желілер"], ["Эскизный проект в формате dwg прикладывается к письму в ОРС отдельно.", "dwg пішіміндегі эскиздік жоба ОРС-қа хатқа бөлек тіркеледі."],
     ["Казначей", "Қазынашы"], ["Факт бюджета внесён по 5+ этапам", "5+ кезең бойынша бюджет фактісі енгізілді"], ["План из финмодели, тг", "Қаржы моделінен жоспар, тг"], ["План считается из финмодели автоматически: земля, проектирование по этапам проекта, СМР с технадзором и резервом по этапам стройки, сети, маркетинг, административные расходы и проценты. Чтобы изменить план, измените исходные данные финмодели или сроки в графике.", "Жоспар қаржы моделінен автоматты түрде есептеледі: жер, жоба кезеңдері бойынша жобалау, құрылыс кезеңдері бойынша техқадағалау мен резервті қоса ҚМЖ, желілер, маркетинг, әкімшілік шығыстар және пайыздар. Жоспарды өзгерту үшін қаржы моделінің бастапқы деректерін немесе кестедегі мерзімдерді өзгертіңіз."],
     ["Документы под контролем", "Құжаттар бақылауда"], ["5+ документов в реестре сроков, ни одного истёкшего", "Мерзімдер тізілімінде 5+ құжат, бірде-біреуінің мерзімі өтпеген"],
     ["Полный архив", "Толық мұрағат"], ["10+ вложений к пунктам чек-листов", "Чек-парақ тармақтарына 10+ тіркеме"],
@@ -3961,7 +4108,7 @@ window.ZHK_BOOT = function (document) {
   const RANKS = [[0, "Стажёр"], [1, "Аналитик"], [4, "Девелопер"], [8, "Застройщик"], [13, "Генеральный застройщик"], [21, "Магнат ЖК"]];
   const STATUS = { locked: "Закрыт", open: "Доступен", active: "В работе", risk: "Начат с риском", done: "Пройден" };
   const LOCAL_KEY = "zhk-skill-tree-v2", LEGACY_KEY = "zhk-skill-tree-v1";
-  const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines", "sched", "vars", "baseline", "risks", "team", "partners", "blocks"];
+  const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines", "sched", "vars", "baseline", "risks", "team", "partners", "blocks", "b0"];
   const VIEWS = ["tree", "gantt", "model", "budget", "deadlines", "projects"];
 
   // S — всё состояние проекта, хранится одним документом.
@@ -5456,7 +5603,7 @@ window.ZHK_BOOT = function (document) {
       resetZone.innerHTML = '<span class="reset-confirm">Сбросить отметки, назначения и досрочные старты? Карточка проекта, финмодель, бюджет и реестр сроков останутся. <button class="btn" id="reset-yes">Да, сбросить</button><button class="btn ghost" id="reset-no">Отмена</button></span>';
     } else if (e.target.id === "reset-yes" || e.target.id === "reset-no") {
       if (e.target.id === "reset-yes" && !readOnly) {
-        S = normalize({ project: S.project, model: S.model, budget: S.budget, deadlines: S.deadlines, sched: S.sched, vars: S.vars, baseline: S.baseline, risks: S.risks, team: S.team, partners: S.partners, blocks: S.blocks });
+        S = normalize({ project: S.project, model: S.model, budget: S.budget, deadlines: S.deadlines, sched: S.sched, vars: S.vars, baseline: S.baseline, risks: S.risks, team: S.team, partners: S.partners, blocks: S.blocks, b0: S.b0 });
         openEdits.clear();
         saveLocal();
         if (docRef) { const ref = docRef, proj = curProject, full = JSON.parse(JSON.stringify(S)); writeChain = writeChain.then(() => ref.set(full).then(() => { if (proj === curProject) docExists = true; }).catch(() => {})); }
@@ -5642,6 +5789,9 @@ window.ZHK_BOOT = function (document) {
     // Риски и команда проекта: общие списки для портала и презентации ПК Start.
     list: k => listOf(k),
     blockTotals: () => blockTotals(),
+    // Чек-лист B0: ответы хранятся плоско, ключ — раздел и поле («p.usp», «b.<блок>.len», «f.<фасад>.<блок>»…)
+    b0: () => S.b0 || {},
+    setB0: (key, val) => { if (!readOnly && /^[\w.\-]{1,80}$/.test(key)) commit({ b0: { [key]: val === "" || val == null ? null : String(val).slice(0, 300) } }); },
     setItem: (k, id, patch) => setItem(k, id, patch),
     addItems: (k, rows) => addItems(k, rows),
     // Календарь собирается из данных проекта: этапы и ключи — из графика, сроки — из чек-листов и реестра документов.
@@ -5822,6 +5972,7 @@ const Z = (t, sub) => () => head(t, sub);
 const VIEWS = {
   card: { g: "Проект", t: "Карточка проекта", cnt: () => "", r: viewCard },
   blocks: { g: "Проект", t: "Блоки проекта", cnt: () => window.ZHK ? window.ZHK.list("blocks").length || "" : "", r: viewBlocks },
+  b0: { g: "Проект", t: "Чек-лист B0 для ОРС", cnt: () => window.ZHK ? b0Progress().left || "" : "", r: viewB0 },
   data: { g: "Проект", t: "Данные проекта", cnt: () => "", r: viewData },
   standards: { g: "Проект", t: "Стандарты", cnt: () => relevant().length, r: viewStandards },
   calendar: { g: "Проект", t: "Календарь событий", cnt: () => calEvents().filter(e => e.kind !== "hol" && new Date(e.date) >= TODAY).length || "", r: viewCal },
@@ -6014,6 +6165,107 @@ function viewBlocks() {
     ${ro ? "" : `<div class="row"><button class="btn" data-item-add="blocks">Добавить блок</button>${legacy ? '<button class="btn primary" id="blocks-legacy">Создать блоки из карточки</button>' : ""}</div>`}
     <p class="muted" style="margin:0">Из этих данных будут заполняться чек-лист B0 и показатели калькулятора ПНР: этажность, подъезды, лифты и тип каркаса по каждому блоку.</p>
   </section>`;
+}
+
+// ---------- Чек-лист B0 ----------
+// Анкета для сметы ОРС на стадии эскиза. Что уже есть в данных проекта, подставляется само и вручную не вводится.
+function b0Ctx(lite) {
+  const A = window.ZHK.b0(), V = lite ? {} : Object.fromEntries(window.ZHK.vars().map(v => [v.id, v]));
+  const blocks = window.ZHK.list("blocks"), parking = blocks.some(b => b.kind === "parking");
+  const n = x => { const v = parseFloat(String(x == null ? "" : x).replace(",", ".")); return isFinite(v) ? v : null; };
+  const get = k => A[k] == null ? "" : A[k];
+  const cnt = f => blocks.filter(b => get("b." + b.id + "." + f) === "1").length;
+  const real = V.area_sale && V.area_comm ? (n(V.area_sale.raw) || 0) + (n(V.area_comm.raw) || 0) : null;
+  const raw = { area_total: V.area_total ? n(V.area_total.raw) : null, area_real: real || null };
+  const auto = {
+    area_total: V.area_total ? V.area_total.text : "—",
+    area_real: real ? real.toLocaleString("ru-RU") + " м²" : "—",
+    smr_start: lite ? "" : window.ZHK.deck().smrStart,
+    pumps: String(cnt("pump")), heat: String(cnt("heat")), vru: String(blocks.reduce((a, b) => a + (n(get("b." + b.id + ".vru")) || 0), 0))
+  };
+  const blockAuto = (b, k) => ({ kind: BLOCK_KIND[b.kind || "res"], floors: b.floors, under: b.under, design: b.design, flats: b.flats, lifts: b.lifts })[k] || "";
+  return { A, V, blocks, parking, get, auto, raw, blockAuto, n };
+}
+function b0Progress() {
+  const C = b0Ctx(true), B = window.B0, keys = [];
+  B.project.filter(f => !f.auto).forEach(f => keys.push("p." + f.id));
+  C.blocks.forEach(b => B.block.filter(f => !f.auto && f.t !== "flag" && !(f.id === "offices" || f.id === "booth" || /^r\d$/.test(f.id) || f.lift)).forEach(f => keys.push("b." + b.id + "." + f.id)));
+  if (C.parking) B.parking.filter(f => f.t !== "flag").forEach(f => keys.push("k." + f.id));
+  B.openings.forEach(o => keys.push("o." + o.id + ".profile"));
+  B.nets.filter(f => !f.auto && f.t !== "flag").forEach(f => keys.push("n." + f.id));
+  const done = keys.filter(k => C.get(k) !== "").length;
+  return { done, total: keys.length, left: keys.length - done };
+}
+function b0Warnings(C) {
+  const W = [];
+  C.blocks.forEach(b => {
+    const r = [1, 2, 3, 4, 5].reduce((a, i) => a + (C.n(C.get("b." + b.id + ".r" + i)) || 0), 0), f = C.n(b.flats);
+    if (r && f != null && r !== f) W.push(`${b.name || "Блок"}: квартир по комнатности ${r}, а в блоке ${f}.`);
+    const l = (C.n(C.get("b." + b.id + ".lift_big")) || 0) + (C.n(C.get("b." + b.id + ".lift_small")) || 0), lf = C.n(b.lifts);
+    if (l && lf != null && l !== lf) W.push(`${b.name || "Блок"}: лифтов по грузоподъёмности ${l}, а в блоке ${lf}.`);
+  });
+  return W;
+}
+function viewB0() {
+  const C = b0Ctx(), B = window.B0, ro = window.ZHK.readOnly() ? " disabled" : "", P = b0Progress();
+  const opts = d => window.DICTS[d].items.map(i => i.v);
+  const input = (key, f) => {
+    const v = C.get(key);
+    if (f.t === "flag") return `<input type="checkbox" data-b0="${key}"${v === "1" ? " checked" : ""} aria-label="${esc(f.label)}"${ro}>`;
+    if (f.d) return `<select data-b0="${key}" aria-label="${esc(f.label)}"${ro}><option value="">—</option>${opts(f.d).map(o => `<option${o === v ? " selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
+    return `<input type="text" class="vin${f.t === "num" ? " num" : ""}" data-b0="${key}" value="${esc(v)}" aria-label="${esc(f.label)}"${f.t === "num" ? ' inputmode="decimal"' : ""} maxlength="300"${ro}>`;
+  };
+  const autoCell = (v, from) => `<span class="v">${esc(v == null || v === "" ? "—" : String(v))}</span><div class="muted vsrc">${from}</div>`;
+  const rows = (fields, pre, autoMap) => fields.map(f => `<tr><td>${esc(f.label)}${f.unit ? `, ${esc(f.unit)}` : ""}</td><td>${f.auto ? autoCell(autoMap[f.auto], f.auto === "smr_start" ? 'из <a href="#gantt">графика</a>' : f.auto === "pumps" || f.auto === "heat" || f.auto === "vru" ? "итог по блокам ниже" : 'из <a href="#data">данных проекта</a>') : input(pre + f.id, f)}</td></tr>`).join("");
+  const blocks = C.blocks;
+  const blockTbl = blocks.length ? `<div class="tbl"><table><thead><tr><th>Показатель</th>${blocks.map(b => `<th>${esc(b.name || "Блок")}</th>`).join("")}</tr></thead><tbody>${B.block.map(f => `<tr><td>${esc(f.label)}${f.unit ? `, ${esc(f.unit)}` : ""}</td>${blocks.map(b => `<td>${f.auto ? `<span class="v">${esc(C.blockAuto(b, f.auto) || "—")}</span>` : input("b." + b.id + "." + f.id, f)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+    <p class="muted" style="margin:0">Назначение, этажность, подземные этажи, вид проектирования, квартиры и лифты всего — из <a href="#blocks">блоков проекта</a>.</p>`
+    : `<div class="empty">Сначала заполните <a href="#blocks">блоки проекта</a>: чек-лист B0 заполняется по каждому блоку.</div>`;
+  const facade = blocks.length ? `<div class="tbl"><table><thead><tr><th>Вид фасада, м²</th>${blocks.map(b => `<th>${esc(b.name || "Блок")}</th>`).join("")}</tr></thead><tbody>${B.facade.map((t, i) => `<tr><td>${esc(t)}</td>${blocks.map(b => `<td>${input("f." + i + "." + b.id, { t: "num", label: t })}</td>`).join("")}</tr>`).join("")}
+    ${B.facadeTrim.map((t, i) => `<tr><td>${esc(t)}: материал</td>${blocks.map(b => `<td>${input("ft." + i + "." + b.id, { d: "facadeTrim", label: t })}</td>`).join("")}</tr>`).join("")}</tbody></table></div>` : "";
+  const roof = `<div class="b0-roof">${B.roof.map((t, i) => `<label class="row" style="gap:8px"><input type="checkbox" data-b0="r.${i}"${C.get("r." + i) === "1" ? " checked" : ""}${ro}> ${esc(t)}</label>`).join("")}</div>`;
+  const openings = `<div class="tbl"><table><tbody>${B.openings.map(o => `<tr><td>${esc(o.label)}</td><td>${input("o." + o.id + ".profile", { d: "profile", label: o.label + ": профиль" })}</td><td>${input("o." + o.id + ".width", { t: "num", label: o.label + ": ширина профиля, мм" })} <span class="muted">мм</span></td></tr>`).join("")}</tbody></table></div>`;
+  const land = `<div class="tbl"><table><thead><tr><th>Зона</th><th>Есть</th>${B.covers.map(c => `<th>${esc(c)}, м²</th>`).join("")}<th>Итого, м²</th></tr></thead><tbody>${B.zones.map(z => `<tr><td>${esc(z.label)}</td><td>${input("l." + z.id, { t: "flag", label: z.label })}</td>${B.covers.map((c, i) => `<td>${input("l." + z.id + "." + i, { t: "num", label: z.label + ": " + c })}</td>`).join("")}<td class="num">${B.covers.reduce((a, c, i) => a + (C.n(C.get("l." + z.id + "." + i)) || 0), 0).toLocaleString("ru-RU")}</td></tr>`).join("")}</tbody></table></div>`;
+  const W = b0Warnings(C);
+  const sec = (h, body) => `<section class="panel stack"><h2>${h}</h2>${body}</section>`;
+  return head("Чек-лист B0 для ОРС", "Анкета проекта для сметы на стадии эскиза. Площади, дата старта, блоки и этажность подставляются из данных проекта. Готовый чек-лист выгружается в Excel для ОРС.") + `
+  <section class="panel stack">
+    <div class="row between"><div class="row"><span class="chip ${P.left ? "s-new" : "s-done"}">Заполнено ${P.done} из ${P.total}</span>${W.length ? `<span class="chip s-fail">Расхождений: ${W.length}</span>` : ""}</div>
+      <button class="btn primary" id="b0-xlsx">Скачать для ОРС (Excel)</button></div>
+    ${W.length ? `<ul class="b0-warn">${W.map(w => `<li>${esc(w)}</li>`).join("")}</ul>` : ""}
+    <p class="muted" style="margin:0">Эскизный проект в формате dwg прикладывается к письму в ОРС отдельно.</p>
+  </section>
+  ${sec("Общие данные", `<div class="tbl"><table><tbody>${rows(B.project, "p.", C.auto)}</tbody></table></div>`)}
+  ${sec("Блоки", blockTbl)}
+  ${C.parking ? sec("Паркинг", `<div class="tbl"><table><tbody>${rows(B.parking, "k.", {})}</tbody></table></div>`) : ""}
+  ${blocks.length ? sec("Фасад", facade) : ""}
+  ${sec("Пирог кровли", roof)}
+  ${sec("Заполнение проёмов", openings)}
+  ${sec("Благоустройство", land)}
+  ${sec("Дополнительно", `<div class="tbl"><table><tbody>${rows(B.extra, "x.", {})}</tbody></table></div>`)}
+  ${sec("Внутренние сети", `<div class="tbl"><table><tbody>${rows(B.nets, "n.", C.auto)}</tbody></table></div>`)}`;
+}
+function b0Xlsx() {
+  const C = b0Ctx(), B = window.B0, N = v => { const x = C.n(v); return x != null && String(v).trim() !== "" ? x : v; };
+  const val = (k, f) => { const v = C.get(k); return f && f.t === "flag" ? (v === "1" ? "Да" : "Нет") : N(v); };
+  const lab = f => f.label + (f.unit ? ", " + f.unit : "");
+  const title = [[projTitle() + " — чек-лист B0", "", new Date().toLocaleDateString("ru-RU")], []];
+  const sheets = [
+    { name: "Общие данные", widths: [46, 18].concat(C.blocks.map(() => 16)), bold: [0, 2, 3 + B.project.length + 1],
+      rows: title.concat([["Показатель", "Значение"]], B.project.map(f => [lab(f), f.auto ? (C.raw[f.auto] != null ? C.raw[f.auto] : C.auto[f.auto]) : val("p." + f.id, f)]), [[]],
+        [["Блок"].concat([""], C.blocks.map(b => b.name || "Блок"))], B.block.map(f => [lab(f), ""].concat(C.blocks.map(b => f.auto ? N(C.blockAuto(b, f.auto)) : val("b." + b.id + "." + f.id, f))))) },
+    { name: "Паркинг", widths: [40, 16], bold: [0, 2], rows: title.concat([["Показатель", "Значение"]], C.parking ? B.parking.map(f => [lab(f), val("k." + f.id, f)]) : [["Паркинга в проекте нет"]]) },
+    { name: "Фасад", widths: [52].concat(C.blocks.map(() => 16)), bold: [0, 2], rows: title.concat([["Вид фасада, м²"].concat(C.blocks.map(b => b.name || "Блок"))],
+      B.facade.map((t, i) => [t].concat(C.blocks.map(b => val("f." + i + "." + b.id)))), B.facadeTrim.map((t, i) => [t + ": материал"].concat(C.blocks.map(b => val("ft." + i + "." + b.id))))) },
+    { name: "Пирог кровли", widths: [70, 10], bold: [0, 2], rows: title.concat([["Слой", "Есть"]], B.roof.map((t, i) => [t, C.get("r." + i) === "1" ? "Да" : "Нет"])) },
+    { name: "Заполнение проемов", widths: [24, 16, 22], bold: [0, 2], rows: title.concat([["Элемент", "Профиль", "Ширина профиля, мм"]], B.openings.map(o => [o.label, val("o." + o.id + ".profile"), val("o." + o.id + ".width")])) },
+    { name: "Благоустройство", widths: [38, 8, 14, 14, 14, 14, 14], bold: [0, 2], rows: title.concat([["Зона", "Есть"].concat(B.covers.map(c => c + ", м²"), ["Итого, м²"])],
+      B.zones.map(z => [z.label, C.get("l." + z.id) === "1" ? "Да" : "Нет"].concat(B.covers.map((c, i) => val("l." + z.id + "." + i)), [B.covers.reduce((a, c, i) => a + (C.n(C.get("l." + z.id + "." + i)) || 0), 0)]))) },
+    { name: "Доп информации", widths: [60, 30], bold: [0, 2], rows: title.concat([["Показатель", "Значение"]], B.extra.map(f => [lab(f), val("x." + f.id, f)])) },
+    { name: "Внутренние сети", widths: [46, 22], bold: [0, 2], rows: title.concat([["Показатель", "Значение"]], B.nets.map(f => [lab(f), f.auto ? N(C.auto[f.auto]) : val("n." + f.id, f)])) }
+  ];
+  const fn = ("Чек-лист B0 " + (card.name || "проект")).replace(/[^\p{L}\p{N}\s-]/gu, "").trim().replace(/\s+/g, "_") + ".xlsx";
+  window.ZHK.save(fn, window.buildXlsx(sheets));
 }
 
 function viewTeam() {
@@ -6419,6 +6671,8 @@ function bind(m) {
     const k = b.dataset.itemAdd, id = window.ZHK.setItem(k, null, k === "risks" ? { kind: "risk", level: "mid" } : k === "partners" ? { status: "tender" } : k === "blocks" ? { name: "Блок " + (window.ZHK.list("blocks").length + 1), kind: "res" } : { role: "" });
     const el = id && document.querySelector(`[data-item="${k}:${id}:${{ risks: "title", partners: "org", blocks: "floors" }[k] || "role"}"]`); if (el) el.focus();
   });
+  m.querySelectorAll("[data-b0]").forEach(el => el.onchange = () => { window.ZHK.setB0(el.dataset.b0, el.type === "checkbox" ? (el.checked ? "1" : "") : el.value); if (el.tagName === "SELECT" || el.type === "checkbox") route() });
+  const bx = m.querySelector("#b0-xlsx"); if (bx) bx.onclick = b0Xlsx;
   const bl = m.querySelector("#blocks-legacy"); if (bl) bl.onclick = () => {
     const p = window.ZHK.project(), k = Math.max(1, Math.min(30, parseInt(p.blocks) || 1)), fl = parseInt(p.floors) || "", fq = parseInt(p.flats) || 0;
     window.ZHK.addItems("blocks", Array.from({ length: k }, (_, i) => ({ name: "Блок " + (i + 1), kind: "res", floors: fl, flats: fq ? Math.round(fq / k) + (i === k - 1 ? fq - Math.round(fq / k) * k : 0) : "" })));
