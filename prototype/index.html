@@ -185,6 +185,7 @@ button { cursor: pointer }
 .blocks-t input.vin.num { width: 64px; min-width: 0 }
 .blocks-t input.vin:not(.num) { width: 110px; min-width: 0 }
 .blocks-t select { max-width: 130px }
+.smeta-obj summary { display: flex; justify-content: space-between; gap: 12px; cursor: pointer; padding: 6px 0; border-bottom: 1px solid var(--line) }
 .pnr-kpis { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) }
 .pnr-kpis .sl-kpi span { font-size: .8rem } .pnr-kpis .sl-kpi b { font-size: 1.2rem }
 .b0-roof { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 6px 16px; font-size: .9rem }
@@ -4085,7 +4086,30 @@ window.XLSXEngine = (function () {
     }
     return { value: (sh, ref) => { const m = /^([A-Z]+)(\d+)$/.exec(ref); return value(sh, +m[2], colNum(m[1])); }, valueRC: value };
   }
-  return { read, evaluator, parse, shift, colNum, colStr, isErr };
+  // Построчное чтение первого листа (выгрузки 1С: десятки тысяч строк): номер строки, уровень группировки и нужные колонки.
+  async function rows(buf, cols) {
+    const get = await unzip(buf);
+    const wbx = await get("xl/workbook.xml"), rels = await get("xl/_rels/workbook.xml.rels");
+    if (!wbx) throw new Error("Это не файл Excel (.xlsx)");
+    const id = (/<sheet [^>]*?r:id="([^"]+)"/.exec(wbx) || [])[1], target = {};
+    rels.replace(/<Relationship [^>]*>/g, t => { const i = /Id="([^"]+)"/.exec(t), tg = /Target="([^"]+)"/.exec(t); if (i && tg) target[i[1]] = tg[1].replace(/^\/?xl\//, ""); });
+    const sst = [], ss = await get("xl/sharedStrings.xml");
+    if (ss) ss.replace(/<si>([\s\S]*?)<\/si>/g, (m, si) => { sst.push(xml((si.match(/<t[^>]*>[\s\S]*?<\/t>/g) || []).map(t => t.replace(/<[^>]+>/g, "")).join(""))); });
+    const x = await get("xl/" + target[id]), want = new Set(cols), out = [];
+    for (const m of x.matchAll(/<row r="(\d+)"((?:[^>\/]|\/(?!>))*)>([\s\S]*?)<\/row>/g)) {
+      const row = { r: +m[1], lvl: +((/outlineLevel="(\d+)"/.exec(m[2]) || [])[1] || 0) };
+      let any = false;
+      for (const c of m[3].matchAll(/<c r="([A-Z]+)\d+"([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)) {
+        if (!want.has(c[1]) || !c[3]) continue;
+        const t = (/ t="(\w+)"/.exec(c[2]) || [])[1], v = /<v>([\s\S]*?)<\/v>/.exec(c[3]);
+        row[c[1]] = t === "s" && v ? sst[+v[1]] : t === "inlineStr" ? xml((c[3].match(/<t[^>]*>[\s\S]*?<\/t>/g) || []).map(s => s.replace(/<[^>]+>/g, "")).join("")) : t === "str" && v ? xml(v[1]) : v ? +v[1] : undefined;
+        any = true;
+      }
+      if (any) out.push(row);
+    }
+    return out;
+  }
+  return { read, rows, evaluator, parse, shift, colNum, colStr, isErr };
 })();
 </script>
 
@@ -4359,6 +4383,7 @@ window.I18N = (function () {
     ["Блоки проекта", "Жоба блоктары"], ["Жилой блок", "Тұрғын блок"], ["Паркинг", "Паркинг"], ["Нежилой", "Тұрғын емес"], ["Назначение", "Мақсаты"], ["Этажей над землёй", "Жер үстіндегі қабаттар"], ["Подземных этажей", "Жер асты қабаттары"], ["Подъездов", "Кіреберістер"], ["Лифтов", "Лифтілер"], ["Тип каркаса", "Қаңқа түрі"], ["Вид проектирования", "Жобалау түрі"], ["Зеркальное", "Айналы"], ["Повтор", "Қайталау"], ["Кирпич", "Кірпіш"], ["Добавить блок", "Блок қосу"], ["Создать блоки из карточки", "Карточкадан блоктар құру"], ["Заполнить блоки", "Блоктарды толтыру"], ["Блоки, этажность, квартиры", "Блоктар, қабаттылық, пәтерлер"], ["Количество жилых блоков", "Тұрғын блоктар саны"], ["Монолит до 12 этажей", "12 қабатқа дейінгі монолит"], ["Монолит выше 12 этажей", "12 қабаттан жоғары монолит"], ["Каждый блок и паркинг вводятся один раз. Количество блоков, этажность и квартиры в карточке, данных проекта, документах и презентации считаются отсюда.", "Әр блок пен паркинг бір рет енгізіледі. Карточкадағы, жоба деректеріндегі, құжаттар мен презентациядағы блоктар саны, қабаттылық және пәтерлер осы жерден есептеледі."], ["Из этих данных будут заполняться чек-лист B0 и показатели калькулятора ПНР: этажность, подъезды, лифты и тип каркаса по каждому блоку.", "Осы деректерден B0 чек-парағы мен ӨҮШ калькуляторының көрсеткіштері толтырылады: әр блок бойынша қабаттылық, кіреберістер, лифтілер және қаңқа түрі."],
     ["Чек-лист B0 для ОРС", "ОРС үшін B0 чек-парағы"], ["Скачать для ОРС (Excel)", "ОРС үшін жүктеу (Excel)"], ["Общие данные", "Жалпы деректер"], ["Блоки", "Блоктар"], ["Фасад", "Қасбет"], ["Пирог кровли", "Шатыр қабаттары"], ["Заполнение проёмов", "Ойықтарды толтыру"], ["Благоустройство", "Абаттандыру"], ["Дополнительно", "Қосымша"], ["Внутренние сети", "Ішкі желілер"], ["Эскизный проект в формате dwg прикладывается к письму в ОРС отдельно.", "dwg пішіміндегі эскиздік жоба ОРС-қа хатқа бөлек тіркеледі."],
     ["Показатели ПНР для ОРС", "ОРС үшін ӨҮШ көрсеткіштері"], ["Скачать для калькулятора (Excel)", "Калькулятор үшін жүктеу (Excel)"], ["Кто вносит", "Кім енгізеді"], ["Вводятся здесь", "Осында енгізіледі"], ["Из данных проекта", "Жоба деректерінен"], ["Все строки", "Барлық жолдар"], ["ФМ проекта", "Жоба ҚМ"], ["ОРС Общестрой", "ОРС Жалпы құрылыс"], ["ОРС Сети", "ОРС Желілер"], ["Контур без примыканий, м", "Жанасусыз контур, м"],
+    ["Смета из 1С", "1С-тен смета"], ["Загрузить смету (Excel из 1С)", "Сметаны жүктеу (1С-тен Excel)"], ["Использовать смету в финмодели", "Сметаны қаржы моделінде пайдалану"], ["Суммы сметы без НДС (финмодель добавит НДС)", "Смета сомалары ҚҚС-сыз (қаржы моделі ҚҚС қосады)"], ["Объекты и конструктивы", "Объектілер мен конструктивтер"], ["Статья финмодели", "Қаржы моделінің бабы"], ["По смете", "Смета бойынша"], ["В финмодели", "Қаржы моделінде"], ["Строки сметы", "Смета жолдары"], ["Расчёт ПНР по калькулятору ОРС", "ОРС калькуляторы бойынша ӨҮШ есебі"], ["Выбрать файл калькулятора", "Калькулятор файлын таңдау"], ["Рассчитать", "Есептеу"],
     ["Казначей", "Қазынашы"], ["Факт бюджета внесён по 5+ этапам", "5+ кезең бойынша бюджет фактісі енгізілді"], ["План из финмодели, тг", "Қаржы моделінен жоспар, тг"], ["План считается из финмодели автоматически: земля, проектирование по этапам проекта, СМР с технадзором и резервом по этапам стройки, сети, маркетинг, административные расходы и проценты. Чтобы изменить план, измените исходные данные финмодели или сроки в графике.", "Жоспар қаржы моделінен автоматты түрде есептеледі: жер, жоба кезеңдері бойынша жобалау, құрылыс кезеңдері бойынша техқадағалау мен резервті қоса ҚМЖ, желілер, маркетинг, әкімшілік шығыстар және пайыздар. Жоспарды өзгерту үшін қаржы моделінің бастапқы деректерін немесе кестедегі мерзімдерді өзгертіңіз."],
     ["Документы под контролем", "Құжаттар бақылауда"], ["5+ документов в реестре сроков, ни одного истёкшего", "Мерзімдер тізілімінде 5+ құжат, бірде-біреуінің мерзімі өтпеген"],
     ["Полный архив", "Толық мұрағат"], ["10+ вложений к пунктам чек-листов", "Чек-парақ тармақтарына 10+ тіркеме"],
@@ -4561,7 +4586,7 @@ window.ZHK_BOOT = function (document) {
   const RANKS = [[0, "Стажёр"], [1, "Аналитик"], [4, "Девелопер"], [8, "Застройщик"], [13, "Генеральный застройщик"], [21, "Магнат ЖК"]];
   const STATUS = { locked: "Закрыт", open: "Доступен", active: "В работе", risk: "Начат с риском", done: "Пройден" };
   const LOCAL_KEY = "zhk-skill-tree-v2", LEGACY_KEY = "zhk-skill-tree-v1";
-  const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines", "sched", "vars", "baseline", "risks", "team", "partners", "blocks", "b0", "pnr", "pnrCalc"];
+  const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines", "sched", "vars", "baseline", "risks", "team", "partners", "blocks", "b0", "pnr", "pnrCalc", "smeta"];
   const VIEWS = ["tree", "gantt", "model", "budget", "deadlines", "projects"];
 
   // S — всё состояние проекта, хранится одним документом.
@@ -5289,6 +5314,7 @@ window.ZHK_BOOT = function (document) {
   const params = () => {
     const p = Object.assign({}, window.MODEL_DEFAULTS);
     Object.keys(S.model).forEach(k => { if (typeof S.model[k] === "number") p[k] = S.model[k]; });
+    const sm = smetaModel(S); if (sm) Object.assign(p, sm);
     const at = parseNum(S.project.area_total); // общая площадь — одна на карточку и финмодель
     if (at > 0) p.area_total = at;
     return Object.assign(p, schedMonths());
@@ -5307,14 +5333,19 @@ window.ZHK_BOOT = function (document) {
       '<div class="row"><button class="btn ghost" type="button" id="model-reset">Вернуть пример</button></div>';
   }
   function syncModelForm() {
-    const p = params();
+    const p = params(), sm = smetaModel(S);
     modelForm.querySelectorAll("[data-mk]").forEach(el => {
       if (el === document.activeElement) return;
       const k = el.dataset.mk;
       if (el.type === "checkbox") el.checked = !!p[k];
       else el.value = Math.abs(p[k]) >= 1000 ? num(p[k]) : String(p[k]).replace(".", ",");
-      el.disabled = readOnly || INT_KEYS.indexOf(k) >= 0;
+      el.disabled = readOnly || INT_KEYS.indexOf(k) >= 0 || (sm && SMETA_KEYS.indexOf(k) >= 0);
+      el.title = sm && SMETA_KEYS.indexOf(k) >= 0 ? "Из сметы 1С" : "";
     });
+    let note = document.getElementById("model-smeta-note");
+    if (!note) { note = document.createElement("p"); note.id = "model-smeta-note"; note.className = "muted"; modelForm.insertBefore(note, modelForm.children[2] || null); }
+    note.hidden = !sm;
+    note.textContent = sm ? "СМР, внешние сети, проектирование, технадзор и резерв берутся из сметы 1С (" + (S.smeta.file || "смета") + "). Чтобы ввести их вручную, отключите смету на странице «Смета из 1С»." : "";
     const r = document.getElementById("model-reset"); if (r) r.hidden = readOnly;
   }
   function readModelForm() {
@@ -6056,7 +6087,7 @@ window.ZHK_BOOT = function (document) {
       resetZone.innerHTML = '<span class="reset-confirm">Сбросить отметки, назначения и досрочные старты? Карточка проекта, финмодель, бюджет и реестр сроков останутся. <button class="btn" id="reset-yes">Да, сбросить</button><button class="btn ghost" id="reset-no">Отмена</button></span>';
     } else if (e.target.id === "reset-yes" || e.target.id === "reset-no") {
       if (e.target.id === "reset-yes" && !readOnly) {
-        S = normalize({ project: S.project, model: S.model, budget: S.budget, deadlines: S.deadlines, sched: S.sched, vars: S.vars, baseline: S.baseline, risks: S.risks, team: S.team, partners: S.partners, blocks: S.blocks, b0: S.b0, pnr: S.pnr, pnrCalc: S.pnrCalc });
+        S = normalize({ project: S.project, model: S.model, budget: S.budget, deadlines: S.deadlines, sched: S.sched, vars: S.vars, baseline: S.baseline, risks: S.risks, team: S.team, partners: S.partners, blocks: S.blocks, b0: S.b0, pnr: S.pnr, pnrCalc: S.pnrCalc, smeta: S.smeta });
         openEdits.clear();
         saveLocal();
         if (docRef) { const ref = docRef, proj = curProject, full = JSON.parse(JSON.stringify(S)); writeChain = writeChain.then(() => ref.set(full).then(() => { if (proj === curProject) docExists = true; }).catch(() => {})); }
@@ -6099,7 +6130,22 @@ window.ZHK_BOOT = function (document) {
       sales_start: M.sales_start, sales_dur: M.sales_dur
     };
   }
-  function modelVal(st, k) { const x = pathGet(st, "model." + k); return typeof x === "number" ? x : window.MODEL_DEFAULTS[k]; }
+  function modelVal(st, k) {
+    const sm = smetaModel(st);
+    if (sm && k in sm) return sm[k];
+    const x = pathGet(st, "model." + k); return typeof x === "number" ? x : window.MODEL_DEFAULTS[k];
+  }
+  // Смета 1С → финмодель: СМР, сети и проект — тг/м² общей площади с НДС, технадзор и резерв — % СМР.
+  // Пока смета включена, эти пять статей не вводятся вручную.
+  const SMETA_KEYS = ["smr", "nets", "design", "supervision", "reserve"];
+  function smetaModel(st) {
+    const m = st && st.smeta;
+    if (!m || !m.use || !m.cats || !(m.cats.smr > 0)) return null;
+    const md = st.model || {}, at = parseNum(st.project && st.project.area_total) || (typeof md.area_total === "number" ? md.area_total : window.MODEL_DEFAULTS.area_total);
+    const vat = typeof md.vat === "number" ? md.vat : window.MODEL_DEFAULTS.vat, k = m.vatIncl ? 1 : 1 + vat / 100;
+    if (!(at > 0)) return null;
+    return { smr: m.cats.smr * k / at, nets: m.cats.nets * k / at, design: m.cats.design * k / at, supervision: m.cats.supervision / m.cats.smr * 100, reserve: m.cats.reserve / m.cats.smr * 100 };
+  }
   function varRaw(v, st, C) {
     if (v.calc) return (C || calcAll())[v.id];
     const x = pathGet(st, v.path);
@@ -6161,6 +6207,7 @@ window.ZHK_BOOT = function (document) {
   function setVar(id, s) {
     const v = VARS.find(x => x.id === id);
     if (!v || v.calc || readOnly) return false;
+    if (smetaModel(S) && SMETA_KEYS.indexOf(id) >= 0) return "Значение берётся из сметы 1С";
     const [root, k] = v.path.split("."), t = vType(v);
     let val;
     if (t === "num") {
@@ -6211,11 +6258,12 @@ window.ZHK_BOOT = function (document) {
     summary: () => { const t = window.runModel(params()).t, G = schedule(); return { cost: t.costT, keys: ymFmt(ymAdd(G.start, G.fend)), keysPlan: ymFmt(ymAdd(G.start, G.end)) }; },
     // Данные проекта: словарь переменных со значениями, статусами, историей и отклонением от базовой версии.
     vars: () => {
-      const C = calcAll(), B = S.baseline && S.baseline.vals;
+      const C = calcAll(), B = S.baseline && S.baseline.vals, sm = smetaModel(S);
       return VARS.map(v => {
         const raw = varRaw(v, S, C), m = S.vars[v.id] || {}, b = B ? B[v.id] : undefined;
+        const calc = v.calc || (sm && SMETA_KEYS.indexOf(v.id) >= 0 ? "Смета 1С" : undefined);
         return Object.assign({}, v, {
-          type: vType(v), raw, text: fmtVar(v, raw), st: v.calc ? "calc" : (m.st || "draft"),
+          calc, type: vType(v), raw, text: fmtVar(v, raw), st: calc ? "calc" : (m.st || "draft"),
           stBy: m.sby !== undefined ? nameOf(m.sby) : "", stAt: m.sat || "",
           hist: (m.hist || []).map(h => ({ at: h.at, who: nameOf(h.by), from: fmtVar(v, h.o), to: fmtVar(v, h.v) })),
           base: b === undefined ? null : fmtVar(v, b), delta: b === undefined ? null : fmtDelta(v, raw, b)
@@ -6248,6 +6296,10 @@ window.ZHK_BOOT = function (document) {
     // Итоги расчёта ПНР по файлу калькулятора ОРС: файл с ценами остаётся у ОРС, в проект сохраняются только итоги.
     pnrCalc: () => S.pnrCalc && S.pnrCalc.at ? S.pnrCalc : null,
     setPnrCalc: r => { if (!readOnly) commit({ pnrCalc: Object.assign({ by: meId || "" }, r) }); },
+    // Смета 1С: в проект сохраняются итоги по объектам, конструктивам и статьям финмодели; файл сметы не хранится.
+    smeta: () => S.smeta && S.smeta.at ? S.smeta : null,
+    setSmeta: r => { if (!readOnly) commit({ smeta: r && r.at ? Object.assign({ by: meId || "" }, r) : r }); },
+    smetaModel: () => smetaModel(S),
     who: id => nameOf(id),
     setB0: (key, val) => { if (!readOnly && /^[\w.\-]{1,80}$/.test(key)) commit({ b0: { [key]: val === "" || val == null ? null : String(val).slice(0, 300) } }); },
     setItem: (k, id, patch) => setItem(k, id, patch),
@@ -6430,6 +6482,7 @@ const Z = (t, sub) => () => head(t, sub);
 const VIEWS = {
   card: { g: "Проект", t: "Карточка проекта", cnt: () => "", r: viewCard },
   blocks: { g: "Проект", t: "Блоки проекта", cnt: () => window.ZHK ? window.ZHK.list("blocks").length || "" : "", r: viewBlocks },
+  smeta: { g: "Проект", t: "Смета из 1С", cnt: () => "", r: viewSmeta },
   pnr: { g: "Проект", t: "Показатели ПНР для ОРС", cnt: () => window.ZHK ? pnrLeft() || "" : "", r: viewPnr },
   b0: { g: "Проект", t: "Чек-лист B0 для ОРС", cnt: () => window.ZHK ? b0Progress().left || "" : "", r: viewB0 },
   data: { g: "Проект", t: "Данные проекта", cnt: () => "", r: viewData },
@@ -6626,6 +6679,78 @@ function viewBlocks() {
   </section>`;
 }
 
+// Разбор выгрузки сметы 1С: объекты (уровень 0), конструктивы (1), виды работ (2) и статьи финмодели.
+const SMETA_RULES = [
+  ["nets", 1, /^(Наружные|Трансформаторная подстанция)/i],
+  ["design", 2, /^(Расходы на проектирование|Расходы на инженерно-геологические|Экспертиза проектов)/i],
+  ["supervision", 2, /^(Услуги ОКК|Авторский надзор|Услуги технического надзора)/i],
+  ["reserve", 2, /^Непредвиденные затраты/i]
+];
+function smetaAnalyze(R) {
+  const n = v => typeof v === "number" ? v : (x => isFinite(x) && String(v || "").trim() !== "" ? x : null)(parseFloat(String(v || "").replace(/[\s ]/g, "").replace(",", ".")));
+  const meta = k => { const x = R.find(r => String(r.A || "").trim() === k); return x ? String(x.C || "").trim() : ""; };
+  const T = R.find(r => /^Итого прямые расходы/i.test(String(r.A || "")));
+  const total = T ? n(T.H) : null;
+  if (!total) throw new Error("не найдена строка «Итого прямые расходы» — это выгрузка сметы из 1С?");
+  const all = R.filter(r => typeof r.A === "string" && r.r < T.r && n(r.H) != null && !/^(Итого|Всего|Затраты|Материалы|Накладные расходы|Сметная)/i.test(r.A.trim()));
+  const root = all.find(r => r.lvl === 0 && Math.abs(n(r.H) - total) < 1);
+  if (!root) throw new Error("не найден общий итог сметы по объектам");
+  const heads = all.filter(r => r.r > root.r);
+  const objects = [];
+  heads.forEach(r => {
+    if (r === root) return;
+    if (r.lvl === 0) objects.push({ name: r.A.trim(), sum: n(r.H), cons: [], works: [] });
+    else if (objects.length && r.lvl === 1) objects[objects.length - 1].cons.push({ name: r.A.trim(), sum: n(r.H) });
+    else if (objects.length && r.lvl === 2) objects[objects.length - 1].works.push({ name: r.A.trim(), sum: n(r.H) });
+  });
+  objects.forEach(o => { if (/^Весь проект$/i.test(o.name) && o.cons[0]) o.name = "Весь проект: " + o.cons.map(c => c.name).join(", "); });
+  const cats = { nets: 0, design: 0, supervision: 0, reserve: 0 }, matched = { nets: [], design: [], supervision: [], reserve: [] };
+  objects.forEach(o => SMETA_RULES.forEach(([k, lvl, re]) => (lvl === 1 ? o.cons : o.works).forEach(x => { if (re.test(x.name)) { cats[k] += x.sum; matched[k].push(x.name); } })));
+  cats.smr = total - cats.nets - cats.design - cats.supervision - cats.reserve;
+  const pnrObj = objects.find(o => /накладные расходы/i.test(o.name));
+  const sumObj = objects.reduce((s, o) => s + o.sum, 0);
+  return { project: meta("Проект"), contractor: meta("Подрядчик"), total, objects: objects.map(o => ({ name: o.name, sum: Math.round(o.sum), cons: o.cons.map(c => ({ name: c.name, sum: Math.round(c.sum) })) })),
+    cats: Object.fromEntries(Object.entries(cats).map(([k, v]) => [k, Math.round(v)])), matched: Object.fromEntries(Object.entries(matched).map(([k, v]) => [k, [...new Set(v)]])),
+    pnr: pnrObj ? Math.round(pnrObj.sum) : null, diff: Math.round(sumObj - total) };
+}
+let smetaMsg = "";
+function smetaSay(m) { smetaMsg = m; const el = document.getElementById("smeta-msg"); if (el) el.textContent = m; }
+async function smetaLoad(f) {
+  smetaSay("Читаю смету «" + f.name + "»… большие выгрузки 1С читаются несколько секунд.");
+  await new Promise(r => setTimeout(r, 30));
+  try {
+    const A = smetaAnalyze(await window.XLSXEngine.rows(await f.arrayBuffer(), ["A", "B", "C", "H"]));
+    const prev = window.ZHK.smeta();
+    window.ZHK.setSmeta(Object.assign({ at: new Date().toISOString(), file: f.name, use: true, vatIncl: prev ? !!prev.vatIncl : false }, A));
+    setTimeout(() => smetaSay(A.diff ? `Загружено. Внимание: сумма объектов отличается от итога сметы на ${A.diff.toLocaleString("ru-RU")} тг.` : "Загружено. Итоги сметы применены в финмодели."), 0);
+  } catch (e) { smetaSay(("Не удалось разобрать смету: " + (e && e.message ? e.message : "ошибка")).replace(/([^.?!])$/, "$1.")); }
+}
+function viewSmeta() {
+  const M = window.ZHK.smeta(), ro = window.ZHK.readOnly(), sm = window.ZHK.smetaModel(), P = window.ZHK.pnrCalc();
+  const mln = x => (x / 1e6).toLocaleString("ru-RU", { maximumFractionDigits: 1 }) + " млн";
+  const LBL = { smr: "СМР (здания, паркинг, благоустройство, накладные стройки)", nets: "Внешние сети и ТП", design: "ИРД, изыскания, проект, экспертиза", supervision: "Технадзор, ОКК, авторский надзор", reserve: "Резерв (непредвиденные)" };
+  const inModel = k => !sm ? "—" : k === "supervision" || k === "reserve" ? sm[k].toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + "% СМР" : Math.round(sm[k]).toLocaleString("ru-RU") + " тг/м²";
+  return head("Смета из 1С", "Выгрузка сметы из 1С:УСП (Excel). Итоги по статьям заменяют ручной ввод СМР, сетей, проектирования, надзора и резерва в финмодели — от них считаются бюджет и презентация ПК Start.") + `
+  <section class="panel stack">
+    <div class="row between"><div class="row">${M ? `<span class="chip s-done">${esc(M.project || M.file)}</span><span class="muted">${esc(M.contractor || "")}</span>` : ""}</div>
+      ${ro ? "" : `<label class="btn primary">Загрузить смету (Excel из 1С)<input type="file" id="smeta-file" accept=".xlsx" hidden></label>`}</div>
+    <div class="muted" aria-live="polite" id="smeta-msg">${esc(smetaMsg)}</div>
+    ${M ? `<div class="row">
+        <label class="row" style="gap:6px"><input type="checkbox" id="smeta-use"${M.use ? " checked" : ""}${ro ? " disabled" : ""}> Использовать смету в финмодели</label>
+        <label class="row" style="gap:6px"><input type="checkbox" id="smeta-vat"${M.vatIncl ? "" : " checked"}${ro ? " disabled" : ""}> Суммы сметы без НДС (финмодель добавит НДС)</label></div>
+      <p class="muted" style="margin:0">Загружено ${new Date(M.at).toLocaleString("ru-RU")}${M.by ? ", " + esc(window.ZHK.who(M.by)) : ""}, файл «${esc(M.file)}». Файл сметы не сохраняется — в проекте только итоги.</p>` : ""}
+  </section>
+  ${M ? `<section class="panel stack"><h2>Итог сметы: ${(M.total / 1e9).toLocaleString("ru-RU", { maximumFractionDigits: 2 })} млрд тг</h2>
+    <div class="tbl"><table><thead><tr><th>Статья финмодели</th><th class="num">По смете</th><th class="num">В финмодели</th><th>Строки сметы</th></tr></thead><tbody>
+    ${["smr", "nets", "design", "supervision", "reserve"].map(k => `<tr><td>${LBL[k]}</td><td class="num">${mln(M.cats[k])}</td><td class="num">${inModel(k)}</td><td class="muted vsrc">${k === "smr" ? "итог сметы минус остальные статьи" : esc((M.matched[k] || []).join("; ") || "не найдены")}</td></tr>`).join("")}
+    </tbody></table></div>
+    ${M.pnr != null ? `<p class="muted" style="margin:0">Производственные накладные расходы в смете: ${mln(M.pnr)}${P ? `; по <a href="#pnr">калькулятору ПНР</a> в портале: ${mln(P.total)} (разница ${mln(M.pnr - P.total)})` : ""}.</p>` : ""}
+  </section>
+  <section class="panel stack"><h2>Объекты и конструктивы</h2>
+    ${M.objects.map(o => `<details class="smeta-obj"><summary><b>${esc(o.name)}</b><span class="num">${mln(o.sum)}</span></summary><div class="tbl"><table><tbody>${o.cons.map(c => `<tr><td>${esc(c.name)}</td><td class="num">${c.sum.toLocaleString("ru-RU")}</td></tr>`).join("")}</tbody></table></div></details>`).join("")}
+  </section>` : `<div class="empty">Смета ещё не загружена. Выгрузите смету из 1С:УСП в Excel и загрузите сюда.</div>`}`;
+}
+
 // ---------- Показатели калькулятора ПНР ----------
 // Лист «Показатели проекта» калькулятора ПНР ОРС: строки в том же порядке. Что уже есть в данных проекта, считается само.
 const PNR_WHO = { fm: "ФМ проекта", gen: "ОРС Общестрой", net: "ОРС Сети" };
@@ -6737,7 +6862,7 @@ async function pnrCalcRun() {
     window.ZHK.setPnrCalc({ at: new Date().toISOString(), file: F.name, total, sections, items, mism, left: pnrLeft() });
     setTimeout(() => pnrSay(mism > 5 ? `Посчитано. Внимание: ${mism} строк листа «Показатели проекта» в файле не совпадают с порталом — возможно, другая версия калькулятора.` : "Посчитано и сохранено в проект."), 0);
     return true;
-  } catch (e) { pnrSay("Не удалось прочитать файл: " + (e && e.message ? e.message : "ошибка") + "."); return false; }
+  } catch (e) { pnrSay(("Не удалось прочитать файл: " + (e && e.message ? e.message : "ошибка")).replace(/([^.?!])$/, "$1.")); return false; }
 }
 function pnrCalcHtml() {
   const R = window.ZHK.pnrCalc(), ro = window.ZHK.readOnly(), mln = x => (x / 1e6).toLocaleString("ru-RU", { maximumFractionDigits: 1 });
@@ -7278,6 +7403,9 @@ function bind(m) {
     if (await pnrCalcRun()) { try { await pnrIdb("readwrite", st => st.put(pnrFile, "calc")); } catch (e) {} }
     else pnrFile = prev;   // неподходящий файл не заменяет сохранённый
   };
+  const sf = m.querySelector("#smeta-file"); if (sf) sf.onchange = () => { const f = sf.files && sf.files[0]; if (f) smetaLoad(f); };
+  const su = m.querySelector("#smeta-use"); if (su) su.onchange = () => window.ZHK.setSmeta({ use: su.checked });
+  const sv = m.querySelector("#smeta-vat"); if (sv) sv.onchange = () => window.ZHK.setSmeta({ vatIncl: !sv.checked });
   const pr2 = m.querySelector("#pnr-run"); if (pr2) pr2.onclick = pnrCalcRun;
   m.querySelectorAll("[data-pnrf]").forEach(b => b.onclick = () => { const [k, v] = b.dataset.pnrf.split(":"); pnrF[k] = v; route() });
   const bl = m.querySelector("#blocks-legacy"); if (bl) bl.onclick = () => {
