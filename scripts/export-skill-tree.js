@@ -7,7 +7,7 @@ const root = path.join(__dirname, "..");
 const html = fs.readFileSync(path.join(root, "prototype/index.html"), "utf8");
 const pick = id => html.match(new RegExp('<script id="' + id + '">([\\s\\S]*?)<\\/script>'))[1];
 const ctx = { window: {}, TextEncoder };
-vm.runInNewContext(pick("tree-data") + "\n" + pick("tree-data-kk") + "\n" + pick("regions") + "\n" + pick("docx-lib") + "\n" + pick("vars-data"), ctx);
+vm.runInNewContext(pick("tree-data") + "\n" + pick("tree-data-kk") + "\n" + pick("regions") + "\n" + pick("docx-lib") + "\n" + pick("dicts") + "\n" + pick("vars-data"), ctx);
 const T = ctx.window.TREE;
 const label = Object.fromEntries(T.fields.map(f => [f.id, f.blank || f.label]));
 // Поля карточки проекта в выгрузке остаются пустыми: [Название ЖК], [Город] и т.д.
@@ -125,6 +125,14 @@ const vd = ["# Словарь данных проекта", "",
 V.sections.forEach(sec => {
   vd.push(`## ${sec}`, "", "| Код | Переменная | Ед. | Тип | Владелец | Где вводится | Где используется |", "|---|---|---|---|---|---|---|");
   V.items.filter(v => v.sec === sec).forEach(v => vd.push(`| \`${v.id}\` | ${v.name}${v.dup ? ` (дублирует раздел «${v.dup}»)` : ""} | ${v.unit || ""} | ${v.calc ? "расчёт" : TYPE[v.type]} | ${v.owner} | ${v.calc ? "расчёт: " + v.calc : HOME[v.path.split(".")[0]]} | ${v.used.join(", ")} |`));
+  vd.push("");
+});
+// Общие справочники и их названия в калькуляторе ПНР ОРС
+const D = ctx.window.DICTS;
+vd.push("## Справочники", "", "Источник: `window.DICTS` в [prototype/index.html](../prototype/index.html). Значения без запятых: в Excel запятая делит пункт выпадающего списка на два.", "");
+Object.keys(D).filter(k => typeof D[k] === "object").forEach(k => {
+  vd.push(`### ${D[k].name}`, "", "| Значение | В калькуляторе ПНР | Примечание |", "|---|---|---|");
+  D[k].items.forEach(i => vd.push(`| ${i.t || i.v} | ${i.pnr === null ? "нет, уточняется с ОРС" : i.pnr || ""} | ${[i.note, i.k != null ? "коэффициент эскизного проекта " + String(i.k).replace(".", ",") : ""].filter(Boolean).join("; ")} |`));
   vd.push("");
 });
 fs.writeFileSync(path.join(root, "docs/variables.md"), vd.join("\n"));

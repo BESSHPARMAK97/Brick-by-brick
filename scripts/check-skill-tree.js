@@ -12,7 +12,7 @@ const scripts = [...html.matchAll(/<script(?: id="([\w-]+)")?>([\s\S]*?)<\/scrip
 scripts.forEach(([, id, src], i) => { try { new Function(src); } catch (e) { fail(`script ${id || i}: ${e.message}`); } });
 const pick = id => (scripts.find(s => s[1] === id) || [])[2] || "";
 const ctx = { window: {}, TextEncoder };
-vm.runInNewContext(["tree-data", "tree-data-kk", "regions", "docx-lib", "model-lib", "vars-data"].map(pick).join("\n"), ctx);
+vm.runInNewContext(["tree-data", "tree-data-kk", "regions", "docx-lib", "model-lib", "dicts", "vars-data"].map(pick).join("\n"), ctx);
 const { TREE: T, TREE_KK: KK, REGIONS: REG } = ctx.window;
 
 const ids = new Set(T.nodes.map(n => n.id));
@@ -68,10 +68,19 @@ V.items.forEach(v => {
   else if (root === "sched" && k !== "start") fail(`variable ${v.id}: unknown schedule field ${k}`);
   else if (!["model", "project", "sched"].includes(root)) fail(`variable ${v.id}: bad path ${v.path}`);
 });
+// Справочники: уникальные значения без запятых (в Excel запятая делит пункт выпадающего списка на два)
+const DICTS = ctx.window.DICTS;
+const DKEYS = Object.keys(DICTS).filter(k => typeof DICTS[k] === "object");
+DKEYS.forEach(k => {
+  const vals = DICTS[k].items.map(i => i.v);
+  if (new Set(vals).size !== vals.length) fail(`dict ${k}: duplicate values`);
+  vals.forEach(v => { if (/,/.test(v)) fail(`dict ${k}: comma in value "${v}"`); });
+});
+["klass", "city"].forEach(id => { if (!DICTS[id]) fail(`variable ${id}: no dictionary`); });
 const m = ctx.window.runModel(ctx.window.MODEL_DEFAULTS).t;
 if (!isFinite(m.margin) || !isFinite(m.pbt)) fail("model: non-finite result with default inputs");
 const docx = ctx.window.buildDocx("ПРОВЕРКА\nстрока");
 if (!(docx[0] === 0x50 && docx[1] === 0x4b)) fail("docx: not a zip file");
 
 if (errors.length) { console.error(errors.map(e => "✗ " + e).join("\n")); process.exit(1); }
-console.log(`✓ ${scripts.length} scripts, ${T.nodes.length} stages, ${Object.keys(T.templates).length} templates, ${Object.keys(REG).length} regions, ${V.items.length} variables: all checks passed`);
+console.log(`✓ ${scripts.length} scripts, ${T.nodes.length} stages, ${Object.keys(T.templates).length} templates, ${Object.keys(REG).length} regions, ${V.items.length} variables, ${DKEYS.length} dictionaries: all checks passed`);
