@@ -7,7 +7,7 @@ const root = path.join(__dirname, "..");
 const html = fs.readFileSync(path.join(root, "prototype/index.html"), "utf8");
 const pick = id => html.match(new RegExp('<script id="' + id + '">([\\s\\S]*?)<\\/script>'))[1];
 const ctx = { window: {}, TextEncoder };
-vm.runInNewContext(pick("tree-data") + "\n" + pick("tree-data-kk") + "\n" + pick("regions") + "\n" + pick("docx-lib") + "\n" + pick("dicts") + "\n" + pick("vars-data"), ctx);
+vm.runInNewContext(pick("tree-data") + "\n" + pick("tree-data-kk") + "\n" + pick("regions") + "\n" + pick("docx-lib") + "\n" + pick("dicts") + "\n" + pick("pnr-data") + "\n" + pick("vars-data"), ctx);
 const T = ctx.window.TREE;
 const label = Object.fromEntries(T.fields.map(f => [f.id, f.blank || f.label]));
 // Поля карточки проекта в выгрузке остаются пустыми: [Название ЖК], [Город] и т.д.
@@ -116,7 +116,7 @@ fs.writeFileSync(path.join(root, "docs/checklists.md"), checklist.join("\n"));
 
 // Словарь данных проекта: docs/variables.md
 const V = ctx.window.VARS;
-const HOME = { project: "Карточка проекта", model: "Финмодель", sched: "График" };
+const HOME = { project: "Карточка проекта", model: "Финмодель", sched: "График", pnr: "Показатели ПНР" };
 const TYPE = { text: "текст", num: "число", sel: "список", month: "месяц", flag: "да/нет" };
 const vd = ["# Словарь данных проекта", "",
   "Каждая переменная вводится в одном месте (столбец «Где вводится»), остальные инструменты читают её оттуда. Расчётные значения считает инструмент, вручную они не вводятся.", "",
