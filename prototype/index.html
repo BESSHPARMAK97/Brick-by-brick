@@ -504,6 +504,9 @@ table.t th.num { text-align: right; }
 @media (max-width: 560px) { .g-row { grid-template-columns: 180px auto; } .g-overlay { left: 180px !important; } .g-inner { min-width: auto !important; } }
 
 /* Projects, achievements, minimap, norms */
+.rep-bar { display: grid; grid-template-columns: 110px minmax(0, 1fr) 70px; gap: 10px; align-items: center; font-size: 13px; }
+.rep-bar .meter { height: 10px; }
+.rep-bar .mono { text-align: right; color: var(--muted); font-size: 12px; }
 #proj-sel { width: 100%; font-weight: 500; }
 table.t tr.cur td { background: var(--surface-2); }
 .ach { margin: 0 0 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }

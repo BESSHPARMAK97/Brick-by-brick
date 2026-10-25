@@ -89,7 +89,7 @@ T.nodes.forEach(n => {
     const title = kt.title || t.title, base = `${n.code}-${d}`;
     if (t.ext === "csv" || !kt.body) {
       links.push(`${title} (орысша үлгі: ../templates/${base}.${t.ext === "csv" ? "csv" : "md"})`);
-      kkIndex.push(`- ${title}: [../templates/${base}.${t.ext === "csv" ? "csv" : "md"}](../templates/${base}.${t.ext === "csv" ? "csv" : "md"})`);
+      kkIndex.push(`- ${title}: [../../templates/${base}.${t.ext === "csv" ? "csv" : "md"}](../../templates/${base}.${t.ext === "csv" ? "csv" : "md"})`);
       return;
     }
     const body = kkBlank(kt.body);
