@@ -1,0 +1,594 @@
+<title>Brick by Brick</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Unbounded:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: рабочий портал проекта — боковая навигация по модулям, справа рабочая область; на телефоне навигация становится лентой вкладок сверху */
+:root {
+  --bg: #eef0f2;          /* бетон */
+  --surface: #ffffff;
+  --surface-2: #f5f6f8;
+  --line: #d9dde3;
+  --fg: #1b2129;
+  --muted: #5d6672;
+  --accent: #1f5fd1;      /* синий чертёжный */
+  --accent-soft: #e3ebfb;
+  --signal: #e8891c;      /* сигнальный оранжевый, для «нового» */
+  --ok: #1f8a54;  --ok-soft: #e0f3e8;
+  --warn: #b7791f; --warn-soft: #fbf0dc;
+  --bad: #c2382f;  --bad-soft: #fbe4e2;
+  --info: #6a4fc4; --info-soft: #ece7fa;
+  --f-display: "Unbounded", "Golos Text", system-ui, sans-serif;
+  --f-body: "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #13171c; --surface: #1b2027; --surface-2: #222831; --line: #2f3742;
+  --fg: #e6e9ee; --muted: #98a2ae; --accent: #6b9bff; --accent-soft: #1f2c47; --signal: #f2a24a;
+  --ok: #4cc485; --ok-soft: #173326; --warn: #e0b052; --warn-soft: #3a2f17;
+  --bad: #f07a70; --bad-soft: #3d1d1b; --info: #a892ff; --info-soft: #2a2347; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #13171c; --surface: #1b2027; --surface-2: #222831; --line: #2f3742;
+  --fg: #e6e9ee; --muted: #98a2ae; --accent: #6b9bff; --accent-soft: #1f2c47; --signal: #f2a24a;
+  --ok: #4cc485; --ok-soft: #173326; --warn: #e0b052; --warn-soft: #3a2f17;
+  --bad: #f07a70; --bad-soft: #3d1d1b; --info: #a892ff; --info-soft: #2a2347; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.5 }
+h1, h2, h3 { text-wrap: balance; margin: 0 }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: 1.45rem; letter-spacing: -.01em }
+h2 { font-family: var(--f-display); font-weight: 500; font-size: 1.15rem }
+h3 { font-size: 1rem; font-weight: 600 }
+button, select, input { font: inherit; color: inherit }
+button { cursor: pointer }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.mono { font-family: var(--f-mono); font-size: .82em }
+.muted { color: var(--muted) }
+.label { font-size: .72rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600 }
+.num { font-variant-numeric: tabular-nums }
+
+.app { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100vh }
+.side { background: var(--surface); border-right: 1px solid var(--line); padding: 20px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; gap: 20px }
+.brand { display: flex; align-items: center; gap: 10px; padding: 0 6px }
+.brand svg { flex: none }
+.brand b { font-family: var(--f-display); font-size: .95rem; font-weight: 700; line-height: 1.1 }
+.nav { display: flex; flex-direction: column; gap: 2px }
+.nav a { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 10px; border-radius: 8px; color: var(--fg); text-decoration: none; font-weight: 500 }
+.nav a:hover { background: var(--surface-2) }
+.nav a[aria-current="page"] { background: var(--accent-soft); color: var(--accent) }
+.nav .cnt { font-size: .72rem; font-family: var(--f-mono); color: var(--muted); background: var(--surface-2); border-radius: 99px; padding: 1px 7px }
+.nav a[aria-current="page"] .cnt { background: var(--surface); color: var(--accent) }
+.side-foot { margin-top: auto; font-size: .78rem; color: var(--muted); padding: 0 6px }
+
+.main { padding-block: 24px 48px; padding-left: max(28px, env(safe-area-inset-left, 0px)); padding-right: max(28px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 20px; min-width: 0 }
+.topbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center }
+.demo { font-size: .75rem; color: var(--warn); background: var(--warn-soft); border-radius: 99px; padding: 3px 10px; font-weight: 600 }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px }
+.grid { display: grid; gap: 14px }
+.g2 { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+.g3 { grid-template-columns: repeat(3, minmax(0, 1fr)) }
+.g5 { grid-template-columns: repeat(5, minmax(0, 1fr)) }
+.stack { display: flex; flex-direction: column; gap: 12px }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
+.between { justify-content: space-between }
+
+.chip { display: inline-flex; align-items: center; gap: 6px; border-radius: 99px; padding: 3px 10px; font-size: .78rem; font-weight: 600; white-space: nowrap }
+.chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor }
+.s-done { color: var(--ok); background: var(--ok-soft) }
+.s-fail { color: var(--bad); background: var(--bad-soft) }
+.s-agreed { color: var(--accent); background: var(--accent-soft) }
+.s-new { color: var(--signal); background: var(--warn-soft) }
+.s-changed { color: var(--info); background: var(--info-soft) }
+.tag { font-size: .75rem; border: 1px solid var(--line); border-radius: 6px; padding: 1px 7px; color: var(--muted); white-space: nowrap }
+.tag.auto { border-color: var(--accent); color: var(--accent) }
+
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 7px 12px; font-weight: 500 }
+.btn:hover { border-color: var(--accent) }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--accent) }
+
+/* Карточка */
+.fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px 20px }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0 }
+.field .v { font-weight: 500 }
+.field select { border: 1px solid var(--line); background: var(--surface-2); border-radius: 8px; padding: 7px 9px }
+.field.key select { border-color: var(--accent) }
+.hint { display: flex; gap: 10px; align-items: flex-start; background: var(--accent-soft); color: var(--fg); border-radius: var(--r); padding: 12px 14px; font-size: .9rem }
+.hint b { color: var(--accent) }
+
+/* Стандарты */
+.filters { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px }
+.filters label { display: flex; flex-direction: column; gap: 4px; font-size: .78rem; color: var(--muted); font-weight: 600 }
+.filters select { border: 1px solid var(--line); background: var(--surface-2); border-radius: 8px; padding: 6px 8px; font-weight: 500; color: var(--fg); font-size: .9rem }
+.filters select.from-card { border-color: var(--accent); background: var(--accent-soft) }
+.summary { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; background: var(--surface) }
+.summary > div { padding: 12px 14px; border-right: 1px solid var(--line); min-width: 0 }
+.summary > div:last-child { border-right: 0 }
+.summary .dir { font-weight: 600; font-size: .9rem }
+.summary .full { font-size: .75rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.bar { display: flex; height: 6px; border-radius: 99px; overflow: hidden; background: var(--surface-2); margin-top: 8px }
+.bar i { display: block; height: 100% }
+.std-list { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); overflow: hidden }
+.std { display: grid; grid-template-columns: 110px minmax(0, 1fr) auto auto; gap: 14px; align-items: center; padding: 12px 16px; border: 0; border-bottom: 1px solid var(--line); background: transparent; text-align: left; width: 100% }
+.std:last-child { border-bottom: 0 }
+.std:hover { background: var(--surface-2) }
+.std .t { font-weight: 600 }
+.std .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px }
+.prog { font-family: var(--f-mono); font-size: .8rem; color: var(--muted); white-space: nowrap }
+.empty { padding: 28px; text-align: center; color: var(--muted) }
+
+/* Шторка стандарта */
+.scrim { position: fixed; inset: 0; background: rgb(10 14 20 / .45); z-index: 20 }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(620px, 100%); background: var(--surface); z-index: 21; overflow-y: auto; padding: calc(20px + env(safe-area-inset-top, 0px)) max(22px, env(safe-area-inset-right, 0px)) calc(28px + env(safe-area-inset-bottom, 0px)) 22px; display: flex; flex-direction: column; gap: 18px; box-shadow: -12px 0 40px rgb(0 0 0 / .18) }
+.check { display: flex; gap: 10px; align-items: flex-start; padding: 9px 0; border-bottom: 1px dashed var(--line) }
+.check:last-child { border-bottom: 0 }
+.check input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--ok); flex: none }
+.check.on span { color: var(--muted); text-decoration: line-through }
+.scheme { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r); padding: 12px; overflow-x: auto }
+.scheme svg { display: block; width: 100%; max-width: 560px; height: auto; margin: 0 auto }
+table { border-collapse: collapse; width: 100%; font-size: .88rem }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top }
+th { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600 }
+.tbl { overflow-x: auto }
+
+/* Дорожная карта */
+.road { display: flex; flex-direction: column; gap: 0; position: relative }
+.stage { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 14px; position: relative; padding-bottom: 18px }
+.stage:not(:last-child)::after { content: ""; position: absolute; left: 16px; top: 34px; bottom: 0; width: 2px; background: var(--line) }
+.stage.done:not(:last-child)::after { background: var(--ok) }
+.dot { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-family: var(--f-mono); font-size: .8rem; font-weight: 600; background: var(--surface); border: 2px solid var(--line); color: var(--muted); position: relative; z-index: 1 }
+.stage.done .dot { background: var(--ok); border-color: var(--ok); color: #fff }
+.stage.now .dot { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 5px var(--accent-soft) }
+.stage-card { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); padding: 12px 14px; width: 100%; text-align: left }
+.stage.now .stage-card { border-color: var(--accent) }
+.stage-card .sub { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px }
+.stage-card .q { margin-top: 8px; font-size: .88rem; color: var(--muted) }
+.stage-card[aria-expanded="false"] .more { display: none }
+
+/* Календарь */
+.month { display: flex; flex-direction: column; gap: 8px }
+.ev { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface) }
+.ev .d { font-family: var(--f-mono); font-weight: 600 }
+.ev.past { opacity: .55 }
+.ev.today { border-color: var(--accent) }
+.k-gpr { color: var(--accent); background: var(--accent-soft) }
+.k-tender { color: var(--info); background: var(--info-soft) }
+.k-keys { color: var(--ok); background: var(--ok-soft) }
+.k-com { color: var(--warn); background: var(--warn-soft) }
+.k-hol { color: var(--bad); background: var(--bad-soft) }
+.typebtn { border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 4px 12px; font-size: .82rem; font-weight: 600 }
+.typebtn[aria-pressed="true"] { border-color: currentColor }
+
+/* Команда / партнёры */
+.person { display: flex; gap: 12px; align-items: flex-start }
+.ava { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-weight: 700; flex: none; font-size: .9rem }
+.ava.vac { background: var(--warn-soft); color: var(--warn) }
+
+/* Показатели */
+.kpi .big { font-family: var(--f-display); font-weight: 500; font-size: 1.5rem; line-height: 1.15; margin-top: 6px }
+.kpi .delta { font-size: .82rem; margin-top: 4px }
+.up { color: var(--ok) } .down { color: var(--bad) }
+.chess-wrap { overflow-x: auto }
+.chess { display: grid; gap: 3px; min-width: 420px }
+.chess .fl { font-family: var(--f-mono); font-size: .75rem; color: var(--muted); display: grid; place-items: center }
+.cell { height: 26px; border-radius: 4px; font-family: var(--f-mono); font-size: .68rem; display: grid; place-items: center; border: 0 }
+.c-sold { background: var(--ok); color: #fff }
+.c-res { background: var(--warn); color: #fff }
+.c-free { background: var(--surface-2); color: var(--muted); border: 1px solid var(--line) }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: .82rem }
+.legend span { display: inline-flex; gap: 6px; align-items: center }
+.legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block }
+
+@media (max-width: 1000px) { .g5 { grid-template-columns: repeat(2, minmax(0, 1fr)) } .g3 { grid-template-columns: repeat(2, minmax(0, 1fr)) } .summary { grid-template-columns: repeat(2, minmax(0, 1fr)) } .summary > div { border-bottom: 1px solid var(--line) } }
+@media (max-width: 760px) {
+  .app { grid-template-columns: minmax(0, 1fr) }
+  .side { position: sticky; top: env(safe-area-inset-top, 0px); height: auto; flex-direction: row; align-items: center; padding: 10px 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); border-right: 0; border-bottom: 1px solid var(--line); z-index: 5; overflow-x: auto; gap: 12px }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface) }
+  .brand b, .side-foot { display: none }
+  .nav { flex-direction: row }
+  .nav a { white-space: nowrap; padding: 7px 10px }
+  .nav .cnt { display: none }
+  .main { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 18px 40px }
+  .g2, .g3 { grid-template-columns: minmax(0, 1fr) }
+  .std { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px }
+  .std .code { grid-column: 1 / -1 }
+  .std .prog { display: none }
+  .ev { grid-template-columns: 54px minmax(0, 1fr) }
+  .ev .chip { grid-column: 2 }
+}
+@media (prefers-reduced-motion: no-preference) { .drawer { animation: slide .22s ease-out } @keyframes slide { from { transform: translateX(30px); opacity: .6 } } }
+</style>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect x="1" y="17" width="13" height="7" rx="1.5" fill="var(--accent)"/><rect x="16" y="17" width="13" height="7" rx="1.5" fill="var(--accent)" opacity=".55"/><rect x="8" y="8" width="13" height="7" rx="1.5" fill="var(--signal)"/></svg>
+      <b>Brick<br>by Brick</b>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-foot">Прототип. Все данные — пример, не реальные.</div>
+  </aside>
+  <main class="main" id="main"></main>
+</div>
+<div id="layer"></div>
+
+<script>
+const TODAY = new Date(2026, 9, 25);
+
+// ---------- Данные (пример) ----------
+const OPTIONS = {
+  region: ["C2 North", "C1 Center", "C3 South", "C4 West"],
+  city: ["Астана", "Алматы", "Шымкент", "Караганда", "Атырау"],
+  klass: ["Комфорт", "Комфорт+", "Бизнес", "Премиум"],
+  stage: ["Покупка земли", "Эскиз проекта", "Рабочий проект", "Заключение ГЭ", "Расчёты", "Проектный комитет", "Старт продаж", "Начало СМР", "СМР: каркас", "Ввод и передача ключей"],
+  work: ["Железобетонный каркас", "Земляные работы", "Фасад", "Инженерные сети", "Отделка МОП", "Благоустройство"],
+  construct: ["Каркас здания", "Фундамент", "Перекрытия", "Ограждающие конструкции", "Кровля"],
+};
+
+const card = {
+  name: "ЖК «Северный квартал» (пример)",
+  customer: "ТОО «Пример Девелопмент»",
+  region: "C2 North", city: "Астана", klass: "Бизнес", stage: "Начало СМР",
+  work: "Железобетонный каркас", construct: "Каркас здания",
+  building: "Многоквартирный жилой дом, монолитный ЖБ каркас",
+  floors: "12 этажей, 3 подъезда", flats: "216 квартир", area: "14 800 м² продаваемой площади",
+  ge: "Положительное, № 01-0000/26 от 14.08.2026",
+  budget: "18,6 млрд ₸", term: "26 мес. (ноя 2026 — дек 2028)",
+  sales: "ДДУ с гарантией фонда, старт 01.10.2026",
+};
+
+const DIRS = [
+  { id: "ПР", name: "Проектирование" },
+  { id: "СМР", name: "Строительно-монтажные работы" },
+  { id: "ОГО", name: "Оформление готового объекта" },
+  { id: "ОСП", name: "Оформление строительной площадки" },
+  { id: "БиОТ", name: "Безопасность и охрана труда" },
+];
+const STATUS = {
+  done: { t: "Выполнен", c: "s-done" }, fail: { t: "Не выполнен", c: "s-fail" },
+  agreed: { t: "Согласован", c: "s-agreed" }, new: { t: "Новый", c: "s-new" }, changed: { t: "Изменён", c: "s-changed" },
+};
+const ALL = "*";
+const STD = [
+  { code: "СТ-СМР-014", dir: "СМР", name: "Армирование монолитных колонн и стен", status: "agreed", ver: "3.1",
+    stage: ["Начало СМР", "СМР: каркас"], work: ["Железобетонный каркас"], construct: ["Каркас здания"], klass: ALL, region: ALL, city: ALL, scheme: "rebar",
+    checks: ["Арматура класса A500С соответствует разделу КЖ и сертификатам", "Защитный слой бетона колонн 30 мм выдержан фиксаторами", "Длина нахлёста стержней не менее 40d", "Шаг хомутов по проекту, отклонение ±10 мм", "Акт освидетельствования скрытых работ подписан технадзором"],
+    nom: [["СМР", "06-01-026", "Армирование колонн", "т"], ["ТМЦ", "201-0812", "Арматура A500С Ø16", "т"], ["ТМЦ", "201-0809", "Арматура A240 Ø8 (хомуты)", "т"], ["ТМЦ", "509-1102", "Фиксатор «стульчик» 30 мм", "шт"]] },
+  { code: "СТ-СМР-015", dir: "СМР", name: "Бетонирование вертикальных конструкций", status: "new", ver: "1.0",
+    stage: ["Начало СМР", "СМР: каркас"], work: ["Железобетонный каркас"], construct: ["Каркас здания"], klass: ALL, region: ALL, city: ALL, scheme: "pour",
+    checks: ["Бетон класса B30 W8 F150, паспорт партии получен", "Подвижность смеси П4 проверена на площадке", "Укладка слоями не более 500 мм с вибрированием", "Отобраны контрольные образцы: 2 серии на захватку", "Уход за бетоном 7 суток зафиксирован в журнале"],
+    nom: [["СМР", "06-01-034", "Бетонирование колонн", "м³"], ["ТМЦ", "401-0230", "Бетон B30 W8 F150", "м³"]] },
+  { code: "СТ-СМР-021", dir: "СМР", name: "Опалубка монолитных перекрытий", status: "done", ver: "2.4",
+    stage: ["СМР: каркас"], work: ["Железобетонный каркас"], construct: ["Перекрытия", "Каркас здания"], klass: ALL, region: ALL, city: ALL, scheme: "slab",
+    checks: ["Опалубка смонтирована по ППР, шаг стоек 1,2 м", "Отметка низа перекрытия проверена нивелиром", "Нагрузка на стойки рассчитана и подписана ПТО", "Демонтаж не ранее 70% прочности бетона"],
+    nom: [["СМР", "06-01-041", "Устройство опалубки перекрытий", "м²"], ["ТМЦ", "509-2201", "Аренда опалубки перекрытий", "м²·мес"]] },
+  { code: "СТ-СМР-022", dir: "СМР", name: "Зимнее бетонирование с прогревом", status: "changed", ver: "2.0",
+    stage: ["Начало СМР", "СМР: каркас"], work: ["Железобетонный каркас"], construct: ALL, klass: ALL, region: ["C2 North"], city: ["Астана", "Караганда"], scheme: "pour",
+    checks: ["Включён при среднесуточной температуре ниже +5 °C", "Противоморозная добавка согласована с лабораторией", "Схема прогрева греющим проводом утверждена", "Температура бетона фиксируется каждые 2 часа", "Набор критической прочности подтверждён"],
+    nom: [["СМР", "06-03-002", "Прогрев бетона греющим проводом", "м³"], ["ТМЦ", "509-3305", "Провод нагревательный ПНСВ 1,2", "м"]] },
+  { code: "СТ-СМР-030", dir: "СМР", name: "Геодезический контроль каркаса", status: "new", ver: "1.0",
+    stage: ["Начало СМР", "СМР: каркас"], work: ["Железобетонный каркас"], construct: ["Каркас здания"], klass: ALL, region: ALL, city: ALL, scheme: "rebar",
+    checks: ["Разбивка осей передана актом", "Исполнительная схема на каждую захватку", "Отклонение колонн от вертикали не более 1/500 высоты"], nom: [["СМР", "01-02-010", "Геодезическое сопровождение", "мес"]] },
+  { code: "СТ-ОСП-002", dir: "ОСП", name: "Ограждение стройплощадки и въездная группа", status: "done", ver: "1.3",
+    stage: ["Начало СМР"], work: ALL, construct: ALL, klass: ["Бизнес", "Премиум"], region: ALL, city: ALL, scheme: "fence",
+    checks: ["Ограждение 2,0 м по брендбуку бизнес-класса", "Паспорт объекта на въезде (РК, рус. и каз. языки)", "Мойка колёс у выезда", "Освещение по периметру"],
+    nom: [["СМР", "07-01-005", "Временное ограждение", "м"], ["ТМЦ", "509-4410", "Панель ограждения с баннером", "шт"]] },
+  { code: "СТ-ОСП-005", dir: "ОСП", name: "Бытовой городок", status: "done", ver: "1.1",
+    stage: ["Начало СМР"], work: ALL, construct: ALL, klass: ALL, region: ALL, city: ALL, scheme: "fence",
+    checks: ["Бытовки из расчёта 1 место на 4 м²", "Отапливаемые помещения для обогрева в зимний период", "Пункт питания и санузлы"], nom: [["ТМЦ", "509-5001", "Аренда блок-контейнера", "шт·мес"]] },
+  { code: "СТ-БиОТ-003", dir: "БиОТ", name: "Ограждение перепадов высот и проёмов", status: "fail", ver: "2.2",
+    stage: ["Начало СМР", "СМР: каркас"], work: ["Железобетонный каркас"], construct: ALL, klass: ALL, region: ALL, city: ALL, scheme: "slab",
+    checks: ["Защитное ограждение 1,1 м по краю перекрытия", "Проёмы закрыты щитами с маркировкой", "Сетка улавливающая на 2 этажа ниже рабочего"], nom: [["ТМЦ", "509-6120", "Ограждение защитное инвентарное", "м"]] },
+  { code: "СТ-БиОТ-007", dir: "БиОТ", name: "Наряд-допуск на работы на высоте", status: "agreed", ver: "1.4",
+    stage: ALL, work: ALL, construct: ALL, klass: ALL, region: ALL, city: ALL, scheme: "slab",
+    checks: ["Наряд-допуск оформлен до начала смены", "Инструктаж на рабочем месте под подпись", "Страховочные привязи проверены"], nom: [] },
+  { code: "СТ-ПР-010", dir: "ПР", name: "Состав и оформление раздела КЖ", status: "done", ver: "4.0",
+    stage: ["Рабочий проект"], work: ["Железобетонный каркас"], construct: ["Каркас здания"], klass: ALL, region: ALL, city: ALL, scheme: "rebar",
+    checks: ["Ссылки на действующие СН РК и СП РК", "Спецификация арматуры совпадает со сметой", "Узлы сопряжения колонн и перекрытий"], nom: [] },
+  { code: "СТ-ПР-018", dir: "ПР", name: "Планировки квартир бизнес-класса", status: "changed", ver: "2.1",
+    stage: ["Эскиз проекта", "Рабочий проект"], work: ALL, construct: ALL, klass: ["Бизнес"], region: ALL, city: ALL, scheme: "slab",
+    checks: ["Высота потолков не менее 3,0 м", "Кухня-гостиная от 20 м²", "Гардеробная в квартирах от 2 комнат"], nom: [] },
+  { code: "СТ-ОГО-001", dir: "ОГО", name: "Отделка МОП бизнес-класса", status: "agreed", ver: "1.2",
+    stage: ["Ввод и передача ключей"], work: ["Отделка МОП"], construct: ALL, klass: ["Бизнес"], region: ALL, city: ALL, scheme: "fence",
+    checks: ["Керамогранит в лобби по дизайн-проекту", "Почтовые ящики и навигация на двух языках", "Освещение с датчиками движения"], nom: [["СМР", "15-01-020", "Облицовка пола керамогранитом", "м²"]] },
+];
+
+const ROAD = [
+  { n: "Покупка земли", d: "мар 2025", s: "done" },
+  { n: "Эскиз проекта", d: "июн 2025", s: "done" },
+  { n: "Рабочий проект", d: "янв 2026", s: "done", note: "Здесь уже есть основные данные для карточки проекта" },
+  { n: "Заключение ГЭ", d: "авг 2026", s: "done", note: "Заключение государственной экспертизы" },
+  { n: "Расчёты", d: "авг 2026", s: "done", note: "Тут много данных", items: ["ВО-калькулятор", "ПНР-калькулятор", "План спецтехники", "ГПР + матрица сроков", "Стройгенплан", "Расчёт ОРС себестоимости", "Финансовая модель"], q: "Сколько тенге? Сколько месяцев?" },
+  { n: "Проектный комитет «Start»", d: "сен 2026", s: "done", note: "Сборка данных, подключаются HR и развитие", q: "Когда? За сколько? Как?" },
+  { n: "Подготовка к старту продаж", d: "сен 2026", s: "done", items: ["Рендеры", "Буклеты"] },
+  { n: "Старт продаж", d: "окт 2026", s: "done" },
+  { n: "Старт СМР", d: "ноя 2026", s: "now", note: "Перед стартом: инженерная подготовка и изучение стандартов", items: ["Подготовка территории", "Бытовые помещения", "Инфраструктура"], std: true },
+  { n: "Каркас здания", d: "ноя 2026 — дек 2027", s: "next", std: true },
+  { n: "Ввод и передача ключей", d: "дек 2028", s: "next" },
+];
+
+const KIND = { gpr: ["ГПР", "k-gpr"], tender: ["Тендер", "k-tender"], com: ["Комиссия", "k-com"], keys: ["Передача ключей", "k-keys"], hol: ["Праздник РК", "k-hol"] };
+const EVENTS = [
+  ["2026-10-25", "hol", "День Республики — выходной"],
+  ["2026-10-28", "tender", "Тендер: поставка бетона B30 на каркас"],
+  ["2026-11-02", "com", "Комиссия по готовности площадки к СМР"],
+  ["2026-11-05", "gpr", "Начало земляных работ, котлован"],
+  ["2026-11-12", "tender", "Тендер: генподряд на монолитный каркас"],
+  ["2026-11-20", "gpr", "Переход на зимнее бетонирование (СТ-СМР-022)"],
+  ["2026-12-01", "gpr", "Фундаментная плита, подъезд 1"],
+  ["2026-12-16", "hol", "День Независимости"],
+  ["2026-12-22", "com", "Приёмка фундаментной плиты технадзором"],
+  ["2027-01-01", "hol", "Новый год (1–2 января)"],
+  ["2027-01-07", "hol", "Рождество Христово"],
+  ["2027-01-18", "gpr", "Каркас: 1-й этаж, подъезд 1"],
+  ["2027-02-10", "tender", "Тендер: фасадная система"],
+  ["2027-03-08", "hol", "Международный женский день"],
+  ["2027-03-21", "hol", "Наурыз мейрамы (21–23 марта)"],
+  ["2028-12-20", "keys", "Плановая передача ключей дольщикам"],
+];
+
+const TEAM = [
+  ["Руководитель проекта", "Е. Оспанов", "Сроки, бюджет, проектный комитет"],
+  ["Главный инженер проекта", "А. Ким", "Проектные решения, раздел КЖ"],
+  ["Начальник участка", "Д. Жумабеков", "Каркас, захватки, бригады"],
+  ["Инженер ПТО", "М. Ахметова", "Исполнительная документация, ППР"],
+  ["Инженер технадзора", "С. Нурланов", "Скрытые работы, качество"],
+  ["Специалист БиОТ", null, "Наряды-допуски, инструктажи"],
+  ["Сметчик", "Г. Абенова", "Сметная номенклатура СМР и ТМЦ"],
+  ["Финансист проекта", "Р. Исмаилов", "Финмодель, освоение бюджета"],
+  ["Маркетинг и продажи", "Л. Сейткали", "Рендеры, буклеты, шахматка"],
+];
+
+const PARTNERS = [
+  ["Генподрядчик", "Тендер до 12.11.2026", "СМР каркаса", "wait"],
+  ["Поставщик бетона", "ТОО «Пример Бетон»", "B30 W8 F150, до 400 м³/сутки", "ok"],
+  ["Поставщик арматуры", "ТОО «Пример Металл»", "A500С, A240", "ok"],
+  ["Проектный институт", "ТОО «Пример Проект»", "Рабочий проект, авторский надзор", "ok"],
+  ["Банк-партнёр", "АО «Пример Банк»", "Ипотека для дольщиков", "ok"],
+];
+
+// ---------- Состояние ----------
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("bbb:" + k); return v ? JSON.parse(v) : d } catch { return d } },
+  set(k, v) { try { localStorage.setItem("bbb:" + k, JSON.stringify(v)) } catch {} },
+};
+Object.assign(card, store.get("card", {}));
+const checks = store.get("checks", {});
+const KEYS = ["region", "city", "klass", "stage", "work", "construct"];
+const KEYLBL = { region: "Регион", city: "Город", klass: "Класс жилья", stage: "Этап жизненного цикла", work: "Вид работ", construct: "Конструктив" };
+let filt = { ...pick(card), dir: "", status: "" };
+let evKinds = new Set(Object.keys(KIND));
+
+function pick(o) { const r = {}; KEYS.forEach(k => r[k] = o[k]); return r }
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])) }
+function matches(s, f) {
+  for (const k of KEYS) { if (f[k] && s[k] !== ALL && !s[k].includes(f[k])) return false }
+  if (f.dir && s.dir !== f.dir) return false;
+  if (f.status && s.status !== f.status) return false;
+  return true;
+}
+function done(s) { return s.checks.filter((_, i) => checks[s.code + ":" + i]).length }
+function chip(st) { const x = STATUS[st]; return `<span class="chip ${x.c}">${x.t}</span>` }
+function relevant() { return STD.filter(s => matches(s, { ...pick(card) })) }
+
+// ---------- Экраны ----------
+const VIEWS = {
+  card: { t: "Карточка проекта", cnt: () => "" , r: viewCard },
+  standards: { t: "Стандарты", cnt: () => relevant().length, r: viewStandards },
+  roadmap: { t: "Дорожная карта", cnt: () => ROAD.length, r: viewRoad },
+  calendar: { t: "Календарь событий", cnt: () => EVENTS.filter(e => new Date(e[0]) >= TODAY).length, r: viewCal },
+  team: { t: "Команда проекта", cnt: () => TEAM.length, r: viewTeam },
+  kpi: { t: "Показатели", cnt: () => "", r: viewKpi },
+  partners: { t: "Партнёры", cnt: () => PARTNERS.length, r: viewPartners },
+};
+
+function head(title, sub) {
+  return `<div class="topbar"><div class="stack" style="gap:4px"><div class="crumbs"><span class="label">${esc(card.name)}</span></div><h1>${title}</h1>${sub ? `<div class="muted">${sub}</div>` : ""}</div><span class="demo">Демо-данные</span></div>`;
+}
+
+function viewCard() {
+  const sel = k => `<div class="field key"><span class="label">${KEYLBL[k]}</span><select id="card-${k}" data-k="${k}">${OPTIONS[k].map(o => `<option${o === card[k] ? " selected" : ""}>${esc(o)}</option>`).join("")}</select></div>`;
+  const ro = (l, v) => `<div class="field"><span class="label">${l}</span><span class="v">${esc(v)}</span></div>`;
+  const rel = relevant();
+  return head("Карточка проекта", "Основные данные проекта. Ключевые поля управляют подбором стандартов.") + `
+  <div class="hint"><span>⚙</span><div>Поля в синей рамке — <b>параметры подбора стандартов</b>. Измените этап или вид работ, и модуль «Стандарты» сразу покажет другой набор. Сейчас подходит стандартов: <b>${rel.length}</b>.</div></div>
+  <section class="panel stack"><h2>Параметры подбора</h2><div class="fields">${KEYS.map(sel).join("")}</div></section>
+  <section class="panel stack"><h2>Основные данные</h2><div class="fields">
+    ${ro("Наименование проекта", card.name)}${ro("Организация-заказчик", card.customer)}${ro("Тип здания", card.building)}
+    ${ro("Этажность", card.floors)}${ro("Квартиры", card.flats)}${ro("Площадь", card.area)}
+    ${ro("Заключение ГЭ", card.ge)}${ro("Бюджет по финмодели", card.budget)}${ro("Срок СМР", card.term)}${ro("Продажи", card.sales)}
+  </div></section>
+  <div class="row"><a class="btn primary" href="#standards" style="text-decoration:none">Открыть стандарты для этого проекта →</a><button class="btn ghost" id="reset-card">Сбросить пример</button></div>`;
+}
+
+function viewStandards() {
+  const list = STD.filter(s => matches(s, filt));
+  const sel = (k, label, opts, fmt = o => o) => {
+    const fromCard = KEYS.includes(k) && filt[k] && filt[k] === card[k];
+    return `<label>${label}<select id="f-${k}" data-f="${k}" class="${fromCard ? "from-card" : ""}"><option value="">Все</option>${opts.map(o => `<option value="${esc(o)}"${filt[k] === o ? " selected" : ""}>${esc(fmt(o))}</option>`).join("")}</select></label>`;
+  };
+  const sum = DIRS.map(d => {
+    const items = STD.filter(s => s.dir === d.id && matches(s, { ...filt, dir: "", status: "" }));
+    const n = items.length || 1;
+    const by = st => items.filter(s => s.status === st).length;
+    const seg = ["done", "agreed", "changed", "new", "fail"].map(st => `<i style="width:${by(st) / n * 100}%;background:var(--${{ done: "ok", agreed: "accent", changed: "info", new: "signal", fail: "bad" }[st]})"></i>`).join("");
+    return `<div><div class="row between"><span class="dir">${d.id}</span><span class="mono muted">${items.length}</span></div><div class="full" title="${d.name}">${d.name}</div><div class="bar">${items.length ? seg : ""}</div></div>`;
+  }).join("");
+  const rows = list.map(s => `<button class="std" data-std="${s.code}">
+      <span class="code mono muted">${s.code}</span>
+      <span style="min-width:0"><span class="t">${esc(s.name)}</span><span class="meta"><span class="tag">${s.dir}</span>${s.scheme ? '<span class="tag">Схема</span>' : ""}${s.nom.length ? `<span class="tag">Смета: ${s.nom.length}</span>` : ""}<span class="tag">v${s.ver}</span></span></span>
+      <span class="prog num">${done(s)}/${s.checks.length}</span>${chip(s.status)}</button>`).join("");
+  return head("Стандарты", "Отобраны по данным карточки проекта. Без лишних шагов: фильтр, стандарт, чек-лист.") + `
+  <section class="panel stack">
+    <div class="row between"><h2>Фильтры</h2><div class="row"><span class="tag auto">Синие — из карточки проекта</span><button class="btn" id="f-card">Как в карточке</button><button class="btn ghost" id="f-clear">Сбросить всё</button></div></div>
+    <div class="filters">
+      ${KEYS.map(k => sel(k, KEYLBL[k], OPTIONS[k])).join("")}
+      ${sel("dir", "Направление", DIRS.map(d => d.id))}
+      ${sel("status", "Статус", Object.keys(STATUS), o => STATUS[o].t)}
+    </div>
+  </section>
+  <section class="stack"><div class="row between"><h2>Общий чек-лист соблюдения стандартов</h2><div class="row">${Object.keys(STATUS).map(chip).join("")}</div></div><div class="summary">${sum}</div></section>
+  <section class="stack"><div class="row between"><h2>Найдено: <span class="num">${list.length}</span></h2></div>
+    <div class="std-list">${rows || `<div class="empty">Под эти параметры стандартов нет. Ослабьте фильтры или нажмите «Как в карточке».</div>`}</div>
+  </section>`;
+}
+
+function scheme(kind) {
+  const ink = "var(--fg)", acc = "var(--accent)", sig = "var(--signal)", mut = "var(--muted)";
+  const S = {
+    rebar: `<svg viewBox="0 0 520 240" role="img" aria-label="Сечение колонны с защитным слоем">
+      <rect x="40" y="30" width="180" height="180" fill="var(--surface)" stroke="${ink}" stroke-width="2"/>
+      <rect x="70" y="60" width="120" height="120" fill="none" stroke="${acc}" stroke-width="2" stroke-dasharray="5 4"/>
+      ${[[70,60],[130,60],[190,60],[70,120],[190,120],[70,180],[130,180],[190,180]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="7" fill="${acc}"/>`).join("")}
+      <line x1="40" y1="222" x2="70" y2="222" stroke="${sig}" stroke-width="2"/><text x="55" y="236" text-anchor="middle" font-size="12" fill="${sig}" font-family="monospace">30</text>
+      <text x="260" y="50" font-size="14" fill="${ink}" font-weight="600">Колонна 500×500</text>
+      <text x="260" y="78" font-size="13" fill="${mut}">8 Ø16 A500С — продольные</text>
+      <text x="260" y="100" font-size="13" fill="${mut}">Ø8 A240 шаг 200 — хомуты</text>
+      <text x="260" y="122" font-size="13" fill="${sig}">Защитный слой 30 мм</text>
+      <text x="260" y="144" font-size="13" fill="${mut}">Нахлёст ≥ 40d = 640 мм</text>
+    </svg>`,
+    pour: `<svg viewBox="0 0 520 240" role="img" aria-label="Послойная укладка бетона">
+      <rect x="60" y="20" width="140" height="200" fill="var(--surface)" stroke="${ink}" stroke-width="2"/>
+      ${[0,1,2,3].map(i => `<rect x="62" y="${170 - i*50}" width="136" height="48" fill="${acc}" opacity="${0.75 - i*0.17}"/>`).join("")}
+      <line x1="215" y1="170" x2="215" y2="218" stroke="${sig}" stroke-width="2"/><text x="222" y="198" font-size="12" fill="${sig}" font-family="monospace">≤500</text>
+      <path d="M130 0 L130 40" stroke="${ink}" stroke-width="3"/><circle cx="130" cy="44" r="6" fill="${ink}"/>
+      <text x="280" y="50" font-size="14" fill="${ink}" font-weight="600">Укладка слоями</text>
+      <text x="280" y="78" font-size="13" fill="${mut}">Слой не более 500 мм</text>
+      <text x="280" y="100" font-size="13" fill="${mut}">Вибратор заходит в нижний слой</text>
+      <text x="280" y="122" font-size="13" fill="${mut}">на 50–100 мм</text>
+      <text x="280" y="144" font-size="13" fill="${sig}">Ниже +5 °C — прогрев</text>
+    </svg>`,
+    slab: `<svg viewBox="0 0 520 240" role="img" aria-label="Опалубка перекрытия и ограждение края">
+      <rect x="30" y="60" width="340" height="22" fill="${acc}" opacity=".8"/>
+      ${[50,120,190,260,330].map(x => `<line x1="${x}" y1="82" x2="${x}" y2="210" stroke="${ink}" stroke-width="3"/>`).join("")}
+      <line x1="20" y1="210" x2="380" y2="210" stroke="${ink}" stroke-width="2"/>
+      <line x1="370" y1="60" x2="370" y2="18" stroke="${sig}" stroke-width="3"/><line x1="340" y1="25" x2="370" y2="25" stroke="${sig}" stroke-width="3"/><line x1="340" y1="42" x2="370" y2="42" stroke="${sig}" stroke-width="3"/>
+      <text x="120" y="230" font-size="12" fill="${mut}" font-family="monospace">шаг стоек 1200</text>
+      <text x="395" y="40" font-size="13" fill="${sig}">Ограждение</text><text x="395" y="58" font-size="13" fill="${sig}">h = 1,1 м</text>
+      <text x="395" y="100" font-size="13" fill="${mut}">Демонтаж при</text><text x="395" y="118" font-size="13" fill="${mut}">70% прочности</text>
+    </svg>`,
+    fence: `<svg viewBox="0 0 520 240" role="img" aria-label="Схема стройплощадки">
+      <rect x="30" y="30" width="460" height="180" fill="none" stroke="${sig}" stroke-width="3" stroke-dasharray="10 6"/>
+      <rect x="200" y="70" width="150" height="100" fill="${acc}" opacity=".25" stroke="${acc}" stroke-width="2"/><text x="275" y="125" text-anchor="middle" font-size="13" fill="${ink}">Пятно застройки</text>
+      <rect x="50" y="50" width="100" height="44" fill="var(--surface)" stroke="${ink}"/><text x="100" y="77" text-anchor="middle" font-size="12" fill="${ink}">Бытовой городок</text>
+      <rect x="50" y="150" width="60" height="40" fill="var(--surface)" stroke="${ink}"/><text x="80" y="174" text-anchor="middle" font-size="11" fill="${ink}">Мойка</text>
+      <line x1="30" y1="190" x2="30" y2="150" stroke="var(--bg)" stroke-width="6"/><text x="36" y="226" font-size="12" fill="${mut}">Въезд</text>
+      <rect x="400" y="60" width="70" height="60" fill="none" stroke="${ink}"/><text x="435" y="95" text-anchor="middle" font-size="11" fill="${ink}">Кран</text>
+    </svg>`,
+  };
+  return S[kind] || "";
+}
+
+function openStd(code) {
+  const s = STD.find(x => x.code === code); if (!s) return;
+  const layer = document.getElementById("layer");
+  const render = () => {
+    const n = done(s);
+    layer.innerHTML = `<div class="scrim" data-close></div><aside class="drawer" role="dialog" aria-modal="true" aria-label="${esc(s.name)}">
+      <div class="row between"><span class="mono muted">${s.code} · v${s.ver} · ${s.dir}</span><button class="btn" data-close id="close-std">Закрыть</button></div>
+      <div class="stack" style="gap:8px"><h2>${esc(s.name)}</h2><div class="row">${chip(s.status)}${[...new Set([].concat(s.stage === ALL ? ["Все этапы"] : s.stage, s.work === ALL ? [] : s.work))].map(t => `<span class="tag">${esc(t)}</span>`).join("")}</div></div>
+      ${s.scheme ? `<section class="stack" style="gap:8px"><span class="label">Схема (векторная графика)</span><div class="scheme">${scheme(s.scheme)}</div></section>` : ""}
+      <section class="stack" style="gap:4px"><div class="row between"><span class="label">Чек-лист выполнения</span><span class="mono num">${n}/${s.checks.length}</span></div>
+        <div class="bar"><i style="width:${n / s.checks.length * 100}%;background:var(--ok)"></i></div>
+        <div>${s.checks.map((c, i) => { const id = s.code + ":" + i; return `<label class="check${checks[id] ? " on" : ""}"><input type="checkbox" id="chk-${i}" data-chk="${id}"${checks[id] ? " checked" : ""}><span>${esc(c)}</span></label>` }).join("")}</div>
+      </section>
+      ${s.nom.length ? `<section class="stack" style="gap:8px"><span class="label">Сметная номенклатура СМР и ТМЦ</span><div class="tbl"><table><thead><tr><th>Тип</th><th>Код</th><th>Наименование</th><th>Ед.</th></tr></thead><tbody>${s.nom.map(r => `<tr><td><span class="tag">${r[0]}</span></td><td class="mono">${r[1]}</td><td>${esc(r[2])}</td><td>${r[3]}</td></tr>`).join("")}</tbody></table></div></section>` : ""}
+      <div class="row"><button class="btn primary" id="agree">Согласовать</button><button class="btn" id="propose">Предложить изменение</button></div>
+      <div id="std-msg" class="muted" aria-live="polite"></div>
+    </aside>`;
+    layer.querySelectorAll("[data-close]").forEach(b => b.onclick = close);
+    layer.querySelectorAll("[data-chk]").forEach(b => b.onchange = () => { checks[b.dataset.chk] = b.checked; store.set("checks", checks); if (done(s) === s.checks.length && s.status !== "done") s.status = "done"; render(); });
+    layer.querySelector("#agree").onclick = () => { s.status = "agreed"; render(); layer.querySelector("#std-msg").textContent = "Стандарт согласован (в прототипе — до перезагрузки)." };
+    layer.querySelector("#propose").onclick = () => { s.status = "changed"; render(); layer.querySelector("#std-msg").textContent = "Изменение отправлено владельцу стандарта, статус «Изменён»." };
+  };
+  const close = () => { layer.innerHTML = ""; route() };
+  render();
+  document.getElementById("close-std").focus();
+}
+
+function viewRoad() {
+  return head("Дорожная карта проекта", "От начала анализа рынка до полного завершения проекта.") + (/\/portal\/(index\.html)?$/.test(location.pathname) ? `<p class="muted"><a href="../index.html">Подробное дерево этапов с чек-листами, графиком и финмоделью →</a></p>` : "") + `<section class="panel"><div class="road">${ROAD.map((st, i) => `
+    <div class="stage ${st.s}"><div class="dot">${st.s === "done" ? "✓" : i + 1}</div>
+      <button class="stage-card" aria-expanded="${st.s === "now"}" data-stage="${i}">
+        <div class="row between"><h3>${esc(st.n)}</h3><span class="row"><span class="mono muted">${st.d}</span>${st.s === "now" ? '<span class="chip s-agreed">Сейчас</span>' : ""}</span></div>
+        <div class="more">${st.note ? `<div class="q">${esc(st.note)}</div>` : ""}${st.items ? `<div class="sub">${st.items.map(x => `<span class="tag">${esc(x)}</span>`).join("")}</div>` : ""}${st.q ? `<div class="q"><b>Ответы на выходе:</b> ${esc(st.q)}</div>` : ""}${st.std ? `<div class="q"><a href="#standards" data-go-stage="${st.n === "Старт СМР" ? "Начало СМР" : "СМР: каркас"}">Стандарты этого этапа →</a></div>` : ""}</div>
+      </button></div>`).join("")}</div></section>`;
+}
+
+function viewCal() {
+  const months = {};
+  EVENTS.filter(e => evKinds.has(e[1])).forEach(e => { const d = new Date(e[0]); const k = d.toLocaleDateString("ru-RU", { month: "long", year: "numeric" }); (months[k] ||= []).push([d, ...e.slice(1)]) });
+  const same = (a, b) => a.toDateString() === b.toDateString();
+  return head("Календарь событий", "ГПР ключевых работ, тендеры, комиссии, передача ключей и праздники РК.") + `
+  <div class="row">${Object.entries(KIND).map(([k, [t, c]]) => `<button class="typebtn ${c}" aria-pressed="${evKinds.has(k)}" data-kind="${k}">${t}</button>`).join("")}</div>
+  ${Object.entries(months).map(([m, evs]) => `<section class="month"><span class="label">${m}</span>${evs.map(([d, k, t]) => `<div class="ev${d < TODAY && !same(d, TODAY) ? " past" : ""}${same(d, TODAY) ? " today" : ""}"><span class="d num">${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}</span><span>${esc(t)}${same(d, TODAY) ? ' <span class="muted">· сегодня</span>' : ""}</span><span class="chip ${KIND[k][1]}">${KIND[k][0]}</span></div>`).join("")}</section>`).join("") || '<div class="empty">Выберите хотя бы один тип событий.</div>'}`;
+}
+
+function viewTeam() {
+  return head("Команда проекта", "Роли и зоны ответственности. Пустые роли уходят заявкой в HR.") + `<div class="grid g3">${TEAM.map(([role, who, zone]) => `
+    <div class="panel person"><div class="ava${who ? "" : " vac"}">${who ? who.split(" ").map(w => w[0]).join("").replace(".", "") : "?"}</div>
+    <div class="stack" style="gap:2px;min-width:0"><span class="label">${role}</span><b>${who || "Не назначен"}</b><span class="muted" style="font-size:.88rem">${zone}</span>${who ? "" : '<button class="btn" style="margin-top:6px;align-self:flex-start" data-hr>Заявка в HR</button>'}</div></div>`).join("")}</div>
+    <div id="hr-msg" class="muted" aria-live="polite"></div>`;
+}
+
+function viewKpi() {
+  const K = [
+    ["Качество", "12", "открытых замечаний технадзора", "−5 за неделю", "up"],
+    ["Безопасность", "86", "дней без инцидентов", "1 нарушение СТ-БиОТ-003", "down"],
+    ["Сроки", "+6 дн.", "отклонение от ГПР", "котлован, подъезд 2", "down"],
+    ["Финансы", "2,4 млрд ₸", "освоено из 18,6 млрд ₸", "13% бюджета", "up"],
+    ["Опер. факт", "640 м³", "бетона за неделю, план 700", "91% плана", "down"],
+  ];
+  const floors = 12, per = 18;
+  let h = `<div class="chess" style="grid-template-columns:34px repeat(${per}, minmax(0,1fr))">`;
+  let sold = 0, res = 0;
+  for (let f = floors; f >= 1; f--) {
+    h += `<div class="fl">${f}</div>`;
+    for (let a = 1; a <= per; a++) {
+      const v = (f * 7 + a * 13 + (f > 8 ? 5 : 0)) % 10;
+      const st = v < 4 ? "sold" : v < 5 ? "res" : "free";
+      if (st === "sold") sold++; if (st === "res") res++;
+      h += `<button class="cell c-${st}" title="Этаж ${f}, кв. ${(f - 1) * per + a}: ${{ sold: "продано", res: "бронь", free: "свободно" }[st]}">${(f - 1) * per + a}</button>`;
+    }
+  }
+  h += "</div>";
+  const total = floors * per;
+  return head("Показатели проекта", "Качество, безопасность, сроки, финансы и оперативный факт.") + `
+  <div class="grid g5">${K.map(([l, v, d, dl, dir]) => `<div class="panel kpi"><span class="label">${l}</span><div class="big num">${v}</div><div class="muted" style="font-size:.85rem">${d}</div><div class="delta ${dir}">${dl}</div></div>`).join("")}</div>
+  <section class="panel stack"><div class="row between"><h2>Поэтажная шахматка</h2><div class="legend"><span><i class="c-sold"></i>Продано <b class="num">${sold}</b></span><span><i class="c-res"></i>Бронь <b class="num">${res}</b></span><span><i class="c-free"></i>Свободно <b class="num">${total - sold - res}</b></span></div></div>
+  <div class="chess-wrap">${h}</div><div class="muted" style="font-size:.85rem">Продано ${Math.round(sold / total * 100)}% квартир. Наведите на ячейку, чтобы увидеть номер и статус.</div></section>`;
+}
+
+function viewPartners() {
+  return head("Партнёры", "Подрядчики, поставщики и финансовые партнёры проекта.") + `<div class="panel tbl"><table><thead><tr><th>Роль</th><th>Организация</th><th>Предмет</th><th>Статус</th></tr></thead><tbody>${PARTNERS.map(([r, o, p, s]) => `<tr><td><b>${r}</b></td><td>${esc(o)}</td><td class="muted">${esc(p)}</td><td>${s === "ok" ? '<span class="chip s-done">Договор</span>' : '<span class="chip s-new">Тендер</span>'}</td></tr>`).join("")}</tbody></table></div>`;
+}
+
+// ---------- Маршрутизация и события ----------
+function route() {
+  let v = location.hash.slice(1); if (!VIEWS[v]) v = "card";
+  document.getElementById("nav").innerHTML = Object.entries(VIEWS).map(([k, x]) => `<a href="#${k}"${k === v ? ' aria-current="page"' : ""}><span>${x.t}</span>${x.cnt() !== "" ? `<span class="cnt">${x.cnt()}</span>` : ""}</a>`).join("");
+  const main = document.getElementById("main");
+  main.innerHTML = VIEWS[v].r();
+  bind(main);
+}
+
+function bind(m) {
+  m.querySelectorAll("[data-k]").forEach(s => s.onchange = () => { card[s.dataset.k] = s.value; store.set("card", pick(card)); filt = { ...filt, ...pick(card) }; route() });
+  m.querySelectorAll("[data-f]").forEach(s => s.onchange = () => { filt[s.dataset.f] = s.value; route() });
+  const fc = m.querySelector("#f-card"); if (fc) fc.onclick = () => { filt = { ...pick(card), dir: "", status: "" }; route() };
+  const fx = m.querySelector("#f-clear"); if (fx) fx.onclick = () => { filt = { region: "", city: "", klass: "", stage: "", work: "", construct: "", dir: "", status: "" }; route() };
+  const rc = m.querySelector("#reset-card"); if (rc) rc.onclick = () => { store.set("card", {}); Object.assign(card, { region: "C2 North", city: "Астана", klass: "Бизнес", stage: "Начало СМР", work: "Железобетонный каркас", construct: "Каркас здания" }); filt = { ...pick(card), dir: "", status: "" }; route() };
+  m.querySelectorAll("[data-std]").forEach(b => b.onclick = () => openStd(b.dataset.std));
+  m.querySelectorAll("[data-stage]").forEach(b => b.onclick = e => { if (e.target.closest("a")) return; b.setAttribute("aria-expanded", b.getAttribute("aria-expanded") !== "true") });
+  m.querySelectorAll("[data-go-stage]").forEach(a => a.onclick = () => { filt = { ...pick(card), stage: a.dataset.goStage, dir: "", status: "" } });
+  m.querySelectorAll("[data-kind]").forEach(b => b.onclick = () => { const k = b.dataset.kind; evKinds.has(k) ? evKinds.delete(k) : evKinds.add(k); route() });
+  m.querySelectorAll("[data-hr]").forEach(b => b.onclick = () => { b.disabled = true; b.textContent = "Заявка отправлена"; m.querySelector("#hr-msg").textContent = "Заявка на роль «Специалист БиОТ» передана в HR (в прототипе — без отправки)." });
+}
+
+document.addEventListener("keydown", e => { if (e.key === "Escape" && document.getElementById("layer").innerHTML) { document.getElementById("layer").innerHTML = ""; route() } });
+addEventListener("hashchange", () => { document.getElementById("layer").innerHTML = ""; route(); scrollTo(0, 0) });
+route();
+</script>
