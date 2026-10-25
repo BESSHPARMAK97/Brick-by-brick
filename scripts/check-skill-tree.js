@@ -12,7 +12,7 @@ const scripts = [...html.matchAll(/<script(?: id="([\w-]+)")?>([\s\S]*?)<\/scrip
 scripts.forEach(([, id, src], i) => { try { new Function(src); } catch (e) { fail(`script ${id || i}: ${e.message}`); } });
 const pick = id => (scripts.find(s => s[1] === id) || [])[2] || "";
 const ctx = { window: {}, TextEncoder };
-vm.runInNewContext(["tree-data", "tree-data-kk", "regions", "docx-lib", "model-lib", "dicts", "vars-data"].map(pick).join("\n"), ctx);
+vm.runInNewContext(["tree-data", "tree-data-kk", "regions", "docx-lib", "model-lib", "dicts", "pnr-data", "vars-data"].map(pick).join("\n"), ctx);
 const { TREE: T, TREE_KK: KK, REGIONS: REG } = ctx.window;
 
 const ids = new Set(T.nodes.map(n => n.id));
@@ -66,7 +66,9 @@ V.items.forEach(v => {
   if (root === "model" && !(k in ctx.window.MODEL_DEFAULTS)) fail(`variable ${v.id}: unknown model input ${k}`);
   else if (root === "project" && !fields.has(k) && !PROJECT_EXTRA.includes(k)) fail(`variable ${v.id}: unknown project field ${k}`);
   else if (root === "sched" && k !== "start") fail(`variable ${v.id}: unknown schedule field ${k}`);
-  else if (!["model", "project", "sched"].includes(root)) fail(`variable ${v.id}: bad path ${v.path}`);
+  else if (root === "pnr" && !ctx.window.PNR.some(p => "n" + p[0] === k)) fail(`variable ${v.id}: unknown PNR indicator ${k}`);
+  else if (!["model", "project", "sched", "pnr"].includes(root)) fail(`variable ${v.id}: bad path ${v.path}`);
+  if (v.type === "sel" && v.dict && !ctx.window.DICTS[v.dict]) fail(`variable ${v.id}: unknown dictionary ${v.dict}`);
 });
 // Справочники: уникальные значения без запятых (в Excel запятая делит пункт выпадающего списка на два)
 const DICTS = ctx.window.DICTS;
