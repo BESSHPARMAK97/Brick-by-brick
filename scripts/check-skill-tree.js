@@ -48,7 +48,7 @@ Object.entries(REG).forEach(([rid, r]) => {
 });
 // Словарь данных проекта: уникальные коды, известные разделы и владельцы, пути к существующим полям.
 const V = ctx.window.VARS, vids = new Set();
-const PROJECT_EXTRA = ["regcode", "stage", "work", "construct", "region", "building", "ge", "sales"];
+const PROJECT_EXTRA = ["mission", "kpi_nps", "kpi_engagement", "regcode", "stage", "work", "construct", "region", "building", "ge", "sales"];
 const CALC = (html.match(/function calcAll\(\)[\s\S]*?\n  \}/) || [""])[0];
 V.items.forEach(v => {
   if (vids.has(v.id)) fail(`variable ${v.id}: duplicate id`);

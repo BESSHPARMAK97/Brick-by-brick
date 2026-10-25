@@ -82,4 +82,17 @@ do $$ begin
   end;
 end $$;
 
+-- 9. Ответственный за риск — роль из команды проекта; уровень риска только из списка
+insert into project_team (project_id, role, zone) select id, 'Сметчик', 'Сметная номенклатура' from projects;
+insert into project_risks (project_id, level, title, measure, owner_id)
+  select p.id, 'high', 'Рост цен на арматуру', 'Фиксированная цена в договоре', t.id from projects p, project_team t;
+do $$ begin
+  begin
+    insert into project_risks (project_id, level, title) select id, 'очень', 'Неверный уровень' from projects;
+    raise exception '9: неверный уровень риска записался';
+  exception when check_violation then null;
+  end;
+  if (select t.role from project_risks r join project_team t on t.id = r.owner_id) <> 'Сметчик' then raise exception '9: нет ответственного'; end if;
+end $$;
+
 select 'project-data: все проверки пройдены' as result;
