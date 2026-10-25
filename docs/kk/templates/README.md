@@ -43,56 +43,61 @@
 - [Бас мердігерлік шарт: негізгі талаптар](09-gc_contract.md) · [Word](09-gc_contract.docx)
 - [Мердігерлік шарт бойынша төлемдер кестесі](09-pay_schedule.md) · [Word](09-pay_schedule.docx)
 
-## 10. Үлестік қатысу және сату
+## 10. «Start» жобалық комитеті
 
-- [Үлестік қатысу шарты: негізгі талаптар](10-ddu.md) · [Word](10-ddu.docx)
-- [Құрылыс салушының үлескерлерге ай сайынғы есебі](10-owner_report.md) · [Word](10-owner_report.docx)
-- [Инжинирингтік компаниямен шарт: негізгі талаптар](10-eng_contract.md) · [Word](10-eng_contract.docx)
+- [«Start» жобалық комитетіне арналған презентация құрылымы](10-pk_deck.md) · [Word](10-pk_deck.docx)
+- [«Start» жобалық комитетінің хаттамасы](10-pk_protocol.md) · [Word](10-pk_protocol.docx)
 
-## 11. ҚМЖ бастау
+## 11. Үлестік қатысу және сату
 
-- [ҚМЖ басталғаны туралы хабарлама: мәліметтер тізбесі](11-smr_notice.md) · [Word](11-smr_notice.docx)
-- [Техникалық қадағалау шарты: негізгі талаптар](11-tn_contract.md) · [Word](11-tn_contract.docx)
-- [Жауапты тұлғаларды тағайындау туралы бұйрық](11-order_resp.md) · [Word](11-order_resp.docx)
+- [Үлестік қатысу шарты: негізгі талаптар](11-ddu.md) · [Word](11-ddu.docx)
+- [Құрылыс салушының үлескерлерге ай сайынғы есебі](11-owner_report.md) · [Word](11-owner_report.docx)
+- [Инжинирингтік компаниямен шарт: негізгі талаптар](11-eng_contract.md) · [Word](11-eng_contract.docx)
 
-## 12. Нөлдік цикл
+## 12. ҚМЖ бастау
 
-- [Жасырын жұмыстарды куәландыру актісі](12-hidden_works.md) · [Word](12-hidden_works.docx)
+- [ҚМЖ басталғаны туралы хабарлама: мәліметтер тізбесі](12-smr_notice.md) · [Word](12-smr_notice.docx)
+- [Техникалық қадағалау шарты: негізгі талаптар](12-tn_contract.md) · [Word](12-tn_contract.docx)
+- [Жауапты тұлғаларды тағайындау туралы бұйрық](12-order_resp.md) · [Word](12-order_resp.docx)
 
-## 13. Сыртқы желілер
+## 13. Нөлдік цикл
 
-- [Баланстық тиесілілікті бөлу актісі](13-balance_act.md) · [Word](13-balance_act.docx)
+- [Жасырын жұмыстарды куәландыру актісі](13-hidden_works.md) · [Word](13-hidden_works.docx)
 
-## 14. Қаңқа
+## 14. Сыртқы желілер
 
-- Бетон жұмыстарының журналы (нысан): [../../templates/14-concrete_log.csv](../../templates/14-concrete_log.csv)
-- [Орындалған жұмыстарды қабылдау актісі (2-нысан)](14-ks2.md) · [Word](14-ks2.docx)
-- [Орындалған жұмыстардың құны туралы анықтама (3-нысан)](14-ks3.md) · [Word](14-ks3.docx)
+- [Баланстық тиесілілікті бөлу актісі](14-balance_act.md) · [Word](14-balance_act.docx)
 
-## 15. Ғимарат контуры
+## 15. Қаңқа
 
-- [Ескертулерді жою туралы нұсқама](15-defect_order.md) · [Word](15-defect_order.docx)
-- [Мердігерге наразылық](15-claim.md) · [Word](15-claim.docx)
+- Бетон жұмыстарының журналы (нысан): [../../templates/15-concrete_log.csv](../../templates/15-concrete_log.csv)
+- [Орындалған жұмыстарды қабылдау актісі (2-нысан)](15-ks2.md) · [Word](15-ks2.docx)
+- [Орындалған жұмыстардың құны туралы анықтама (3-нысан)](15-ks3.md) · [Word](15-ks3.docx)
 
-## 16. Инженерлік жүйелер
+## 16. Ғимарат контуры
 
-- [Жүйелерді жеке сынау актісі](16-test_act.md) · [Word](16-test_act.docx)
+- [Ескертулерді жою туралы нұсқама](16-defect_order.md) · [Word](16-defect_order.docx)
+- [Мердігерге наразылық](16-claim.md) · [Word](16-claim.docx)
 
-## 17. Әрлеу және абаттандыру
+## 17. Инженерлік жүйелер
 
-- Ескертулер тізімі (алдын ала қабылдау): [../../templates/17-punch_list.csv](../../templates/17-punch_list.csv)
+- [Жүйелерді жеке сынау актісі](17-test_act.md) · [Word](17-test_act.docx)
 
-## 18. Пайдалануға беру
+## 18. Әрлеу және абаттандыру
 
-- [Объектіні пайдалануға қабылдау актісі: құрылымы](18-commission_act.md) · [Word](18-commission_act.docx)
+- Ескертулер тізімі (алдын ала қабылдау): [../../templates/18-punch_list.csv](../../templates/18-punch_list.csv)
 
-## 19. Пәтерлерді беру және МИБ
+## 19. Пайдалануға беру
 
-- [Үлескерге беруге дайындық туралы хабарлама](19-owner_notice.md) · [Word](19-owner_notice.docx)
-- [Пәтерді қабылдау-тапсыру актісі](19-handover_act.md) · [Word](19-handover_act.docx)
-- [МИБ құру туралы жиналыс хаттамасы](19-osi_protocol.md) · [Word](19-osi_protocol.docx)
+- [Объектіні пайдалануға қабылдау актісі: құрылымы](19-commission_act.md) · [Word](19-commission_act.docx)
 
-## 20. Кепілдік және жабу
+## 20. Пәтерлерді беру және МИБ
 
-- [Меншік иесінің кепілдік өтінімі](20-warranty_claim.md) · [Word](20-warranty_claim.docx)
-- [Жобаны жабу және сабақтарды талдау есебі](20-closeout.md) · [Word](20-closeout.docx)
+- [Үлескерге беруге дайындық туралы хабарлама](20-owner_notice.md) · [Word](20-owner_notice.docx)
+- [Пәтерді қабылдау-тапсыру актісі](20-handover_act.md) · [Word](20-handover_act.docx)
+- [МИБ құру туралы жиналыс хаттамасы](20-osi_protocol.md) · [Word](20-osi_protocol.docx)
+
+## 21. Кепілдік және жабу
+
+- [Меншік иесінің кепілдік өтінімі](21-warranty_claim.md) · [Word](21-warranty_claim.docx)
+- [Жобаны жабу және сабақтарды талдау есебі](21-closeout.md) · [Word](21-closeout.docx)
