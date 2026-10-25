@@ -4,7 +4,7 @@ const path = require("path");
 const vm = require("vm");
 
 const root = path.join(__dirname, "..");
-const html = fs.readFileSync(path.join(root, "docs/skill-tree/index.html"), "utf8");
+const html = fs.readFileSync(path.join(root, "prototype/index.html"), "utf8");
 const errors = [];
 const fail = msg => errors.push(msg);
 

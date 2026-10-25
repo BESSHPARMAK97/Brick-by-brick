@@ -1,10 +1,10 @@
-// Генерирует docs/templates/*.md/.docx/.csv и docs/checklists.md из данных docs/skill-tree/index.html
+// Генерирует docs/templates/*.md/.docx/.csv и docs/checklists.md из данных prototype/index.html
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
 
 const root = path.join(__dirname, "..");
-const html = fs.readFileSync(path.join(root, "docs/skill-tree/index.html"), "utf8");
+const html = fs.readFileSync(path.join(root, "prototype/index.html"), "utf8");
 const pick = id => html.match(new RegExp('<script id="' + id + '">([\\s\\S]*?)<\\/script>'))[1];
 const ctx = { window: {}, TextEncoder };
 vm.runInNewContext(pick("tree-data") + "\n" + pick("tree-data-kk") + "\n" + pick("regions") + "\n" + pick("docx-lib"), ctx);
@@ -19,7 +19,7 @@ fs.mkdirSync(outDir, { recursive: true });
 
 const disclaimer = "> Образец для ознакомления. Перед использованием адаптируйте документ с юристом к действующему законодательству РК.";
 const index = ["# Образцы документов", "", disclaimer, ""];
-const checklist = ["# Чек-листы перехода между этапами", "", "Этап считается пройденным, когда отмечены все пункты. Следующий этап открывается, когда пройдены все этапы из строки «Требует».", "", "Интерактивная версия: [skill-tree/index.html](skill-tree/index.html).", ""];
+const checklist = ["# Чек-листы перехода между этапами", "", "Этап считается пройденным, когда отмечены все пункты. Следующий этап открывается, когда пройдены все этапы из строки «Требует».", "", "Интерактивная версия: раздел «Дорожная карта» портала, [prototype/index.html](../prototype/index.html).", ""];
 
 T.nodes.forEach(n => {
   index.push(`## ${n.code}. ${n.name}`, "");
