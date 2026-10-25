@@ -147,6 +147,8 @@ th { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color:
 .stage-card .sub { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px }
 .stage-card .q { margin-top: 8px; font-size: .88rem; color: var(--muted) }
 .stage-card[aria-expanded="false"] .more { display: none }
+.roadframe { width: 100%; height: calc(100vh - 210px); min-height: 640px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface) }
+details.panel > summary { cursor: pointer }
 
 /* Календарь */
 .month { display: flex; flex-direction: column; gap: 8px }
@@ -378,7 +380,7 @@ function relevant() { return STD.filter(s => matches(s, { ...pick(card) })) }
 const VIEWS = {
   card: { t: "Карточка проекта", cnt: () => "" , r: viewCard },
   standards: { t: "Стандарты", cnt: () => relevant().length, r: viewStandards },
-  roadmap: { t: "Дорожная карта", cnt: () => ROAD.length, r: viewRoad },
+  roadmap: { t: "Дорожная карта", cnt: () => 20, r: viewRoad },
   calendar: { t: "Календарь событий", cnt: () => EVENTS.filter(e => new Date(e[0]) >= TODAY).length, r: viewCal },
   team: { t: "Команда проекта", cnt: () => TEAM.length, r: viewTeam },
   kpi: { t: "Показатели", cnt: () => "", r: viewKpi },
@@ -509,13 +511,19 @@ function openStd(code) {
   document.getElementById("close-std").focus();
 }
 
+// Дорожная карта — полное дерево прокачки (docs/skill-tree) во вкладке портала. Рядом с порталом оно лежит в roadmap/, в репозитории — в docs/skill-tree/.
+function roadSrc() { return /\/prototype\/(index\.html)?$/.test(location.pathname) ? "../docs/skill-tree/index.html" : "roadmap/index.html" }
+
 function viewRoad() {
-  return head("Дорожная карта проекта", "От начала анализа рынка до полного завершения проекта.") + (/\/portal\/(index\.html)?$/.test(location.pathname) ? `<p class="muted"><a href="../index.html">Подробное дерево этапов с чек-листами, графиком и финмоделью →</a></p>` : "") + `<section class="panel"><div class="road">${ROAD.map((st, i) => `
+  return head("Дорожная карта проекта", "20 этапов от анализа рынка до гарантии: чек-листы перехода, график, финмодель, бюджет, сроки документов, риски и отчёт.") + `
+  <div class="row"><a class="btn ghost" href="${roadSrc()}" target="_blank" rel="noopener" style="text-decoration:none">Открыть на весь экран ↗</a></div>
+  <iframe class="roadframe" src="${roadSrc()}" title="Дерево прокачки ЖК"></iframe>
+  <details class="panel"><summary><b>Краткая лента этапов и связь со стандартами</b></summary><div class="road" style="margin-top:14px">${ROAD.map((st, i) => `
     <div class="stage ${st.s}"><div class="dot">${st.s === "done" ? "✓" : i + 1}</div>
       <button class="stage-card" aria-expanded="${st.s === "now"}" data-stage="${i}">
         <div class="row between"><h3>${esc(st.n)}</h3><span class="row"><span class="mono muted">${st.d}</span>${st.s === "now" ? '<span class="chip s-agreed">Сейчас</span>' : ""}</span></div>
         <div class="more">${st.note ? `<div class="q">${esc(st.note)}</div>` : ""}${st.items ? `<div class="sub">${st.items.map(x => `<span class="tag">${esc(x)}</span>`).join("")}</div>` : ""}${st.q ? `<div class="q"><b>Ответы на выходе:</b> ${esc(st.q)}</div>` : ""}${st.std ? `<div class="q"><a href="#standards" data-go-stage="${st.n === "Старт СМР" ? "Начало СМР" : "СМР: каркас"}">Стандарты этого этапа →</a></div>` : ""}</div>
-      </button></div>`).join("")}</div></section>`;
+      </button></div>`).join("")}</div></details>`;
 }
 
 function viewCal() {

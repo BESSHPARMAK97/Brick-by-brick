@@ -532,7 +532,11 @@ dialog.viewer::backdrop { background: rgba(10, 20, 35, .55); }
   .tier-label { grid-auto-flow: column; justify-self: center; gap: 8px; align-items: baseline; position: relative; z-index: 1; background: var(--bg); padding: 0 6px; }
   .node { width: 124px; }
 }
+/* Внутри вкладки «Дорожная карта» портала заголовок дерева не повторяем: он уже есть у портала. */
+.embedded .hud > div:first-child > h1, .embedded .hud > div:first-child > p { display: none; }
+.embedded .hud { align-items: start; padding-top: 4px; }
 </style>
+<script>try { if (window.self !== window.top) document.documentElement.classList.add("embedded"); } catch (e) { document.documentElement.classList.add("embedded"); }</script>
 
 <div class="wrap">
   <header class="hud">
