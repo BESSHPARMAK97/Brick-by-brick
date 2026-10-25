@@ -3486,8 +3486,8 @@ window.VARS = {
     { id: "price_comm", name: "Цена коммерции с НДС", unit: "тг/м²", sec: "Продажи", owner: "Продажи", type: "num", path: "model.price_comm", better: "up", used: ["Финмодель"] },
     { id: "price_park", name: "Цена машино-места с НДС", unit: "тг/шт", sec: "Продажи", owner: "Продажи", type: "num", path: "model.price_park", better: "up", used: ["Финмодель"] },
     { id: "growth", name: "Рост цен", unit: "% в год", sec: "Продажи", owner: "Продажи", type: "num", path: "model.growth", better: "up", used: ["Финмодель"] },
-    { id: "sales_start", name: "Начало продаж", unit: "мес. от старта", sec: "Продажи", owner: "Продажи", type: "num", path: "model.sales_start", better: "down", used: ["Финмодель"] },
-    { id: "sales_dur", name: "Длительность продаж", unit: "мес.", sec: "Продажи", owner: "Продажи", type: "num", path: "model.sales_dur", better: "down", used: ["Финмодель"] },
+    { id: "sales_start", name: "Начало продаж", unit: "мес. от старта", sec: "Продажи", owner: "Продажи", calc: "График", better: "down", used: ["Финмодель", "ПК Start"] },
+    { id: "sales_dur", name: "Длительность продаж", unit: "мес.", sec: "Продажи", owner: "Продажи", calc: "График", better: "down", used: ["Финмодель", "ПК Start"] },
     { id: "sales", name: "Условия продаж", sec: "Продажи", owner: "Продажи", type: "text", path: "project.sales", used: ["Карточка", "ПК Start"] },
 
     { id: "land", name: "Стоимость земли", unit: "тг", sec: "Затраты", owner: "Развитие", type: "num", path: "model.land", better: "down", used: ["Финмодель", "Бюджет"] },
@@ -3507,11 +3507,11 @@ window.VARS = {
     { id: "cit", name: "КПН", unit: "%", sec: "Финансирование и налоги", owner: "Финансы", type: "num", path: "model.cit", used: ["Финмодель"] },
 
     { id: "sched_start", name: "Старт проекта", sec: "Сроки", owner: "Команда проекта", type: "month", path: "sched.start", used: ["График", "Отчёты"] },
-    { id: "land_m", name: "Покупка земли", unit: "мес. от старта", sec: "Сроки", owner: "Команда проекта", type: "num", path: "model.land_m", used: ["Финмодель"], dup: "График" },
-    { id: "design_start", name: "Начало проектирования", unit: "мес. от старта", sec: "Сроки", owner: "Команда проекта", type: "num", path: "model.design_start", used: ["Финмодель"], dup: "График" },
-    { id: "design_dur", name: "Длительность проектирования", unit: "мес.", sec: "Сроки", owner: "Команда проекта", type: "num", path: "model.design_dur", better: "down", used: ["Финмодель"], dup: "График" },
-    { id: "build_start", name: "Начало стройки", unit: "мес. от старта", sec: "Сроки", owner: "Команда проекта", type: "num", path: "model.build_start", better: "down", used: ["Финмодель"], dup: "График" },
-    { id: "build_dur", name: "Длительность стройки", unit: "мес.", sec: "Сроки", owner: "Команда проекта", type: "num", path: "model.build_dur", better: "down", used: ["Финмодель"], dup: "График" },
+    { id: "land_m", name: "Покупка земли", unit: "мес. от старта", sec: "Сроки", owner: "Команда проекта", calc: "График", used: ["Финмодель", "ПК Start"] },
+    { id: "design_start", name: "Начало проектирования", unit: "мес. от старта", sec: "Сроки", owner: "Команда проекта", calc: "График", used: ["Финмодель", "ПК Start"] },
+    { id: "design_dur", name: "Длительность проектирования", unit: "мес.", sec: "Сроки", owner: "Команда проекта", calc: "График", better: "down", used: ["Финмодель", "ПК Start"] },
+    { id: "build_start", name: "Начало стройки", unit: "мес. от старта", sec: "Сроки", owner: "Команда проекта", calc: "График", better: "down", used: ["Финмодель", "ПК Start"] },
+    { id: "build_dur", name: "Длительность стройки", unit: "мес.", sec: "Сроки", owner: "Команда проекта", calc: "График", better: "down", used: ["Финмодель", "ПК Start"] },
 
     { id: "fin_rev", name: "Выручка с НДС", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", better: "up", used: ["ПК Start", "Отчёты"] },
     { id: "fin_cost", name: "Затраты с НДС", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", better: "down", used: ["Бюджет", "ПК Start", "Карточка"] },
@@ -3607,7 +3607,7 @@ window.I18N = (function () {
     ["Цены продажи (с НДС)", "Сату бағалары (ҚҚС-пен)"], ["Жильё", "Тұрғын үй"], ["Машино-место", "Машина орны"], ["Рост цен", "Бағаның өсуі"],
     ["Затраты (с НДС)", "Шығындар (ҚҚС-пен)"], ["Земля", "Жер"], ["ИРД, изыскания, проект", "Рұқсат құжаттамасы, іздестірулер, жоба"], ["СМР", "ҚМЖ"], ["Внешние сети и подключение", "Сыртқы желілер және қосылу"],
     ["Технадзор, инжиниринг", "Техқадағалау, инжиниринг"], ["Резерв", "Резерв"], ["Маркетинг и продажи", "Маркетинг және сату"], ["Административные", "Әкімшілік"],
-    ["График, месяц от старта", "Кесте, бастаудан бергі ай"], ["Покупка земли", "Жерді сатып алу"], ["Начало проектирования", "Жобалаудың басталуы"], ["Длительность проектирования", "Жобалаудың ұзақтығы"],
+    ["Сроки из графика, месяц от старта", "Кестедегі мерзімдер, бастаудан бергі ай"], ["Меняются в разделе «График»: старт проекта и длительности этапов.", "«Кесте» бөлімінде өзгертіледі: жобаның басталуы және кезеңдердің ұзақтығы."], ["Открыть график", "Кестені ашу"], ["Покупка земли", "Жерді сатып алу"], ["Начало проектирования", "Жобалаудың басталуы"], ["Длительность проектирования", "Жобалаудың ұзақтығы"],
     ["Начало стройки", "Құрылыстың басталуы"], ["Длительность стройки", "Құрылыстың ұзақтығы"], ["Начало продаж", "Сатудың басталуы"], ["Длительность продаж", "Сатудың ұзақтығы"],
     ["Финансирование", "Қаржыландыру"], ["Собственный капитал", "Меншікті капитал"], ["Ставка кредита", "Несие мөлшерлемесі"], ["Ставка дисконтирования", "Дисконттау мөлшерлемесі"],
     ["Налоги", "Салықтар"], ["НДС", "ҚҚС"], ["Продажа жилья освобождена от НДС", "Тұрғын үйді сату ҚҚС-тан босатылған"], ["КПН", "КТС"],
@@ -4607,11 +4607,19 @@ window.ZHK_BOOT = function (document) {
     { title: "Объект", items: [["area_sale", "Продаваемая жилая площадь", "м²"], ["area_comm", "Коммерция", "м²"], ["parking", "Машино-места", "шт"], ["area_total", "Общая площадь здания (карточка)", "м²"]] },
     { title: "Цены продажи (с НДС)", items: [["price", "Жильё", "тг/м²"], ["price_comm", "Коммерция", "тг/м²"], ["price_park", "Машино-место", "тг/шт"], ["growth", "Рост цен", "% в год"]] },
     { title: "Затраты (с НДС)", items: [["land", "Земля", "тг"], ["design", "ИРД, изыскания, проект", "тг/м²"], ["smr", "СМР", "тг/м²"], ["nets", "Внешние сети и подключение", "тг/м²"], ["supervision", "Технадзор, инжиниринг", "% СМР"], ["reserve", "Резерв", "% СМР"], ["marketing", "Маркетинг и продажи", "% выручки"], ["admin", "Административные", "% выручки"]] },
-    { title: "График, месяц от старта", items: [["land_m", "Покупка земли", "мес."], ["design_start", "Начало проектирования", "мес."], ["design_dur", "Длительность проектирования", "мес."], ["build_start", "Начало стройки", "мес."], ["build_dur", "Длительность стройки", "мес."], ["sales_start", "Начало продаж", "мес."], ["sales_dur", "Длительность продаж", "мес."]] },
+    { title: "Сроки из графика, месяц от старта", items: [["land_m", "Покупка земли", "мес."], ["design_start", "Начало проектирования", "мес."], ["design_dur", "Длительность проектирования", "мес."], ["build_start", "Начало стройки", "мес."], ["build_dur", "Длительность стройки", "мес."], ["sales_start", "Начало продаж", "мес."], ["sales_dur", "Длительность продаж", "мес."]] },
     { title: "Финансирование", items: [["equity", "Собственный капитал", "тг"], ["rate", "Ставка кредита", "% год."], ["discount", "Ставка дисконтирования", "% год."]] },
     { title: "Налоги", items: [["vat", "НДС", "%"], ["vat_exempt", "Продажа жилья освобождена от НДС", "flag"], ["cit", "КПН", "%"]] }
   ];
   const INT_KEYS = ["land_m", "design_start", "design_dur", "build_start", "build_dur", "sales_start", "sales_dur"];
+  // Сроки финмодели не вводятся отдельно: они берутся из плана графика (одни сроки на весь проект).
+  // Месяцы финмодели целые и начинаются с 1; в графике месяцы от старта проекта начинаются с 0.
+  function schedMonths() {
+    const P = schedule().P, first = t => Math.floor(t) + 1, last = t => Math.max(1, Math.ceil(t));
+    const span = (a, b) => ({ start: first(a), dur: Math.max(1, last(b) - first(a) + 1) });
+    const d = span(Math.min(P.ird.es, P.survey.es), P.expert.ef), b = span(P.start.es, P.commission.ef), s = span(P.dolevka.es, P.handover.ef);
+    return { land_m: last(P.land.ef), design_start: d.start, design_dur: d.dur, build_start: b.start, build_dur: b.dur, sales_start: s.start, sales_dur: s.dur };
+  }
   const modelForm = document.getElementById("model-form");
   const modelOut = document.getElementById("model-out");
   const params = () => {
@@ -4619,13 +4627,14 @@ window.ZHK_BOOT = function (document) {
     Object.keys(S.model).forEach(k => { if (typeof S.model[k] === "number") p[k] = S.model[k]; });
     const at = parseNum(S.project.area_total); // общая площадь — одна на карточку и финмодель
     if (at > 0) p.area_total = at;
-    return p;
+    return Object.assign(p, schedMonths());
   };
 
   function buildModelForm() {
     modelForm.innerHTML = '<div class="section-title"><h2 class="view-title">Исходные данные</h2></div>' +
       '<p class="muted">Пример заполнен условными цифрами. Замените их своими: расчёт обновляется сразу и сохраняется для всей команды.</p>' +
-      MODEL_GROUPS.map(g => '<fieldset class="fs"><legend class="eyebrow">' + esc(g.title) + "</legend>" + g.items.map(([k, label, unit]) =>
+      MODEL_GROUPS.map(g => '<fieldset class="fs"><legend class="eyebrow">' + esc(g.title) + "</legend>" +
+        (g.items[0][0] === "land_m" ? '<p class="muted">Меняются в разделе «График»: старт проекта и длительности этапов.</p><button class="linkbtn" type="button" data-goview="gantt">Открыть график</button>' : "") + g.items.map(([k, label, unit]) =>
         unit === "flag"
           ? '<div class="inrow"><label for="mf-' + k + '">' + esc(label) + '</label><input type="checkbox" id="mf-' + k + '" data-mk="' + k + '"></div>'
           : '<div class="inrow"><label for="mf-' + k + '">' + esc(label) + '</label><span class="inbox"><input type="text" inputmode="decimal" id="mf-' + k + '" data-mk="' + k + '"><span>' + esc(unit) + "</span></span></div>"
@@ -4640,7 +4649,7 @@ window.ZHK_BOOT = function (document) {
       const k = el.dataset.mk;
       if (el.type === "checkbox") el.checked = !!p[k];
       else el.value = Math.abs(p[k]) >= 1000 ? num(p[k]) : String(p[k]).replace(".", ",");
-      el.disabled = readOnly;
+      el.disabled = readOnly || INT_KEYS.indexOf(k) >= 0;
     });
     const r = document.getElementById("model-reset"); if (r) r.hidden = readOnly;
   }
@@ -4757,6 +4766,7 @@ window.ZHK_BOOT = function (document) {
       if (INT_KEYS.indexOf(k) >= 0) v = Math.max(1, Math.round(v));
       el.value = Math.abs(v) >= 1000 ? num(v) : String(v).replace(".", ",");
     }
+    if (INT_KEYS.indexOf(k) >= 0) { syncModelForm(); return; }
     if (k === "area_total") { commit({ project: { area_total: num(v) }, model: { area_total: null } }, { defer: true }); return; }
     if (S.model[k] === v) return;
     commit({ model: { [k]: v } }, { defer: true });
@@ -5366,12 +5376,14 @@ window.ZHK_BOOT = function (document) {
   const pathGet = (st, path) => path.split(".").reduce((o, k) => (o && typeof o === "object") ? o[k] : undefined, st);
   const vType = v => v.type || (v.id.indexOf("keys_") === 0 ? "month" : v.id === "cur_stage" ? "text" : "num");
   function calcAll() {
-    const t = window.runModel(params()).t, G = schedule(), cur = byId[firstQuest()];
+    const t = window.runModel(params()).t, G = schedule(), cur = byId[firstQuest()], M = schedMonths();
     return {
       fin_rev: t.rev, fin_cost: t.costT, fin_cost_m2: t.costM2, fin_pbt: t.pbt, fin_net: t.net,
       fin_margin: t.margin * 100, fin_irr: t.irr == null ? null : t.irr * 100, fin_npv: t.npv, fin_peak_debt: t.peakDebt,
       cur_stage: cur.code + " · " + cur.name, stages_done: T.nodes.filter(isDone).length,
-      keys_plan: ymAdd(G.start, G.end), keys_fc: ymAdd(G.start, G.fend), delay: Math.max(0, G.fend - G.end)
+      keys_plan: ymAdd(G.start, G.end), keys_fc: ymAdd(G.start, G.fend), delay: Math.max(0, G.fend - G.end),
+      land_m: M.land_m, design_start: M.design_start, design_dur: M.design_dur, build_start: M.build_start, build_dur: M.build_dur,
+      sales_start: M.sales_start, sales_dur: M.sales_dur
     };
   }
   function modelVal(st, k) { const x = pathGet(st, "model." + k); return typeof x === "number" ? x : window.MODEL_DEFAULTS[k]; }
