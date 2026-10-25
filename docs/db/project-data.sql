@@ -111,6 +111,27 @@ create table baseline_values (
   primary key (baseline_id, variable_id)
 );
 
+-- Списки проекта: команда и реестр рисков. Это не переменные словаря: у проекта их переменное число.
+create table project_team (
+  id          uuid primary key default gen_random_uuid(),
+  project_id  uuid not null references projects(id),
+  role        text not null,                        -- Руководитель проекта, ГИП, начальник участка…
+  user_id     uuid references users(id),             -- null: роль не закрыта
+  zone        text,                                  -- зона ответственности
+  sort        int not null default 0
+);
+
+create table project_risks (
+  id          uuid primary key default gen_random_uuid(),
+  project_id  uuid not null references projects(id),
+  kind        text not null default 'risk' check (kind in ('risk', 'opportunity')),
+  level       text not null default 'mid' check (level in ('high', 'mid', 'low')),
+  title       text not null,
+  measure     text,                                  -- мера реагирования
+  owner_id    uuid references project_team(id),      -- ответственный из команды проекта
+  sort        int not null default 0
+);
+
 -- Изменение значения возвращает статус в «черновик»: утверждали другое число.
 create function reset_status() returns trigger language plpgsql as $$
 begin

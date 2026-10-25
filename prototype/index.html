@@ -181,6 +181,10 @@ button { cursor: pointer }
 .sl-kpi b { font-family: var(--f-display); font-size: 1.9cqw; font-weight: 500; color: #1b2129 }
 .sl-lead { margin: 0; font-size: 1.5cqw; color: #1b2129 }
 .sl-note { margin: auto 0 0; font-size: 1.2cqw; color: #5d6672; font-style: italic }
+.sl-mission { margin: 0; font-family: var(--f-display); font-size: 2.3cqw; line-height: 1.3; color: #1b2129 }
+.sl-k3 { grid-template-columns: repeat(3, 1fr) }
+.sl-risks td:nth-child(n+2) { font-weight: 400 }
+.sl-wide td.lv-high { color: #c2382f; font-weight: 600 } .sl-wide td.lv-mid { color: #b26a00; font-weight: 600 } .sl-wide td.lv-low { color: #1f8a54; font-weight: 600 }
 .sl-list { margin: 0; padding-left: 2.4cqw; display: grid; gap: 1.2cqw; font-size: 2cqw; color: #1b2129 }
 /* Шторка стандарта */
 .scrim { position: fixed; inset: 0; background: rgb(10 14 20 / .45); z-index: 20 }
@@ -220,16 +224,6 @@ th { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color:
 .kpi .big { font-family: var(--f-display); font-weight: 500; font-size: 1.5rem; line-height: 1.15; margin-top: 6px }
 .kpi .delta { font-size: .82rem; margin-top: 4px }
 .up { color: var(--ok) } .down { color: var(--bad) }
-.chess-wrap { overflow-x: auto }
-.chess { display: grid; gap: 3px; min-width: 420px }
-.chess .fl { font-family: var(--f-mono); font-size: .75rem; color: var(--muted); display: grid; place-items: center }
-.cell { height: 26px; border-radius: 4px; font-family: var(--f-mono); font-size: .68rem; display: grid; place-items: center; border: 0 }
-.c-sold { background: var(--ok); color: #fff }
-.c-res { background: var(--warn); color: #fff }
-.c-free { background: var(--surface-2); color: var(--muted); border: 1px solid var(--line) }
-.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: .82rem }
-.legend span { display: inline-flex; gap: 6px; align-items: center }
-.legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block }
 
 @media (max-width: 1000px) { .g5 { grid-template-columns: repeat(2, minmax(0, 1fr)) } .g3 { grid-template-columns: repeat(2, minmax(0, 1fr)) } .summary { grid-template-columns: repeat(2, minmax(0, 1fr)) } .summary > div { border-bottom: 1px solid var(--line) } }
 @media (max-width: 760px) {
@@ -3492,8 +3486,11 @@ east: {
 // Владельцы — черновик: отделы холдинга уточняются.
 window.VARS = {
   owners: ["Команда проекта", "Развитие", "Юристы", "Продажи", "ОРС", "Финансы"],
-  sections: ["Паспорт и ТЭП", "Участок и реквизиты", "Подбор стандартов", "Продажи", "Затраты", "Финансирование и налоги", "Сроки", "Результаты финмодели", "Ход проекта"],
+  sections: ["Миссия и KPI", "Паспорт и ТЭП", "Участок и реквизиты", "Подбор стандартов", "Продажи", "Затраты", "Финансирование и налоги", "Сроки", "Результаты финмодели", "Ход проекта"],
   items: [
+    { id: "mission", name: "Миссия проекта", sec: "Миссия и KPI", owner: "Команда проекта", type: "text", path: "project.mission", used: ["Карточка", "ПК Start"] },
+    { id: "kpi_nps", name: "Целевой NPS клиентов", unit: "баллов", sec: "Миссия и KPI", owner: "Команда проекта", type: "num", path: "project.kpi_nps", better: "up", used: ["Карточка", "ПК Start"] },
+    { id: "kpi_engagement", name: "Целевая вовлечённость команды", unit: "%", sec: "Миссия и KPI", owner: "Команда проекта", type: "num", path: "project.kpi_engagement", better: "up", used: ["Карточка", "ПК Start"] },
     { id: "name", name: "Название ЖК", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "text", path: "project.name", used: ["Карточка", "Образцы документов", "ПК Start", "Портфель"] },
     { id: "building", name: "Тип здания", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "text", path: "project.building", used: ["Карточка", "ПК Start"] },
     { id: "klass", name: "Класс жилья", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "sel", path: "project.klass", used: ["Стандарты", "Образцы документов", "ПК Start"] },
@@ -3735,7 +3732,9 @@ window.I18N = (function () {
     ["Пройдены все этапы дорожной карты", "Жол картасының барлық кезеңдері өтті"], ["Точно в срок", "Дәл уақытында"], ["Пройдено 5+ этапов, прогноз ключей без отставания", "5+ кезең өтті, кілттер болжамы артта қалмайды"],
     ["Без просрочек", "Мерзімі өтпеген"], ["10+ пунктов со сроками и ни одного просроченного", "Мерзімі бар 10+ тармақ және бірде-біреуі өтпеген"],
     ["Риск-менеджер", "Тәуекел-менеджер"], ["5+ рисков с мерой и ответственным", "Шарасы мен жауаптысы бар 5+ тәуекел"],
-    ["Казначей", "Қазынашы"], ["План бюджета задан для 10+ этапов", "10+ кезеңге бюджет жоспары берілген"],
+    ["Миссия проекта", "Жоба миссиясы"], ["Целевой NPS клиентов", "Клиенттердің мақсатты NPS"], ["Целевая вовлечённость команды", "Команданың мақсатты тартылуы"], ["Целевой NPS клиентов, баллов", "Клиенттердің мақсатты NPS, балл"], ["Целевая вовлечённость команды, %", "Команданың мақсатты тартылуы, %"], ["Бюджет и маржа", "Бюджет және маржа"], ["Срок ключей", "Кілттер мерзімі"], ["Риски и возможности", "Тәуекелдер мен мүмкіндіктер"], ["Риск", "Тәуекел"], ["Возможность", "Мүмкіндік"], ["Тип", "Түрі"], ["Описание", "Сипаттама"], ["Мера реагирования", "Әрекет ету шарасы"], ["Добавить риск", "Тәуекел қосу"], ["ФИО", "Аты-жөні"], ["Зона ответственности", "Жауапкершілік аймағы"], ["Добавить роль", "Рөл қосу"], ["Добавить типовые роли", "Үлгілік рөлдерді қосу"], ["Не назначен", "Тағайындалмаған"], ["Команда ещё не заполнена. Добавьте типовые роли и впишите ФИО.", "Команда әлі толтырылмаған. Үлгілік рөлдерді қосып, аты-жөнін жазыңыз."], ["Рисков пока нет. Добавьте риски и возможности проекта: они попадут в презентацию ПК Start.", "Әзірге тәуекелдер жоқ. Жобаның тәуекелдері мен мүмкіндіктерін қосыңыз: олар ПК Start презентациясына түседі."], ["Роли, ФИО и зоны ответственности. Команда попадает в презентацию ПК Start и в список ответственных за риски.", "Рөлдер, аты-жөні және жауапкершілік аймақтары. Команда ПК Start презентациясына және тәуекелдерге жауаптылар тізіміне түседі."], ["Пустое ФИО в презентации показывается как «Не назначен».", "Бос аты-жөні презентацияда «Тағайындалмаған» болып көрсетіледі."],
+    ["Передача ключей по плану", "Жоспар бойынша кілт табыстау"], ["Передача ключей по прогнозу", "Болжам бойынша кілт табыстау"], ["Праздник единства народа Казахстана", "Қазақстан халқының бірлігі мерекесі"], ["День защитника Отечества", "Отан қорғаушы күні"], ["День Победы", "Жеңіс күні"], ["День столицы", "Астана күні"], ["День Конституции", "Конституция күні"], ["День Республики", "Республика күні"], ["День Независимости", "Тәуелсіздік күні"], ["Добавить партнёра", "Серіктес қосу"], ["Организация", "Ұйым"], ["Предмет", "Пәні"], ["Не выбран", "Таңдалмаған"], ["Партнёров пока нет. Добавьте типовые роли и впишите организации.", "Әзірге серіктестер жоқ. Үлгілік рөлдерді қосып, ұйымдарды жазыңыз."], ["Подрядчики, поставщики и финансовые партнёры проекта. Хранятся в данных проекта.", "Жобаның мердігерлері, жеткізушілері және қаржы серіктестері. Жоба деректерінде сақталады."], ["Показатели проекта", "Жоба көрсеткіштері"], ["Сроки", "Мерзімдер"], ["Данные проекта", "Жоба деректері"], ["Все показатели считаются из данных проекта: графика, бюджета, финмодели, реестра документов.", "Барлық көрсеткіштер жоба деректерінен есептеледі: кесте, бюджет, қаржы моделі, құжаттар тізілімі."], ["Собирается из данных проекта: старты этапов и ключи — из графика, сроки — из чек-листов дорожной карты и реестра документов. Праздники РК — справочник.", "Жоба деректерінен жиналады: кезеңдердің басталуы мен кілттер — кестеден, мерзімдер — жол картасының чек-парақтары мен құжаттар тізілімінен. ҚР мерекелері — анықтамалық."], ["Сначала заполните", "Алдымен толтырыңыз"],
+    ["Казначей", "Қазынашы"], ["Факт бюджета внесён по 5+ этапам", "5+ кезең бойынша бюджет фактісі енгізілді"], ["План из финмодели, тг", "Қаржы моделінен жоспар, тг"], ["План считается из финмодели автоматически: земля, проектирование по этапам проекта, СМР с технадзором и резервом по этапам стройки, сети, маркетинг, административные расходы и проценты. Чтобы изменить план, измените исходные данные финмодели или сроки в графике.", "Жоспар қаржы моделінен автоматты түрде есептеледі: жер, жоба кезеңдері бойынша жобалау, құрылыс кезеңдері бойынша техқадағалау мен резервті қоса ҚМЖ, желілер, маркетинг, әкімшілік шығыстар және пайыздар. Жоспарды өзгерту үшін қаржы моделінің бастапқы деректерін немесе кестедегі мерзімдерді өзгертіңіз."],
     ["Документы под контролем", "Құжаттар бақылауда"], ["5+ документов в реестре сроков, ни одного истёкшего", "Мерзімдер тізілімінде 5+ құжат, бірде-біреуінің мерзімі өтпеген"],
     ["Полный архив", "Толық мұрағат"], ["10+ вложений к пунктам чек-листов", "Чек-парақ тармақтарына 10+ тіркеме"],
     ["Командная работа", "Командалық жұмыс"], ["В журнале действия 3+ участников", "Журналда 3+ қатысушының әрекеттері"],
@@ -3937,7 +3936,7 @@ window.ZHK_BOOT = function (document) {
   const RANKS = [[0, "Стажёр"], [1, "Аналитик"], [4, "Девелопер"], [8, "Застройщик"], [13, "Генеральный застройщик"], [21, "Магнат ЖК"]];
   const STATUS = { locked: "Закрыт", open: "Доступен", active: "В работе", risk: "Начат с риском", done: "Пройден" };
   const LOCAL_KEY = "zhk-skill-tree-v2", LEGACY_KEY = "zhk-skill-tree-v1";
-  const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines", "sched", "vars", "baseline"];
+  const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines", "sched", "vars", "baseline", "risks", "team", "partners"];
   const VIEWS = ["tree", "gantt", "model", "budget", "deadlines", "projects"];
 
   // S — всё состояние проекта, хранится одним документом.
@@ -4151,7 +4150,8 @@ window.ZHK_BOOT = function (document) {
   // --- budget state -------------------------------------------------------
   const EXTRA_ROWS = [{ id: "_interest", code: "—", name: "Проценты по кредиту" }, { id: "_admin", code: "—", name: "Административные расходы" }];
   const budgetRows = () => T.nodes.concat(EXTRA_ROWS);
-  const bOf = id => S.budget[id] || {};
+  // План бюджета не вводится: он всегда считается из финмодели (planAll). Вручную вносятся только факт и комментарий.
+  const bOf = id => Object.assign({}, S.budget[id] || {}, { plan: planAll()[id] || 0 });
   function budgetTotals() {
     let plan = 0, fact = 0, over = 0;
     budgetRows().forEach(r => {
@@ -4477,7 +4477,7 @@ window.ZHK_BOOT = function (document) {
     const dev = (b.fact || 0) - (b.plan || 0);
     const devTxt = b.plan ? (dev > 0 ? "Перерасход " + money(dev) : "Остаток " + money(-dev)) : "План не задан";
     return '<div><div class="section-title"><h3 class="eyebrow">Бюджет этапа</h3><span class="dev mono" style="font-size:12px" data-tone="' + (b.plan && dev > 0 ? "bad" : "") + '">' + devTxt + "</span></div>" +
-      '<div class="budget-mini"><label class="field" for="pb-plan"><span>План, тг</span><input class="tin" type="text" inputmode="decimal" id="pb-plan" data-b="plan" data-id="' + n.id + '" value="' + (b.plan ? num(b.plan) : "") + '"' + dis + "></label>" +
+      '<div class="budget-mini"><div class="field"><span>План из финмодели, тг</span><b class="mono">' + (b.plan ? num(b.plan) : "—") + "</b></div>" +
       '<label class="field" for="pb-fact"><span>Факт, тг</span><input class="tin" type="text" inputmode="decimal" id="pb-fact" data-b="fact" data-id="' + n.id + '" value="' + (b.fact ? num(b.fact) : "") + '"' + dis + "></label></div></div>";
   }
 
@@ -4530,6 +4530,7 @@ window.ZHK_BOOT = function (document) {
       commit({ budget: { [id]: { note: v } } }, { defer: true });
       return;
     }
+    if (f !== "fact") return;
     const v = parseNum(el.value);
     if (el.value.trim() !== "" && v == null) { toast("Введите сумму цифрами"); el.value = bOf(id)[f] ? num(bOf(id)[f]) : ""; return; }
     const val = v == null ? 0 : Math.round(v);
@@ -4783,7 +4784,6 @@ window.ZHK_BOOT = function (document) {
       '<div class="card"><div class="section-title"><h3 class="eyebrow">Структура затрат</h3></div><div class="tablewrap"><table class="t"><tr><th>Статья</th><th class="num">Сумма</th><th class="num">Доля</th></tr>' + catRows + "</table></div>" +
         '<div class="row" style="margin-top:12px">' +
           (downloads ? '<button class="btn" type="button" id="model-csv">Скачать помесячный поток (Excel)</button>' : "") +
-          (readOnly ? "" : '<button class="btn" type="button" data-plan-from-model>Перенести в бюджет как план</button>') +
         "</div></div>" +
       '<p class="muted">Упрощения модели: продажи равномерны по месяцам, деньги покупателей поступают в месяц продажи, СМР распределены по S-кривой, входящий НДС зачитывается пропорционально доле облагаемой выручки, КПН платится в конце проекта. Цифры примера условные.</p>';
   }
@@ -4824,27 +4824,26 @@ window.ZHK_BOOT = function (document) {
       const rows = R.months.map(m => [m.m, m.rev, m.cat.land, m.cat.design, m.cat.smr, m.cat.nets, m.cat.supervision, m.cat.reserve, m.cat.marketing, m.cat.admin, m.vat, m.interest, m.rev - m.cost - m.vat, m.cum, m.debt].map(v => Math.round(v)).join(";"));
       save(fileName({ title: "Финмодель помесячно" }, "csv"), "﻿" + [head.join(";")].concat(rows).join("\r\n"));
     }
-    if (e.target.closest("[data-plan-from-model]")) { planFromModel(); setView("budget", true); }
   });
 
   // --- budget -------------------------------------------------------------
   const budgetEl = document.getElementById("view-budget");
   const SPLIT_DESIGN = { ird: 0.10, survey: 0.10, sketch: 0.20, psd: 0.50, expert: 0.10 };
   const SPLIT_SMR = { start: 0.02, zero: 0.18, frame: 0.35, envelope: 0.17, mep: 0.18, finish: 0.10 };
-  function planFromModel() {
-    const R = window.runModel(params()), c = R.byCat;
-    const plan = {};
+  let planCache = { key: "", plan: {} };
+  function planAll() {
+    const p = params(), key = JSON.stringify(p);
+    if (key === planCache.key) return planCache.plan;
+    const R = window.runModel(p), c = R.byCat, plan = {};
     budgetRows().forEach(r => { plan[r.id] = 0; });
     plan.land = c.land;
     Object.keys(SPLIT_DESIGN).forEach(k => { plan[k] += c.design * SPLIT_DESIGN[k]; });
     Object.keys(SPLIT_SMR).forEach(k => { plan[k] += (c.smr + c.supervision + c.reserve) * SPLIT_SMR[k]; });
     plan.nets = c.nets; plan.dolevka = c.marketing; plan._admin = c.admin; plan._interest = R.t.interest;
-    const patch = {};
-    Object.keys(plan).forEach(k => { patch[k] = { plan: Math.round(plan[k] / 1000) * 1000 }; });
-    commit({ budget: patch });
-    toast("План бюджета заполнен из финмодели");
+    Object.keys(plan).forEach(k => { plan[k] = Math.round(plan[k] / 1000) * 1000; });
+    planCache = { key, plan };
+    return plan;
   }
-  let confirmPlan = false;
   const bKpis = document.getElementById("b-kpis"), bTable = document.getElementById("b-table");
   function renderBudgetKpis() {
     const bt = budgetTotals(), dev = bt.fact - bt.plan;
@@ -4865,33 +4864,26 @@ window.ZHK_BOOT = function (document) {
       const over = b.plan > 0 && d > 0;
       const share = b.plan ? Math.min((b.fact || 0) / b.plan, 1) : 0;
       return "<tr><td><span class=\"mono\" style=\"color:var(--muted)\">" + r.code + "</span> " + esc(r.name) + "</td>" +
-        '<td><input class="tin" type="text" inputmode="decimal" aria-label="План: ' + esc(r.name) + '" data-b="plan" data-id="' + r.id + '" value="' + (b.plan ? num(b.plan) : "") + '"' + dis + "></td>" +
+        '<td class="num">' + (b.plan ? num(b.plan) : "—") + "</td>" +
         '<td><input class="tin" type="text" inputmode="decimal" aria-label="Факт: ' + esc(r.name) + '" data-b="fact" data-id="' + r.id + '" value="' + (b.fact ? num(b.fact) : "") + '"' + dis + "></td>" +
-        '<td class="num dev" data-tone="' + (over ? "bad" : b.plan && b.fact ? "good" : "") + '">' + (b.plan || b.fact ? (d > 0 ? "+" : "") + num(d) : "") + "</td>" +
+        '<td class="num dev" data-tone="' + (over ? "bad" : b.plan && b.fact ? "good" : "") + '">' + (b.fact ? (d > 0 ? "+" : "") + num(d) : "") + "</td>" +
         '<td><div class="meter" data-tone="' + (over ? "bad" : "") + '" title="' + (b.plan ? pct((b.fact || 0) / b.plan) : "") + '"><i style="width:' + Math.round(share * 100) + '%"></i></div></td>' +
         '<td><input class="tin note" type="text" maxlength="120" aria-label="Комментарий: ' + esc(r.name) + '" data-b="note" data-id="' + r.id + '" value="' + esc(b.note || "") + '"' + dis + "></td></tr>";
     }).join("");
-    const hasPlan = budgetRows().some(r => bOf(r.id).plan);
     bTable.innerHTML =
       '<div class="card"><div class="section-title"><h2 class="view-title">План и факт по этапам</h2><div class="row">' +
-        (readOnly ? "" : confirmPlan
-          ? '<span class="muted">Заменить текущий план расчётом из финмодели?</span><button class="btn primary" type="button" data-plan-yes>Да, заменить</button><button class="btn ghost" type="button" data-plan-no>Отмена</button>'
-          : '<button class="btn" type="button" data-plan-ask>Заполнить план из финмодели</button>') +
         (downloads ? '<button class="btn" type="button" data-budget-csv>Скачать (Excel)</button>' : "") +
       "</div></div>" +
       '<p class="muted">Суммы в тенге с НДС. Факт вводите нарастающим итогом по оплаченным счетам. Строка краснеет, когда факт превышает план.</p>' +
+      '<p class="muted">План считается из финмодели автоматически: земля, проектирование по этапам проекта, СМР с технадзором и резервом по этапам стройки, сети, маркетинг, административные расходы и проценты. Чтобы изменить план, измените исходные данные финмодели или сроки в графике.</p>' +
       '<div class="tablewrap" style="margin-top:10px"><table class="t"><tr><th>Этап</th><th class="num">План, тг</th><th class="num">Факт, тг</th><th class="num">Отклонение</th><th>Освоение</th><th>Комментарий</th></tr>' + rows +
         '<tr class="total"><td>Итого</td><td class="num">' + num(bt.plan) + '</td><td class="num">' + num(bt.fact) + '</td><td class="num dev" data-tone="' + (bt.plan && dev > 0 ? "bad" : "") + '">' + (dev > 0 ? "+" : "") + num(dev) + "</td><td></td><td></td></tr></table></div>" +
-      (hasPlan ? "" : '<p class="muted" style="margin-top:10px">План пока пуст. Заполните его вручную или нажмите «Заполнить план из финмодели».</p>') + "</div>";
+"</div>";
   });
   function renderBudget(force) { renderBudgetKpis(); renderBudgetTable(force); }
   budgetEl.addEventListener("change", e => { if (e.target.dataset.b) onBudgetInput(e.target); });
   budgetEl.addEventListener("click", e => {
-    if (e.target.closest("[data-plan-ask]")) {
-      if (budgetRows().some(r => bOf(r.id).plan)) { confirmPlan = true; renderBudgetTable(true); } else planFromModel();
-    } else if (e.target.closest("[data-plan-yes]")) { confirmPlan = false; planFromModel(); }
-    else if (e.target.closest("[data-plan-no]")) { confirmPlan = false; renderBudgetTable(true); }
-    else if (e.target.closest("[data-budget-csv]")) {
+    if (e.target.closest("[data-budget-csv]")) {
       const lines = ["Этап;План, тг;Факт, тг;Отклонение, тг;Комментарий"].concat(budgetRows().map(r => {
         const b = bOf(r.id);
         return [r.code + " " + r.name, b.plan || 0, b.fact || 0, (b.fact || 0) - (b.plan || 0), (b.note || "").replace(/;/g, ",")].join(";");
@@ -5254,6 +5246,30 @@ window.ZHK_BOOT = function (document) {
     if (y) { projDel = null; deleteProject(y.dataset.projDelYes); }
   });
 
+  // --- риски и команда ----------------------------------------------------
+  // Списки проекта: S.risks и S.team — объекты {id: запись}; удалённая запись хранится как null, чтобы удаление дошло до команды.
+  // Ответственный за риск хранится ссылкой на участника команды (who): переименовали роль или вписали ФИО — риск показывает новое.
+  const LIST_FIELDS = { risks: ["kind", "level", "title", "measure", "who"], team: ["role", "name", "zone"], partners: ["role", "org", "subject", "status"] };
+  function listOf(k) {
+    const o = S[k] || {};
+    return Object.keys(o).filter(id => isObj(o[id])).map(id => Object.assign({ id }, o[id])).sort((a, b) => (a.o || 0) - (b.o || 0) || (a.id < b.id ? -1 : 1));
+  }
+  function setItem(k, id, patch) {
+    if (readOnly || !LIST_FIELDS[k]) return null;
+    if (patch === null) { if (id) commit({ [k]: { [id]: null } }); return id; }
+    const clean = {};
+    Object.keys(patch || {}).forEach(f => { if (LIST_FIELDS[k].indexOf(f) >= 0) clean[f] = String(patch[f] == null ? "" : patch[f]).trim().slice(0, 300); });
+    if (!id || !isObj((S[k] || {})[id])) { id = id || newId(); clean.o = Date.now(); }
+    commit({ [k]: { [id]: clean } });
+    return id;
+  }
+  function addItems(k, rows) {
+    if (readOnly || !LIST_FIELDS[k]) return;
+    const patch = {}, t = Date.now();
+    rows.forEach((r, i) => { const c = { o: t + i }; LIST_FIELDS[k].forEach(f => { c[f] = String(r[f] || ""); }); patch[newId() + i] = c; });
+    commit({ [k]: patch });
+  }
+
   // --- achievements -------------------------------------------------------
   const ACH = [
     ["first", "Первый шаг", "Отмечен первый пункт чек-листа", c => c.tasksDone >= 1],
@@ -5265,7 +5281,8 @@ window.ZHK_BOOT = function (document) {
     ["magnate", "Магнат ЖК", "Пройдены все этапы дорожной карты", c => T.nodes.every(isDone)],
     ["ontime", "Точно в срок", "Пройдено 5+ этапов, прогноз ключей без отставания", c => c.stages >= 5 && c.delay <= 0.25],
     ["nolate", "Без просрочек", "10+ пунктов со сроками и ни одного просроченного", c => c.dueCount >= 10 && c.late === 0],
-    ["budget", "Казначей", "План бюджета задан для 10+ этапов", c => c.planned >= 10],
+    ["budget", "Казначей", "Факт бюджета внесён по 5+ этапам", c => c.factStages >= 5],
+    ["risk", "Риск-менеджер", "5+ рисков с мерой и ответственным", c => c.risksOk >= 5],
     ["docs", "Документы под контролем", "5+ документов в реестре сроков, ни одного истёкшего", c => c.docs >= 5 && c.expired === 0],
     ["archive", "Полный архив", "10+ вложений к пунктам чек-листов", c => c.att >= 10],
     ["model", "Финансист", "Финмодель заполнена своими цифрами", c => c.modelKeys >= 5]
@@ -5282,7 +5299,8 @@ window.ZHK_BOOT = function (document) {
       tasksDone: T.nodes.reduce((s, n) => s + doneCount(n), 0), stages: T.nodes.filter(isDone).length, delay: G.fend - G.end,
       contourMonth: envDates.length ? +envDates[envDates.length - 1].slice(5, 7) : 0,
       dueCount, late: T.nodes.reduce((s, n) => s + lateCount(n), 0), att,
-      planned: budgetRows().filter(r => bOf(r.id).plan > 0).length,
+      factStages: budgetRows().filter(r => (bOf(r.id).fact || 0) > 0).length,
+      risksOk: listOf("risks").filter(r => r.measure && (isObj((S.team || {})[r.who]) || r.owner)).length,
       docs: dl.length, expired: dl.filter(d => dlStatus(d).level === 3).length,
       modelKeys: Object.keys(S.model).filter(k => typeof S.model[k] === "number").length
     };
@@ -5410,7 +5428,7 @@ window.ZHK_BOOT = function (document) {
       resetZone.innerHTML = '<span class="reset-confirm">Сбросить отметки, назначения и досрочные старты? Карточка проекта, финмодель, бюджет и реестр сроков останутся. <button class="btn" id="reset-yes">Да, сбросить</button><button class="btn ghost" id="reset-no">Отмена</button></span>';
     } else if (e.target.id === "reset-yes" || e.target.id === "reset-no") {
       if (e.target.id === "reset-yes" && !readOnly) {
-        S = normalize({ project: S.project, model: S.model, budget: S.budget, deadlines: S.deadlines, sched: S.sched, vars: S.vars, baseline: S.baseline });
+        S = normalize({ project: S.project, model: S.model, budget: S.budget, deadlines: S.deadlines, sched: S.sched, vars: S.vars, baseline: S.baseline, risks: S.risks, team: S.team, partners: S.partners });
         openEdits.clear();
         saveLocal();
         if (docRef) { const ref = docRef, proj = curProject, full = JSON.parse(JSON.stringify(S)); writeChain = writeChain.then(() => ref.set(full).then(() => { if (proj === curProject) docExists = true; }).catch(() => {})); }
@@ -5583,6 +5601,23 @@ window.ZHK_BOOT = function (document) {
         today: today().split("-").reverse().join(".")
       };
     },
+    // Риски и команда проекта: общие списки для портала и презентации ПК Start.
+    list: k => listOf(k),
+    setItem: (k, id, patch) => setItem(k, id, patch),
+    addItems: (k, rows) => addItems(k, rows),
+    // Календарь собирается из данных проекта: этапы и ключи — из графика, сроки — из чек-листов и реестра документов.
+    events: () => {
+      const G = schedule(), P = G.P, ev = [];
+      const iso = m => { const ym = ymAdd(G.start, m), d = Math.min(28, 1 + Math.floor((m - Math.floor(m)) * 30)); return ym + "-" + String(d).padStart(2, "0"); };
+      G.order.forEach(n => { if (n.id !== "warranty" || P[n.id].dur) ev.push({ date: iso(P[n.id].es), kind: "stage", title: "Начало этапа " + n.code + " · " + n.name }); });
+      ev.push({ date: iso(Math.max(G.end - 0.01, 0)), kind: "keys", title: "Передача ключей по плану" });
+      if (G.fend - G.end > 0.25) ev.push({ date: iso(G.fend - 0.01), kind: "keys", title: "Передача ключей по прогнозу" });
+      T.nodes.forEach(n => n.tasks.forEach((t, i) => { const k = key(n, i), m = metaOf(k); if (m.due && !S.checked[k]) ev.push({ date: m.due, kind: "due", title: n.code + " · " + t }); }));
+      deadlineList().forEach(d => { if (d.expires) ev.push({ date: d.expires, kind: "doc", title: "Истекает: " + d.title }); });
+      return ev.sort((a, b) => a.date.localeCompare(b.date));
+    },
+    budget: () => budgetTotals(),
+    docs: () => { const dl = deadlineList(); return { total: dl.length, soon: dl.filter(d => dlStatus(d).level === 1 || dlStatus(d).level === 2).length, expired: dl.filter(d => dlStatus(d).level === 3).length }; },
     save: (filename, data) => save(filename, data),
     canSave: () => !!downloads,
     fixBaseline: () => {
@@ -5598,7 +5633,7 @@ window.ZHK_BOOT = function (document) {
 </script>
 
 <script>
-const TODAY = new Date(2026, 9, 25);
+const TODAY = (d => new Date(d.getFullYear(), d.getMonth(), d.getDate()))(new Date());
 
 // ---------- Данные (пример) ----------
 const OPTIONS = {
@@ -5680,45 +5715,40 @@ const STD = [
     checks: ["Керамогранит в лобби по дизайн-проекту", "Почтовые ящики и навигация на двух языках", "Освещение с датчиками движения"], nom: [["СМР", "15-01-020", "Облицовка пола керамогранитом", "м²"]] },
 ];
 
-const KIND = { gpr: ["ГПР", "k-gpr"], tender: ["Тендер", "k-tender"], com: ["Комиссия", "k-com"], keys: ["Передача ключей", "k-keys"], hol: ["Праздник РК", "k-hol"] };
-const EVENTS = [
-  ["2026-10-25", "hol", "День Республики — выходной"],
-  ["2026-10-28", "tender", "Тендер: поставка бетона B30 на каркас"],
-  ["2026-11-02", "com", "Комиссия по готовности площадки к СМР"],
-  ["2026-11-05", "gpr", "Начало земляных работ, котлован"],
-  ["2026-11-12", "tender", "Тендер: генподряд на монолитный каркас"],
-  ["2026-11-20", "gpr", "Переход на зимнее бетонирование (СТ-СМР-022)"],
-  ["2026-12-01", "gpr", "Фундаментная плита, подъезд 1"],
-  ["2026-12-16", "hol", "День Независимости"],
-  ["2026-12-22", "com", "Приёмка фундаментной плиты технадзором"],
-  ["2027-01-01", "hol", "Новый год (1–2 января)"],
-  ["2027-01-07", "hol", "Рождество Христово"],
-  ["2027-01-18", "gpr", "Каркас: 1-й этаж, подъезд 1"],
-  ["2027-02-10", "tender", "Тендер: фасадная система"],
-  ["2027-03-08", "hol", "Международный женский день"],
-  ["2027-03-21", "hol", "Наурыз мейрамы (21–23 марта)"],
-  ["2028-12-20", "keys", "Плановая передача ключей дольщикам"],
-];
+const KIND = { stage: ["Этапы графика", "k-gpr"], keys: ["Передача ключей", "k-keys"], due: ["Сроки чек-листов", "k-com"], doc: ["Документы", "k-tender"], hol: ["Праздник РК", "k-hol"] };
+// Праздники РК — справочник, не данные проекта.
+const HOLIDAYS = [["01-01", "Новый год (1–2 января)"], ["01-07", "Рождество Христово"], ["03-08", "Международный женский день"], ["03-21", "Наурыз мейрамы (21–23 марта)"],
+  ["05-01", "Праздник единства народа Казахстана"], ["05-07", "День защитника Отечества"], ["05-09", "День Победы"], ["07-06", "День столицы"],
+  ["08-30", "День Конституции"], ["10-25", "День Республики"], ["12-16", "День Независимости"]];
+// События календаря: из графика, чек-листов и реестра документов; праздники — на 18 месяцев вперёд.
+function calEvents() {
+  const ev = window.ZHK ? window.ZHK.events() : [], y = TODAY.getFullYear(), till = new Date(y, TODAY.getMonth() + 18, 1);
+  [y, y + 1].forEach(yy => HOLIDAYS.forEach(([md, t]) => { const d = new Date(yy + "-" + md); if (d >= new Date(y, TODAY.getMonth(), 1) && d < till) ev.push({ date: yy + "-" + md, kind: "hol", title: t }); }));
+  return ev.sort((a, b) => a.date.localeCompare(b.date));
+}
 
-const TEAM = [
-  ["Руководитель проекта", "Е. Оспанов", "Сроки, бюджет, проектный комитет"],
-  ["Главный инженер проекта", "А. Ким", "Проектные решения, раздел КЖ"],
-  ["Начальник участка", "Д. Жумабеков", "Каркас, захватки, бригады"],
-  ["Инженер ПТО", "М. Ахметова", "Исполнительная документация, ППР"],
-  ["Инженер технадзора", "С. Нурланов", "Скрытые работы, качество"],
-  ["Специалист БиОТ", null, "Наряды-допуски, инструктажи"],
-  ["Сметчик", "Г. Абенова", "Сметная номенклатура СМР и ТМЦ"],
-  ["Финансист проекта", "Р. Исмаилов", "Финмодель, освоение бюджета"],
-  ["Маркетинг и продажи", "Л. Сейткали", "Рендеры, буклеты, шахматка"],
+// Типовые роли команды проекта: заготовка, которую команда заполняет своими ФИО. Сама команда хранится в данных проекта.
+const TEAM_ROLES = [
+  ["Руководитель проекта", "Сроки, бюджет, проектный комитет"],
+  ["Главный инженер проекта", "Проектные решения, раздел КЖ"],
+  ["Начальник участка", "Каркас, захватки, бригады"],
+  ["Инженер ПТО", "Исполнительная документация, ППР"],
+  ["Инженер технадзора", "Скрытые работы, качество"],
+  ["Специалист БиОТ", "Наряды-допуски, инструктажи"],
+  ["Сметчик", "Сметная номенклатура СМР и ТМЦ"],
+  ["Финансист проекта", "Финмодель, освоение бюджета"],
+  ["Маркетинг и продажи", "Рендеры, буклеты, шахматка"],
 ];
+const RISK_KIND = { risk: "Риск", opp: "Возможность" };
+const RISK_LEVEL = { high: ["Высокий", "s-fail"], mid: ["Средний", "s-changed"], low: ["Низкий", "s-done"] };
+const LEVEL_ORDER = { high: 0, mid: 1, low: 2 };
+const memberName = m => [m.role, m.name].filter(Boolean).join(" — ") || "Без роли";
+// Ответственный за риск — участник команды по ссылке; старые записи с текстом показываются как есть.
+const riskOwner = (r, team) => { const m = team.find(x => x.id === r.who); return m ? memberName(m) : r.owner || ""; };
 
-const PARTNERS = [
-  ["Генподрядчик", "Тендер до 12.11.2026", "СМР каркаса", "wait"],
-  ["Поставщик бетона", "ТОО «Пример Бетон»", "B30 W8 F150, до 400 м³/сутки", "ok"],
-  ["Поставщик арматуры", "ТОО «Пример Металл»", "A500С, A240", "ok"],
-  ["Проектный институт", "ТОО «Пример Проект»", "Рабочий проект, авторский надзор", "ok"],
-  ["Банк-партнёр", "АО «Пример Банк»", "Ипотека для дольщиков", "ok"],
-];
+// Типовые партнёры проекта: заготовка; сами партнёры хранятся в данных проекта.
+const PARTNER_ROLES = [["Генподрядчик", "СМР каркаса"], ["Поставщик бетона", "Бетон для каркаса"], ["Поставщик арматуры", "Арматура"], ["Проектный институт", "Рабочий проект, авторский надзор"], ["Банк-партнёр", "Проектное финансирование, ипотека"]];
+const PARTNER_ST = { tender: ["Тендер", "s-new"], contract: ["Договор", "s-done"] };
 
 // ---------- Состояние ----------
 const store = {
@@ -5749,10 +5779,10 @@ const VIEWS = {
   card: { g: "Проект", t: "Карточка проекта", cnt: () => "", r: viewCard },
   data: { g: "Проект", t: "Данные проекта", cnt: () => "", r: viewData },
   standards: { g: "Проект", t: "Стандарты", cnt: () => relevant().length, r: viewStandards },
-  calendar: { g: "Проект", t: "Календарь событий", cnt: () => EVENTS.filter(e => new Date(e[0]) >= TODAY).length, r: viewCal },
-  team: { g: "Проект", t: "Команда проекта", cnt: () => TEAM.length, r: viewTeam },
+  calendar: { g: "Проект", t: "Календарь событий", cnt: () => calEvents().filter(e => e.kind !== "hol" && new Date(e.date) >= TODAY).length || "", r: viewCal },
+  team: { g: "Проект", t: "Команда проекта", cnt: () => window.ZHK ? window.ZHK.list("team").length || "" : "", r: viewTeam },
   kpi: { g: "Проект", t: "Показатели", cnt: () => "", r: viewKpi },
-  partners: { g: "Проект", t: "Партнёры", cnt: () => PARTNERS.length, r: viewPartners },
+  partners: { g: "Проект", t: "Партнёры", cnt: () => window.ZHK ? window.ZHK.list("partners").length || "" : "", r: viewPartners },
   roadmap: { g: "Дорожная карта", z: "tree", t: "Этапы и чек-листы", cnt: () => "", r: Z("Этапы и чек-листы", "От анализа рынка до гарантии, включая проектный комитет «Start». Этап открывается, когда закрыты условия перехода на предыдущих.") },
   gantt: { g: "Дорожная карта", z: "gantt", t: "График", cnt: () => "", r: Z("График строительства", "Диаграмма Ганта из связей этапов, критический путь и прогноз даты ключей.") },
   model: { g: "Проект", p: "kpi", z: "model", t: "Финмодель", cnt: () => "", r: Z("Финансовая модель", "Помесячный денежный поток, НДС, кредит, КПН, IRR и NPV.") },
@@ -5762,8 +5792,8 @@ const VIEWS = {
   projects: { g: "Компания", z: "projects", t: "Портфель проектов", cnt: () => "", r: Z("Портфель проектов", "Все ЖК компании и их прогресс по дорожной карте.") },
 };
 
-function head(title, sub) {
-  return `<div class="topbar"><div class="stack" style="gap:4px"><div class="crumbs"><span class="label">${esc(projTitle())}</span></div><h1>${title}</h1>${sub ? `<div class="muted">${sub}</div>` : ""}</div><span class="demo">Демо-данные</span></div>`;
+function head(title, sub, demo) {
+  return `<div class="topbar"><div class="stack" style="gap:4px"><div class="crumbs"><span class="label">${esc(projTitle())}</span></div><h1>${title}</h1>${sub ? `<div class="muted">${sub}</div>` : ""}</div>${demo ? '<span class="demo">Демо-данные</span>' : ""}</div>`;
 }
 
 function viewCard() {
@@ -5777,6 +5807,13 @@ function viewCard() {
   const zone = p.region || "";
   return head("Карточка проекта", "Одна карточка для портала и дорожной карты. Данные видит вся команда проекта.") + `
   <div class="hint"><span>⚙</span><div>Поля в синей рамке — <b>параметры подбора стандартов</b>. Реквизиты ниже подставляются в образцы документов дорожной карты. Сейчас подходит стандартов: <b>${relevant().length}</b>.</div></div>
+  <section class="panel stack"><h2>Миссия и KPI</h2>
+    <label class="field" for="card-mission"><span class="label">Миссия проекта</span><textarea id="card-mission" data-var="mission" rows="2" maxlength="400" placeholder="Зачем мы строим этот ЖК и для кого"${ro}>${esc(p.mission || "")}</textarea></label>
+    <div class="fields">
+      <label class="field" for="card-kpi_nps"><span class="label">Целевой NPS клиентов, баллов</span><input type="text" inputmode="decimal" id="card-kpi_nps" data-var="kpi_nps" value="${esc(p.kpi_nps || "")}"${ro}></label>
+      <label class="field" for="card-kpi_engagement"><span class="label">Целевая вовлечённость команды, %</span><input type="text" inputmode="decimal" id="card-kpi_engagement" data-var="kpi_engagement" value="${esc(p.kpi_engagement || "")}"${ro}></label>
+      ${out("Бюджет и маржа", `считаются в <a href="#model">финмодели</a>`)}${out("Срок ключей", `считается в <a href="#gantt">графике</a>`)}
+    </div></section>
   <section class="panel stack"><h2>Параметры подбора стандартов</h2><div class="fields">
     ${sel("region", "regcode", "Не выбран")}${sel("city", "city", "Не выбран")}${sel("klass", "klass", "Не выбран")}
     ${sel("stage", "stage", "Как в дорожной карте")}${sel("work", "work", "Не выбран")}${sel("construct", "construct", "Не выбран")}
@@ -5791,7 +5828,7 @@ function viewCard() {
     ${doc("company")}${doc("bin")}${doc("director")}
     ${doc("blocks")}${doc("floors")}${doc("area_total")}${doc("flats")}
     <label class="field" for="card-zone"><span class="label">Климат и сейсмика</span><select id="card-zone" data-pk="region"${ro}><option value="">Не выбрано</option>${window.ZHK.regions().map(([id, n]) => `<option value="${id}"${id === zone ? " selected" : ""}>${esc(n)}</option>`).join("")}</select></label>
-    ${txt("building", "Тип здания", "Многоквартирный жилой дом, монолитный каркас")}${txt("ge", "Заключение ГЭ", "№ ___ от ___")}${txt("sales", "Продажи", "ДДУ с гарантией фонда, старт ___")}
+    ${txt("building", "Тип здания", "Многоквартирный жилой дом, монолитный каркас")}${txt("ge", "Заключение ГЭ", "№ ___ от ___")}${txt("sales", "Условия продаж", "ДДУ с гарантией фонда")}
   </div></section>
   <div class="row"><a class="btn primary" href="#standards" style="text-decoration:none">Открыть стандарты для этого проекта →</a></div>`;
 }
@@ -5814,7 +5851,7 @@ function viewStandards() {
       <span class="code mono muted">${s.code}</span>
       <span style="min-width:0"><span class="t">${esc(s.name)}</span><span class="meta"><span class="tag">${s.dir}</span>${s.scheme ? '<span class="tag">Схема</span>' : ""}${s.nom.length ? `<span class="tag">Смета: ${s.nom.length}</span>` : ""}<span class="tag">v${s.ver}</span></span></span>
       <span class="prog num">${done(s)}/${s.checks.length}</span>${chip(s.status)}</button>`).join("");
-  return head("Стандарты", "Отобраны по данным карточки проекта. Без лишних шагов: фильтр, стандарт, чек-лист.") + `
+  return head("Стандарты", "Отобраны по данным карточки проекта. Без лишних шагов: фильтр, стандарт, чек-лист.", true) + `
   <section class="panel stack">
     <div class="row between"><h2>Фильтры</h2><div class="row"><span class="tag auto">Синие — из карточки проекта</span><button class="btn" id="f-card">Как в карточке</button><button class="btn ghost" id="f-clear">Сбросить всё</button></div></div>
     <div class="filters">
@@ -5904,50 +5941,55 @@ function openStd(code) {
 
 function viewCal() {
   const months = {};
-  EVENTS.filter(e => evKinds.has(e[1])).forEach(e => { const d = new Date(e[0]); const k = d.toLocaleDateString("ru-RU", { month: "long", year: "numeric" }); (months[k] ||= []).push([d, ...e.slice(1)]) });
+  calEvents().filter(e => evKinds.has(e.kind)).map(e => [e.date, e.kind, e.title]).forEach(e => { const d = new Date(e[0] + "T00:00"); const k = d.toLocaleDateString("ru-RU", { month: "long", year: "numeric" }); (months[k] ||= []).push([d, ...e.slice(1)]) });
   const same = (a, b) => a.toDateString() === b.toDateString();
-  return head("Календарь событий", "ГПР ключевых работ, тендеры, комиссии, передача ключей и праздники РК.") + `
+  return head("Календарь событий", "Собирается из данных проекта: старты этапов и ключи — из графика, сроки — из чек-листов дорожной карты и реестра документов. Праздники РК — справочник.") + `
   <div class="row">${Object.entries(KIND).map(([k, [t, c]]) => `<button class="typebtn ${c}" aria-pressed="${evKinds.has(k)}" data-kind="${k}">${t}</button>`).join("")}</div>
   ${Object.entries(months).map(([m, evs]) => `<section class="month"><span class="label">${m}</span>${evs.map(([d, k, t]) => `<div class="ev${d < TODAY && !same(d, TODAY) ? " past" : ""}${same(d, TODAY) ? " today" : ""}"><span class="d num">${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}</span><span>${esc(t)}${same(d, TODAY) ? ' <span class="muted">· сегодня</span>' : ""}</span><span class="chip ${KIND[k][1]}">${KIND[k][0]}</span></div>`).join("")}</section>`).join("") || '<div class="empty">Выберите хотя бы один тип событий.</div>'}`;
 }
 
 function viewTeam() {
-  return head("Команда проекта", "Роли и зоны ответственности. Пустые роли уходят заявкой в HR.") + `<div class="grid g3">${TEAM.map(([role, who, zone]) => `
-    <div class="panel person"><div class="ava${who ? "" : " vac"}">${who ? who.split(" ").map(w => w[0]).join("").replace(".", "") : "?"}</div>
-    <div class="stack" style="gap:2px;min-width:0"><span class="label">${role}</span><b>${who || "Не назначен"}</b><span class="muted" style="font-size:.88rem">${zone}</span>${who ? "" : '<button class="btn" style="margin-top:6px;align-self:flex-start" data-hr>Заявка в HR</button>'}</div></div>`).join("")}</div>
-    <div id="hr-msg" class="muted" aria-live="polite"></div>`;
+  const team = window.ZHK.list("team"), ro = window.ZHK.readOnly() ? " disabled" : "";
+  const inp = (m, f, label, ph) => `<input type="text" class="vin" data-item="team:${m.id}:${f}" value="${esc(m[f] || "")}" aria-label="${label}" placeholder="${ph}" maxlength="300"${ro}>`;
+  return head("Команда проекта", "Роли, ФИО и зоны ответственности. Команда попадает в презентацию ПК Start и в список ответственных за риски.") + `
+  <section class="panel stack">
+    ${team.length ? `<div class="tbl"><table><thead><tr><th>Роль</th><th>ФИО</th><th>Зона ответственности</th><th></th></tr></thead><tbody>${team.map(m => `<tr>
+      <td>${inp(m, "role", "Роль", "Роль в проекте")}</td><td>${inp(m, "name", "ФИО", "Не назначен")}</td><td>${inp(m, "zone", "Зона ответственности", "За что отвечает")}</td>
+      <td>${ro ? "" : `<button class="btn ghost mini" data-item-del="team:${m.id}" aria-label="Удалить роль ${esc(m.role || "")}">Удалить</button>`}</td></tr>`).join("")}</tbody></table></div>`
+      : '<div class="empty">Команда ещё не заполнена. Добавьте типовые роли и впишите ФИО.</div>'}
+    ${ro ? "" : `<div class="row"><button class="btn" data-item-add="team">Добавить роль</button>${team.length ? "" : '<button class="btn primary" id="team-roles">Добавить типовые роли</button>'}</div>`}
+    <p class="muted" style="margin:0">Свободных ролей: ${team.filter(m => !m.name).length}. Пустое ФИО в презентации показывается как «Не назначен».</p>
+  </section>`;
 }
 
 function viewKpi() {
+  const V = Object.fromEntries(window.ZHK.vars().map(v => [v.id, v])), t = id => V[id] ? V[id].text : "—";
+  const bt = window.ZHK.budget(), dc = window.ZHK.docs(), inp = Object.values(V).filter(v => !v.calc), ap = inp.filter(v => v.st === "approved").length;
+  const late = V.delay && V.delay.raw > 0.25;
   const K = [
-    ["Качество", "12", "открытых замечаний технадзора", "−5 за неделю", "up"],
-    ["Безопасность", "86", "дней без инцидентов", "1 нарушение СТ-БиОТ-003", "down"],
-    ["Сроки", "+6 дн.", "отклонение от ГПР", "котлован, подъезд 2", "down"],
-    ["Финансы", "2,4 млрд ₸", "освоено из 18,6 млрд ₸", "13% бюджета", "up"],
-    ["Опер. факт", "640 м³", "бетона за неделю, план 700", "91% плана", "down"],
+    ["Сроки", t("delay"), "отставание прогноза ключей от плана", `ключи по плану ${t("keys_plan")}, по прогнозу ${t("keys_fc")}`, late ? "down" : "up", "gantt"],
+    ["Бюджет", bt.plan ? Math.round(bt.fact / bt.plan * 100) + "%" : "—", `освоено: факт ${money(bt.fact)} из плана ${money(bt.plan)}`, bt.over ? `этапов с перерасходом: ${bt.over}` : "перерасхода нет", bt.over ? "down" : "up", "budget"],
+    ["Финмодель", t("fin_margin"), "маржа к себестоимости", `IRR ${t("fin_irr")}, прибыль ${t("fin_net")}`, "up", "model"],
+    ["Документы", String(dc.total), "в реестре сроков", dc.expired ? `истекло: ${dc.expired}` : dc.soon ? `истекают в 60 дней: ${dc.soon}` : "сроки в порядке", dc.expired || dc.soon ? "down" : "up", "deadlines"],
+    ["Данные проекта", ap + " из " + inp.length, "переменных утверждено", window.ZHK.baseline() ? "базовая версия ПК Start зафиксирована" : "базовая версия не зафиксирована", ap === inp.length ? "up" : "down", "data"],
   ];
-  const floors = 12, per = 18;
-  let h = `<div class="chess" style="grid-template-columns:34px repeat(${per}, minmax(0,1fr))">`;
-  let sold = 0, res = 0;
-  for (let f = floors; f >= 1; f--) {
-    h += `<div class="fl">${f}</div>`;
-    for (let a = 1; a <= per; a++) {
-      const v = (f * 7 + a * 13 + (f > 8 ? 5 : 0)) % 10;
-      const st = v < 4 ? "sold" : v < 5 ? "res" : "free";
-      if (st === "sold") sold++; if (st === "res") res++;
-      h += `<button class="cell c-${st}" title="Этаж ${f}, кв. ${(f - 1) * per + a}: ${{ sold: "продано", res: "бронь", free: "свободно" }[st]}">${(f - 1) * per + a}</button>`;
-    }
-  }
-  h += "</div>";
-  const total = floors * per;
-  return head("Показатели проекта", "Качество, безопасность, сроки, финансы и оперативный факт.") + `
-  <div class="grid g5">${K.map(([l, v, d, dl, dir]) => `<div class="panel kpi"><span class="label">${l}</span><div class="big num">${v}</div><div class="muted" style="font-size:.85rem">${d}</div><div class="delta ${dir}">${dl}</div></div>`).join("")}</div>
-  <section class="panel stack"><div class="row between"><h2>Поэтажная шахматка</h2><div class="legend"><span><i class="c-sold"></i>Продано <b class="num">${sold}</b></span><span><i class="c-res"></i>Бронь <b class="num">${res}</b></span><span><i class="c-free"></i>Свободно <b class="num">${total - sold - res}</b></span></div></div>
-  <div class="chess-wrap">${h}</div><div class="muted" style="font-size:.85rem">Продано ${Math.round(sold / total * 100)}% квартир. Наведите на ячейку, чтобы увидеть номер и статус.</div></section>`;
+  return head("Показатели проекта", "Все показатели считаются из данных проекта: графика, бюджета, финмодели, реестра документов.") + `
+  <div class="grid g5">${K.map(([l, v, d, dl, dir, href]) => `<a class="panel kpi" href="#${href}" style="text-decoration:none;color:inherit"><span class="label">${l}</span><div class="big num">${esc(v)}</div><div class="muted" style="font-size:.85rem">${esc(d)}</div><div class="delta ${dir}">${esc(dl)}</div></a>`).join("")}</div>
+  <p class="muted">Качество, охрана труда, оперативный факт и шахматка продаж появятся, когда подключим журналы технадзора и БиОТ и данные продаж: вписывать эти цифры вручную здесь не нужно.</p>`;
 }
 
 function viewPartners() {
-  return head("Партнёры", "Подрядчики, поставщики и финансовые партнёры проекта.") + `<div class="panel tbl"><table><thead><tr><th>Роль</th><th>Организация</th><th>Предмет</th><th>Статус</th></tr></thead><tbody>${PARTNERS.map(([r, o, p, s]) => `<tr><td><b>${r}</b></td><td>${esc(o)}</td><td class="muted">${esc(p)}</td><td>${s === "ok" ? '<span class="chip s-done">Договор</span>' : '<span class="chip s-new">Тендер</span>'}</td></tr>`).join("")}</tbody></table></div>`;
+  const list = window.ZHK.list("partners"), ro = window.ZHK.readOnly() ? " disabled" : "";
+  const inp = (x, f, label, ph) => `<input type="text" class="vin" data-item="partners:${x.id}:${f}" value="${esc(x[f] || "")}" aria-label="${label}" placeholder="${ph}" maxlength="300"${ro}>`;
+  return head("Партнёры", "Подрядчики, поставщики и финансовые партнёры проекта. Хранятся в данных проекта.") + `
+  <section class="panel stack">
+    ${list.length ? `<div class="tbl"><table><thead><tr><th>Роль</th><th>Организация</th><th>Предмет</th><th>Статус</th><th></th></tr></thead><tbody>${list.map(x => `<tr>
+      <td>${inp(x, "role", "Роль", "Роль")}</td><td>${inp(x, "org", "Организация", "Не выбрана")}</td><td>${inp(x, "subject", "Предмет", "Предмет договора")}</td>
+      <td><select data-item="partners:${x.id}:status" aria-label="Статус"${ro}>${Object.entries(PARTNER_ST).map(([k, [t]]) => `<option value="${k}"${(x.status || "tender") === k ? " selected" : ""}>${t}</option>`).join("")}</select></td>
+      <td>${ro ? "" : `<button class="btn ghost mini" data-item-del="partners:${x.id}" aria-label="Удалить">Удалить</button>`}</td></tr>`).join("")}</tbody></table></div>`
+      : '<div class="empty">Партнёров пока нет. Добавьте типовые роли и впишите организации.</div>'}
+    ${ro ? "" : `<div class="row"><button class="btn" data-item-add="partners">Добавить партнёра</button>${list.length ? "" : '<button class="btn primary" id="partner-roles">Добавить типовые роли</button>'}</div>`}
+  </section>`;
 }
 
 // ---------- Маршрутизация и события ----------
@@ -6003,6 +6045,17 @@ function viewData() {
       <td class="vused">${v.used.map(u => `<span class="tag">${esc(u)}</span>`).join(" ")}${v.hist.length ? `<details class="vhist"><summary>История: ${v.hist.length}</summary>${v.hist.map(h => `<div><span class="mono muted">${dt(h.at)}</span> ${esc(h.who)}: ${esc(h.from)} → <b>${esc(h.to)}</b></div>`).join("")}</details>` : ""}</td>
     </tr>`;
   const secs = window.VARS.sections.filter(sec => list.some(v => v.sec === sec));
+  const risks = window.ZHK.list("risks"), team = window.ZHK.list("team");
+  const rd = ro ? " disabled" : "", rsel = (r, f, map) => `<select data-item="risks:${r.id}:${f}" aria-label="${f === "kind" ? "Тип" : "Уровень"}"${rd}>${Object.entries(map).map(([k, x]) => `<option value="${k}"${r[f] === k ? " selected" : ""}>${Array.isArray(x) ? x[0] : x}</option>`).join("")}</select>`;
+  const rin = (r, f, label, ph) => `<input type="text" class="vin" data-item="risks:${r.id}:${f}" value="${esc(r[f] || "")}" aria-label="${label}" placeholder="${ph}" maxlength="300"${rd}>`;
+  const riskHtml = `<section class="stack" id="risks"><h2>Риски и возможности</h2><div class="panel stack">
+    ${risks.length ? `<div class="tbl"><table><thead><tr><th>Тип</th><th>Уровень</th><th>Описание</th><th>Мера реагирования</th><th>Ответственный</th><th></th></tr></thead><tbody>${risks.map(r => `<tr>
+      <td>${rsel(r, "kind", RISK_KIND)}</td><td>${rsel(r, "level", RISK_LEVEL)}</td><td>${rin(r, "title", "Описание", "Что может произойти")}</td>
+      <td>${rin(r, "measure", "Мера реагирования", "Что делаем")}</td><td><select data-item="risks:${r.id}:who" aria-label="Ответственный"${rd}><option value="">${r.owner && !team.some(m => m.id === r.who) ? esc(r.owner) : "Не выбран"}</option>${team.map(m => `<option value="${m.id}"${m.id === r.who ? " selected" : ""}>${esc(memberName(m))}</option>`).join("")}</select>${team.length ? "" : '<div class="muted vsrc">Сначала заполните <a href="#team">команду</a></div>'}</td>
+      <td>${ro ? "" : `<button class="btn ghost mini" data-item-del="risks:${r.id}" aria-label="Удалить">Удалить</button>`}</td></tr>`).join("")}</tbody></table></div>`
+      : '<div class="empty">Рисков пока нет. Добавьте риски и возможности проекта: они попадут в презентацию ПК Start.</div>'}
+    ${ro ? "" : '<div class="row"><button class="btn" data-item-add="risks">Добавить риск</button></div>'}
+  </div></section>`;
   return head("Данные проекта", "Каждая переменная вводится один раз. Финмодель, график, стандарты, образцы документов и отчёты берут её отсюда.") + `
   <section class="panel stack">
     <div class="row between"><div class="row">${["draft", "agreed", "approved", "calc"].map(st => `<span class="chip ${ST[st][1]}">${ST[st][0]}: ${n(st)}</span>`).join("")}</div>
@@ -6017,17 +6070,21 @@ function viewData() {
     </div>
     <p class="muted" style="margin:0">Владельцы переменных — черновик, отделы холдинга уточняются. Изменение значения возвращает статус в «Черновик».</p>
   </section>
-  ${secs.map(sec => `<section class="stack"><h2>${esc(sec)}</h2><div class="panel tbl vtable"><table><thead><tr><th>Переменная</th><th>Значение</th><th>Владелец</th><th>Статус</th><th>ПК Start</th><th>Где используется</th></tr></thead><tbody>${list.filter(v => v.sec === sec).map(row).join("")}</tbody></table></div></section>`).join("") || '<div class="empty">Ничего не найдено. Сбросьте фильтры.</div>'}`;
+  ${secs.map(sec => `<section class="stack"><h2>${esc(sec)}</h2><div class="panel tbl vtable"><table><thead><tr><th>Переменная</th><th>Значение</th><th>Владелец</th><th>Статус</th><th>ПК Start</th><th>Где используется</th></tr></thead><tbody>${list.filter(v => v.sec === sec).map(row).join("")}</tbody></table></div></section>`).join("") || '<div class="empty">Ничего не найдено. Сбросьте фильтры.</div>'}
+  ${riskHtml}`;
 }
 
 // ---------- Презентация ПК Start ----------
 // Слайды собираются из данных проекта: ничего не вводится повторно. Выгрузка в PowerPoint и PDF.
-const DECK_MANUAL = ["Миссия и KPI", "Локация и фасад", "Клиент", "Закупки", "Риски и уроки", "Люди"];
+const DECK_MANUAL = ["Локация и фасад", "Клиент", "Закупки"];
 let deckMsg = "";
 function deckData() {
   const V = Object.fromEntries(window.ZHK.vars().map(v => [v.id, v]));
   const t = id => V[id] ? V[id].text : "—";
-  return { V, t, d: window.ZHK.deck(), base: window.ZHK.baseline(), title: projTitle() };
+  const teamAll = window.ZHK.list("team");
+  const risks = window.ZHK.list("risks").filter(r => r.title).sort((a, b) => (LEVEL_ORDER[a.level] ?? 1) - (LEVEL_ORDER[b.level] ?? 1)).map(r => Object.assign({}, r, { owner: riskOwner(r, teamAll) }));
+  const team = teamAll.filter(m => m.role || m.name), pm = team.find(m => /^руководитель проекта/i.test(m.role || ""));
+  return { V, t, d: window.ZHK.deck(), base: window.ZHK.baseline(), title: projTitle(), risks, team, pm: pm && pm.name ? pm.name : "[ФИО]" };
 }
 const bln = n => (n / 1e9).toLocaleString("ru-RU", { maximumFractionDigits: 2 });
 function deckSlides(D) {
@@ -6059,6 +6116,8 @@ function deckSlides(D) {
     { k: "title", h: "", html: `<div class="sl-cover"><span class="sl-eyebrow">Проектный комитет Start · ${d.today}</span><h1>${esc(D.title)}</h1>
       <p>${esc([t("city") !== "—" ? "г. " + t("city") : "", t("klass") !== "—" ? t("klass") + "-класс" : "", t("company") !== "—" ? t("company") : ""].filter(Boolean).join(" · "))}</p>
       <div class="sl-kpis">${kpi("Общая площадь", "area_total")}${kpi("Квартир", "flats")}${kpi("Старт СМР", "build_start").replace(esc(t("build_start")), d.smrStart)}${kpi("Ключи по плану", "keys_plan")}</div></div>` },
+    { k: "mission", h: "Миссия и KPI", html: `<p class="sl-mission">${t("mission") !== "—" ? esc(t("mission")) : '<span class="sl-mut">Миссия проекта не заполнена: впишите её в карточке проекта.</span>'}</p>
+      <div class="sl-kpis sl-k3">${kpi("Бюджет с НДС", "fin_cost")}${kpi("Ключи по плану", "keys_plan")}${kpi("Маржа", "fin_margin")}${kpi("IRR", "fin_irr")}${kpi("NPS клиентов", "kpi_nps")}${kpi("Вовлечённость команды", "kpi_engagement")}</div>` },
     { k: "passport", h: "Паспорт и ТЭП", html: `<div class="sl-cols"><table>${row("Тип здания", "building")}${row("Класс", "klass")}${row("Блоков", "blocks")}${row("Этажность", "floors")}${row("Квартир", "flats")}${row("Общая площадь", "area_total")}${row("Продаваемая жилая", "area_sale")}${row("Коммерция", "area_comm")}${row("Машино-места", "parking")}</table>
       <table>${row("Адрес", "address")}${row("Участок", "area_land")}${row("Кадастровый номер", "cadastre")}${row("Застройщик", "company")}${row("Климат и сейсмика", "zone")}${row("Заключение ГЭ", "ge")}<tr><td>Старт СМР</td><td>${d.smrStart}</td></tr>${row("Ключи по плану", "keys_plan")}${row("Ключи по прогнозу", "keys_fc")}</table></div>` },
     { k: "gpr", h: "ГПР строительно-монтажных работ", html: `<p class="sl-lead">Старт СМР ${d.smrStart}, ввод ${d.smrEnd}, ${d.smrDur} мес. Красным — критический путь.</p>${gpr}` },
@@ -6074,13 +6133,17 @@ function deckSlides(D) {
       : `<div class="sl-kpis">${[["Утверждено", ap], ["Согласовано", ag], ["Черновик", all.length - ap - ag]].map(([l, n]) => `<div class="sl-kpi"><span>${l}</span><b>${n} из ${all.length}</b></div>`).join("")}</div>
         ${drafts.length ? `<p class="sl-lead">Ключевые данные в статусе «черновик»:</p><p>${drafts.map(v => esc(v.name)).join(", ")}.</p>` : `<p class="sl-lead">Ключевые данные согласованы.</p>`}
         <p class="sl-note">Базовая версия ещё не зафиксирована: её фиксируют по решению комитета.</p>` },
+    { k: "risks", h: "Риски и возможности", html: D.risks.length ? `<table class="sl-wide sl-risks"><tr><th>Уровень</th><th>Риск или возможность</th><th>Мера</th><th>Ответственный</th></tr>${D.risks.slice(0, 8).map(r => `<tr><td class="lv-${r.level || "mid"}">${esc((RISK_LEVEL[r.level] || RISK_LEVEL.mid)[0])}</td><td>${r.kind === "opp" ? "<i>Возможность.</i> " : ""}${esc(r.title)}</td><td>${esc(r.measure || "—")}</td><td>${esc(r.owner || "—")}</td></tr>`).join("")}</table>${D.risks.length > 8 ? `<p class="sl-note">Ещё ${D.risks.length - 8} в реестре рисков «Данных проекта».</p>` : ""}`
+      : `<p class="sl-lead">Риски не заполнены. Добавьте их в разделе «Данные проекта».</p>` },
+    { k: "team", h: "Команда проекта", html: D.team.length ? `<table class="sl-wide"><tr><th>Роль</th><th>ФИО</th><th>Зона ответственности</th></tr>${D.team.slice(0, 12).map(m => `<tr><td>${esc(m.role || "—")}</td><td>${esc(m.name || "Не назначен")}</td><td>${esc(m.zone || "")}</td></tr>`).join("")}</table>`
+      : `<p class="sl-lead">Команда не заполнена. Добавьте роли на странице «Команда проекта».</p>` },
     { k: "decision", h: "Предлагаемое решение", html: `<ol class="sl-list"><li>Одобрить запуск проекта ${esc(D.title)}.</li><li>Утвердить бюджет ${esc(t("fin_cost"))} с НДС и цену продажи жилья ${esc(t("price"))}.</li>
-      <li>Утвердить старт СМР ${d.smrStart} и передачу ключей ${esc(t("keys_plan"))}.</li><li>Назначить руководителя проекта: [ФИО].</li><li>Зафиксировать базовую версию данных проекта на дату комитета.</li></ol>` }
+      <li>Утвердить старт СМР ${d.smrStart} и передачу ключей ${esc(t("keys_plan"))}.</li><li>Назначить руководителя проекта: ${esc(D.pm)}.</li><li>Зафиксировать базовую версию данных проекта на дату комитета.</li></ol>` }
   ];
 }
 function viewDeck() {
   const D = deckData(), slides = deckSlides(D);
-  return head("Презентация ПК Start", "Собирается из данных проекта: паспорт, ГПР, цены, затраты, финмодель. Цифры не вводятся повторно.") + `
+  return head("Презентация ПК Start", "Собирается из данных проекта: миссия и KPI, паспорт, ГПР, цены, затраты, финмодель, риски, команда. Цифры не вводятся повторно.") + `
   <section class="panel stack">
     <div class="row between"><div class="row"><button class="btn primary" id="deck-pptx">Скачать PowerPoint</button><button class="btn" id="deck-pdf">Скачать PDF</button><button class="btn ghost" id="deck-full">На весь экран</button></div>
       <span class="muted" aria-live="polite" id="deck-msg">${esc(deckMsg)}</span></div>
@@ -6113,9 +6176,10 @@ async function deckPptx() {
   deckSay("Готовлю PowerPoint…");
   try { await loadLib("https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js") } catch (e) { deckSay("Не удалось собрать PowerPoint: нет доступа к библиотеке. Проверьте интернет и повторите."); return }
   const D = deckData(), { t, d, V } = D, x = new window.PptxGenJS();
+  let n = 1;
   x.layout = "LAYOUT_WIDE"; x.title = "ПК Start — " + D.title;
   const F = "Arial", INK = "1B2129", MUT = "5D6672", ACC = "1F5FD1", BAD = "C2382F";
-  const page = (h, n) => { const s = x.addSlide(); s.background = { color: "FFFFFF" }; s.addText(h, { x: 0.5, y: 0.3, w: 9.5, h: 0.6, fontFace: F, fontSize: 26, bold: true, color: INK });
+  const page = h => { n++; const s = x.addSlide(); s.background = { color: "FFFFFF" }; s.addText(h, { x: 0.5, y: 0.3, w: 9.5, h: 0.6, fontFace: F, fontSize: 26, bold: true, color: INK });
     s.addText(D.title + " · " + n, { x: 9.5, y: 0.35, w: 3.3, h: 0.5, fontFace: F, fontSize: 11, color: MUT, align: "right" });
     s.addShape(x.ShapeType.line, { x: 0.5, y: 0.95, w: 12.3, h: 0, line: { color: "D9DDE3", width: 1 } }); return s };
   const tbl = (s, rows, o) => s.addTable(rows.map(([l, id]) => [{ text: l, options: { color: MUT } }, { text: id && V[id] ? t(id) : String(id), options: { bold: true, color: INK } }]),
@@ -6129,12 +6193,16 @@ async function deckPptx() {
   s.addText(D.title, { x: 0.7, y: 1.7, w: 12, h: 1.2, fontFace: F, fontSize: 44, bold: true, color: INK });
   s.addText([t("city") !== "—" ? "г. " + t("city") : "", t("klass") !== "—" ? t("klass") + "-класс" : "", t("company") !== "—" ? t("company") : ""].filter(Boolean).join(" · "), { x: 0.7, y: 2.9, w: 12, h: 0.5, fontFace: F, fontSize: 18, color: MUT });
   kp(s, [["Общая площадь", t("area_total")], ["Квартир", t("flats")], ["Старт СМР", d.smrStart], ["Ключи по плану", t("keys_plan")]], 4.6);
+  // Миссия и KPI
+  s = page("Миссия и KPI");
+  s.addText(t("mission") !== "—" ? t("mission") : "Миссия проекта не заполнена: впишите её в карточке проекта.", { x: 0.5, y: 1.2, w: 12.3, h: 1.6, fontFace: F, fontSize: 22, color: t("mission") !== "—" ? INK : MUT, italic: t("mission") === "—", valign: "top" });
+  kp(s, [["Бюджет с НДС", t("fin_cost")], ["Ключи по плану", t("keys_plan")], ["Маржа", t("fin_margin")], ["IRR", t("fin_irr")], ["NPS клиентов", t("kpi_nps")], ["Вовлечённость команды", t("kpi_engagement")]], 3.4);
   // 2. Паспорт
-  s = page("Паспорт и ТЭП", 2);
+  s = page("Паспорт и ТЭП");
   tbl(s, [["Тип здания", "building"], ["Класс", "klass"], ["Блоков", "blocks"], ["Этажность", "floors"], ["Квартир", "flats"], ["Общая площадь", "area_total"], ["Продаваемая жилая", "area_sale"], ["Коммерция", "area_comm"], ["Машино-места", "parking"]], { x: 0.5, y: 1.2, w: 5.9 });
   tbl(s, [["Адрес", "address"], ["Участок", "area_land"], ["Кадастровый номер", "cadastre"], ["Застройщик", "company"], ["Климат и сейсмика", "zone"], ["Заключение ГЭ", "ge"], ["Старт СМР", d.smrStart], ["Ключи по плану", "keys_plan"], ["Ключи по прогнозу", "keys_fc"]], { x: 6.9, y: 1.2, w: 5.9 });
   // 3. ГПР
-  s = page("ГПР строительно-монтажных работ", 3);
+  s = page("ГПР строительно-монтажных работ");
   s.addText(`Старт СМР ${d.smrStart}, ввод ${d.smrEnd}, ${d.smrDur} мес. Красным — критический путь.`, { x: 0.5, y: 1.1, w: 12.3, h: 0.4, fontFace: F, fontSize: 14, color: MUT });
   const mx = Math.max(...d.smr.map(r => Math.max(r.e, r.fe)), 1), X0 = 4.0, XW = 6.6;
   d.smr.forEach((r, i) => { const y = 1.75 + i * 0.62;
@@ -6142,40 +6210,52 @@ async function deckPptx() {
     s.addShape(x.ShapeType.roundRect, { x: X0 + r.s / mx * XW, y: y + 0.08, w: Math.max((r.e - r.s) / mx * XW, 0.05), h: 0.3, fill: { color: r.crit ? "F3C8C4" : "C9D8F5" }, line: { color: r.crit ? BAD : ACC }, rectRadius: 0.05 });
     s.addText(r.from + " – " + r.to, { x: 10.7, y, w: 2.1, h: 0.45, fontFace: F, fontSize: 11, color: MUT, align: "right" }) });
   // 4. Рынок
-  s = page("Рынок и цена", 4);
+  s = page("Рынок и цена");
   tbl(s, [["Цена жилья с НДС", "price"], ["Цена коммерции с НДС", "price_comm"], ["Цена машино-места", "price_park"], ["Рост цен", "growth"]], { x: 0.5, y: 1.2, w: 5.9 });
   tbl(s, [["Начало продаж", "sales_start"], ["Длительность продаж", "sales_dur"], ["Условия продаж", "sales"], ["Себестоимость 1 м²", "fin_cost_m2"]], { x: 6.9, y: 1.2, w: 5.9 });
   s.addText("Бенчмаркинг цен конкурентов и обоснование цены добавляются вручную.", { x: 0.5, y: 6.6, w: 12.3, h: 0.4, fontFace: F, fontSize: 12, italic: true, color: MUT });
   // 5. Затраты
-  s = page("Затраты", 5);
+  s = page("Затраты");
   s.addText(`Всего с НДС: ${t("fin_cost")} · себестоимость 1 м²: ${t("fin_cost_m2")}`, { x: 0.5, y: 1.1, w: 12.3, h: 0.4, fontFace: F, fontSize: 14, color: INK });
   const cats = d.cats.filter(c => c.sum > 0).sort((a, b) => a.sum - b.sum);
   s.addChart(x.ChartType.bar, [{ name: "млрд тг", labels: cats.map(c => c.name), values: cats.map(c => Math.round(c.sum / 1e7) / 100) }],
     { x: 0.5, y: 1.6, w: 12.3, h: 5.4, barDir: "bar", chartColors: [ACC], showValue: true, dataLabelFontSize: 11, dataLabelFormatCode: "0.00", catAxisLabelFontSize: 12, valAxisHidden: true, valGridLine: { style: "none" }, showLegend: false, catAxisLabelFontFace: F });
   // 6. Финансы
-  s = page("Финансовый результат", 6);
+  s = page("Финансовый результат");
   kp(s, [["Выручка", t("fin_rev")], ["Затраты", t("fin_cost")], ["Чистая прибыль", t("fin_net")], ["Маржа", t("fin_margin")], ["IRR", t("fin_irr")], ["NPV", t("fin_npv")], ["Пиковый долг", t("fin_peak_debt")], ["Собственный капитал", t("equity")]], 1.2);
   s.addChart(x.ChartType.line, [{ name: "Накопленный денежный поток, млрд тг", labels: d.cash.map(m => m.ym), values: d.cash.map(m => Math.round(m.cum / 1e7) / 100) }],
     { x: 0.5, y: 3.6, w: 12.3, h: 3.6, chartColors: [ACC], lineDataSymbol: "none", lineSize: 2, catAxisLabelFontSize: 9, valAxisLabelFontSize: 10, showLegend: true, legendPos: "t", legendFontSize: 11, catAxisLabelFrequency: 6 });
   // 7. Данные
   const all = Object.values(V).filter(v => !v.calc), ap = all.filter(v => v.st === "approved").length, ag = all.filter(v => v.st === "agreed").length;
   if (D.base) {
-    s = page("Отклонения от базовой версии", 7);
+    s = page("Отклонения от базовой версии");
     const ch = Object.values(V).filter(v => v.delta && v.delta.text !== "без изменений").slice(0, 9);
     if (ch.length) s.addTable([["Показатель", "Утверждено", "Сейчас", "Отклонение"].map(h => ({ text: h, options: { bold: true, color: MUT } }))].concat(ch.map(v => [v.name, v.base, v.text, { text: v.delta.text, options: { color: v.delta.tone === "bad" ? BAD : v.delta.tone === "good" ? "1F8A54" : INK } }])),
       { x: 0.5, y: 1.2, w: 12.3, fontFace: F, fontSize: 13, border: { type: "solid", color: "E3E6EA", pt: 0.75 }, colW: [4.5, 2.6, 2.6, 2.6] });
     else s.addText("Отклонений от базовой версии нет.", { x: 0.5, y: 1.2, w: 12, h: 0.5, fontFace: F, fontSize: 16, color: INK });
   } else {
-    s = page("Статус данных проекта", 7);
+    s = page("Статус данных проекта");
     kp(s, [["Утверждено", ap + " из " + all.length], ["Согласовано", ag + " из " + all.length], ["Черновик", (all.length - ap - ag) + " из " + all.length]], 1.2);
     const dr = ["area_total", "area_sale", "price", "smr", "land", "design", "nets", "rate", "equity"].map(id => V[id]).filter(v => v && v.st === "draft");
     s.addText(dr.length ? "Ключевые данные в статусе «черновик»: " + dr.map(v => v.name).join(", ") + "." : "Ключевые данные согласованы.", { x: 0.5, y: 2.6, w: 12.3, h: 1.2, fontFace: F, fontSize: 15, color: INK, valign: "top" });
     s.addText("Базовая версия ещё не зафиксирована: её фиксируют по решению комитета.", { x: 0.5, y: 6.6, w: 12.3, h: 0.4, fontFace: F, fontSize: 12, italic: true, color: MUT });
   }
-  // 8. Решение
-  s = page("Предлагаемое решение", 8);
+  // Риски
+  s = page("Риски и возможности");
+  const LC = { high: BAD, mid: "B26A00", low: "1F8A54" };
+  if (D.risks.length) s.addTable([["Уровень", "Риск или возможность", "Мера", "Ответственный"].map(h => ({ text: h, options: { bold: true, color: MUT } }))].concat(D.risks.slice(0, 8).map(r => [
+      { text: (RISK_LEVEL[r.level] || RISK_LEVEL.mid)[0], options: { bold: true, color: LC[r.level] || LC.mid } }, (r.kind === "opp" ? "Возможность. " : "") + r.title, r.measure || "—", r.owner || "—"])),
+    { x: 0.5, y: 1.2, w: 12.3, fontFace: F, fontSize: 12, color: INK, border: { type: "solid", color: "E3E6EA", pt: 0.75 }, colW: [1.4, 4.6, 4.0, 2.3] });
+  else s.addText("Риски не заполнены. Добавьте их в разделе «Данные проекта».", { x: 0.5, y: 1.2, w: 12, h: 0.5, fontFace: F, fontSize: 16, color: INK });
+  // Команда
+  s = page("Команда проекта");
+  if (D.team.length) s.addTable([["Роль", "ФИО", "Зона ответственности"].map(h => ({ text: h, options: { bold: true, color: MUT } }))].concat(D.team.slice(0, 12).map(m => [m.role || "—", { text: m.name || "Не назначен", options: { bold: true, color: m.name ? INK : MUT } }, m.zone || ""])),
+    { x: 0.5, y: 1.2, w: 12.3, fontFace: F, fontSize: 12, color: INK, border: { type: "solid", color: "E3E6EA", pt: 0.75 }, colW: [3.6, 3.4, 5.3] });
+  else s.addText("Команда не заполнена. Добавьте роли на странице «Команда проекта».", { x: 0.5, y: 1.2, w: 12, h: 0.5, fontFace: F, fontSize: 16, color: INK });
+  // Решение
+  s = page("Предлагаемое решение");
   s.addText([`Одобрить запуск проекта ${D.title}.`, `Утвердить бюджет ${t("fin_cost")} с НДС и цену продажи жилья ${t("price")}.`, `Утвердить старт СМР ${d.smrStart} и передачу ключей ${t("keys_plan")}.`,
-    "Назначить руководителя проекта: [ФИО].", "Зафиксировать базовую версию данных проекта на дату комитета."].map(l => ({ text: l, options: { bullet: { type: "number" }, paraSpaceAfter: 10 } })),
+    "Назначить руководителя проекта: " + D.pm + ".", "Зафиксировать базовую версию данных проекта на дату комитета."].map(l => ({ text: l, options: { bullet: { type: "number" }, paraSpaceAfter: 10 } })),
     { x: 0.5, y: 1.3, w: 12.3, h: 4.5, fontFace: F, fontSize: 20, color: INK, valign: "top" });
   try { await window.ZHK.save(deckFile("pptx"), await x.write({ outputType: "blob" })); deckSay("PowerPoint готов.") }
   catch (e) { deckSay("Не удалось собрать PowerPoint.") }
@@ -6223,14 +6303,17 @@ window.ZHK_onView = v => {
   const top = document.querySelector("#main > .topbar"); if (top) top.outerHTML = VIEWS[k].r() + subTabs(k);
 };
 // Данные проекта изменились (своя правка или синхронизация команды): обновить карточку, стандарты и счётчики.
-window.ZHK_onChange = () => {
+window.ZHK_onChange = late => {
+  // При переходе по Tab изменение приходит, когда фокус ещё «между полями»: ждём, пока он встанет на следующее поле.
+  const f = document.activeElement;
+  if (!late && (!f || f === document.body)) { clearTimeout(window.zocT); window.zocT = setTimeout(() => window.ZHK_onChange(true), 0); return; }
   const before = JSON.stringify(pick(card));
   syncCard();
   if (JSON.stringify(pick(card)) !== before) filt = { ...filt, ...pick(card) };
   if (!document.getElementById("main").children.length) return;
   if (VIEWS[cur].z) { const l = document.querySelector("#main > .topbar .crumbs .label"); if (l) l.textContent = projTitle(); return; }
   const a = document.activeElement;
-  if (a && a.closest && a.closest("#main") && (a.tagName === "TEXTAREA" || (a.tagName === "INPUT" && a.type === "text"))) return;
+  if (a && a.closest && a.closest("#main") && (a.tagName === "TEXTAREA" || (a.tagName === "INPUT" && /^(text|month)$/.test(a.type)))) return;
   route();
 };
 window.ZHK_onBadges = () => {
@@ -6262,7 +6345,14 @@ function bind(m) {
   const fx = m.querySelector("#f-clear"); if (fx) fx.onclick = () => { filt = { region: "", city: "", klass: "", stage: "", work: "", construct: "", dir: "", status: "" }; route() };
   m.querySelectorAll("[data-std]").forEach(b => b.onclick = () => openStd(b.dataset.std));
   m.querySelectorAll("[data-kind]").forEach(b => b.onclick = () => { const k = b.dataset.kind; evKinds.has(k) ? evKinds.delete(k) : evKinds.add(k); route() });
-  m.querySelectorAll("[data-hr]").forEach(b => b.onclick = () => { b.disabled = true; b.textContent = "Заявка отправлена"; m.querySelector("#hr-msg").textContent = "Заявка на роль «Специалист БиОТ» передана в HR (в прототипе — без отправки)." });
+  m.querySelectorAll("[data-item]").forEach(el => el.onchange = () => { const [k, id, f] = el.dataset.item.split(":"); window.ZHK.setItem(k, id, { [f]: el.value }) });
+  m.querySelectorAll("[data-item-del]").forEach(b => b.onclick = () => { const [k, id] = b.dataset.itemDel.split(":"); window.ZHK.setItem(k, id, null) });
+  m.querySelectorAll("[data-item-add]").forEach(b => b.onclick = () => {
+    const k = b.dataset.itemAdd, id = window.ZHK.setItem(k, null, k === "risks" ? { kind: "risk", level: "mid" } : k === "partners" ? { status: "tender" } : { role: "" });
+    const el = id && document.querySelector(`[data-item="${k}:${id}:${k === "risks" ? "title" : "role"}"]`); if (el) el.focus();
+  });
+  const pr = m.querySelector("#partner-roles"); if (pr) pr.onclick = () => window.ZHK.addItems("partners", PARTNER_ROLES.map(([role, subject]) => ({ role, subject, status: "tender" })));
+  const tr = m.querySelector("#team-roles"); if (tr) tr.onclick = () => window.ZHK.addItems("team", TEAM_ROLES.map(([role, zone]) => ({ role, zone })));
 }
 
 document.addEventListener("keydown", e => { if (e.key === "Escape" && document.getElementById("layer").innerHTML) { document.getElementById("layer").innerHTML = ""; route() } });

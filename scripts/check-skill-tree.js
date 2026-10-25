@@ -47,12 +47,16 @@ Object.entries(REG).forEach(([rid, r]) => {
   });
 });
 // Словарь данных проекта: уникальные коды, известные разделы и владельцы, пути к существующим полям.
-const V = ctx.window.VARS, vids = new Set();
-const PROJECT_EXTRA = ["regcode", "stage", "work", "construct", "region", "building", "ge", "sales"];
+// Принцип «Кирпич за кирпичом»: одно значение — одна переменная и одно место ввода.
+const V = ctx.window.VARS, vids = new Set(), vpaths = new Map(), vnames = new Map();
+const PROJECT_EXTRA = ["mission", "kpi_nps", "kpi_engagement", "regcode", "stage", "work", "construct", "region", "building", "ge", "sales"];
 const CALC = (html.match(/function calcAll\(\)[\s\S]*?\n  \}/) || [""])[0];
 V.items.forEach(v => {
   if (vids.has(v.id)) fail(`variable ${v.id}: duplicate id`);
   vids.add(v.id);
+  if (vnames.has(v.name)) fail(`variable ${v.id}: same name as ${vnames.get(v.name)} (duplicate data)`);
+  vnames.set(v.name, v.id);
+  if (v.path) { if (vpaths.has(v.path)) fail(`variable ${v.id}: same input ${v.path} as ${vpaths.get(v.path)}`); vpaths.set(v.path, v.id); }
   if (!V.sections.includes(v.sec)) fail(`variable ${v.id}: unknown section ${v.sec}`);
   if (!V.owners.includes(v.owner)) fail(`variable ${v.id}: unknown owner ${v.owner}`);
   if (!(v.used || []).length) fail(`variable ${v.id}: no consumers`);
