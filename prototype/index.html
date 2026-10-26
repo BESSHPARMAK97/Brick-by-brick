@@ -89,6 +89,9 @@ body.nohints .topbar .muted, body.nohints .hint { display: none }
 .subtabs a { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); text-decoration: none; font-weight: 500; font-size: .92rem }
 .subtabs a:hover { border-color: var(--accent) }
 .subtabs a[aria-current="page"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent) }
+.subtabs[data-g] a[aria-current="page"] { background: color-mix(in srgb, var(--gc, var(--accent)) 14%, transparent); border-color: var(--gc, var(--accent)); color: var(--gc, var(--accent)) }
+.g-crumb { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--gc); padding: 2px 8px; border-radius: 99px; background: color-mix(in srgb, var(--gc) 13%, transparent) }
+.topbar[data-g] h1 { box-shadow: inset 4px 0 0 var(--gc); padding-left: 12px }
 .subtabs .cnt { font-size: .72rem; font-family: var(--f-mono); border-radius: 99px; padding: 1px 7px }
 /* Группы меню: у каждой свой цвет (--gc). Заголовок — цветная плашка, пункты — под ней с отступом и линией цвета группы. */
 .nav-grp { --gc: var(--muted) }
@@ -4600,7 +4603,8 @@ window.I18N = (function () {
     ["Дорожная карта", "Жол картасы"], ["Дорожная карта ЖК", "ТҮК жол картасы"], ["Этапы", "Кезеңдер"], ["Схема связей", "Байланыстар сызбасы"], ["Схема связей этапов", "Кезеңдер байланысының сызбасы"], ["Пройдено", "Өтті"], ["Идёт", "Жүріп жатыр"], ["Впереди", "Алда"], ["Инструменты этапа", "Кезең құралдары"], ["На дорожной карте:", "Жол картасында:"], ["Этапы в работе", "Жұмыстағы кезеңдер"], ["Вся дорожная карта", "Бүкіл жол картасы"], ["Открытых этапов нет.", "Ашық кезеңдер жоқ."], ["Этапы проекта по фазам — от анализа рынка до гарантии: сроки по графику, выполнение пунктов и инструменты каждого этапа. Нажмите на этап, чтобы открыть его пункты, документы, бюджет и сроки.", "Жоба кезеңдері фазалар бойынша — нарықты талдаудан кепілдікке дейін: кесте бойынша мерзімдер, тармақтардың орындалуы және әр кезеңнің құралдары. Тармақтарын, құжаттарын, бюджеті мен мерзімдерін ашу үшін кезеңді басыңыз."], ["Какой этап открывает следующий. Этап открывается, когда закрыты условия перехода на предыдущих.", "Қай кезең келесісін ашады. Кезең алдыңғыларындағы өту шарттары жабылғанда ашылады."],
     ["Отменить", "Болдырмау"], ["Подсказки", "Кеңестер"], ["Всем квартирам этажа:", "Қабаттың барлық пәтерлеріне:"], ["Последнее изменение отменено", "Соңғы өзгеріс болдырылмады"], ["Поля уже заполнены", "Өрістер толтырылған"], ["Заполнить пустые поля значениями первого блока", "Бос өрістерді бірінші блоктың мәндерімен толтыру"], ["Статус всем квартирам этажа", "Қабаттың барлық пәтерлерінің мәртебесі"],
     ["Мой отдел", "Менің бөлімім"], ["Мои разделы", "Менің бөлімдерім"], ["Я — все разделы", "Мен — барлық бөлімдер"], ["По вашему отделу всё в порядке.", "Сіздің бөлім бойынша бәрі жақсы."],
-    ["План по работам ГПР", "ЖӨК жұмыстары бойынша жоспар"], ["Добавить технику", "Техника қосу"], ["Перенести строки из файла", "Файлдан жолдарды көшіру"], ["Потребность по месяцам на весь ЖЦП", "Жобаның бүкіл өмірлік циклі бойынша айлық қажеттілік"],
+    ["План по работам ГПР", "ЖӨК жұмыстары бойынша жоспар"], ["Скачать план (Excel)", "Жоспарды жүктеп алу (Excel)"], ["через", "кейін"], ["мес на", "айға"],
+    ["Если техника нужна не на всех работах, укажите «через … мес» от начала первого этапа и «на … мес»; пусто — весь период работ.", "Техника барлық жұмыстарға қажет болмаса, бірінші кезең басынан «… айдан кейін» және «… айға» деп көрсетіңіз; бос болса — жұмыстардың бүкіл кезеңі."], ["Добавить технику", "Техника қосу"], ["Перенести строки из файла", "Файлдан жолдарды көшіру"], ["Потребность по месяцам на весь ЖЦП", "Жобаның бүкіл өмірлік циклі бойынша айлық қажеттілік"],
     ["Краны, подъёмники и бетононасос по блокам", "Блоктар бойынша крандар, көтергіштер және бетон сорғы"], ["Техника и характеристика", "Техника және сипаттамасы"], ["Работы ГПР: с — по", "ЖӨК жұмыстары: бастап — дейін"], ["Единиц × в месяц на ед.", "Бірлік × бірлікке айына"],
     ["Период", "Кезең"], ["Количество", "Саны"], ["Сумма", "Сома"], ["В плане ГПР", "ЖӨК жоспарында"], ["Период в файле", "Файлдағы кезең"], ["По плану ГПР", "ЖӨК жоспары бойынша"], ["По файлу", "Файл бойынша"], ["Строк в плане", "Жоспардағы жолдар"],
     ["нет цены", "бағасы жоқ"], ["нет в плане", "жоспарда жоқ"], ["по блокам", "блоктар бойынша"], ["Спецтехника по плану ГПР", "ЖӨК жоспары бойынша арнайы техника"], ["Вид спецтехники", "Арнайы техника түрі"], ["Единица спецтехники", "Арнайы техника бірлігі"],
@@ -6177,7 +6181,7 @@ window.ZHK_BOOT = function (document) {
   const LIST_FIELDS = { risks: ["kind", "level", "title", "measure", "who"], team: ["role", "name", "zone"], partners: ["role", "org", "subject", "status"],
     blocks: ["name", "kind", "floors", "under", "entrances", "lifts", "flats", "frame", "design", "contour"],
     scenarios: ["name", "price", "smr", "delay", "sales", "rate"], plans: ["name", "note"], planRooms: ["plan", "kind", "name", "area"],
-    equipPlan: ["kind", "char", "unit", "stage", "stage2", "units", "load"] };
+    equipPlan: ["kind", "char", "unit", "stage", "stage2", "units", "load", "off", "dur"] };
   function listOf(k) { return listFrom(S, k); }
   function listFrom(st, k) {
     const o = (st && st[k]) || {};
@@ -6526,10 +6530,11 @@ window.ZHK_BOOT = function (document) {
   const eqNorm = x => String(x || "").toLowerCase().replace(/ё/g, "е").replace(/\s+/g, " ").trim();
   const eqKindOf = v => { const k = eqNorm(v); return window.DICTS.equipKind.items.find(i => k.indexOf(eqNorm(i.v)) === 0) || null; };
   function eqMonths(G, a, b) { const out = []; for (let m = Math.floor(a); m < Math.ceil(b); m++) if (Math.min(b, m + 1) - Math.max(a, m) > 0.25) out.push(ymAdd(G.start, m)); return out; }
-  function eqSpan(P, s1, s2) {
+  // Период работ: с начала этапа s1 до конца s2; off — сдвиг от начала, dur — длительность (мес), если техника нужна не на всех работах.
+  function eqSpan(P, s1, s2, off, dur) {
     if (!P[s1]) return null;
-    const e = P[s2] && P[s2].ef > P[s1].es ? s2 : s1;
-    return { s1, s2: e, a: P[s1].es, b: Math.max(P[s1].ef, P[e].ef) };
+    const e = P[s2] && P[s2].ef > P[s1].es ? s2 : s1, o = Math.max(0, parseNum(off) || 0), d = parseNum(dur), a = P[s1].es + o;
+    return { s1, s2: e, a, b: d > 0 ? a + d : Math.max(a, Math.max(P[s1].ef, P[e].ef)) };
   }
   function equipPlanCalc() {
     const G = schedule(), P = G.P, EQ = equipCalc(), E = S.equip || {}, F = E.file && E.file.lines ? E.file.lines : [];
@@ -6546,7 +6551,7 @@ window.ZHK_BOOT = function (document) {
       if (qty) rows.push({ id: "calc-" + c, calc: c, kind, char: ch, unit: "мес", stage: s1, stage2: s2, by, from: ms[0], to: ms[ms.length - 1], qty, per: null, sum: rt == null ? null : rt * qty, rate: rt });
     });
     listOf("equipPlan").forEach(r => {
-      const sp = eqSpan(P, r.stage, r.stage2), mon = /мес/i.test(r.unit || ""), u = (v => v > 0 ? v : 1)(parseNum(r.units)), ld = mon ? 1 : (v => v > 0 ? v : null)(parseNum(r.load));
+      const sp = eqSpan(P, r.stage, r.stage2, r.off, r.dur), mon = /мес/i.test(r.unit || ""), u = (v => v > 0 ? v : 1)(parseNum(r.units)), ld = mon ? 1 : (v => v > 0 ? v : null)(parseNum(r.load));
       const ms = sp ? eqMonths(G, sp.a, sp.b) : [], per = ld == null ? null : u * ld, by = {};
       if (per != null) ms.forEach(m => { by[m] = per; });
       const qty = per == null ? null : r1(per * ms.length), rr = rate[key(r.kind, r.char, r.unit)], rt = rr ? rr.sum / rr.qty : null;
@@ -7030,7 +7035,8 @@ function stageChips(v) {
   return `<div class="st-chips"><span class="muted">На дорожной карте:</span>${st.map(id => { const n = TREE.nodes.find(x => x.id === id), x = S[id]; return n ? `<a href="#${id}" data-state="${x ? x.state : ""}">${n.code} · ${esc(n.name)}</a>` : ""; }).join("")}</div>`;
 }
 function head(title, sub, demo) {
-  return `<div class="topbar"><div class="stack" style="gap:4px"><div class="crumbs"><span class="label">${esc(projTitle())}</span></div><h1>${title}</h1>${sub ? `<div class="muted">${sub}</div>` : ""}</div>${demo ? '<span class="demo">Демо-данные</span>' : ""}</div>`;
+  const g = VIEWS[cur] ? VIEWS[cur].g : "", gt = (NAV_G.find(x => x[0] === g) || [])[1];
+  return `<div class="topbar"${gt ? ` data-g="${g}"` : ""}><div class="stack" style="gap:4px"><div class="crumbs"><span class="label">${esc(projTitle())}</span>${gt ? `<span class="g-crumb">${gt}</span>` : ""}</div><h1>${title}</h1>${sub ? `<div class="muted">${sub}</div>` : ""}</div>${demo ? '<span class="demo">Демо-данные</span>' : ""}</div>`;
 }
 
 function viewCard() {
@@ -7508,7 +7514,8 @@ function viewEquip() {
     : `<tr><td><div class="eq-2"><select data-eq-kind="${r.id}" aria-label="Вид техники"${dis}>${kindOpt(r.kind)}</select>
         <input type="text" class="vin" data-item="equipPlan:${r.id}:char" value="${esc(r.char || "")}" maxlength="80" placeholder="характеристика" aria-label="Характеристика"${dis}></div></td>
       <td><select data-item="equipPlan:${r.id}:unit" aria-label="Единица"${dis}>${unitOpt(r.unit)}</select></td>
-      <td><div class="eq-2"><select data-item="equipPlan:${r.id}:stage" aria-label="Работы ГПР: с этапа"${dis}>${stOpt(r.stage)}</select><select data-item="equipPlan:${r.id}:stage2" aria-label="Работы ГПР: по этап"${dis}>${stOpt(r.stage2)}</select></div></td>
+      <td><div class="eq-2"><select data-item="equipPlan:${r.id}:stage" aria-label="Работы ГПР: с этапа"${dis}>${stOpt(r.stage)}</select><select data-item="equipPlan:${r.id}:stage2" aria-label="Работы ГПР: по этап"${dis}>${stOpt(r.stage2)}</select>
+        <div class="row eq-ul" style="gap:4px;flex-wrap:nowrap"><span class="muted vsrc">через</span>${inp(r, "off", 38, "Сдвиг от начала работ, мес")}<span class="muted vsrc">мес на</span>${inp(r, "dur", 38, "Длительность, мес")}<span class="muted vsrc">мес</span></div></div></td>
       <td><div class="row eq-ul" style="gap:4px;flex-wrap:nowrap">${inp(r, "units", 44, "Единиц техники")}${r.mon ? "" : `<span class="muted">×</span>${inp(r, "load", 56, "В месяц на единицу")}`}</div></td>
       <td class="mono">${r.ok ? mm(r.from) + "–" + mm(r.to) : '<span class="bad-t">выберите этап</span>'}</td><td class="num"><b>${r.qty == null ? (r.ok ? '<span class="bad-t">нет загрузки</span>' : "—") : num(r.qty)}</b>${r.per != null ? `<div class="muted vsrc">${num(r.per)} в мес</div>` : ""}</td>
       <td class="num">${r.sum == null ? '<span class="muted" title="Нет такой строки в файле ЦДС/ПТО">нет цены</span>' : mln(r.sum)}</td>
@@ -7534,9 +7541,10 @@ function viewEquip() {
     <tr class="total"><td><b>Итого</b></td><td></td><td></td><td></td><td></td><td class="num"><b>${mln(X.sumFile)}</b></td></tr></tbody></table></div>` : "";
   const canImport = f && X.lines.some(l => !l.inPlan && !l.calc);
   return top + `<div class="grid g5">${K.map(([l, v, s]) => `<div class="panel kpi"><span class="label">${l}</span><div class="big num">${esc(v)}</div><div class="muted" style="font-size:.85rem">${esc(s)}</div></div>`).join("")}</div>
-  <section class="panel stack"><div class="row" style="justify-content:space-between"><h2 class="h2">План по работам ГПР</h2>${ro ? "" : `<div class="row"><button class="btn primary" data-eq-add>Добавить технику</button>${canImport ? '<button class="btn" data-eq-import>Перенести строки из файла</button>' : ""}</div>`}</div>
+  <section class="panel stack"><div class="row" style="justify-content:space-between"><h2 class="h2">План по работам ГПР</h2>${ro ? "" : `<div class="row"><button class="btn primary" data-eq-add>Добавить технику</button><button class="btn" id="eq-xlsx"${X.rows.length ? "" : " disabled"}>Скачать план (Excel)</button>${canImport ? '<button class="btn" data-eq-import>Перенести строки из файла</button>' : ""}</div>`}</div>
     ${eqMsg ? `<p class="muted" style="margin:0">${esc(eqMsg)}</p>` : ""}
     ${plan}
+    <p class="muted hint" style="margin:0">Если техника нужна не на всех работах, укажите «через … мес» от начала первого этапа и «на … мес»; пусто — весь период работ.</p>
     <p class="muted hint" style="margin:0">Строка — техника на работах ГПР: с этапа и по этап графика (по умолчанию — для вида техники). Для «мес» указывается число единиц, для смен, часов и рейсов — ещё загрузка в месяц на единицу. Количество = единиц × загрузка × месяцев работ. Сумма — по цене той же строки (вид, характеристика, единица) в файле ЦДС/ПТО.</p>
   </section>
   <section class="panel stack"><h2 class="h2">Потребность по месяцам на весь ЖЦП</h2>${gpr}</section>
@@ -7549,6 +7557,19 @@ function viewEquip() {
     ${f ? `<p class="muted" style="margin:0">Файл «${esc(f.name)}», загружен ${new Date(f.at).toLocaleString("ru-RU")}${f.by ? ", " + esc(f.by) : ""}. Каждая строка файла сравнивается с планом по работам ГПР.</p>${fileTbl}`
       : '<p class="muted" style="margin:0">Выгрузка «План спецтехники» (колонки «Вид техники», «Дата начала», «Дата окончания», «Единица измерения», «Количество», «Сумма с НДС»). Старый формат .xls сохраните в Excel как .xlsx.</p>'}
   </section>`;
+}
+
+// План спецтехники в Excel: колонки как в выгрузке ЦДС/ПТО и количество по месяцам. Цен и сумм нет — они остаются в файле отдела.
+function equipXlsx() {
+  const X = window.ZHK.equipPlan(), Ms = X.months, d0 = Date.UTC(1899, 11, 30);
+  const ser = (ym, end) => { const y = +ym.slice(0, 4), m = +ym.slice(5, 7); return { d: Math.round(((end ? Date.UTC(y, m, 0) : Date.UTC(y, m - 1, 1)) - d0) / 86400000) }; };
+  const ST = Object.fromEntries(window.ZHK.stages().map(x => [x.id, x.code + " " + x.name]));
+  const head = ["Вид техники", "Характеристика", "Работы ГПР", "Дата начала", "Дата окончания", "Единица измерения", "Количество единиц", "Количество"].concat(Ms.map(m => m.slice(5, 7) + "." + m.slice(0, 4)));
+  const rows = X.rows.filter(r => Object.keys(r.by).length).map(r => [r.kind, r.char || "", (ST[r.stage] || "") + (r.stage2 && r.stage2 !== r.stage ? " — " + (ST[r.stage2] || "") : ""), r.from ? ser(r.from) : "", r.to ? ser(r.to, true) : "", r.unit,
+    r.calc ? "" : r.unitsN, r.qty == null ? "" : r.qty].concat(Ms.map(m => r.by[m] || "")));
+  const sheets = [{ name: "План спецтехники", widths: [26, 30, 40, 13, 13, 10, 10, 11].concat(Ms.map(() => 8)), bold: [0, 2],
+    rows: [[projTitle() + " — план спецтехники по работам ГПР", "", new Date().toLocaleDateString("ru-RU")], [], head].concat(rows) }];
+  window.ZHK.save(("План спецтехники " + (card.name || "проект")).replace(/[^\p{L}\p{N}\s-]/gu, "").trim().replace(/\s+/g, "_") + ".xlsx", window.buildXlsx(sheets));
 }
 
 // ---------- Типовые планировки ----------
@@ -8292,7 +8313,7 @@ async function deckPptx() {
 function subTabs(v) {
   const items = Object.keys(VIEWS).filter(k => VIEWS[k].g === VIEWS[v].g);
   if (items.length < 2) return "";
-  return `<nav class="subtabs" aria-label="Разделы группы">${items.map(k => { const n = navCnt(k, VIEWS[k]); return `<a href="#${k}"${k === v ? ' aria-current="page"' : ""}>${VIEWS[k].t}${n && (VIEWS[k].z || VIEWS[k].alert) ? ` <span class="cnt alert">${n}</span>` : ""}</a>`; }).join("")}</nav>`;
+  return `<nav class="subtabs" data-g="${VIEWS[v].g}" aria-label="Разделы группы">${items.map(k => { const n = navCnt(k, VIEWS[k]); return `<a href="#${k}"${k === v ? ' aria-current="page"' : ""}>${VIEWS[k].t}${n && (VIEWS[k].z || VIEWS[k].alert) ? ` <span class="cnt alert">${n}</span>` : ""}</a>`; }).join("")}</nav>`;
 }
 
 // ---------- Дорожная карта (приложение этапов) ----------
@@ -8438,6 +8459,7 @@ function bind(m) {
     window.ZHK.setItem("equipPlan", sel.dataset.eqKind, Object.assign({ kind: sel.value }, K.u ? { unit: K.u } : {}, K.st ? { stage: K.st, stage2: K.st2 } : {}));
   });
   m.querySelectorAll("[data-eq-import]").forEach(b => b.onclick = () => { const n = window.ZHK.equipFromFile(); eqMsg = n ? "Перенесено строк из файла: " + n + ". Проверьте работы ГПР и загрузку." : ""; route(); });
+  const eqx = m.querySelector("#eq-xlsx"); if (eqx) eqx.onclick = equipXlsx;
   const eqd = m.querySelector("#eq-del"); if (eqd) eqd.onclick = () => { eqMsg = ""; window.ZHK.setEquipFile(null); };
   m.querySelectorAll("[data-ch-f]").forEach(b => b.onclick = () => { const [g, v] = b.dataset.chF.split(":"); chUI.f[g] = v; route(); });
   const cft = m.querySelector("[data-ch-ft]"); if (cft) cft.onchange = () => { chUI.f.t = cft.value; route(); };
