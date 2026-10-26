@@ -84,8 +84,7 @@ body.nohints .topbar .muted, body.nohints .hint { display: none }
 .delta.good { color: var(--ok) } .delta.bad { color: var(--bad) }
 .btn.mini { padding: 3px 8px; font-size: .78rem }
 .filters input { border: 1px solid var(--line); background: var(--surface-2); border-radius: 8px; padding: 6px 8px; font-weight: 500; color: var(--fg); font-size: .9rem }
-.subtabs { display: none; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--line); padding-bottom: 12px }
-@media (max-width: 760px) { .subtabs { display: flex } }
+.subtabs { display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--line); padding-bottom: 12px }
 .subtabs a { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); text-decoration: none; font-weight: 500; font-size: .92rem }
 .subtabs a:hover { border-color: var(--accent) }
 .subtabs a[aria-current="page"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent) }
@@ -95,8 +94,13 @@ body.nohints .topbar .muted, body.nohints .hint { display: none }
 .subtabs .cnt { font-size: .72rem; font-family: var(--f-mono); border-radius: 99px; padding: 1px 7px }
 /* Группы меню: у каждой свой цвет (--gc). Заголовок — цветная плашка, пункты — под ней с отступом и линией цвета группы. */
 .nav-grp { --gc: var(--muted) }
-[data-g="map"] { --gc: #2f6fde } [data-g="obj"] { --gc: #d9771e } [data-g="money"] { --gc: #1f9d63 } [data-g="ors"] { --gc: #8a55d6 }
-[data-g="people"] { --gc: #0f9aa8 } [data-g="pk"] { --gc: #d6456b } [data-g="co"] { --gc: #6b7684 }
+[data-g="home"] { --gc: var(--accent) } [data-g="map"] { --gc: #2f6fde } [data-g="data"] { --gc: #d9771e } [data-g="fin"] { --gc: #1f9d63 } [data-g="ors"] { --gc: #8a55d6 }
+[data-g="build"] { --gc: #0f9aa8 } [data-g="pk"] { --gc: #d6456b } [data-g="co"] { --gc: #6b7684 }
+.nav-main { display: flex; align-items: center; gap: 10px; padding: 11px 12px !important; font-weight: 600 !important; font-size: 1rem; border-left: 3px solid color-mix(in srgb, var(--gc) 55%, transparent); border-radius: 0 8px 8px 0 !important; margin-top: 4px }
+.nav-main span { flex: 1 } .nav-main[aria-current="page"] { background: color-mix(in srgb, var(--gc) 14%, transparent) !important; color: var(--gc) !important; border-left-color: var(--gc) }
+.nav-mods { display: flex; flex-direction: column; gap: 2px; margin-top: 18px; padding-top: 10px; border-top: 1px dashed var(--line) }
+.nav-mods .nav-main { font-size: .92rem; font-weight: 500 !important; padding: 8px 12px !important }
+.nav-none { font-size: .85rem; padding: 4px 12px } .nav-set { font-size: .82rem !important; color: var(--muted) !important; padding: 6px 12px !important; font-weight: 400 !important }
 .nav-grp { margin-top: 6px }
 .nav-grp > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; font-size: .74rem; text-transform: uppercase; letter-spacing: .07em; color: var(--gc); font-weight: 700; padding: 8px 10px; border-radius: 8px; background: color-mix(in srgb, var(--gc) 12%, transparent) }
 .nav-grp > summary::before { content: ""; width: 9px; height: 9px; border-radius: 3px; background: var(--gc); flex: none }
@@ -133,6 +137,15 @@ body.nohints .topbar .muted, body.nohints .hint { display: none }
 .td-stages li:last-child { border-bottom: 0 }
 .td-st { grid-area: n; display: flex; gap: 10px; align-items: baseline; text-decoration: none; color: var(--fg) } .td-st:hover b { color: var(--accent) }
 .td-stages li > .muted { grid-area: d; font-size: .85rem } .td-prog { grid-area: p; display: flex; flex-direction: column; gap: 4px; font-size: .8rem; text-align: right }
+.d-nav { display: flex; flex-wrap: wrap; gap: 6px } .d-nav a { padding: 5px 12px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); text-decoration: none; font-size: .88rem }
+.d-nav a:hover { border-color: #d9771e }
+.cf-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) } .cf { position: relative } .cf-v { display: flex; align-items: center; gap: 6px } .cf-v .vin, .cf-v select { width: 100% } .cf-v .unit { white-space: nowrap }
+.cf-st { position: absolute; top: 0; right: 0; font-size: .75rem; font-weight: 700 } .cf-st.ok { color: var(--ok) }
+.d-more > summary { cursor: pointer; list-style: none; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px } .d-more > summary::-webkit-details-marker { display: none }
+.d-more > summary h2::after { content: " ▸"; color: var(--muted) } .d-more[open] > summary h2::after { content: " ▾" }
+.mod-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px }
+.mod-item { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--line); border-left: 3px solid var(--gc); border-radius: 8px; cursor: pointer }
+.mod-item > span { display: flex; flex-direction: column; gap: 2px } .mod-item .muted { font-size: .84rem } .mod-item input { margin-top: 3px }
 .hm-hero { display: flex; flex-wrap: wrap; gap: 16px 32px; align-items: center; justify-content: space-between }
 .hm-key { font: 600 clamp(2.2rem, 5vw, 3.2rem)/1.05 var(--f-body); letter-spacing: -.01em }
 .hm-cur b { font-size: 1.05rem }
@@ -397,7 +410,7 @@ th { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color:
   .nav a { white-space: nowrap; padding: 7px 10px }
   .td-list li { grid-template-columns: minmax(0, 1fr) auto } .td-tag { grid-column: 1 / -1; justify-self: start }
   .nav .cnt, .nav-g { display: none }
-  .nav-ribbon a[data-g]:not([data-g="today"]) { color: var(--gc); box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--gc) 40%, transparent) }
+  .nav-ribbon a[data-g]:not([data-g="home"]) { color: var(--gc); box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--gc) 40%, transparent) }
   .nav-ribbon a[data-g][aria-current="page"] { background: color-mix(in srgb, var(--gc) 14%, transparent) }
   .main { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 18px 40px }
   .g2, .g3 { grid-template-columns: minmax(0, 1fr) }
@@ -4628,7 +4641,12 @@ window.I18N = (function () {
     ["Дорожная карта", "Жол картасы"], ["Дорожная карта ЖК", "ТҮК жол картасы"], ["Этапы", "Кезеңдер"], ["Схема связей", "Байланыстар сызбасы"], ["Схема связей этапов", "Кезеңдер байланысының сызбасы"], ["Пройдено", "Өтті"], ["Идёт", "Жүріп жатыр"], ["Впереди", "Алда"], ["Инструменты этапа", "Кезең құралдары"], ["На дорожной карте:", "Жол картасында:"], ["Этапы в работе", "Жұмыстағы кезеңдер"], ["Вся дорожная карта", "Бүкіл жол картасы"], ["Открытых этапов нет.", "Ашық кезеңдер жоқ."], ["Этапы проекта по фазам — от анализа рынка до гарантии: сроки по графику, выполнение пунктов и инструменты каждого этапа. Нажмите на этап, чтобы открыть его пункты, документы, бюджет и сроки.", "Жоба кезеңдері фазалар бойынша — нарықты талдаудан кепілдікке дейін: кесте бойынша мерзімдер, тармақтардың орындалуы және әр кезеңнің құралдары. Тармақтарын, құжаттарын, бюджеті мен мерзімдерін ашу үшін кезеңді басыңыз."], ["Какой этап открывает следующий. Этап открывается, когда закрыты условия перехода на предыдущих.", "Қай кезең келесісін ашады. Кезең алдыңғыларындағы өту шарттары жабылғанда ашылады."],
     ["Отменить", "Болдырмау"], ["Подсказки", "Кеңестер"], ["Всем квартирам этажа:", "Қабаттың барлық пәтерлеріне:"], ["Последнее изменение отменено", "Соңғы өзгеріс болдырылмады"], ["Поля уже заполнены", "Өрістер толтырылған"], ["Заполнить пустые поля значениями первого блока", "Бос өрістерді бірінші блоктың мәндерімен толтыру"], ["Статус всем квартирам этажа", "Қабаттың барлық пәтерлерінің мәртебесі"],
     ["Мой отдел", "Менің бөлімім"], ["Мои разделы", "Менің бөлімдерім"], ["Я — все разделы", "Мен — барлық бөлімдер"], ["По вашему отделу всё в порядке.", "Сіздің бөлім бойынша бәрі жақсы."],
-    ["План по работам ГПР", "ЖӨК жұмыстары бойынша жоспар"], ["Резервные копии", "Сақтық көшірмелер"], ["Восстановить", "Қалпына келтіру"], ["Да, восстановить", "Иә, қалпына келтіру"], ["Копия", "Көшірме"], ["Сохранена", "Сақталды"], ["до восстановления", "қалпына келтіруге дейін"],
+    ["План по работам ГПР", "ЖӨК жұмыстары бойынша жоспар"], ["Паспорт", "Паспорт"], ["Сроки и продажи", "Мерзімдер және сатылым"], ["Затраты и финансирование", "Шығындар және қаржыландыру"], ["Затраты", "Шығындар"], ["Команда", "Команда"], ["Риски", "Тәуекелдер"],
+    ["Описание", "Сипаттама"], ["Описание и реквизиты", "Сипаттама және деректемелер"], ["Все параметры", "Барлық параметрлер"], ["Команда и партнёры", "Команда және серіктестер"],
+    ["миссия, тексты для ПК Start, стандарты, реквизиты для документов", "миссия, ПК Start мәтіндері, стандарттар, құжаттарға арналған деректемелер"], ["Данные", "Деректер"], ["Модули", "Модульдер"], ["Модули проекта", "Жоба модульдері"], ["Настроить модули", "Модульдерді баптау"], ["не подключены", "қосылмаған"],
+    ["Стройка", "Құрылыс"], ["Портфель", "Портфель"], ["Финансы", "Қаржы"], ["Комитет", "Комитет"], ["финмодель, «что если», бюджет, смета 1С", "қаржы моделі, «егер», бюджет, 1С сметасы"], ["показатели ПНР, чек-лист B0", "ӨҮШ көрсеткіштері, B0 чек-парағы"],
+    ["спецтехника, стандарты", "арнайы техника, стандарттар"], ["презентация ПК Start", "ПК Start презентациясы"], ["все ЖК компании", "компанияның барлық ТҮК"],
+    ["Модуль добавляет в меню инструменты отдела. Данные модуля не пропадают, если его выключить.", "Модуль мәзірге бөлімнің құралдарын қосады. Модульді өшірсе, оның деректері жоғалмайды."], ["Резервные копии", "Сақтық көшірмелер"], ["Восстановить", "Қалпына келтіру"], ["Да, восстановить", "Иә, қалпына келтіру"], ["Копия", "Көшірме"], ["Сохранена", "Сақталды"], ["до восстановления", "қалпына келтіруге дейін"],
     ["Отдел", "Бөлім"], ["Вход", "Кіру"], ["Это я", "Бұл мен"], ["это вы", "бұл сіз"], ["Не я", "Мен емес"], ["Отвязать", "Байланысты ажырату"], ["привязано", "байланған"], ["нет базы ПК Start", "ПК Start базасы жоқ"], ["Обзор", "Шолу"], ["Обзор проекта", "Жоба шолуы"], ["Ключи по прогнозу", "Болжам бойынша кілттер"], ["В графике", "Кесте бойынша"], ["Сейчас", "Қазір"], ["сегодня", "бүгін"],
     ["Строительство", "Құрылыс"], ["Продажи", "Сатылым"], ["Бюджет освоен", "Бюджет игерілді"], ["Маржа", "Маржа"], ["Пиковый долг банку", "Банкке ең жоғары қарыз"], ["Требует решения", "Шешім қажет"], ["Ближайшие вехи", "Жақын белестер"], ["Срочного нет", "Шұғыл ештеңе жоқ"], ["Календарь", "Күнтізбе"],
     ["нет факта СМР", "ҚМЖ фактісі жоқ"], ["нет квартир", "пәтерлер жоқ"], ["нет плана", "жоспар жоқ"], ["по финмодели", "қаржы моделі бойынша"], ["по плану ГПР", "ЖӨК жоспары бойынша"], ["Событий нет", "Оқиғалар жоқ"], ["По плану графика", "Кесте жоспары бойынша"], ["По прогнозу графика", "Кесте болжамы бойынша"], ["По прогнозу ГПР", "ЖӨК болжамы бойынша"], ["Спецтехника на этапе", "Кезеңдегі арнайы техника"], ["План спецтехники", "Арнайы техника жоспары"],
@@ -7088,7 +7106,12 @@ function relevant() { return STD.filter(s => matches(s, { ...pick(card) })) }
 const Z = (t, sub) => () => head(t, sub);
 // Меню по группам: что за объект, сроки и стройка, деньги, ОРС, люди, комитет. alert — счётчик требует внимания.
 // Основа портала — дорожная карта: этапы проекта. Остальные разделы — инструменты этапов (связь в TOOL_STAGES).
-const NAV_G = [["today", ""], ["map", "Дорожная карта"], ["obj", "Объект"], ["money", "Деньги"], ["ors", "ОРС"], ["people", "Люди"], ["pk", "Комитет"], ["co", "Компания"]];
+// Портал — три экрана: Обзор, Дорожная карта, Данные. Остальное — модули отделов: по умолчанию выключены,
+// включаются в «Данных» (project.modules — коды модулей через пробел). Разделы группы — вкладки внутри экрана.
+const NAV_G = [["home", "Обзор"], ["map", "Дорожная карта"], ["data", "Данные"]];
+const MODS = [["fin", "Финансы", "финмодель, «что если», бюджет, смета 1С"], ["ors", "ОРС", "показатели ПНР, чек-лист B0"], ["build", "Стройка", "спецтехника, стандарты"], ["pk", "Комитет", "презентация ПК Start"], ["co", "Портфель", "все ЖК компании"]];
+const GROUPS = NAV_G.concat(MODS);
+const modsOn = () => { const m = String(window.ZHK && window.ZHK.project() ? window.ZHK.project().modules || "" : "").split(" "); return MODS.filter(([g]) => m.indexOf(g) >= 0); };
 const VIEWS = {
   home: { g: "today", t: "Обзор", cnt: () => "", r: viewHome },
   today: { g: "today", t: "Сегодня", cnt: () => window.ZHK ? todayItems().filter(x => x.lvl === "bad").length || "" : "", alert: true, r: viewToday },
@@ -7117,6 +7140,13 @@ const VIEWS = {
   projects: { g: "co", z: "projects", t: "Портфель проектов", cnt: () => "", r: Z("Портфель проектов", "Все ЖК компании и их прогресс по дорожной карте.") },
 };
 
+// Состав групп по порядку вкладок; первый раздел группы открывается из меню. Шахматка и планировки — на паузе (без вкладки).
+const GV = { home: ["home", "today", "kpi"], map: ["roadmap", "gantt", "calendar", "deadlines", "scheme"], data: ["data"],
+  fin: ["model", "whatif", "budget", "smeta"], ors: ["pnr", "b0"], build: ["equip", "standards"], pk: ["pk"], co: ["projects"] };
+Object.entries(GV).forEach(([g, ks]) => ks.forEach(k => { VIEWS[k].g = g; }));
+["chess", "plans"].forEach(k => { VIEWS[k].g = "build"; VIEWS[k].off = true; });
+["card", "blocks", "team", "partners"].forEach(k => { VIEWS[k].g = "data"; VIEWS[k].off = true; });
+
 // Инструменты этапов: раздел портала → этапы дорожной карты, где он нужен. Одно место связи: из него строятся
 // ссылки «Инструменты этапа» в дорожной карте и отметка «На дорожной карте» на странице раздела.
 const TOOL_STAGES = {
@@ -7132,8 +7162,12 @@ function stageChips(v) {
   const S = window.ZHK && window.ZHK.stages ? Object.fromEntries(window.ZHK.stages().map(x => [x.id, x])) : {};
   return `<div class="st-chips"><span class="muted">На дорожной карте:</span>${st.map(id => { const n = TREE.nodes.find(x => x.id === id), x = S[id]; return n ? `<a href="#${id}" data-state="${x ? x.state : ""}">${n.code} · ${esc(n.name)}</a>` : ""; }).join("")}</div>`;
 }
+// Раздел, встроенный в экран «Данные», рисуется без своей шапки.
+let EMBED = false;
+const embedView = fn => { EMBED = true; try { return fn(); } finally { EMBED = false; } };
 function head(title, sub, demo) {
-  const g = VIEWS[cur] ? VIEWS[cur].g : "", gt = (NAV_G.find(x => x[0] === g) || [])[1];
+  if (EMBED) return "";
+  const g = VIEWS[cur] ? VIEWS[cur].g : "", gt = (GROUPS.find(x => x[0] === g) || [])[1];
   return `<div class="topbar"${gt ? ` data-g="${g}"` : ""}><div class="stack" style="gap:4px"><div class="crumbs"><span class="label">${esc(projTitle())}</span>${gt ? `<span class="g-crumb">${gt}</span>` : ""}</div><h1>${title}</h1>${sub ? `<div class="muted">${sub}</div>` : ""}</div>${demo ? '<span class="demo">Демо-данные</span>' : ""}</div>`;
 }
 
@@ -7160,7 +7194,7 @@ function viewCard() {
     <p class="muted" style="margin:0">Материалы фасада и квартирография — из <a href="#b0">чек-листа B0</a>, цена и площади — из <a href="#data">данных проекта</a>. Всё это попадает в презентацию ПК Start.</p>
   </section>
   <section class="panel stack"><h2>Параметры подбора стандартов</h2><div class="fields">
-    ${sel("region", "regcode", "Не выбран")}${sel("city", "city", "Не выбран")}${sel("klass", "klass", "Не выбран")}
+    ${sel("region", "regcode", "Не выбран")}${EMBED ? "" : sel("city", "city", "Не выбран") + sel("klass", "klass", "Не выбран")}
     ${sel("stage", "stage", "Как в дорожной карте")}${sel("work", "work", "Не выбран")}${sel("construct", "construct", "Не выбран")}
   </div></section>
   <section class="panel stack"><h2>Сводка из дорожной карты</h2><div class="fields">
@@ -7169,13 +7203,13 @@ function viewCard() {
     ${out("Затраты по финмодели", `<a href="#model">${esc(money(sum.cost))}</a>`)}
   </div></section>
   <section class="panel stack"><h2>Реквизиты для документов</h2><div class="fields">
-    ${doc("name")}${doc("address")}${doc("cadastre")}${doc("area_land")}
+    ${EMBED ? "" : doc("name") + doc("address")}${doc("cadastre")}${EMBED ? "" : doc("area_land")}
     ${doc("company")}${doc("bin")}${doc("director")}
     ${(T => out("Блоки, этажность, квартиры", `<a href="#blocks">${T.blocks == null ? "Заполнить блоки" : `${T.blocks} жил. блоков, ${T.floors == null ? "—" : T.floors} эт., ${T.flats == null ? "—" : T.flats} кв.`}</a>`))(window.ZHK.blockTotals())}${doc("area_total")}
     <label class="field" for="card-zone"><span class="label">Климат и сейсмика</span><select id="card-zone" data-pk="region"${ro}><option value="">Не выбрано</option>${window.ZHK.regions().map(([id, n]) => `<option value="${id}"${id === zone ? " selected" : ""}>${esc(n)}</option>`).join("")}</select></label>
     ${txt("building", "Тип здания", "Многоквартирный жилой дом, монолитный каркас")}${txt("ge", "Заключение ГЭ", "№ ___ от ___")}${txt("sales", "Условия продаж", "ДДУ с гарантией фонда")}
   </div></section>
-  <div class="row"><a class="btn primary" href="#standards" style="text-decoration:none">Открыть стандарты для этого проекта →</a></div>`;
+  ${EMBED ? "" : '<div class="row"><a class="btn primary" href="#standards" style="text-decoration:none">Открыть стандарты для этого проекта →</a></div>'}`;
 }
 function money(n) { return (n / 1e9).toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + " млрд ₸" }
 
@@ -7951,18 +7985,13 @@ let navOpen = {};
 try { navOpen = JSON.parse(localStorage.getItem("zhk-nav-open") || "{}") || {}; } catch (e) {}
 const navCnt = (k, x) => { const n = x.z ? zhkBadge(x.z) : x.cnt(); return n === "" || n == null ? "" : String(n); };
 function navHtml(v) {
-  const cg = VIEWS[v].g;
-  const link = ([k, x]) => { const n = navCnt(k, x), a = x.z || x.alert; return `<a href="#${k}"${k === v ? ' aria-current="page"' : ""}><span>${x.t}</span>${n ? `<span class="cnt${a ? " alert" : ""}">${n}</span>` : ""}</a>`; };
-  const tree = NAV_G.map(([g, t]) => {
-    const items = Object.entries(VIEWS).filter(([, x]) => x.g === g);
-    if (!t) return items.map(link).join("");
-    const hot = items.some(([k, x]) => (x.z || x.alert) && navCnt(k, x));
-    return `<details class="nav-grp" data-g="${g}"${g === cg || navOpen[g] ? " open" : ""}><summary><span>${t}</span>${hot ? '<i class="nav-dot" aria-label="Есть что проверить"></i>' : ""}</summary>${items.map(link).join("")}</details>`;
-  }).join("");
-  // На телефоне — лента групп; разделы группы показываются вкладками на странице.
-  const ribbon = NAV_G.map(([g, t]) => { const items = Object.keys(VIEWS).filter(k => VIEWS[k].g === g), to = items.indexOf(v) >= 0 ? v : items[0]; return `<a href="#${to}" data-g="${g}"${g === cg ? ' aria-current="page"' : ""}>${t || VIEWS[items[0]].t}</a>`; }).join("");
-  const R = role(), mine = R ? `<div class="nav-mine"><span class="nav-g">Мои разделы · ${R.t}</span>${R.views.filter(k => VIEWS[k]).map(k => link([k, VIEWS[k]])).join("")}</div>` : "";
-  return `<div class="nav-tree">${mine}${tree}</div><div class="nav-ribbon">${ribbon}</div>`;
+  const cg = VIEWS[v].g, on = modsOn(), mods = on.concat(MODS.filter(([g]) => g === cg && !on.some(x => x[0] === g)));
+  const hot = g => GV[g].some(k => (VIEWS[k].z || VIEWS[k].alert) && navCnt(k, VIEWS[k]));
+  const item = ([g, t]) => `<a class="nav-main" href="#${GV[g][0]}" data-g="${g}"${g === cg ? ' aria-current="page"' : ""}><span>${t}</span>${hot(g) ? '<i class="nav-dot" aria-label="Есть что проверить"></i>' : ""}</a>`;
+  const tree = NAV_G.map(item).join("") + `<div class="nav-mods"><span class="nav-g">Модули</span>${mods.map(item).join("") || '<span class="muted nav-none">не подключены</span>'}<a class="nav-set" href="#data" data-go-mods>Настроить модули</a></div>`;
+  // На телефоне — лента: три экрана и подключённые модули; разделы группы — вкладками на странице.
+  const ribbon = NAV_G.concat(mods).map(([g, t]) => `<a href="#${GV[g][0]}" data-g="${g}"${g === cg ? ' aria-current="page"' : ""}>${t}</a>`).join("");
+  return `<div class="nav-tree">${tree}</div><div class="nav-ribbon">${ribbon}</div>`;
 }
 // ---------- Мой отдел: настройка человека (в браузере), общие данные не меняет ----------
 // views — «Мои разделы» сверху меню; owners — владельцы переменных для фильтра «Данных проекта»; hrefs — пункты «Сегодня» отдела.
@@ -8115,7 +8144,7 @@ function viewToday() {
 function goHash(h) { document.getElementById("layer").innerHTML = ""; if (location.hash === "#" + h) route(); else location.hash = h; }
 function searchIndex() {
   const Z = window.ZHK, I = [];
-  Object.entries(VIEWS).forEach(([k, x]) => I.push({ kind: "Раздел", title: x.t, sub: (NAV_G.find(g => g[0] === x.g) || [])[1] || "", go: () => goHash(k) }));
+  Object.entries(VIEWS).forEach(([k, x]) => I.push({ kind: "Раздел", title: x.t, sub: (GROUPS.find(g => g[0] === x.g) || [])[1] || "", go: () => goHash(k) }));
   window.TREE.nodes.forEach(n => I.push({ kind: "Этап", title: n.code + " · " + n.name, sub: n.phase || "", go: () => { goHash("roadmap"); setTimeout(() => Z.selectStage(n.id), 0); } }));
   Z.vars().forEach(v => I.push({ kind: "Показатель", title: v.name, sub: v.text + " · " + v.id, go: () => { dataF = { sec: "", owner: "", st: "", q: v.name }; goHash("data"); } }));
   STD.forEach(x => I.push({ kind: "Стандарт", title: x.name, sub: x.code, go: () => { document.getElementById("layer").innerHTML = ""; openStd(x.code); } }));
@@ -8169,6 +8198,8 @@ document.addEventListener("input", e => { if (e.target.matches && e.target.match
 function route() {
   let v = location.hash.slice(1);
   if (!VIEWS[v]) v = window.TREE && TREE.nodes.some(n => n.id === v) ? "roadmap" : "home";
+  const DSEC = { card: "about", blocks: "blocks", team: "team", partners: "team" };
+  if (DSEC[v]) { dataJump = DSEC[v]; if (v === "card") dataOpen.about = true; v = "data"; }
   cur = v;
   document.getElementById("nav").innerHTML = navHtml(v);
   const main = document.getElementById("main");
@@ -8185,6 +8216,11 @@ function route() {
 const ST = { draft: ["Черновик", "s-new"], agreed: ["Согласовано", "s-agreed"], approved: ["Утверждено", "s-done"], calc: ["Расчёт", "s-changed"] };
 const HOME = { project: ["Карточка проекта", "card"], model: ["Финмодель", "model"], sched: ["График", "gantt"], pnr: ["Показатели ПНР", "pnr"], equip: ["Спецтехника", "equip"] };
 let dataF = { sec: "", owner: "", st: "", q: "" }, baseAsk = false;
+// Ключевые данные проекта: вводятся формой вверху экрана «Данные»; в таблице «Все параметры» они только показываются.
+const DATA_CORE = [["passport", "Паспорт", ["name", "klass", "city", "address", "area_land", "area_total", "area_sale", "area_comm", "parking"]],
+  ["terms", "Сроки и продажи", ["sched_start", "price", "price_comm", "price_park", "growth"]],
+  ["money", "Затраты и финансирование", ["land", "design", "smr", "nets", "equity", "rate"]]];
+const DATA_CORE_SEC = Object.fromEntries(DATA_CORE.flatMap(([id, t, ids]) => ids.map(v => [v, [id, t]])));
 function viewData() {
   const all = window.ZHK.vars(), ro = window.ZHK.readOnly(), B = window.ZHK.baseline();
   const q = dataF.q.trim().toLowerCase();
@@ -8194,8 +8230,9 @@ function viewData() {
   const n = st => all.filter(v => v.st === st).length;
   const opt = (arr, cur, fmt = x => x) => arr.map(x => `<option value="${esc(x)}"${x === cur ? " selected" : ""}>${esc(fmt(x))}</option>`).join("");
   const dt = iso => iso ? new Date(iso).toLocaleDateString("ru-RU") : "";
-  const valCell = v => {
+  const valCell = (v, form) => {
     if (v.calc || ro || v.type === "sel") return `<span class="v">${esc(v.text)}</span>`;
+    if (DATA_CORE_SEC[v.id] && !form) return `<span class="v">${esc(v.text)}</span> <a class="muted vsrc" href="#data" data-dsec="${DATA_CORE_SEC[v.id][0]}">ввод: ${DATA_CORE_SEC[v.id][1]}</a>`;
     if (v.type === "flag") return `<label class="row" style="gap:6px"><input type="checkbox" data-var="${v.id}"${v.raw ? " checked" : ""}> ${esc(v.text)}</label>`;
     if (v.type === "month") return `<input type="month" class="vin" data-var="${v.id}" value="${esc(v.raw || "")}" aria-label="${esc(v.name)}">`;
     const val = v.type === "num" && typeof v.raw === "number" ? String(v.raw).replace(".", ",") : (v.raw == null ? "" : v.raw);
@@ -8225,7 +8262,27 @@ function viewData() {
       : '<div class="empty">Рисков пока нет. Добавьте риски и возможности проекта: они попадут в презентацию ПК Start.</div>'}
     ${ro ? "" : '<div class="row"><button class="btn" data-item-add="risks">Добавить риск</button></div>'}
   </div></section>`;
+  const on = modsOn().map(x => x[0]);
+  const modsHtml = `<section class="panel stack" id="sec-modules"><h2 class="h2">Модули проекта</h2><div class="mod-list">${MODS.map(([g, t, d]) => `<label class="mod-item" data-g="${g}"><input type="checkbox" data-mod="${g}"${on.indexOf(g) >= 0 ? " checked" : ""}${ro ? " disabled" : ""}><span><b>${t}</b><span class="muted">${d}</span></span></label>`).join("")}</div>
+    <p class="muted hint" style="margin:0">Модуль добавляет в меню инструменты отдела. Данные модуля не пропадают, если его выключить.</p></section>`;
+  // Ключевые данные проекта — формой по разделам; полная таблица переменных со статусами — ниже, в «Все параметры».
+  const VV = Object.fromEntries(all.map(v => [v.id, v]));
+  const cfCtl = v => v.calc ? `<span class="v">${esc(v.text)}</span>` : v.type === "sel" && window.DICTS[v.id]
+    ? `<select data-var="${v.id}" aria-label="${esc(v.name)}"${ro ? " disabled" : ""}><option value="">—</option>${window.DICTS[v.id].items.map(i => `<option${i.v === v.raw ? " selected" : ""}>${esc(i.v)}</option>`).join("")}</select>` : valCell(v, true);
+  const cf = id => { const v = VV[id]; return v ? `<label class="field cf"><span class="label">${esc(v.name)}</span><span class="cf-v">${cfCtl(v)}</span>${v.st === "approved" ? '<span class="cf-st ok" title="Утверждено">✓</span>' : ""}</label>` : ""; };
+  const CORE = DATA_CORE;
+  const coreSec = ([id, t, ids]) => `<section class="panel stack" id="sec-${id}"><h2 class="h2">${t}</h2><div class="fields cf-grid">${ids.map(cf).join("")}</div></section>`;
+  const embedSec = (id, t, html) => `<section class="stack" id="sec-${id}"><h2 class="h2">${t}</h2>${html}</section>`;
+  const NAVS = [["passport", "Паспорт"], ["blocks", "Блоки"], ["terms", "Сроки и продажи"], ["money", "Затраты"], ["team", "Команда"], ["risks", "Риски"], ["about", "Описание"], ["all", "Все параметры"], ["modules", "Модули"]];
   return head("Данные проекта", "Каждая переменная вводится один раз. Финмодель, график, стандарты, образцы документов и отчёты берут её отсюда.") + `
+  <nav class="d-nav" aria-label="Разделы данных">${NAVS.map(([id, t]) => `<a href="#data" data-dsec="${id}">${t}</a>`).join("")}</nav>
+  ${coreSec(CORE[0])}
+  ${embedSec("blocks", "Блоки", embedView(viewBlocks))}
+  ${coreSec(CORE[1])}${coreSec(CORE[2])}
+  ${embedSec("team", "Команда и партнёры", embedView(viewTeam) + embedView(viewPartners))}
+  <div id="sec-risks">${riskHtml}</div>
+  <details class="panel d-more" id="sec-about"${dataOpen.about ? " open" : ""}><summary><h2 class="h2">Описание и реквизиты</h2><span class="muted">миссия, тексты для ПК Start, стандарты, реквизиты для документов</span></summary><div class="stack" style="margin-top:12px">${embedView(viewCard)}</div></details>
+  <details class="panel d-more" id="sec-all"${dataOpen.all ? " open" : ""}><summary><h2 class="h2">Все параметры</h2><span class="muted">${all.length} · статусы, утверждение, база ПК Start</span></summary><div class="stack" style="margin-top:12px">
   <section class="panel stack">
     <div class="row between"><div class="row">${["draft", "agreed", "approved", "calc"].map(st => `<span class="chip ${ST[st][1]}">${ST[st][0]}: ${n(st)}</span>`).join("")}</div>
       <div class="row">${B ? `<span class="muted">Базовая версия ПК Start: ${dt(B.at)}, ${esc(B.who)}</span>` : '<span class="muted">Базовая версия ПК Start не зафиксирована</span>'}
@@ -8240,13 +8297,18 @@ function viewData() {
     <p class="muted" style="margin:0">Владельцы переменных — черновик, отделы холдинга уточняются. Изменение значения возвращает статус в «Черновик».</p>
   </section>
   ${secs.map(sec => `<section class="stack"><h2>${esc(sec)}</h2><div class="panel tbl vtable"><table><thead><tr><th>Переменная</th><th>Значение</th><th>Статус</th><th>ПК Start</th><th>Где используется</th></tr></thead><tbody>${list.filter(v => v.sec === sec).map(row).join("")}</tbody></table></div></section>`).join("") || '<div class="empty">Ничего не найдено. Сбросьте фильтры.</div>'}
-  ${riskHtml}
+  </div></details>
+  ${modsHtml}
   <section class="stack" id="backups"><h2>Резервные копии</h2><div class="panel stack">
     ${(r => r ? `<p class="hm-sub warn" style="margin:0"><span class="hm-ic" aria-hidden="true">!</span>Данные восстановлены из копии от ${esc(r.from)} — ${dt(r.at)}${r.who ? ", " + esc(r.who) : ""}</p>` : "")(window.ZHK.restored())}
     <div id="bk-list"><span class="muted">Загружаю список копий…</span></div>
     <p class="muted hint" style="margin:0">Копия данных проекта сохраняется раз в день, хранятся 14 последних. Восстановить может только редактор страницы; перед восстановлением текущие данные сохраняются копией «до восстановления».</p>
   </div></section>`;
 }
+// Раскрытые блоки экрана «Данные» и переход к разделу по ссылке (#card, #blocks, #team, #partners ведут сюда).
+const dataOpen = (() => { try { return JSON.parse(localStorage.getItem("zhk-data-open") || "{}") || {}; } catch (e) { return {}; } })();
+const saveDataOpen = () => { try { localStorage.setItem("zhk-data-open", JSON.stringify(dataOpen)); } catch (e) {} };
+let dataJump = "";
 // Список копий приходит из хранилища асинхронно — дорисовываем его после показа страницы.
 let bkAsk = "";
 function renderBackups(m) {
@@ -8503,7 +8565,7 @@ async function deckPptx() {
 // Показатели: сводка, финмодель и сроки документов — подразделы одной страницы.
 // Разделы той же группы — вкладками под заголовком (на телефоне, где меню свёрнуто в ленту групп).
 function subTabs(v) {
-  const items = Object.keys(VIEWS).filter(k => VIEWS[k].g === VIEWS[v].g);
+  const items = (GV[VIEWS[v].g] || []).filter(k => VIEWS[k] && !VIEWS[k].off);
   if (items.length < 2) return "";
   return `<nav class="subtabs" data-g="${VIEWS[v].g}" aria-label="Разделы группы">${items.map(k => { const n = navCnt(k, VIEWS[k]); return `<a href="#${k}"${k === v ? ' aria-current="page"' : ""}>${VIEWS[k].t}${n && (VIEWS[k].z || VIEWS[k].alert) ? ` <span class="cnt alert">${n}</span>` : ""}</a>`; }).join("")}</nav>`;
 }
@@ -8570,11 +8632,21 @@ function bind(m) {
   m.querySelectorAll("[data-var]").forEach(el => el.onchange = () => {
     const r = window.ZHK.setVar(el.dataset.var, el.type === "checkbox" ? el.checked : el.value);
     if (typeof r === "string") { el.setCustomValidity(r); el.reportValidity(); setTimeout(() => el.setCustomValidity(""), 2000); return; }
-    // Нормы спецтехники сразу пересчитывают таблицы, даже если фокус ушёл в соседнее поле.
-    if (cur === "equip") setTimeout(() => { const a = document.activeElement, id = a && a.dataset ? a.dataset.var : null; route(); const nx = id && document.querySelector(`[data-var="${id}"]`); if (nx) nx.focus(); }, 0);
+    // Нормы спецтехники и ключевые данные сразу пересчитывают таблицы, даже если фокус ушёл в соседнее поле.
+    if (cur === "equip" || cur === "data") setTimeout(() => { const a = document.activeElement, id = a && a.dataset ? a.dataset.var : null; route(); const nx = id && document.querySelector(`[data-var="${id}"]`); if (nx) nx.focus(); }, 0);
   });
   m.querySelectorAll("[data-vst]").forEach(b => b.onclick = () => { const [id, st] = b.dataset.vst.split(":"), err = window.ZHK.setVarStatus(id, st); if (err) { b.title = err; b.disabled = true; } });
   renderBackups(m);
+  m.querySelectorAll("details.d-more").forEach(d => d.ontoggle = () => { dataOpen[d.id.slice(4)] = d.open; saveDataOpen(); });
+  const jump = id => { if (id === "about" || id === "all") dataOpen[id] = true; const d = m.querySelector("#sec-" + id); if (d) { if (d.tagName === "DETAILS") d.open = true; d.scrollIntoView({ block: "start" }); } };
+  m.querySelectorAll("[data-dsec]").forEach(a => a.onclick = e => { e.preventDefault(); jump(a.dataset.dsec); });
+  if (dataJump && m.querySelector("#sec-" + dataJump)) { const j = dataJump; dataJump = ""; setTimeout(() => jump(j), 0); }
+  document.querySelectorAll("[data-go-mods]").forEach(a => a.onclick = () => { dataJump = "modules"; if (location.hash === "#data") route(); });
+  m.querySelectorAll("[data-mod]").forEach(el => el.onchange = () => {
+    const cur = modsOn().map(x => x[0]).filter(g => g !== el.dataset.mod);
+    if (el.checked) cur.push(el.dataset.mod);
+    window.ZHK.setProject({ modules: MODS.map(x => x[0]).filter(g => cur.indexOf(g) >= 0).join(" ") });
+  });
   m.querySelectorAll("[data-df]").forEach(el => { el[el.tagName === "INPUT" ? "oninput" : "onchange"] = () => {
     dataF[el.dataset.df] = el.value;
     if (el.tagName !== "INPUT") return route();
