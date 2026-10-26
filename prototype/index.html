@@ -4386,7 +4386,6 @@ window.VARS = {
     { id: "eq_mas", name: "Скорость кладки", unit: "эт./мес", sec: "Спецтехника", owner: "Команда проекта", type: "num", path: "equip.mas", dflt: 3, used: ["Спецтехника"] },
     { id: "eq_lift", name: "Подъёмник нужен с этажа монолита", unit: "эт.", sec: "Спецтехника", owner: "Команда проекта", type: "num", path: "equip.lift", dflt: 12, used: ["Спецтехника"] },
     { id: "eq_crane_tail", name: "Кран после монолита (кровля и кладка)", unit: "мес.", sec: "Спецтехника", owner: "Команда проекта", type: "num", path: "equip.craneTail", dflt: 2, used: ["Спецтехника"] },
-    { id: "eq_lift_tail", name: "Подъёмник после кладки", unit: "мес.", sec: "Спецтехника", owner: "Команда проекта", type: "num", path: "equip.liftTail", dflt: 2, used: ["Спецтехника"] },
     { id: "eq_abn", name: "Плит перекрытий на автобетононасосе", unit: "шт", sec: "Спецтехника", owner: "Команда проекта", type: "num", path: "equip.abn", dflt: 4, used: ["Спецтехника"] },
     { id: "eq_stagger", name: "Сдвиг старта следующего блока", unit: "мес.", sec: "Спецтехника", owner: "Команда проекта", type: "num", path: "equip.stagger", dflt: 0, used: ["Спецтехника"] },
     { id: "eq_crane_m", name: "Башенные краны, потребность", unit: "кран-мес", sec: "Спецтехника", owner: "Команда проекта", calc: "Спецтехника", used: ["Спецтехника"] },
@@ -4629,7 +4628,8 @@ window.I18N = (function () {
     ["Дорожная карта", "Жол картасы"], ["Дорожная карта ЖК", "ТҮК жол картасы"], ["Этапы", "Кезеңдер"], ["Схема связей", "Байланыстар сызбасы"], ["Схема связей этапов", "Кезеңдер байланысының сызбасы"], ["Пройдено", "Өтті"], ["Идёт", "Жүріп жатыр"], ["Впереди", "Алда"], ["Инструменты этапа", "Кезең құралдары"], ["На дорожной карте:", "Жол картасында:"], ["Этапы в работе", "Жұмыстағы кезеңдер"], ["Вся дорожная карта", "Бүкіл жол картасы"], ["Открытых этапов нет.", "Ашық кезеңдер жоқ."], ["Этапы проекта по фазам — от анализа рынка до гарантии: сроки по графику, выполнение пунктов и инструменты каждого этапа. Нажмите на этап, чтобы открыть его пункты, документы, бюджет и сроки.", "Жоба кезеңдері фазалар бойынша — нарықты талдаудан кепілдікке дейін: кесте бойынша мерзімдер, тармақтардың орындалуы және әр кезеңнің құралдары. Тармақтарын, құжаттарын, бюджеті мен мерзімдерін ашу үшін кезеңді басыңыз."], ["Какой этап открывает следующий. Этап открывается, когда закрыты условия перехода на предыдущих.", "Қай кезең келесісін ашады. Кезең алдыңғыларындағы өту шарттары жабылғанда ашылады."],
     ["Отменить", "Болдырмау"], ["Подсказки", "Кеңестер"], ["Всем квартирам этажа:", "Қабаттың барлық пәтерлеріне:"], ["Последнее изменение отменено", "Соңғы өзгеріс болдырылмады"], ["Поля уже заполнены", "Өрістер толтырылған"], ["Заполнить пустые поля значениями первого блока", "Бос өрістерді бірінші блоктың мәндерімен толтыру"], ["Статус всем квартирам этажа", "Қабаттың барлық пәтерлерінің мәртебесі"],
     ["Мой отдел", "Менің бөлімім"], ["Мои разделы", "Менің бөлімдерім"], ["Я — все разделы", "Мен — барлық бөлімдер"], ["По вашему отделу всё в порядке.", "Сіздің бөлім бойынша бәрі жақсы."],
-    ["План по работам ГПР", "ЖӨК жұмыстары бойынша жоспар"], ["Обзор", "Шолу"], ["Обзор проекта", "Жоба шолуы"], ["Ключи по прогнозу", "Болжам бойынша кілттер"], ["В графике", "Кесте бойынша"], ["Сейчас", "Қазір"], ["сегодня", "бүгін"],
+    ["План по работам ГПР", "ЖӨК жұмыстары бойынша жоспар"], ["Резервные копии", "Сақтық көшірмелер"], ["Восстановить", "Қалпына келтіру"], ["Да, восстановить", "Иә, қалпына келтіру"], ["Копия", "Көшірме"], ["Сохранена", "Сақталды"], ["до восстановления", "қалпына келтіруге дейін"],
+    ["Отдел", "Бөлім"], ["Вход", "Кіру"], ["Это я", "Бұл мен"], ["это вы", "бұл сіз"], ["Не я", "Мен емес"], ["Отвязать", "Байланысты ажырату"], ["привязано", "байланған"], ["нет базы ПК Start", "ПК Start базасы жоқ"], ["Обзор", "Шолу"], ["Обзор проекта", "Жоба шолуы"], ["Ключи по прогнозу", "Болжам бойынша кілттер"], ["В графике", "Кесте бойынша"], ["Сейчас", "Қазір"], ["сегодня", "бүгін"],
     ["Строительство", "Құрылыс"], ["Продажи", "Сатылым"], ["Бюджет освоен", "Бюджет игерілді"], ["Маржа", "Маржа"], ["Пиковый долг банку", "Банкке ең жоғары қарыз"], ["Требует решения", "Шешім қажет"], ["Ближайшие вехи", "Жақын белестер"], ["Срочного нет", "Шұғыл ештеңе жоқ"], ["Календарь", "Күнтізбе"],
     ["нет факта СМР", "ҚМЖ фактісі жоқ"], ["нет квартир", "пәтерлер жоқ"], ["нет плана", "жоспар жоқ"], ["по финмодели", "қаржы моделі бойынша"], ["по плану ГПР", "ЖӨК жоспары бойынша"], ["Событий нет", "Оқиғалар жоқ"], ["По плану графика", "Кесте жоспары бойынша"], ["По прогнозу графика", "Кесте болжамы бойынша"], ["По прогнозу ГПР", "ЖӨК болжамы бойынша"], ["Спецтехника на этапе", "Кезеңдегі арнайы техника"], ["План спецтехники", "Арнайы техника жоспары"],
     ["Отставание удлиняет аренду техники", "Артта қалу техника жалын ұзартады"], ["Прогноз графика совпадает с планом: техники по прогнозу столько же.", "Кесте болжамы жоспармен сәйкес: болжам бойынша техника да сонша."], ["Скачать план (Excel)", "Жоспарды жүктеп алу (Excel)"], ["через", "кейін"], ["мес на", "айға"],
@@ -4977,6 +4977,41 @@ window.ZHK_BOOT = function (document) {
     } else renderAll();
   }
 
+  // Резервные копии: раз в день первый, кто открыл проект с правом записи, сохраняет копию данных;
+  // хранятся 14 последних (коллекция backups/<проект>/days, документ — дата). Восстанавливает только редактор страницы.
+  const BK_KEEP = 14, bkDone = {};
+  const bkCol = proj => "backups/" + proj + "/days";
+  async function backupDaily() {
+    const proj = curProject;
+    if (!dbCap || readOnly || !docExists || bkDone[proj]) return;
+    bkDone[proj] = true;
+    try {
+      const day = new Date().toISOString().slice(0, 10), ref = dbCap.doc(bkCol(proj) + "/" + day), snap = await ref.get();
+      if (!snap.exists) await ref.set({ at: new Date().toISOString(), by: meId || "", state: JSON.parse(JSON.stringify(S)) });
+      const ids = (await dbCap.collection(bkCol(proj)).get()).docs.map(d => d.id).sort();
+      for (const id of ids.slice(0, Math.max(0, ids.length - BK_KEEP))) await dbCap.doc(bkCol(proj) + "/" + id).delete();
+    } catch (e) { bkDone[proj] = false; }
+  }
+  async function backupList() {
+    if (!dbCap) return [];
+    try { return (await dbCap.collection(bkCol(curProject)).get()).docs.map(d => { const x = d.data() || {}; return { day: d.id, at: x.at || "", by: x.by ? nameOf(x.by) : "" }; }).sort((a, b) => b.day.localeCompare(a.day)); } catch (e) { return []; }
+  }
+  async function backupRestore(day) {
+    if (!dbCap || readOnly || !(canAdmin && userCap)) return "Восстанавливать копии может только редактор страницы";
+    const proj = curProject;
+    try {
+      const snap = await dbCap.doc(bkCol(proj) + "/" + day).get();
+      if (!snap.exists || !isObj((snap.data() || {}).state)) return "Копия не найдена";
+      // Перед откатом сохраняем текущее состояние отдельной копией, чтобы откат можно было отменить.
+      await dbCap.doc(bkCol(proj) + "/before-restore").set({ at: new Date().toISOString(), by: meId || "", state: JSON.parse(JSON.stringify(S)) });
+      const st = snap.data().state;
+      st.meta = Object.assign({}, st.meta, { restored: { at: new Date().toISOString(), by: meId || "", from: day } });
+      S = normalize(st); undoStack = []; saveLocal();
+      if (proj === curProject && docRef) { const ref = docRef, full = JSON.parse(JSON.stringify(S)); writeChain = writeChain.then(() => ref.set(full).then(() => { docExists = true; }).catch(() => {})); }
+      renderAll();
+      return "";
+    } catch (e) { return "Не удалось восстановить копию"; }
+  }
   async function connect() {
     const use = window.claude && window.claude.use;
     if (!use) { downloads = blobSaver; setSync("local", "Прогресс сохраняется в этом браузере"); renderAll(); return; }
@@ -5009,6 +5044,7 @@ window.ZHK_BOOT = function (document) {
         saveLocal();
       }
       regionApplied = null;
+      backupDaily();
       setSync("shared", readOnly ? "Только просмотр" : "Общий прогресс команды сохраняется");
       renderAll(); renderProjSel();
     }, () => setSync("local", "Нет связи с хранилищем, прогресс сохранён в браузере"));
@@ -6218,7 +6254,7 @@ window.ZHK_BOOT = function (document) {
   // --- риски и команда ----------------------------------------------------
   // Списки проекта: S.risks и S.team — объекты {id: запись}; удалённая запись хранится как null, чтобы удаление дошло до команды.
   // Ответственный за риск хранится ссылкой на участника команды (who): переименовали роль или вписали ФИО — риск показывает новое.
-  const LIST_FIELDS = { risks: ["kind", "level", "title", "measure", "who"], team: ["role", "name", "zone"], partners: ["role", "org", "subject", "status"],
+  const LIST_FIELDS = { risks: ["kind", "level", "title", "measure", "who"], team: ["role", "name", "zone", "dept", "uid"], partners: ["role", "org", "subject", "status"],
     blocks: ["name", "kind", "floors", "under", "entrances", "lifts", "flats", "frame", "design", "contour"],
     scenarios: ["name", "price", "smr", "delay", "sales", "rate"], plans: ["name", "note"], planRooms: ["plan", "kind", "name", "area"],
     equipPlan: ["kind", "char", "unit", "stage", "stage2", "units", "load", "off", "dur"] };
@@ -6423,6 +6459,14 @@ window.ZHK_BOOT = function (document) {
   // --- project data (словарь данных проекта) ---------------------------------
   // Каждая переменная хранится в одном месте (path); история, статус и базовая версия — в S.vars и S.baseline.
   const VARS = window.VARS.items;
+  // Кто утверждает показатель: отдел-владелец (по «Команде проекта»: человек отметил свою строку «Это я» и указал отдел),
+  // руководитель проекта и редактор страницы. Без входа в claude.ai (локальный режим) ограничений нет.
+  function canApprove(id) {
+    if (readOnly) return false;
+    if (!userCap || !meId || canAdmin) return true;
+    const mine = listOf("team").filter(m => m.uid && m.uid === meId), v = VARS.find(x => x.id === id);
+    return mine.some(m => /руководитель проекта/i.test(m.role || "")) || (!!v && mine.some(m => m.dept === v.owner));
+  }
   const pathGet = (st, path) => path.split(".").reduce((o, k) => (o && typeof o === "object") ? o[k] : undefined, st);
   const vType = v => v.type || (v.id.indexOf("keys_") === 0 ? "month" : v.id === "cur_stage" ? "text" : "num");
   // Блоки проекта: количество жилых блоков, этажность и квартиры — итоги списка блоков.
@@ -6524,7 +6568,7 @@ window.ZHK_BOOT = function (document) {
   // Спецтехника. Блок: фундамент — этап «Нулевой цикл» графика; монолит и кладка — «этаж в месяц» по нормам;
   // кран — от фундамента до конца монолита + кровля и кладка; подъёмник — с заданного этажа монолита до конца кладки + хвост;
   // автобетононасос — фундамент и первые плиты, дальше стационарный насос (один на проект). Аренда считается целыми месяцами.
-  const EQ_DEF = { mono: 3, mas: 3, lift: 12, craneTail: 2, liftTail: 2, abn: 4, stagger: 0 };
+  const EQ_DEF = { mono: 3, mas: 3, lift: 12, craneTail: 2, abn: 4, stagger: 0 };
   function equipCalc(fc) {
     const G = schedule(), P = G.P, E = S.equip || {}, q = {};
     Object.keys(EQ_DEF).forEach(k => { const v = parseNum(E[k]); q[k] = v != null && v >= 0 ? v : EQ_DEF[k]; });
@@ -6534,7 +6578,7 @@ window.ZHK_BOOT = function (document) {
     const blocks = res.map((b, i) => {
       const N = Math.round(parseNum(b.floors)), t0 = z0 + i * q.stagger, m0 = t0 + zd, m1 = m0 + N / q.mono, k0 = m0 + 1, k1 = k0 + N / q.mas;
       return { id: b.id, name: b.name || "Блок", floors: N, found: [t0, m0], mono: [m0, m1], mas: [k0, k1], crane: [t0, m1 + q.craneTail],
-        lift: N > q.lift ? [m0 + q.lift / q.mono, k1 + q.liftTail] : null, pump: N > q.abn ? [m0 + q.abn / q.mono, m1] : null };
+        lift: N > q.lift ? [m0 + q.lift / q.mono, Math.max(k1, fc ? P.finish.fe : P.finish.ef)] : null, pump: N > q.abn ? [m0 + q.abn / q.mono, m1] : null };
     });
     const pours = blocks.reduce((a, b) => a + 1 + Math.min(b.floors, q.abn), 0) + all.filter(b => b.kind === "parking").reduce((a, b) => a + 1 + Math.round(parseNum(b.under) || 0), 0);
     const ends = blocks.map(b => Math.max(b.crane[1], b.lift ? b.lift[1] : 0)), from = blocks.length ? Math.floor(Math.min(...blocks.map(b => b.found[0]))) : 0, to = blocks.length ? Math.ceil(Math.max(...ends)) : 0;
@@ -6586,7 +6630,7 @@ window.ZHK_BOOT = function (document) {
     const calcRate = c => { const L = F.filter(l => (eqKindOf(l.kind) || {}).calc === c && /мес/i.test(l.unit) && l.qty > 0); const q = L.reduce((a, l) => a + l.qty, 0); return q ? L.reduce((a, l) => a + l.sum, 0) / q : null; };
     const rows = [];
     // Расчётные строки — из блоков.
-    if (EQ.blocks.length) [["crane", "Кран башенный", "башенный, по блокам", "zero", "frame"], ["lift", "Подъемник", "грузопассажирский, по блокам", "frame", "envelope"], ["pump", "Бетононасос стационарный", "после первых плит", "frame", "frame"]].forEach(([c, kind, ch, s1, s2]) => {
+    if (EQ.blocks.length) [["crane", "Кран башенный", "башенный, по блокам", "zero", "frame"], ["lift", "Подъемник", "грузопассажирский, по блокам", "frame", "finish"], ["pump", "Бетононасос стационарный", "после первых плит", "frame", "frame"]].forEach(([c, kind, ch, s1, s2]) => {
       const by = {}; EQ.months.forEach(x => { if (x[c]) by[x.ym] = x[c]; });
       const ms = Object.keys(by).sort(), qty = EQ[c], rt = calcRate(c);
       if (qty) rows.push({ id: "calc-" + c, calc: c, kind, char: ch, unit: "мес", stage: s1, stage2: s2, by, from: ms[0], to: ms[ms.length - 1], qty, per: null, sum: rt == null ? null : rt * qty, rate: rt });
@@ -6791,12 +6835,23 @@ window.ZHK_BOOT = function (document) {
           calc, type: vType(v), raw, text: fmtVar(v, raw), st: calc ? "calc" : (m.st || "draft"),
           stBy: m.sby !== undefined ? nameOf(m.sby) : "", stAt: m.sat || "",
           hist: (m.hist || []).map(h => ({ at: h.at, who: nameOf(h.by), from: fmtVar(v, h.o), to: fmtVar(v, h.v) })),
-          base: b === undefined ? null : fmtVar(v, b), delta: b === undefined ? null : fmtDelta(v, raw, b)
+          base: b === undefined ? null : fmtVar(v, b), baseRaw: b === undefined ? null : b, delta: b === undefined ? null : fmtDelta(v, raw, b)
         });
       });
     },
     setVar,
-    setVarStatus: (id, st) => { if (!readOnly) commit({ vars: { [id]: { st, sby: meId || "", sat: new Date().toISOString() } } }); },
+    // Утвердить (и снять утверждение) может отдел — владелец показателя, руководитель проекта и редактор страницы; согласовать — любой.
+    setVarStatus: (id, st) => {
+      if (readOnly) return "Только просмотр";
+      if ((st === "approved" || ((S.vars[id] || {}).st === "approved")) && !canApprove(id)) return "Утверждает " + ((VARS.find(v => v.id === id) || {}).owner || "владелец данных");
+      commit({ vars: { [id]: { st, sby: meId || "", sat: new Date().toISOString() } } });
+    },
+    canApprove: id => canApprove(id),
+    backups: () => backupList(),
+    restoreBackup: day => backupRestore(day),
+    restored: () => S.meta && S.meta.restored ? { at: S.meta.restored.at, from: S.meta.restored.from, who: nameOf(S.meta.restored.by) } : null,
+    me: () => meId,
+    isEditor: () => canAdmin && !!userCap,
     baseline: () => S.baseline && S.baseline.at ? { at: S.baseline.at, who: nameOf(S.baseline.by) } : null,
     // Данные для презентации ПК Start: структура затрат, денежный поток по месяцам, ГПР СМР.
     deck: () => {
@@ -7575,7 +7630,7 @@ function viewEquip() {
     ${X.sumPlan != null ? `<tr class="eq-tot"><td>По плану ГПР, млн</td>${Ms.map(m => `<td>${(v => v ? Math.round(v / 1e6) : "")(X.money[m])}</td>`).join("")}</tr>` : ""}
     ${f ? `<tr class="eq-tot"><td>По файлу, млн</td>${Ms.map(m => `<td>${(v => v ? Math.round(v / 1e6) : "")(X.fileMoney[m])}</td>`).join("")}</tr>` : ""}</tbody></table></div>` : '<p class="muted" style="margin:0">Потребность появится, когда в плане будут строки с этапами и загрузкой.</p>';
   // Краны, подъёмники и насос по блокам — нормы и раскладка.
-  const norms = ["eq_mono", "eq_mas", "eq_lift", "eq_crane_tail", "eq_lift_tail", "eq_abn", "eq_stagger"].map(id => V[id]).filter(Boolean);
+  const norms = ["eq_mono", "eq_mas", "eq_lift", "eq_crane_tail", "eq_abn", "eq_stagger"].map(id => V[id]).filter(Boolean);
   const BM = E.months, inIv = (iv, ym) => iv && ym >= iv[0] && ym <= iv[1];
   const ROWS = [["found", "Фундамент"], ["mono", "Монолит"], ["mas", "Кладка"], ["crane", "Башенный кран"], ["lift", "Подъёмник"], ["pump", "Стац. насос"]];
   const byBlock = E.blocks.length ? `<div class="tbl"><table class="eq-t"><thead><tr><th></th>${BM.map(x => `<th>${mm(x.ym)}</th>`).join("")}</tr></thead><tbody>${E.blocks.map(b => `<tr class="eq-b"><th colspan="${BM.length + 1}">${esc(b.name)} · ${b.floors} эт.</th></tr>` + ROWS.filter(([k]) => b[k]).map(([k, l]) => `<tr><td>${l}</td>${BM.map(x => `<td class="${inIv(b[k + "Ym"], x.ym) ? "eq-on eq-" + k : ""}"></td>`).join("")}</tr>`).join("")).join("")}
@@ -7600,7 +7655,7 @@ function viewEquip() {
   <section class="panel stack"><h2 class="h2">Потребность по месяцам на весь ЖЦП</h2>${gpr}</section>
   <details class="panel stack eq-det"><summary><h2 class="h2">Краны, подъёмники и бетононасос по блокам</h2></summary>
     <div class="fields">${norms.map(v => `<label class="field"><span class="label">${esc(v.name)}${v.unit ? ", " + esc(v.unit) : ""}</span><input type="text" inputmode="decimal" data-var="${v.id}" value="${esc(String(v.raw).replace(".", ","))}"${dis}></label>`).join("")}</div>
-    <p class="muted hint" style="margin:0">Фундамент блока — этап «Нулевой цикл» графика, дальше монолит и кладка по скоростям «этаж в месяц». Кран — от фундамента до конца монолита плюс кровля и кладка; подъёмник — с заданного этажа монолита до конца кладки плюс хвост; автобетононасос — фундамент и первые плиты, дальше один стационарный насос на проект. Аренда — целыми месяцами (месяц засчитывается, если техника нужна больше недели).</p>
+    <p class="muted hint" style="margin:0">Фундамент блока — этап «Нулевой цикл» графика, дальше монолит и кладка по скоростям «этаж в месяц». Кран — от фундамента до конца монолита плюс кровля и кладка; подъёмник — с заданного этажа монолита до конца этапа «Отделка и благоустройство» по графику; автобетононасос — фундамент и первые плиты, дальше один стационарный насос на проект. Аренда — целыми месяцами (месяц засчитывается, если техника нужна больше недели).</p>
     ${byBlock}
   </details>
   <section class="panel stack"><div class="row" style="justify-content:space-between"><h2 class="h2">План спецтехники (файл)</h2>${ro ? "" : `<div class="row"><label class="btn">Загрузить план (Excel)<input type="file" id="eq-file" accept=".xlsx" hidden></label>${f ? '<button class="btn ghost" id="eq-del">Убрать файл</button>' : ""}</div>`}</div>
@@ -7844,14 +7899,19 @@ function b0Xlsx() {
 function viewTeam() {
   const team = window.ZHK.list("team"), ro = window.ZHK.readOnly() ? " disabled" : "";
   const inp = (m, f, label, ph) => `<input type="text" class="vin" data-item="team:${m.id}:${f}" value="${esc(m[f] || "")}" aria-label="${label}" placeholder="${ph}" maxlength="300"${ro}>`;
+  // Отдел — из владельцев переменных: он даёт право утверждать показатели этого отдела. «Это я» связывает строку с вашим входом.
+  const me = window.ZHK.me(), owners = window.VARS.owners;
+  const dept = m => `<select data-item="team:${m.id}:dept" aria-label="Отдел"${ro}><option value="">—</option>${owners.map(o => `<option${m.dept === o ? " selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
+  const who = m => !me ? "" : m.uid === me ? `<span class="chip s-done">это вы</span>${ro ? "" : ` <button class="btn ghost mini" data-team-me="${m.id}:">Не я</button>`}` : m.uid ? '<span class="muted vsrc">привязано</span>' + (window.ZHK.isEditor() && !ro ? ` <button class="btn ghost mini" data-team-me="${m.id}:">Отвязать</button>` : "") : ro ? "" : `<button class="btn ghost mini" data-team-me="${m.id}:${esc(me)}">Это я</button>`;
   return head("Команда проекта", "Роли, ФИО и зоны ответственности. Команда попадает в презентацию ПК Start и в список ответственных за риски.") + `
   <section class="panel stack">
-    ${team.length ? `<div class="tbl"><table><thead><tr><th>Роль</th><th>ФИО</th><th>Зона ответственности</th><th></th></tr></thead><tbody>${team.map(m => `<tr>
-      <td>${inp(m, "role", "Роль", "Роль в проекте")}</td><td>${inp(m, "name", "ФИО", "Не назначен")}</td><td>${inp(m, "zone", "Зона ответственности", "За что отвечает")}</td>
+    ${team.length ? `<div class="tbl"><table><thead><tr><th>Роль</th><th>ФИО</th><th>Зона ответственности</th><th>Отдел</th><th>Вход</th><th></th></tr></thead><tbody>${team.map(m => `<tr>
+      <td>${inp(m, "role", "Роль", "Роль в проекте")}</td><td>${inp(m, "name", "ФИО", "Не назначен")}</td><td>${inp(m, "zone", "Зона ответственности", "За что отвечает")}</td><td>${dept(m)}</td><td>${who(m)}</td>
       <td>${ro ? "" : `<button class="btn ghost mini" data-item-del="team:${m.id}" aria-label="Удалить роль ${esc(m.role || "")}">Удалить</button>`}</td></tr>`).join("")}</tbody></table></div>`
       : '<div class="empty">Команда ещё не заполнена. Добавьте типовые роли и впишите ФИО.</div>'}
     ${ro ? "" : `<div class="row"><button class="btn" data-item-add="team">Добавить роль</button>${team.length ? "" : '<button class="btn primary" id="team-roles">Добавить типовые роли</button>'}</div>`}
     <p class="muted" style="margin:0">Свободных ролей: ${team.filter(m => !m.name).length}. Пустое ФИО в презентации показывается как «Не назначен».</p>
+    <p class="muted hint" style="margin:0">«Утвердить» показатель может его отдел-владелец, руководитель проекта и редактор страницы. Отметьте свою строку «Это я» и укажите отдел.</p>
   </section>`;
 }
 
@@ -7994,13 +8054,17 @@ function viewHome() {
   const bud = B.plan ? pc(B.fact, B.plan) : null;
   const Ep = Z.equipPlan(), Ef = Z.equipPlan(true), eqD = Ep.sumPlan != null && Ef.sumPlan != null ? Ef.sumPlan - Ep.sumPlan : 0;
   const mln = x => x == null ? "—" : Math.abs(x) >= 1e9 ? (x / 1e9).toLocaleString("ru-RU", { maximumFractionDigits: 1 }) + " млрд тг" : Math.round(x / 1e6).toLocaleString("ru-RU") + " млн тг";
+  // Маржа и долг — против базовой версии ПК Start: маржа хуже базы до 2 п.п. — внимание, больше — проблема; долг выше базы до 10% — внимание, больше — проблема.
+  const bM = V.fin_margin ? V.fin_margin.baseRaw : null, bD = V.fin_peak_debt ? V.fin_peak_debt.baseRaw : null, cM = raw("fin_margin"), cD = raw("fin_peak_debt");
+  const mS = bM == null || cM == null ? "" : cM >= bM - 0.05 ? "ok" : cM >= bM - 2 ? "warn" : "bad";
+  const dS = bD == null || cD == null || !(bD > 0) ? "" : cD <= bD * 1.0005 ? "ok" : cD <= bD * 1.1 ? "warn" : "bad";
   const lvl = (f, p, tol) => f == null || p == null ? "" : f >= p - tol ? "ok" : f >= p - 3 * tol ? "warn" : "bad";
   const tiles = [
     tile("chess", "Строительство", smr == null ? "—" : smr + "%", smr == null ? "нет факта СМР" : "по плану " + smrP + "%", lvl(smr, smrP, 3), smr == null ? null : [smr, smrP]),
     tile("chess", "Продажи", sales == null ? "—" : T.sold + " из " + T.flats, sales == null ? "нет квартир" : "по плану " + T.soldPlan + " кв.", lvl(sales, salesP, 3), sales == null ? null : [sales, salesP]),
     tile("budget", "Бюджет освоен", bud == null ? "—" : bud + "%", bud == null ? "нет плана" : mln(B.fact) + " из " + mln(B.plan) + (B.over ? " · перерасход: " + B.over : ""), bud == null ? "" : !B.over ? "ok" : B.over <= 2 ? "warn" : "bad", bud == null ? null : [bud, null]),
-    tile("model", "Маржа", t("fin_margin"), "IRR " + t("fin_irr") + " · NPV " + t("fin_npv"), "", null),
-    tile("model", "Пиковый долг банку", t("fin_peak_debt"), "по финмодели", "", null),
+    tile("model", "Маржа", t("fin_margin"), (bM == null ? "нет базы ПК Start" : "база " + V.fin_margin.base) + " · IRR " + t("fin_irr"), mS, null),
+    tile("model", "Пиковый долг банку", t("fin_peak_debt"), bD == null ? "нет базы ПК Start" : "база " + V.fin_peak_debt.base, dS, null),
     tile("equip", "Спецтехника", mln(Ep.sumPlan), eqD >= 1e6 ? "+" + mln(eqD) + " из-за отставания" : Ep.sumPlan == null ? "нет цен из файла ЦДС/ПТО" : "по плану ГПР", eqD >= 1e6 ? "warn" : Ep.sumPlan == null ? "" : "ok", null)
   ];
   const t0 = isoDay(d0), soon = Z.events().filter(e => e.kind !== "hol" && e.date >= t0).slice(0, 5);
@@ -8140,8 +8204,8 @@ function viewData() {
   };
   const src = v => v.calc ? `Расчёт: ${esc(v.calc)}` : `Ввод: <a href="#${HOME[v.path.split(".")[0]][1]}">${HOME[v.path.split(".")[0]][0]}</a>`;
   const acts = v => v.calc || ro ? "" : v.st === "draft" ? `<button class="btn mini" data-vst="${v.id}:agreed">Согласовать</button>`
-    : v.st === "agreed" ? `<button class="btn mini" data-vst="${v.id}:approved">Утвердить</button><button class="btn ghost mini" data-vst="${v.id}:draft">В черновик</button>`
-    : `<button class="btn ghost mini" data-vst="${v.id}:draft">В черновик</button>`;
+    : v.st === "agreed" ? (window.ZHK.canApprove(v.id) ? `<button class="btn mini" data-vst="${v.id}:approved">Утвердить</button>` : `<span class="muted vsrc" title="Утверждает отдел-владелец, руководитель проекта или редактор">утверждает: ${esc(v.owner)}</span>`) + `<button class="btn ghost mini" data-vst="${v.id}:draft">В черновик</button>`
+    : window.ZHK.canApprove(v.id) ? `<button class="btn ghost mini" data-vst="${v.id}:draft">В черновик</button>` : "";
   const row = v => `<tr id="var-${v.id}">
       <td><div class="vname">${esc(v.name)}</div><div class="muted vsrc"><span class="mono">${v.id}</span> · ${esc(v.owner)}</div>${v.dup ? `<div class="dup">Дублирует раздел «${esc(v.dup)}»</div>` : ""}</td>
       <td class="vval">${valCell(v)}<div class="muted vsrc">${src(v)}</div></td>
@@ -8176,7 +8240,27 @@ function viewData() {
     <p class="muted" style="margin:0">Владельцы переменных — черновик, отделы холдинга уточняются. Изменение значения возвращает статус в «Черновик».</p>
   </section>
   ${secs.map(sec => `<section class="stack"><h2>${esc(sec)}</h2><div class="panel tbl vtable"><table><thead><tr><th>Переменная</th><th>Значение</th><th>Статус</th><th>ПК Start</th><th>Где используется</th></tr></thead><tbody>${list.filter(v => v.sec === sec).map(row).join("")}</tbody></table></div></section>`).join("") || '<div class="empty">Ничего не найдено. Сбросьте фильтры.</div>'}
-  ${riskHtml}`;
+  ${riskHtml}
+  <section class="stack" id="backups"><h2>Резервные копии</h2><div class="panel stack">
+    ${(r => r ? `<p class="hm-sub warn" style="margin:0"><span class="hm-ic" aria-hidden="true">!</span>Данные восстановлены из копии от ${esc(r.from)} — ${dt(r.at)}${r.who ? ", " + esc(r.who) : ""}</p>` : "")(window.ZHK.restored())}
+    <div id="bk-list"><span class="muted">Загружаю список копий…</span></div>
+    <p class="muted hint" style="margin:0">Копия данных проекта сохраняется раз в день, хранятся 14 последних. Восстановить может только редактор страницы; перед восстановлением текущие данные сохраняются копией «до восстановления».</p>
+  </div></section>`;
+}
+// Список копий приходит из хранилища асинхронно — дорисовываем его после показа страницы.
+let bkAsk = "";
+function renderBackups(m) {
+  const dt = iso => iso ? new Date(iso).toLocaleString("ru-RU", { dateStyle: "short", timeStyle: "short" }) : "";
+  const el = m.querySelector("#bk-list"); if (!el) return;
+  window.ZHK.backups().then(L => {
+    const ed = window.ZHK.isEditor() && !window.ZHK.readOnly();
+    el.innerHTML = L.length ? `<div class="tbl"><table><thead><tr><th>Копия</th><th>Сохранена</th><th></th></tr></thead><tbody>${L.map(b => `<tr><td class="mono">${b.day === "before-restore" ? "до восстановления" : dmy(b.day)}</td><td>${b.at ? dt(b.at) : ""}${b.by ? ", " + esc(b.by) : ""}</td>
+      <td>${!ed ? "" : bkAsk === b.day ? `<span class="row"><span>Заменить текущие данные этой копией?</span><button class="btn primary mini" data-bk-yes="${esc(b.day)}">Да, восстановить</button><button class="btn ghost mini" data-bk-no>Нет</button></span>` : `<button class="btn ghost mini" data-bk="${esc(b.day)}">Восстановить</button>`}</td></tr>`).join("")}</tbody></table></div>`
+      : '<span class="muted">Копий пока нет: первая сохранится сегодня, когда проект откроет участник с правом записи.</span>';
+    el.querySelectorAll("[data-bk]").forEach(b => b.onclick = () => { bkAsk = b.dataset.bk; renderBackups(m); });
+    el.querySelectorAll("[data-bk-no]").forEach(b => b.onclick = () => { bkAsk = ""; renderBackups(m); });
+    el.querySelectorAll("[data-bk-yes]").forEach(b => b.onclick = () => { const d = b.dataset.bkYes; bkAsk = ""; el.innerHTML = '<span class="muted">Восстанавливаю…</span>'; window.ZHK.restoreBackup(d).then(err => { if (err) el.innerHTML = `<span class="bad-t">${esc(err)}</span>`; else route(); }); });
+  });
 }
 
 // ---------- Презентация ПК Start ----------
@@ -8489,7 +8573,8 @@ function bind(m) {
     // Нормы спецтехники сразу пересчитывают таблицы, даже если фокус ушёл в соседнее поле.
     if (cur === "equip") setTimeout(() => { const a = document.activeElement, id = a && a.dataset ? a.dataset.var : null; route(); const nx = id && document.querySelector(`[data-var="${id}"]`); if (nx) nx.focus(); }, 0);
   });
-  m.querySelectorAll("[data-vst]").forEach(b => b.onclick = () => { const [id, st] = b.dataset.vst.split(":"); window.ZHK.setVarStatus(id, st) });
+  m.querySelectorAll("[data-vst]").forEach(b => b.onclick = () => { const [id, st] = b.dataset.vst.split(":"), err = window.ZHK.setVarStatus(id, st); if (err) { b.title = err; b.disabled = true; } });
+  renderBackups(m);
   m.querySelectorAll("[data-df]").forEach(el => { el[el.tagName === "INPUT" ? "oninput" : "onchange"] = () => {
     dataF[el.dataset.df] = el.value;
     if (el.tagName !== "INPUT") return route();
@@ -8593,6 +8678,12 @@ function bind(m) {
     setTimeout(() => { const a = document.activeElement, sel = a && a.dataset ? a.dataset.chIn : null; route(); const nx = sel && document.querySelector(`[data-ch-in="${sel}"]`); if (nx) nx.focus(); }, 0);
   });
   m.querySelectorAll("[data-wi-preset]").forEach(b => b.onclick = () => window.ZHK.addItems("scenarios", [WI_PRESETS[+b.dataset.wiPreset]]));
+  m.querySelectorAll("[data-team-me]").forEach(b => b.onclick = () => {
+    const [id, uid] = b.dataset.teamMe.split(":");
+    // Один человек — одна строка: прежняя привязка снимается.
+    if (uid) window.ZHK.list("team").filter(t => t.uid === uid && t.id !== id).forEach(t => window.ZHK.setItem("team", t.id, { uid: "" }));
+    window.ZHK.setItem("team", id, { uid });
+  });
   const pr = m.querySelector("#partner-roles"); if (pr) pr.onclick = () => window.ZHK.addItems("partners", PARTNER_ROLES.map(([role, subject]) => ({ role, subject, status: "tender" })));
   const tr = m.querySelector("#team-roles"); if (tr) tr.onclick = () => window.ZHK.addItems("team", TEAM_ROLES.map(([role, zone]) => ({ role, zone })));
 }
