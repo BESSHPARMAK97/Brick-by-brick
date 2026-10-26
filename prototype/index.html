@@ -90,10 +90,21 @@ body.nohints .topbar .muted, body.nohints .hint { display: none }
 .subtabs a:hover { border-color: var(--accent) }
 .subtabs a[aria-current="page"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent) }
 .subtabs .cnt { font-size: .72rem; font-family: var(--f-mono); border-radius: 99px; padding: 1px 7px }
-.nav-grp > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; padding: 12px 10px 4px; border-radius: 6px }
+/* Группы меню: у каждой свой цвет (--gc). Заголовок — цветная плашка, пункты — под ней с отступом и линией цвета группы. */
+.nav-grp { --gc: var(--muted) }
+[data-g="map"] { --gc: #2f6fde } [data-g="obj"] { --gc: #d9771e } [data-g="money"] { --gc: #1f9d63 } [data-g="ors"] { --gc: #8a55d6 }
+[data-g="people"] { --gc: #0f9aa8 } [data-g="pk"] { --gc: #d6456b } [data-g="co"] { --gc: #6b7684 }
+.nav-grp { margin-top: 6px }
+.nav-grp > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; font-size: .74rem; text-transform: uppercase; letter-spacing: .07em; color: var(--gc); font-weight: 700; padding: 8px 10px; border-radius: 8px; background: color-mix(in srgb, var(--gc) 12%, transparent) }
+.nav-grp > summary::before { content: ""; width: 9px; height: 9px; border-radius: 3px; background: var(--gc); flex: none }
+.nav-grp > summary > span { flex: 1 }
+.nav-grp > a { margin-left: 10px; padding: 7px 10px; border-left: 2px solid color-mix(in srgb, var(--gc) 45%, transparent); border-radius: 0 8px 8px 0; font-size: .92rem; font-weight: 400 }
+.nav-grp > a:first-of-type { margin-top: 2px }
+.nav-grp > a[aria-current="page"] { background: color-mix(in srgb, var(--gc) 14%, transparent); color: var(--gc); border-left-color: var(--gc); font-weight: 600 }
+.nav-grp > a[aria-current="page"] .cnt { color: var(--gc) }
 .nav-grp > summary::-webkit-details-marker { display: none }
 .nav-grp > summary::after { content: "▾"; font-size: .8rem; margin-left: auto; transition: transform .15s } .nav-grp:not([open]) > summary::after { transform: rotate(-90deg) }
-.nav-grp > summary:hover { color: var(--fg) }
+.nav-grp > summary:hover { background: color-mix(in srgb, var(--gc) 20%, transparent) }
 .nav-dot { width: 7px; height: 7px; border-radius: 99px; background: var(--bad); flex: none }
 .nav-ribbon { display: none }
 .nav-mine { display: flex; flex-direction: column; gap: 2px; padding-bottom: 8px; margin-bottom: 4px; border-bottom: 1px dashed var(--line) }
@@ -356,6 +367,8 @@ th { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color:
   .nav a { white-space: nowrap; padding: 7px 10px }
   .td-list li { grid-template-columns: minmax(0, 1fr) auto } .td-tag { grid-column: 1 / -1; justify-self: start }
   .nav .cnt, .nav-g { display: none }
+  .nav-ribbon a[data-g]:not([data-g="today"]) { color: var(--gc); box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--gc) 40%, transparent) }
+  .nav-ribbon a[data-g][aria-current="page"] { background: color-mix(in srgb, var(--gc) 14%, transparent) }
   .main { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 18px 40px }
   .g2, .g3 { grid-template-columns: minmax(0, 1fr) }
   .std { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px }
@@ -7701,7 +7714,7 @@ function navHtml(v) {
     return `<details class="nav-grp" data-g="${g}"${g === cg || navOpen[g] ? " open" : ""}><summary><span>${t}</span>${hot ? '<i class="nav-dot" aria-label="Есть что проверить"></i>' : ""}</summary>${items.map(link).join("")}</details>`;
   }).join("");
   // На телефоне — лента групп; разделы группы показываются вкладками на странице.
-  const ribbon = NAV_G.map(([g, t]) => { const items = Object.keys(VIEWS).filter(k => VIEWS[k].g === g), to = items.indexOf(v) >= 0 ? v : items[0]; return `<a href="#${to}"${g === cg ? ' aria-current="page"' : ""}>${t || VIEWS[items[0]].t}</a>`; }).join("");
+  const ribbon = NAV_G.map(([g, t]) => { const items = Object.keys(VIEWS).filter(k => VIEWS[k].g === g), to = items.indexOf(v) >= 0 ? v : items[0]; return `<a href="#${to}" data-g="${g}"${g === cg ? ' aria-current="page"' : ""}>${t || VIEWS[items[0]].t}</a>`; }).join("");
   const R = role(), mine = R ? `<div class="nav-mine"><span class="nav-g">Мои разделы · ${R.t}</span>${R.views.filter(k => VIEWS[k]).map(k => link([k, VIEWS[k]])).join("")}</div>` : "";
   return `<div class="nav-tree">${mine}${tree}</div><div class="nav-ribbon">${ribbon}</div>`;
 }
