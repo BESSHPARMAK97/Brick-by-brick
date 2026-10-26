@@ -3784,7 +3784,7 @@ window.PNR = [
   [71, "Общая площадь МОП + лестничной клетки", "м²", "fm", "num"],
   [72, "Общая площадь паркинга", "м²", "fm", "b0:k.area"],
   [73, "Общая площадь оконных и витражных проёмов", "м²", "fm", "num"],
-  [74, "Общая площадь квартир и офисов", "м²", "fm", "num"],
+  [74, "Общая площадь квартир и офисов", "м²", "fm", "sale_total"],
   [75, "Общая площадь фасада", "м²", "fm", "num"],
   [76, "Площадь покрытия полов помещений керамогранитом, гранитом, мрамором", "м²", "fm", "num"],
   [77, "Площадь брусчатки по благоустройству", "м²", "fm", "paving"],
@@ -6949,7 +6949,9 @@ function viewSmeta() {
 const PNR_WHO = { fm: "ФМ проекта", gen: "ОРС Общестрой", net: "ОРС Сети" };
 let pnrF = { who: "", src: "" };
 const isPnrInput = src => src === "num" || src === "flag" || src.indexOf("sel:") === 0;
-function pnrLeft() { const A = window.ZHK.pnr(); return window.PNR.filter(p => isPnrInput(p[4]) && (A["n" + p[0]] == null || A["n" + p[0]] === "")).length; }
+// Курс сума нужен только проектам в Ташкенте — в других городах он не считается незаполненным.
+const pnrNeeded = p => p[0] !== 172 || (window.ZHK.project().city || "") === "Ташкент";
+function pnrLeft() { const A = window.ZHK.pnr(); return window.PNR.filter(p => isPnrInput(p[4]) && pnrNeeded(p) && (A["n" + p[0]] == null || A["n" + p[0]] === "")).length; }
 function pnrCtx() {
   const V = Object.fromEntries(window.ZHK.vars().map(v => [v.id, v])), A = window.ZHK.b0(), blocks = window.ZHK.list("blocks"), d = window.ZHK.deck();
   const n = x => { const v = parseFloat(String(x == null ? "" : x).replace(",", ".")); return isFinite(v) ? v : null; };
@@ -7215,7 +7217,7 @@ function b0Ctx(lite) {
   const A = window.ZHK.b0(), V = lite ? {} : Object.fromEntries(window.ZHK.vars().map(v => [v.id, v]));
   const blocks = window.ZHK.list("blocks"), parking = blocks.some(b => b.kind === "parking");
   const n = x => { const v = parseFloat(String(x == null ? "" : x).replace(",", ".")); return isFinite(v) ? v : null; };
-  const get = k => A[k] == null ? "" : A[k];
+  let get = k => A[k] == null ? "" : A[k];
   const cnt = f => blocks.filter(b => get("b." + b.id + "." + f) === "1").length;
   const real = V.area_sale && V.area_comm ? (n(V.area_sale.raw) || 0) + (n(V.area_comm.raw) || 0) : null;
   const raw = { area_total: V.area_total ? n(V.area_total.raw) : null, area_real: real || null };
@@ -7225,8 +7227,18 @@ function b0Ctx(lite) {
     smr_start: lite ? "" : window.ZHK.deck().smrStart,
     pumps: String(cnt("pump")), heat: String(cnt("heat")), vru: String(blocks.reduce((a, b) => a + (n(get("b." + b.id + ".vru")) || 0), 0))
   };
+  // Квартиры по комнатности считаются из шахматки, когда комнатность есть у всех квартир блока (планировки или ввод по квартире).
+  const CH = lite ? null : window.ZHK.chess();
+  const roomCnt = (b, n) => {
+    const B = CH && CH.blocks.find(x => x.id === b.id), A = [];
+    if (!B) return null;
+    Object.values(B.cells).forEach(c => c.apts.forEach(a => A.push(a)));
+    return A.length && A.every(a => a.r) ? String(A.filter(a => n >= 5 ? a.r >= 5 : a.r === n).length) : null;
+  };
+  const get0 = get;
+  get = k => { const m = /^b\.(.+)\.r([1-5])$/.exec(k), b = m && blocks.find(x => x.id === m[1]), v = b ? roomCnt(b, +m[2]) : null; return v != null ? v : get0(k); };
   const blockAuto = (b, k) => ({ kind: BLOCK_KIND[b.kind || "res"], floors: b.floors, under: b.under, design: b.design, flats: b.flats, lifts: b.lifts })[k] || "";
-  return { A, V, blocks, parking, get, auto, raw, blockAuto, n };
+  return { A, V, blocks, parking, get, auto, raw, blockAuto, n, roomCnt };
 }
 function b0Progress() {
   const C = b0Ctx(true), B = window.B0, keys = [];
@@ -7260,7 +7272,7 @@ function viewB0() {
   const autoCell = (v, from) => `<span class="v">${esc(v == null || v === "" ? "—" : String(v))}</span><div class="muted vsrc">${from}</div>`;
   const rows = (fields, pre, autoMap) => fields.map(f => `<tr><td>${esc(f.label)}${f.unit ? `, ${esc(f.unit)}` : ""}</td><td>${f.auto ? autoCell(autoMap[f.auto], f.auto === "smr_start" ? 'из <a href="#gantt">графика</a>' : f.auto === "pumps" || f.auto === "heat" || f.auto === "vru" ? "итог по блокам ниже" : 'из <a href="#data">данных проекта</a>') : input(pre + f.id, f)}</td></tr>`).join("");
   const blocks = C.blocks;
-  const blockTbl = blocks.length ? `<div class="tbl"><table><thead><tr><th>Показатель</th>${blocks.map(b => `<th>${esc(b.name || "Блок")}</th>`).join("")}</tr></thead><tbody>${B.block.map(f => `<tr><td>${esc(f.label)}${f.unit ? `, ${esc(f.unit)}` : ""}</td>${blocks.map(b => `<td>${f.auto ? `<span class="v">${esc(C.blockAuto(b, f.auto) || "—")}</span>` : input("b." + b.id + "." + f.id, f)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+  const blockTbl = blocks.length ? `<div class="tbl"><table><thead><tr><th>Показатель</th>${blocks.map(b => `<th>${esc(b.name || "Блок")}</th>`).join("")}</tr></thead><tbody>${B.block.map(f => `<tr><td>${esc(f.label)}${f.unit ? `, ${esc(f.unit)}` : ""}</td>${blocks.map(b => `<td>${f.auto ? `<span class="v">${esc(C.blockAuto(b, f.auto) || "—")}</span>` : f.rooms && C.roomCnt(b, +f.id.slice(1)) != null ? `<span class="v" title="Из шахматки и планировок">${esc(C.roomCnt(b, +f.id.slice(1)))}</span>` : input("b." + b.id + "." + f.id, f)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
     <p class="muted" style="margin:0">Назначение, этажность, подземные этажи, вид проектирования, квартиры и лифты всего — из <a href="#blocks">блоков проекта</a>.</p>`
     : `<div class="empty">Сначала заполните <a href="#blocks">блоки проекта</a>: чек-лист B0 заполняется по каждому блоку.</div>`;
   const facade = blocks.length ? `<div class="tbl"><table><thead><tr><th>Вид фасада, м²</th>${blocks.map(b => `<th>${esc(b.name || "Блок")}</th>`).join("")}</tr></thead><tbody>${B.facade.map((t, i) => `<tr><td>${esc(t)}</td>${blocks.map(b => `<td>${input("f." + i + "." + b.id, { t: "num", label: t })}</td>`).join("")}</tr>`).join("")}
