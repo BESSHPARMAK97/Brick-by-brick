@@ -78,11 +78,37 @@ button { cursor: pointer }
 .delta.good { color: var(--ok) } .delta.bad { color: var(--bad) }
 .btn.mini { padding: 3px 8px; font-size: .78rem }
 .filters input { border: 1px solid var(--line); background: var(--surface-2); border-radius: 8px; padding: 6px 8px; font-weight: 500; color: var(--fg); font-size: .9rem }
-.subtabs { display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--line); padding-bottom: 12px }
+.subtabs { display: none; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--line); padding-bottom: 12px }
+@media (max-width: 760px) { .subtabs { display: flex } }
 .subtabs a { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); text-decoration: none; font-weight: 500; font-size: .92rem }
 .subtabs a:hover { border-color: var(--accent) }
 .subtabs a[aria-current="page"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent) }
 .subtabs .cnt { font-size: .72rem; font-family: var(--f-mono); border-radius: 99px; padding: 1px 7px }
+.nav-grp > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; padding: 12px 10px 4px; border-radius: 6px }
+.nav-grp > summary::-webkit-details-marker { display: none }
+.nav-grp > summary::after { content: "▾"; font-size: .8rem; margin-left: auto; transition: transform .15s } .nav-grp:not([open]) > summary::after { transform: rotate(-90deg) }
+.nav-grp > summary:hover { color: var(--fg) }
+.nav-dot { width: 7px; height: 7px; border-radius: 99px; background: var(--bad); flex: none }
+.nav-ribbon { display: none }
+.gbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line) }
+.gbar select { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 8px; font: 500 .9rem var(--f-body); color: var(--fg); max-width: 100% }
+.g-sync { font-size: .78rem; color: var(--muted) } .g-sync[data-mode="shared"]::before { content: "● "; color: var(--ok) } .g-sync[data-mode="local"]::before { content: "● "; color: var(--warn) }
+.g-sp { flex: 1 }
+.gbar kbd { font: 600 .68rem var(--f-mono); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; margin-left: 4px; color: var(--muted) }
+.td-list, .td-soon { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column }
+.td-list li { display: grid; grid-template-columns: 92px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line) }
+.td-list li:last-child, .td-soon li:last-child { border-bottom: 0 }
+.td-tag { font-size: .72rem; font-weight: 600; border-radius: 99px; padding: 2px 8px; text-align: center }
+.td-bad .td-tag { background: var(--bad-soft); color: var(--bad) } .td-warn .td-tag { background: var(--warn-soft); color: var(--warn) } .td-info .td-tag { background: var(--accent-soft); color: var(--accent) }
+.td-soon li { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; padding: 7px 0; border-bottom: 1px dashed var(--line); font-size: .92rem }
+.h2 { font-family: var(--f-display); font-size: 1.05rem; font-weight: 700; margin: 0 }
+.search { position: fixed; z-index: 21; top: max(10vh, 16px); left: 50%; transform: translateX(-50%); width: min(640px, calc(100% - 32px)); max-height: 76vh; display: flex; flex-direction: column; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; box-shadow: 0 20px 60px rgb(0 0 0 / .25) }
+.search input { width: 100%; border: 1px solid var(--line); background: var(--surface-2); border-radius: 8px; padding: 10px 12px; font: 500 1rem var(--f-body); color: var(--fg) }
+.s-res { overflow-y: auto; display: flex; flex-direction: column; gap: 2px; min-height: 0 }
+.s-item { display: grid; grid-template-columns: 96px minmax(0, 1fr); grid-template-areas: "k t" "k s"; gap: 0 10px; text-align: left; border: 0; background: none; padding: 7px 8px; border-radius: 8px; color: var(--fg); font: inherit }
+.s-item .tag { grid-area: k; align-self: start; justify-self: start } .s-t { grid-area: t; font-weight: 600 } .s-sub { grid-area: s; font-size: .8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.s-item.on, .s-item:hover { background: var(--accent-soft) }
+.s-hint { font-size: .75rem }
 .side-foot { margin-top: auto; font-size: .78rem; color: var(--muted); padding: 0 6px }
 
 .main { padding-block: 24px 48px; padding-left: max(28px, env(safe-area-inset-left, 0px)); padding-right: max(28px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 20px; min-width: 0 }
@@ -284,7 +310,9 @@ th { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color:
   body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface) }
   .brand b, .side-foot { display: none }
   .nav { flex-direction: row }
+  .nav-tree { display: none } .nav-ribbon { display: flex; gap: 2px } .gbar kbd { display: none }
   .nav a { white-space: nowrap; padding: 7px 10px }
+  .td-list li { grid-template-columns: minmax(0, 1fr) auto } .td-tag { grid-column: 1 / -1; justify-self: start }
   .nav .cnt, .nav-g { display: none }
   .main { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 18px 40px }
   .g2, .g3 { grid-template-columns: minmax(0, 1fr) }
@@ -755,6 +783,9 @@ dialog.viewer::backdrop { background: rgba(10, 20, 35, .55); }
 .rank { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; min-width: 0; }
 .rank .xpbar { flex: 1 1 160px; }
 #proj-sel { width: auto; min-width: 200px; }
+/* Выбор проекта, статус сохранения и язык — в общей панели портала; игровой прогресс и предупреждения — только на дереве этапов. */
+#proj-sel, .rank > .row, .hud-meta .sync { display: none !important; }
+:host(:not([data-view="tree"])) .hud, :host(:not([data-view="tree"])) .alerts { display: none; }
 </style>
 <div class="zhk">
 <div class="wrap">
@@ -4457,6 +4488,7 @@ window.I18N = (function () {
     ["Шахматка", "Шахматка"], ["СМР: факт", "ҚМЖ: факт"], ["СМР: план", "ҚМЖ: жоспар"], ["Объём: план и факт", "Көлем: жоспар және факт"], ["Продажи", "Сату"], ["Квартиры по этажам", "Қабаттар бойынша пәтерлер"], ["Готовность СМР", "ҚМЖ дайындығы"], ["Выполнено СМР", "Орындалған ҚМЖ"], ["Отстают от плана", "Жоспардан қалып жатыр"], ["Продано квартир", "Сатылған пәтерлер"], ["План на месяц", "Ай бойынша жоспар"], ["Стадия:", "Кезең:"], ["Очистить", "Тазалау"], ["Каркас", "Қаңқа"], ["Ограждение", "Қоршау"], ["Инженерия", "Инженерия"], ["Отделка", "Әрлеу"], ["Не начат", "Басталмаған"], ["Этаж", "Қабат"], ["Готовность СМР по шахматке", "Шахматка бойынша ҚМЖ дайындығы"], ["Выполнено СМР по шахматке", "Шахматка бойынша орындалған ҚМЖ"], ["Стадия СМР на этаже", "Қабаттағы ҚМЖ кезеңі"], ["Этажи и подъезды каждого блока строятся из «Блоков проекта». План по этажам считается из графика, объём СМР — из финмодели. Команда вносит только факт: стадию на этаже и продажи.", "Әр блоктың қабаттары мен кіреберістері «Жоба блоктарынан» құрылады. Қабаттар бойынша жоспар кестеден, ҚМЖ көлемі қаржы моделінен есептеледі. Команда тек фактіні енгізеді: қабаттағы кезең мен сату."], ["Выберите стадию и нажмите на ячейку. Номер этажа ставит стадию на весь этаж и на этажи ниже, где она ещё не достигнута. Красная рамка — фактическая стадия ниже плановой.", "Кезеңді таңдап, ұяшықты басыңыз. Қабат нөмірі кезеңді бүкіл қабатқа және ол әлі жетпеген төменгі қабаттарға қояды. Қызыл жиек — нақты кезең жоспардағыдан төмен."], ["Сколько квартир продано на этаже подъезда. План продаж — равномерно от старта продаж до передачи ключей по графику.", "Кіреберіс қабатында қанша пәтер сатылды. Сату жоспары — кесте бойынша сату басталғаннан кілт тапсыруға дейін біркелкі."], ["Квартиры блока по умолчанию разложены поровну по надземным этажам и подъездам. Если на этаже их другое количество, впишите его — серое число подсказка.", "Блок пәтерлері әдепкі бойынша жерүсті қабаттар мен кіреберістерге тең бөлінген. Қабатта саны басқа болса, оны жазыңыз — сұр сан кеңес."], ["Факт продаж и СМР пока вносится здесь. Когда подключим CRM продаж и журналы технадзора, он будет приходить оттуда, без повторного ввода.", "Сату мен ҚМЖ фактісі әзірге осында енгізіледі. Сату CRM-і мен техқадағалау журналдарын қосқанда, ол сол жерден қайта енгізусіз келеді."], ["Качество и охрана труда появятся, когда подключим журналы технадзора и БиОТ: вписывать эти цифры вручную здесь не нужно. Факт СМР и продаж по этажам — во вкладке «Шахматка».", "Сапа мен еңбек қорғау техқадағалау және ҚжЕҚ журналдарын қосқанда пайда болады: бұл сандарды мұнда қолмен жазудың қажеті жоқ. Қабаттар бойынша ҚМЖ мен сату фактісі — «Шахматка» қойындысында."],
     ["Квартиры", "Пәтерлер"], ["Число квартир", "Пәтерлер саны"], ["Свободна", "Бос"], ["Бронь", "Брондалған"], ["Продана", "Сатылды"], ["Не в продаже", "Сатылымда емес"], ["Статус квартиры", "Пәтер мәртебесі"], ["Квартир в брони", "Брондалған пәтерлер"], ["Площадь квартир по шахматке", "Шахматка бойынша пәтерлер ауданы"], ["Комнат", "Бөлме"], ["Площадь, м²", "Ауданы, м²"], ["Скопировать комнаты и площади на типовые этажи", "Бөлмелер мен аудандарды типтік қабаттарға көшіру"], ["Типовые — этажи блока с тем же числом квартир. Номера и статусы не копируются. Серый номер — сквозная нумерация по блоку.", "Типтік — пәтер саны бірдей блок қабаттары. Нөмірлер мен мәртебелер көшірілмейді. Сұр нөмір — блок бойынша өтпелі нөмірлеу."], ["Сколько квартир продано на этаже подъезда. Если у квартир этажа отмечены статусы, продажи считаются по ним. План продаж — равномерно от старта продаж до передачи ключей по графику.", "Кіреберіс қабатында қанша пәтер сатылды. Қабат пәтерлерінің мәртебесі белгіленсе, сату солар бойынша есептеледі. Сату жоспары — кесте бойынша сату басталғаннан кілт тапсыруға дейін біркелкі."],
     ["Планировки", "Жоспарлар"], ["Планировка", "Жоспар"], ["Добавить планировку", "Жоспар қосу"], ["Добавить помещение", "Бөлме қосу"], ["Помещение", "Бөлме"], ["Название", "Атауы"], ["Назначить квартирам в шахматке", "Шахматкада пәтерлерге тағайындау"], ["Скопировать планировки на типовые этажи", "Жоспарларды типтік қабаттарға көшіру"], ["Помещений пока нет.", "Бөлмелер әлі жоқ."], ["Планировок пока нет.", "Жоспарлар әлі жоқ."], ["Вид помещения квартиры", "Пәтер бөлмесінің түрі"], ["Жилая комната", "Тұрғын бөлме"], ["Кухня", "Ас үй"], ["Кухня-гостиная", "Ас үй-қонақ бөлме"], ["Санузел", "Санитариялық торап"], ["Ванная", "Ванна бөлмесі"], ["Прихожая", "Кіреберіс"], ["Коридор", "Дәліз"], ["Гардеробная", "Киім бөлмесі"], ["Кладовая", "Қойма"], ["Лоджия", "Лоджия"], ["Балкон", "Балкон"], ["Терраса", "Терраса"], ["Типовые планировки вводятся один раз: помещения и их площади. Квартира в шахматке ссылается на планировку — её площадь и комнатность считаются отсюда, а из суммы по всем квартирам — продаваемая жилая площадь проекта.", "Типтік жоспарлар бір рет енгізіледі: бөлмелер және олардың аудандары. Шахматкадағы пәтер жоспарға сілтеме жасайды — оның ауданы мен бөлме саны осы жерден, ал барлық пәтерлердің қосындысынан жобаның сатылатын тұрғын ауданы есептеледі."],
+    ["Сроки и стройка", "Мерзімдер және құрылыс"], ["Деньги", "Ақша"], ["ОРС", "ОРС"], ["Люди", "Адамдар"], ["Компания", "Компания"], ["Чек-лист B0", "B0 чек-парағы"], ["Поиск", "Іздеу"], ["Требует внимания", "Назар аударуды қажет етеді"], ["Ближайший месяц", "Жақын ай"], ["Весь календарь", "Бүкіл күнтізбе"], ["Срочно", "Шұғыл"], ["Внимание", "Назар"], ["Проверить", "Тексеру"], ["Текущий этап", "Ағымдағы кезең"], ["Стройка", "Құрылыс"], ["Просрочен пункт этапа", "Кезең тармағы мерзімі өтті"], ["Истекает документ", "Құжат мерзімі аяқталады"], ["Документ истёк", "Құжат мерзімі өтті"], ["Отставание от графика", "Кестеден қалу"], ["Стройка отстаёт", "Құрылыс қалып жатыр"], ["Продажи ниже плана", "Сату жоспардан төмен"], ["Перерасход бюджета", "Бюджеттің асып кетуі"], ["Данные на согласовании", "Келісудегі деректер"], ["Базовая версия ПК Start", "ПК Start базалық нұсқасы"], ["Событий нет.", "Оқиғалар жоқ."], ["Ничего не найдено.", "Ештеңе табылмады."], ["Раздел", "Бөлім"], ["Стандарт", "Стандарт"], ["Команда", "Команда"], ["Квартира", "Пәтер"], ["Что требует внимания по проекту. Всё считается из данных проекта: графика, реестра документов, шахматки, бюджета и статусов данных.", "Жоба бойынша назар аударуды қажет ететін нәрселер. Барлығы жоба деректерінен есептеледі: кесте, құжаттар тізілімі, шахматка, бюджет және деректер мәртебесі."], ["Всё в порядке: просрочек, отставаний и данных на согласовании нет.", "Бәрі жақсы: мерзімі өткен, қалып жатқан және келісудегі деректер жоқ."], ["Раздел, показатель, квартира, документ, стандарт, этап, человек", "Бөлім, көрсеткіш, пәтер, құжат, стандарт, кезең, адам"], ["↑ ↓ — выбор, Enter — открыть, Esc — закрыть", "↑ ↓ — таңдау, Enter — ашу, Esc — жабу"], ["Что найти", "Не табу керек"], ["Поиск по порталу", "Портал бойынша іздеу"],
     ["Казначей", "Қазынашы"], ["Факт бюджета внесён по 5+ этапам", "5+ кезең бойынша бюджет фактісі енгізілді"], ["План из финмодели, тг", "Қаржы моделінен жоспар, тг"], ["План считается из финмодели автоматически: земля, проектирование по этапам проекта, СМР с технадзором и резервом по этапам стройки, сети, маркетинг, административные расходы и проценты. Чтобы изменить план, измените исходные данные финмодели или сроки в графике.", "Жоспар қаржы моделінен автоматты түрде есептеледі: жер, жоба кезеңдері бойынша жобалау, құрылыс кезеңдері бойынша техқадағалау мен резервті қоса ҚМЖ, желілер, маркетинг, әкімшілік шығыстар және пайыздар. Жоспарды өзгерту үшін қаржы моделінің бастапқы деректерін немесе кестедегі мерзімдерді өзгертіңіз."],
     ["Документы под контролем", "Құжаттар бақылауда"], ["5+ документов в реестре сроков, ни одного истёкшего", "Мерзімдер тізілімінде 5+ құжат, бірде-біреуінің мерзімі өтпеген"],
     ["Полный архив", "Толық мұрағат"], ["10+ вложений к пунктам чек-листов", "Чек-парақ тармақтарына 10+ тіркеме"],
@@ -4595,6 +4627,8 @@ window.I18N = (function () {
       if (st && st[a] && st[a].out === el.getAttribute(a)) el.setAttribute(a, st[a].orig);
     }));
   }
+  // Переводится весь портал: встроенная дорожная карта (свой корень) и страницы портала со всплывающими окнами.
+  const roots = () => window.ZHK_ROOT ? [window.ZHK_ROOT, document.querySelector(".app"), document.getElementById("layer")].filter(Boolean) : [document.body];
   const obs = new MutationObserver(muts => {
     if (lang !== "kk") return;
     muts.forEach(m => {
@@ -4607,15 +4641,15 @@ window.I18N = (function () {
   return {
     lang: () => lang,
     start() {
-      obs.observe((window.ZHK_ROOT || document.body), { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ATTRS });
+      roots().forEach(r => obs.observe(r, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ATTRS }));
       document.documentElement.lang = lang === "kk" ? "kk" : "ru";
-      if (lang === "kk") walk((window.ZHK_ROOT || document.body));
+      if (lang === "kk") roots().forEach(walk);
     },
     set(l) {
       lang = l === "kk" ? "kk" : "ru";
       try { localStorage.setItem("zhk-lang", lang); } catch (e) {}
       document.documentElement.lang = lang;
-      if (lang === "kk") walk((window.ZHK_ROOT || document.body)); else restore((window.ZHK_ROOT || document.body));
+      roots().forEach(r => { if (lang === "kk") walk(r); else restore(r); });
     },
     t: s => lang === "kk" ? (translate(s) || s) : s,
     tplTitle: (id, ru) => lang === "kk" && KK.templates[id] && KK.templates[id].title ? KK.templates[id].title : ru,
@@ -4740,7 +4774,7 @@ window.ZHK_BOOT = function (document) {
     setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
     return { status: "saved" };
   } };
-  function setSync(mode, text) { const el = document.getElementById("sync"); el.dataset.mode = mode; el.textContent = text; }
+  function setSync(mode, text) { const el = document.getElementById("sync"); el.dataset.mode = mode; el.textContent = text; if (window.ZHK_onSync) window.ZHK_onSync(); }
   const hasData = () => KEYS.some(k => Object.keys(S[k]).length);
 
   let writeChain = Promise.resolve();
@@ -6424,6 +6458,7 @@ window.ZHK_BOOT = function (document) {
   // Портал читает и меняет карточку проекта через этот API; данные — S.project текущего проекта.
   window.ZHK = {
     setView: v => setView(v, false),
+    selectStage: id => { if (byId[id]) select(id, true); },
     project: () => S.project,
     setProject: patch => { if (!readOnly) commit({ project: patch }); },
     readOnly: () => readOnly,
@@ -6680,28 +6715,31 @@ function relevant() { return STD.filter(s => matches(s, { ...pick(card) })) }
 
 // ---------- Экраны ----------
 const Z = (t, sub) => () => head(t, sub);
+// Меню по группам: что за объект, сроки и стройка, деньги, ОРС, люди, комитет. alert — счётчик требует внимания.
+const NAV_G = [["today", ""], ["obj", "Объект"], ["time", "Сроки и стройка"], ["money", "Деньги"], ["ors", "ОРС"], ["people", "Люди"], ["pk", "Комитет"], ["co", "Компания"]];
 const VIEWS = {
-  card: { g: "Проект", t: "Карточка проекта", cnt: () => "", r: viewCard },
-  blocks: { g: "Проект", t: "Блоки проекта", cnt: () => window.ZHK ? window.ZHK.list("blocks").length || "" : "", r: viewBlocks },
-  chess: { g: "Проект", t: "Шахматка", cnt: () => "", r: viewChess },
-  plans: { g: "Проект", t: "Планировки", cnt: () => window.ZHK ? window.ZHK.plans().length || "" : "", r: viewPlans },
-  smeta: { g: "Проект", t: "Смета из 1С", cnt: () => "", r: viewSmeta },
-  pnr: { g: "Проект", t: "Показатели ПНР для ОРС", cnt: () => window.ZHK ? pnrLeft() || "" : "", r: viewPnr },
-  b0: { g: "Проект", t: "Чек-лист B0 для ОРС", cnt: () => window.ZHK ? b0Progress().left || "" : "", r: viewB0 },
-  data: { g: "Проект", t: "Данные проекта", cnt: () => "", r: viewData },
-  standards: { g: "Проект", t: "Стандарты", cnt: () => relevant().length, r: viewStandards },
-  calendar: { g: "Проект", t: "Календарь событий", cnt: () => calEvents().filter(e => e.kind !== "hol" && new Date(e.date) >= TODAY).length || "", r: viewCal },
-  team: { g: "Проект", t: "Команда проекта", cnt: () => window.ZHK ? window.ZHK.list("team").length || "" : "", r: viewTeam },
-  kpi: { g: "Проект", t: "Показатели", cnt: () => "", r: viewKpi },
-  partners: { g: "Проект", t: "Партнёры", cnt: () => window.ZHK ? window.ZHK.list("partners").length || "" : "", r: viewPartners },
-  roadmap: { g: "Дорожная карта", z: "tree", t: "Этапы и чек-листы", cnt: () => "", r: Z("Этапы и чек-листы", "От анализа рынка до гарантии, включая проектный комитет «Start». Этап открывается, когда закрыты условия перехода на предыдущих.") },
-  gantt: { g: "Дорожная карта", z: "gantt", t: "График", cnt: () => "", r: Z("График строительства", "Диаграмма Ганта из связей этапов, критический путь и прогноз даты ключей.") },
-  model: { g: "Проект", p: "kpi", z: "model", t: "Финмодель", cnt: () => "", r: Z("Финансовая модель", "Помесячный денежный поток, НДС, кредит, КПН, IRR и NPV.") },
-  pk: { g: "Дорожная карта", t: "Презентация ПК Start", cnt: () => "", r: viewDeck },
-  budget: { g: "Дорожная карта", z: "budget", t: "Бюджет", cnt: () => "", r: Z("Бюджет: план и факт", "План по этапам заполняется из финмодели, факт вносит команда.") },
-  whatif: { g: "Проект", p: "kpi", t: "Что если", cnt: () => "", r: viewWhatIf },
-  deadlines: { g: "Проект", p: "kpi", z: "deadlines", t: "Сроки документов", cnt: () => "", r: Z("Сроки документов", "АПЗ, техусловия, лицензии и гарантии с предупреждением за 60 и 30 дней.") },
-  projects: { g: "Компания", z: "projects", t: "Портфель проектов", cnt: () => "", r: Z("Портфель проектов", "Все ЖК компании и их прогресс по дорожной карте.") },
+  today: { g: "today", t: "Сегодня", cnt: () => window.ZHK ? todayItems().filter(x => x.lvl === "bad").length || "" : "", alert: true, r: viewToday },
+  card: { g: "obj", t: "Карточка проекта", cnt: () => "", r: viewCard },
+  blocks: { g: "obj", t: "Блоки проекта", cnt: () => window.ZHK ? window.ZHK.list("blocks").length || "" : "", r: viewBlocks },
+  plans: { g: "obj", t: "Планировки", cnt: () => window.ZHK ? window.ZHK.plans().length || "" : "", r: viewPlans },
+  chess: { g: "obj", t: "Шахматка", cnt: () => "", r: viewChess },
+  data: { g: "obj", t: "Данные проекта", cnt: () => "", r: viewData },
+  standards: { g: "obj", t: "Стандарты", cnt: () => relevant().length, r: viewStandards },
+  roadmap: { g: "time", z: "tree", t: "Этапы и чек-листы", cnt: () => "", r: Z("Этапы и чек-листы", "От анализа рынка до гарантии, включая проектный комитет «Start». Этап открывается, когда закрыты условия перехода на предыдущих.") },
+  gantt: { g: "time", z: "gantt", t: "График", cnt: () => "", r: Z("График строительства", "Диаграмма Ганта из связей этапов, критический путь и прогноз даты ключей.") },
+  calendar: { g: "time", t: "Календарь событий", cnt: () => calEvents().filter(e => e.kind !== "hol" && new Date(e.date) >= TODAY).length || "", r: viewCal },
+  deadlines: { g: "time", z: "deadlines", t: "Сроки документов", cnt: () => "", r: Z("Сроки документов", "АПЗ, техусловия, лицензии и гарантии с предупреждением за 60 и 30 дней.") },
+  model: { g: "money", z: "model", t: "Финмодель", cnt: () => "", r: Z("Финансовая модель", "Помесячный денежный поток, НДС, кредит, КПН, IRR и NPV.") },
+  whatif: { g: "money", t: "Что если", cnt: () => "", r: viewWhatIf },
+  budget: { g: "money", z: "budget", t: "Бюджет", cnt: () => "", r: Z("Бюджет: план и факт", "План по этапам заполняется из финмодели, факт вносит команда.") },
+  smeta: { g: "money", t: "Смета из 1С", cnt: () => "", r: viewSmeta },
+  pnr: { g: "ors", t: "Показатели ПНР", cnt: () => window.ZHK ? pnrLeft() || "" : "", r: viewPnr },
+  b0: { g: "ors", t: "Чек-лист B0", cnt: () => window.ZHK ? b0Progress().left || "" : "", r: viewB0 },
+  team: { g: "people", t: "Команда проекта", cnt: () => window.ZHK ? window.ZHK.list("team").length || "" : "", r: viewTeam },
+  partners: { g: "people", t: "Партнёры", cnt: () => window.ZHK ? window.ZHK.list("partners").length || "" : "", r: viewPartners },
+  kpi: { g: "pk", t: "Показатели", cnt: () => "", r: viewKpi },
+  pk: { g: "pk", t: "Презентация ПК Start", cnt: () => "", r: viewDeck },
+  projects: { g: "co", z: "projects", t: "Портфель проектов", cnt: () => "", r: Z("Портфель проектов", "Все ЖК компании и их прогресс по дорожной карте.") },
 };
 
 function head(title, sub, demo) {
@@ -7385,24 +7423,141 @@ function viewPartners() {
 }
 
 // ---------- Маршрутизация и события ----------
+// Группы меню сворачиваются; открыта группа текущего раздела и те, что пользователь открыл сам (запоминается в браузере).
+let navOpen = {};
+try { navOpen = JSON.parse(localStorage.getItem("zhk-nav-open") || "{}") || {}; } catch (e) {}
+const navCnt = (k, x) => { const n = x.z ? zhkBadge(x.z) : x.cnt(); return n === "" || n == null ? "" : String(n); };
 function navHtml(v) {
-  let g = "";
-  const on = VIEWS[v].p || v;
-  return Object.entries(VIEWS).filter(([, x]) => !x.p).map(([k, x]) => {
-    const n = x.z ? zhkBadge(x.z) : k === "kpi" ? zhkBadge("deadlines") : x.cnt();
-    const grp = x.g !== g ? `<span class="nav-g">${(g = x.g)}</span>` : "";
-    return `${grp}<a href="#${k}"${k === on ? ' aria-current="page"' : ""}><span>${x.t}</span>${n !== "" ? `<span class="cnt${x.z || k === "kpi" ? " alert" : ""}">${n}</span>` : ""}</a>`;
+  const cg = VIEWS[v].g;
+  const link = ([k, x]) => { const n = navCnt(k, x), a = x.z || x.alert; return `<a href="#${k}"${k === v ? ' aria-current="page"' : ""}><span>${x.t}</span>${n ? `<span class="cnt${a ? " alert" : ""}">${n}</span>` : ""}</a>`; };
+  const tree = NAV_G.map(([g, t]) => {
+    const items = Object.entries(VIEWS).filter(([, x]) => x.g === g);
+    if (!t) return items.map(link).join("");
+    const hot = items.some(([k, x]) => (x.z || x.alert) && navCnt(k, x));
+    return `<details class="nav-grp" data-g="${g}"${g === cg || navOpen[g] ? " open" : ""}><summary><span>${t}</span>${hot ? '<i class="nav-dot" aria-label="Есть что проверить"></i>' : ""}</summary>${items.map(link).join("")}</details>`;
   }).join("");
+  // На телефоне — лента групп; разделы группы показываются вкладками на странице.
+  const ribbon = NAV_G.map(([g, t]) => { const items = Object.keys(VIEWS).filter(k => VIEWS[k].g === g), to = items.indexOf(v) >= 0 ? v : items[0]; return `<a href="#${to}"${g === cg ? ' aria-current="page"' : ""}>${t || VIEWS[items[0]].t}</a>`; }).join("");
+  return `<div class="nav-tree">${tree}</div><div class="nav-ribbon">${ribbon}</div>`;
 }
+// ---------- Общая панель: проект, сохранение, поиск, язык ----------
+const zEl = id => zhkHost && zhkHost.shadowRoot.getElementById(id);
+function gbarHtml() {
+  const ps = zEl("proj-sel"), sy = zEl("sync"), lb = zEl("lang-toggle");
+  return `<div class="gbar" id="gbar"><select id="g-proj" aria-label="Проект">${ps ? ps.innerHTML : ""}</select>
+    <span class="g-sync" data-mode="${sy ? esc(sy.dataset.mode || "") : ""}">${sy ? esc(sy.textContent) : ""}</span><span class="g-sp"></span>
+    <button class="btn ghost" id="g-search" type="button" aria-keyshortcuts="Control+K">Поиск <kbd>Ctrl K</kbd></button>
+    <button class="btn ghost" id="g-lang" type="button" data-noi18n>${lb ? esc(lb.textContent) : "Қазақша"}</button></div>`;
+}
+function bindGbar() {
+  const gp = document.getElementById("g-proj");
+  if (gp) gp.onchange = () => { const ps = zEl("proj-sel"); if (!ps) return; ps.value = gp.value; ps.dispatchEvent(new Event("change")); setTimeout(route, 0); };
+  const gs = document.getElementById("g-search"); if (gs) gs.onclick = openSearch;
+  const gl = document.getElementById("g-lang"); if (gl) gl.onclick = () => { const b = zEl("lang-toggle"); if (b) b.click(); setTimeout(route, 0); };
+}
+function renderGbar() { const g = document.getElementById("gbar"); if (!g) return; g.outerHTML = gbarHtml(); bindGbar(); }
+window.ZHK_onSync = () => renderGbar();
+
+// ---------- Сегодня: что требует внимания ----------
+const isoDay = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+const dmy = iso => iso.slice(8, 10) + "." + iso.slice(5, 7) + "." + iso.slice(0, 4);
+function todayItems() {
+  const Z = window.ZHK, V = Object.fromEntries(Z.vars().map(v => [v.id, v])), ev = Z.events(), out = [];
+  const t0 = isoDay(new Date()), plus = n => isoDay(new Date(Date.now() + n * 86400000));
+  ev.filter(e => e.kind === "due" && e.date < t0).forEach(e => out.push({ lvl: "bad", what: "Просрочен пункт этапа", text: e.title, when: e.date, href: "roadmap" }));
+  ev.filter(e => e.kind === "doc" && e.date <= plus(60)).forEach(e => out.push({ lvl: e.date <= plus(30) ? "bad" : "warn", what: e.date < t0 ? "Документ истёк" : "Истекает документ", text: e.title.replace(/^Истекает: /, ""), when: e.date, href: "deadlines" }));
+  if (V.delay && V.delay.raw > 0.25) out.push({ lvl: "bad", what: "Отставание от графика", text: "ключи по прогнозу " + V.keys_fc.text + ", по плану " + V.keys_plan.text, href: "gantt" });
+  const X = Z.chess();
+  if (X.tot.late) out.push({ lvl: "warn", what: "Стройка отстаёт", text: "этажей подъездов ниже плановой стадии: " + X.tot.late, href: "chess" });
+  if (X.tot.flats && X.tot.sold < X.tot.soldPlan) out.push({ lvl: "warn", what: "Продажи ниже плана", text: "продано " + X.tot.sold + " квартир из плана " + X.tot.soldPlan, href: "chess" });
+  const B = Z.budget(); if (B.over) out.push({ lvl: "warn", what: "Перерасход бюджета", text: "этапов с фактом выше плана: " + B.over, href: "budget" });
+  const inp = Object.values(V).filter(v => !v.calc), dr = inp.filter(v => v.st === "draft").length, ag = inp.filter(v => v.st === "agreed").length;
+  if (!Z.baseline()) out.push({ lvl: "info", what: "Базовая версия ПК Start", text: "не зафиксирована: отклонения не с чем сравнивать", href: "data" });
+  if (dr + ag) out.push({ lvl: "info", what: "Данные на согласовании", text: "черновиков: " + dr + ", ждут утверждения: " + ag, href: "data" });
+  const pl = pnrLeft(); if (pl) out.push({ lvl: "info", what: "Показатели ПНР для ОРС", text: "не заполнено: " + pl, href: "pnr" });
+  const bl = b0Progress().left; if (bl) out.push({ lvl: "info", what: "Чек-лист B0 для ОРС", text: "не заполнено: " + bl, href: "b0" });
+  const R = { bad: 0, warn: 1, info: 2 };
+  return out.sort((a, b) => R[a.lvl] - R[b.lvl] || (a.when || "9").localeCompare(b.when || "9"));
+}
+function viewToday() {
+  const Z = window.ZHK, V = Object.fromEntries(Z.vars().map(v => [v.id, v])), t = id => V[id] ? V[id].text : "—", X = Z.chess(), items = todayItems();
+  const t0 = isoDay(new Date()), t30 = isoDay(new Date(Date.now() + 30 * 86400000));
+  const soon = Z.events().filter(e => e.kind !== "hol" && e.date >= t0 && e.date <= t30).slice(0, 12);
+  const K = [
+    ["Текущий этап", t("cur_stage"), "пройдено этапов: " + t("stages_done"), "roadmap"],
+    ["Ключи", t("keys_fc"), V.delay && V.delay.raw > 0.25 ? "по плану " + t("keys_plan") + ", отставание " + t("delay") : "по плану " + t("keys_plan"), "gantt"],
+    ["Стройка", X.tot.cells ? Math.round(X.tot.fw / X.tot.cells * 100) + "%" : "—", X.tot.cells ? "план " + Math.round(X.tot.pw / X.tot.cells * 100) + "%" : "заполните блоки", "chess"],
+    ["Продажи", X.tot.flats ? X.tot.sold + " из " + X.tot.flats : "—", X.tot.flats ? "план " + X.tot.soldPlan + (X.tot.rsv ? ", бронь " + X.tot.rsv : "") : "нет квартир в шахматке", "chess"],
+    ["Финмодель", t("fin_margin"), "маржа · IRR " + t("fin_irr"), "model"]
+  ];
+  const ic = { bad: "Срочно", warn: "Внимание", info: "Проверить" };
+  return head("Сегодня", "Что требует внимания по проекту. Всё считается из данных проекта: графика, реестра документов, шахматки, бюджета и статусов данных.") + `
+  <div class="grid g5">${K.map(([l, v, d, h]) => `<a class="panel kpi" href="#${h}" style="text-decoration:none;color:inherit"><span class="label">${l}</span><div class="big num">${esc(v)}</div><div class="muted" style="font-size:.85rem">${esc(d)}</div></a>`).join("")}</div>
+  <section class="panel stack"><h2 class="h2">Требует внимания</h2>
+    ${items.length ? `<ul class="td-list">${items.map(x => `<li class="td-${x.lvl}"><span class="td-tag">${ic[x.lvl]}</span><div><b>${esc(x.what)}</b>${x.when ? ` <span class="mono muted">${dmy(x.when)}</span>` : ""}<div class="muted">${esc(x.text)}</div></div><a class="btn ghost mini" href="#${x.href}">Открыть</a></li>`).join("")}</ul>` : '<div class="empty">Всё в порядке: просрочек, отставаний и данных на согласовании нет.</div>'}
+  </section>
+  <section class="panel stack"><div class="row" style="justify-content:space-between"><h2 class="h2">Ближайший месяц</h2><a class="btn ghost mini" href="#calendar">Весь календарь</a></div>
+    ${soon.length ? `<ul class="td-soon">${soon.map(e => `<li><span class="mono">${dmy(e.date)}</span><span>${esc(e.title)}</span></li>`).join("")}</ul>` : '<p class="muted" style="margin:0">Событий нет.</p>'}
+  </section>`;
+}
+
+// ---------- Поиск по порталу (Ctrl+K) ----------
+function goHash(h) { document.getElementById("layer").innerHTML = ""; if (location.hash === "#" + h) route(); else location.hash = h; }
+function searchIndex() {
+  const Z = window.ZHK, I = [];
+  Object.entries(VIEWS).forEach(([k, x]) => I.push({ kind: "Раздел", title: x.t, sub: (NAV_G.find(g => g[0] === x.g) || [])[1] || "", go: () => goHash(k) }));
+  window.TREE.nodes.forEach(n => I.push({ kind: "Этап", title: n.code + " · " + n.name, sub: n.phase || "", go: () => { goHash("roadmap"); setTimeout(() => Z.selectStage(n.id), 0); } }));
+  Z.vars().forEach(v => I.push({ kind: "Показатель", title: v.name, sub: v.text + " · " + v.id, go: () => { dataF = { sec: "", owner: "", st: "", q: v.name }; goHash("data"); } }));
+  STD.forEach(x => I.push({ kind: "Стандарт", title: x.name, sub: x.code, go: () => { document.getElementById("layer").innerHTML = ""; openStd(x.code); } }));
+  Z.events().filter(e => e.kind === "doc").forEach(e => I.push({ kind: "Документ", title: e.title.replace(/^Истекает: /, ""), sub: "до " + dmy(e.date), go: () => goHash("deadlines") }));
+  Z.list("team").forEach(m => I.push({ kind: "Команда", title: [m.role, m.name].filter(Boolean).join(" — "), sub: m.zone || "", go: () => goHash("team") }));
+  Z.list("partners").forEach(m => I.push({ kind: "Партнёр", title: m.org || m.role || "Партнёр", sub: [m.role, m.subject].filter(Boolean).join(" · "), go: () => goHash("partners") }));
+  Z.plans().forEach(pl => I.push({ kind: "Планировка", title: pl.name, sub: String(pl.area).replace(".", ",") + " м²", go: () => goHash("plans") }));
+  Z.chess().blocks.forEach(b => Object.entries(b.cells).forEach(([ef, c]) => c.apts.forEach(a => { const [e, f] = ef.split(".");
+    I.push({ kind: "Квартира", title: "Кв. " + a.no, sub: b.name + ", подъезд " + e + ", этаж " + f + (a.plan ? ", " + a.plan : ""), key: "кв " + a.no, go: () => { chUI.layer = "apts"; chUI.sel = b.id + "." + ef; goHash("chess"); } }); })));
+  return I;
+}
+function openSearch() {
+  const layer = document.getElementById("layer"), I = searchIndex();
+  layer.innerHTML = `<div class="scrim" data-s-close></div><div class="search" role="dialog" aria-modal="true" aria-label="Поиск по порталу">
+    <input id="s-q" type="search" placeholder="Раздел, показатель, квартира, документ, стандарт, этап, человек" autocomplete="off" aria-label="Что найти">
+    <div id="s-res" class="s-res" role="listbox"></div><div class="muted s-hint">↑ ↓ — выбор, Enter — открыть, Esc — закрыть</div></div>`;
+  const q = layer.querySelector("#s-q"), res = layer.querySelector("#s-res");
+  let hits = [], at = 0;
+  const norm = x => String(x).toLowerCase().replace(/ё/g, "е");
+  const draw = () => {
+    const w = norm(q.value).trim().split(/\s+/).filter(Boolean);
+    hits = !w.length ? I.filter(x => x.kind === "Раздел") : I.filter(x => { const h = norm(x.title + " " + x.sub + " " + x.kind + " " + (x.key || "")); return w.every(t => h.includes(t)); });
+    const per = {}; hits = hits.filter(x => (per[x.kind] = (per[x.kind] || 0) + 1) <= 8).slice(0, 40); at = Math.min(at, Math.max(0, hits.length - 1));
+    res.innerHTML = hits.length ? hits.map((x, i) => `<button type="button" role="option" class="s-item${i === at ? " on" : ""}" data-s="${i}" aria-selected="${i === at}"><span class="tag">${esc(x.kind)}</span><span class="s-t">${esc(x.title)}</span><span class="muted s-sub">${esc(x.sub)}</span></button>`).join("") : '<div class="empty">Ничего не найдено.</div>';
+    const on = res.querySelector(".on"); if (on) on.scrollIntoView({ block: "nearest" });
+  };
+  q.oninput = () => { at = 0; draw(); };
+  q.onkeydown = e => {
+    if (e.key === "ArrowDown") { at = Math.min(at + 1, hits.length - 1); draw(); e.preventDefault(); }
+    else if (e.key === "ArrowUp") { at = Math.max(at - 1, 0); draw(); e.preventDefault(); }
+    else if (e.key === "Enter" && hits[at]) { e.preventDefault(); hits[at].go(); }
+  };
+  res.onclick = e => { const b = e.target.closest("[data-s]"); if (b && hits[+b.dataset.s]) hits[+b.dataset.s].go(); };
+  layer.querySelector("[data-s-close]").onclick = () => { layer.innerHTML = ""; };
+  draw(); q.focus();
+}
+document.addEventListener("keydown", e => {
+  const typing = e.target && (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName));
+  if (((e.ctrlKey || e.metaKey) && (e.key === "k" || e.key === "K" || e.code === "KeyK")) || (e.key === "/" && !typing && !document.getElementById("layer").innerHTML)) { e.preventDefault(); openSearch(); }
+});
+
 function route() {
   let v = location.hash.slice(1);
-  if (!VIEWS[v]) v = window.TREE && TREE.nodes.some(n => n.id === v) ? "roadmap" : "card";
+  if (!VIEWS[v]) v = window.TREE && TREE.nodes.some(n => n.id === v) ? "roadmap" : "today";
   cur = v;
   document.getElementById("nav").innerHTML = navHtml(v);
   const main = document.getElementById("main");
-  main.innerHTML = VIEWS[v].r() + subTabs(v);
+  main.innerHTML = gbarHtml() + VIEWS[v].r();
+  const top = main.querySelector(".topbar"); if (top) top.insertAdjacentHTML("afterend", subTabs(v));
   if (VIEWS[v].z) mountZhk(main, VIEWS[v].z);
-  bind(main);
+  bind(main); bindGbar();
+  document.querySelectorAll("#nav details.nav-grp").forEach(d => d.ontoggle = () => { navOpen[d.dataset.g] = d.open; try { localStorage.setItem("zhk-nav-open", JSON.stringify(navOpen)); } catch (e) {} });
 }
 
 // Данные проекта: все переменные проекта в одном месте — значение, владелец, статус, история и отклонение от базовой версии.
@@ -7704,10 +7859,11 @@ async function deckPptx() {
 }
 
 // Показатели: сводка, финмодель и сроки документов — подразделы одной страницы.
+// Разделы той же группы — вкладками под заголовком (на телефоне, где меню свёрнуто в ленту групп).
 function subTabs(v) {
-  const fam = v === "kpi" || VIEWS[v].p === "kpi"; if (!fam) return "";
-  const tab = (k, t) => { const b = k === "kpi" ? "" : zhkBadge(k); return `<a href="#${k}"${k === v ? ' aria-current="page"' : ""}>${t}${b ? ` <span class="cnt alert">${b}</span>` : ""}</a>` };
-  return `<nav class="subtabs" aria-label="Разделы показателей">${tab("kpi", "Сводка")}${tab("model", "Финмодель")}${tab("whatif", "Что если")}${tab("deadlines", "Сроки документов")}</nav>`;
+  const items = Object.keys(VIEWS).filter(k => VIEWS[k].g === VIEWS[v].g);
+  if (items.length < 2) return "";
+  return `<nav class="subtabs" aria-label="Разделы группы">${items.map(k => { const n = navCnt(k, VIEWS[k]); return `<a href="#${k}"${k === v ? ' aria-current="page"' : ""}>${VIEWS[k].t}${n && (VIEWS[k].z || VIEWS[k].alert) ? ` <span class="cnt alert">${n}</span>` : ""}</a>`; }).join("")}</nav>`;
 }
 
 // ---------- Дорожная карта (приложение дерева этапов) ----------
