@@ -40,7 +40,8 @@ h1, h2, h3 { text-wrap: balance; margin: 0 }
 h1 { font-family: var(--f-display); font-weight: 700; font-size: 1.45rem; letter-spacing: -.01em }
 h2 { font-family: var(--f-display); font-weight: 500; font-size: 1.15rem }
 h3 { font-size: 1rem; font-weight: 600 }
-button, select, input { font: inherit; color: inherit }
+button, select, input, textarea { font: inherit; color: inherit }
+textarea.auto { field-sizing: content; min-height: 2.4em; resize: vertical; overflow: hidden }
 button { cursor: pointer }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
 .mono { font-family: var(--f-mono); font-size: .82em }
@@ -64,7 +65,12 @@ button { cursor: pointer }
 .nav .cnt.alert, .subtabs .cnt.alert { color: var(--bad); background: var(--bad-soft) }
 .vtable td { vertical-align: top }
 .vtable .vname { font-weight: 600 }
-.vtable .vval { min-width: 210px }
+.vtable .vval { min-width: 240px; width: 34% }
+.vtable .vval .vin:not(.num) { width: 100% }
+.vtable textarea.vin { resize: vertical; line-height: 1.4 }
+.delta[data-dir="up"]::before { content: "▲ "; font-size: .8em } .delta[data-dir="down"]::before { content: "▼ "; font-size: .8em }
+body.nohints .topbar .muted, body.nohints .hint { display: none }
+#g-hints[aria-pressed="false"] { color: var(--muted) }
 .vin { border: 1px solid var(--line); background: var(--surface-2); border-radius: 8px; padding: 5px 8px; width: 150px; max-width: 100% }
 .vin.num { text-align: right; font-variant-numeric: tabular-nums }
 .vtable .unit { margin-left: 6px; font-size: .8rem }
@@ -159,7 +165,8 @@ button { cursor: pointer }
 .field .v a { color: var(--accent) }
 .field select { border: 1px solid var(--line); background: var(--surface-2); border-radius: 8px; padding: 7px 9px }
 .field.key select { border-color: var(--accent) }
-.field input { border: 1px solid var(--line); background: var(--surface-2); border-radius: 8px; padding: 7px 9px; min-width: 0; width: 100% }
+.field input, .field textarea { border: 1px solid var(--line); background: var(--surface-2); border-radius: 8px; padding: 7px 9px; min-width: 0; width: 100%; line-height: 1.45 }
+.field textarea:focus, .field input:focus { border-color: var(--accent); outline: none }
 .field select:disabled, .field input:disabled { opacity: .7 }
 .hint { display: flex; gap: 10px; align-items: flex-start; background: var(--accent-soft); color: var(--fg); border-radius: var(--r); padding: 12px 14px; font-size: .9rem }
 .hint b { color: var(--accent) }
@@ -264,6 +271,7 @@ button.ch-c { cursor: pointer } button.ch-c:disabled { cursor: default }
 .ch-et { width: auto } .ch-et td, .ch-et th { padding: 3px 6px; font-size: .82rem }
 .ch-foot { font-size: .82rem } .bad-t { color: var(--bad) }
 @media (max-width: 1000px) { .ch-k { grid-template-columns: repeat(2, minmax(0, 1fr)) } }
+@media (max-width: 760px) { .ch-k { display: flex; overflow-x: auto; gap: 8px; scroll-snap-type: x mandatory } .ch-k .kpi { flex: 0 0 62%; scroll-snap-align: start; padding: 12px } .ch-k .big { font-size: 1.3rem } }
 .wi-table td { vertical-align: top } .wi-base td { background: var(--surface-2) }
 .pnr-kpis { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) }
 .pnr-kpis .sl-kpi span { font-size: .8rem } .pnr-kpis .sl-kpi b { font-size: 1.2rem }
@@ -323,6 +331,9 @@ th { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color:
   .brand b, .side-foot { display: none }
   .nav { flex-direction: row }
   .nav-tree { display: none } .nav-ribbon { display: flex; gap: 2px } .gbar kbd { display: none }
+  .gbar { flex-wrap: nowrap; overflow-x: auto; gap: 6px; padding-bottom: 10px } .gbar select { flex: 0 0 auto; max-width: 62vw } .gbar .btn { flex: 0 0 auto; padding: 5px 9px; font-size: .85rem } .g-sync, .g-sp { display: none }
+  .ch-layers { flex-wrap: nowrap; overflow-x: auto } .ch-layers .btn { flex: 0 0 auto }
+  .st-chips, .subtabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none } .st-chips > *, .subtabs a { flex: 0 0 auto; white-space: nowrap }
   .nav a { white-space: nowrap; padding: 7px 10px }
   .td-list li { grid-template-columns: minmax(0, 1fr) auto } .td-tag { grid-column: 1 / -1; justify-self: start }
   .nav .cnt, .nav-g { display: none }
@@ -4530,6 +4541,7 @@ window.I18N = (function () {
     ["Планировки", "Жоспарлар"], ["Планировка", "Жоспар"], ["Добавить планировку", "Жоспар қосу"], ["Добавить помещение", "Бөлме қосу"], ["Помещение", "Бөлме"], ["Название", "Атауы"], ["Назначить квартирам в шахматке", "Шахматкада пәтерлерге тағайындау"], ["Скопировать планировки на типовые этажи", "Жоспарларды типтік қабаттарға көшіру"], ["Помещений пока нет.", "Бөлмелер әлі жоқ."], ["Планировок пока нет.", "Жоспарлар әлі жоқ."], ["Вид помещения квартиры", "Пәтер бөлмесінің түрі"], ["Жилая комната", "Тұрғын бөлме"], ["Кухня", "Ас үй"], ["Кухня-гостиная", "Ас үй-қонақ бөлме"], ["Санузел", "Санитариялық торап"], ["Ванная", "Ванна бөлмесі"], ["Прихожая", "Кіреберіс"], ["Коридор", "Дәліз"], ["Гардеробная", "Киім бөлмесі"], ["Кладовая", "Қойма"], ["Лоджия", "Лоджия"], ["Балкон", "Балкон"], ["Терраса", "Терраса"], ["Типовые планировки вводятся один раз: помещения и их площади. Квартира в шахматке ссылается на планировку — её площадь и комнатность считаются отсюда, а из суммы по всем квартирам — продаваемая жилая площадь проекта.", "Типтік жоспарлар бір рет енгізіледі: бөлмелер және олардың аудандары. Шахматкадағы пәтер жоспарға сілтеме жасайды — оның ауданы мен бөлме саны осы жерден, ал барлық пәтерлердің қосындысынан жобаның сатылатын тұрғын ауданы есептеледі."],
     ["Сроки и стройка", "Мерзімдер және құрылыс"], ["Деньги", "Ақша"], ["ОРС", "ОРС"], ["Люди", "Адамдар"], ["Компания", "Компания"], ["Чек-лист B0", "B0 чек-парағы"], ["Поиск", "Іздеу"], ["Требует внимания", "Назар аударуды қажет етеді"], ["Ближайший месяц", "Жақын ай"], ["Весь календарь", "Бүкіл күнтізбе"], ["Срочно", "Шұғыл"], ["Внимание", "Назар"], ["Проверить", "Тексеру"], ["Текущий этап", "Ағымдағы кезең"], ["Стройка", "Құрылыс"], ["Просрочен пункт этапа", "Кезең тармағы мерзімі өтті"], ["Истекает документ", "Құжат мерзімі аяқталады"], ["Документ истёк", "Құжат мерзімі өтті"], ["Отставание от графика", "Кестеден қалу"], ["Стройка отстаёт", "Құрылыс қалып жатыр"], ["Продажи ниже плана", "Сату жоспардан төмен"], ["Перерасход бюджета", "Бюджеттің асып кетуі"], ["Данные на согласовании", "Келісудегі деректер"], ["Базовая версия ПК Start", "ПК Start базалық нұсқасы"], ["Событий нет.", "Оқиғалар жоқ."], ["Ничего не найдено.", "Ештеңе табылмады."], ["Раздел", "Бөлім"], ["Стандарт", "Стандарт"], ["Команда", "Команда"], ["Квартира", "Пәтер"], ["Что требует внимания по проекту. Всё считается из данных проекта: графика, реестра документов, шахматки, бюджета и статусов данных.", "Жоба бойынша назар аударуды қажет ететін нәрселер. Барлығы жоба деректерінен есептеледі: кесте, құжаттар тізілімі, шахматка, бюджет және деректер мәртебесі."], ["Всё в порядке: просрочек, отставаний и данных на согласовании нет.", "Бәрі жақсы: мерзімі өткен, қалып жатқан және келісудегі деректер жоқ."], ["Раздел, показатель, квартира, документ, стандарт, этап, человек", "Бөлім, көрсеткіш, пәтер, құжат, стандарт, кезең, адам"], ["↑ ↓ — выбор, Enter — открыть, Esc — закрыть", "↑ ↓ — таңдау, Enter — ашу, Esc — жабу"], ["Что найти", "Не табу керек"], ["Поиск по порталу", "Портал бойынша іздеу"],
     ["Дорожная карта", "Жол картасы"], ["Дорожная карта ЖК", "ТҮК жол картасы"], ["Этапы", "Кезеңдер"], ["Схема связей", "Байланыстар сызбасы"], ["Схема связей этапов", "Кезеңдер байланысының сызбасы"], ["Пройдено", "Өтті"], ["Идёт", "Жүріп жатыр"], ["Впереди", "Алда"], ["Инструменты этапа", "Кезең құралдары"], ["На дорожной карте:", "Жол картасында:"], ["Этапы в работе", "Жұмыстағы кезеңдер"], ["Вся дорожная карта", "Бүкіл жол картасы"], ["Открытых этапов нет.", "Ашық кезеңдер жоқ."], ["Этапы проекта по фазам — от анализа рынка до гарантии: сроки по графику, выполнение пунктов и инструменты каждого этапа. Нажмите на этап, чтобы открыть его пункты, документы, бюджет и сроки.", "Жоба кезеңдері фазалар бойынша — нарықты талдаудан кепілдікке дейін: кесте бойынша мерзімдер, тармақтардың орындалуы және әр кезеңнің құралдары. Тармақтарын, құжаттарын, бюджеті мен мерзімдерін ашу үшін кезеңді басыңыз."], ["Какой этап открывает следующий. Этап открывается, когда закрыты условия перехода на предыдущих.", "Қай кезең келесісін ашады. Кезең алдыңғыларындағы өту шарттары жабылғанда ашылады."],
+    ["Отменить", "Болдырмау"], ["Подсказки", "Кеңестер"], ["Всем квартирам этажа:", "Қабаттың барлық пәтерлеріне:"], ["Последнее изменение отменено", "Соңғы өзгеріс болдырылмады"], ["Поля уже заполнены", "Өрістер толтырылған"], ["Заполнить пустые поля значениями первого блока", "Бос өрістерді бірінші блоктың мәндерімен толтыру"], ["Статус всем квартирам этажа", "Қабаттың барлық пәтерлерінің мәртебесі"],
     ["Казначей", "Қазынашы"], ["Факт бюджета внесён по 5+ этапам", "5+ кезең бойынша бюджет фактісі енгізілді"], ["План из финмодели, тг", "Қаржы моделінен жоспар, тг"], ["План считается из финмодели автоматически: земля, проектирование по этапам проекта, СМР с технадзором и резервом по этапам стройки, сети, маркетинг, административные расходы и проценты. Чтобы изменить план, измените исходные данные финмодели или сроки в графике.", "Жоспар қаржы моделінен автоматты түрде есептеледі: жер, жоба кезеңдері бойынша жобалау, құрылыс кезеңдері бойынша техқадағалау мен резервті қоса ҚМЖ, желілер, маркетинг, әкімшілік шығыстар және пайыздар. Жоспарды өзгерту үшін қаржы моделінің бастапқы деректерін немесе кестедегі мерзімдерді өзгертіңіз."],
     ["Документы под контролем", "Құжаттар бақылауда"], ["5+ документов в реестре сроков, ни одного истёкшего", "Мерзімдер тізілімінде 5+ құжат, бірде-біреуінің мерзімі өтпеген"],
     ["Полный архив", "Толық мұрағат"], ["10+ вложений к пунктам чек-листов", "Чек-парақ тармақтарына 10+ тіркеме"],
@@ -4851,8 +4863,16 @@ window.ZHK_BOOT = function (document) {
     const d = loadLocal(proj); merge(d, patch);
     try { localStorage.setItem(localKey(proj), JSON.stringify(d)); } catch (e) {}
   }
+  // Отмена: перед правкой запоминаем прежние значения затронутых полей (до 30 шагов, по текущему проекту).
+  let undoStack = [];
+  function inverseOf(t, p) {
+    const inv = {};
+    Object.keys(p).forEach(k => { inv[k] = isObj(p[k]) && isObj(t[k]) ? inverseOf(t[k], p[k]) : t[k] === undefined ? null : isObj(t[k]) ? JSON.parse(JSON.stringify(t[k])) : t[k]; });
+    return inv;
+  }
   function commit(patch, opts) {
-    trackVars(patch);
+    if (!(opts && opts.undo)) trackVars(patch);
+    if (!(opts && opts.undo)) { undoStack.push(inverseOf(S, patch)); if (undoStack.length > 30) undoStack.shift(); }
     merge(S, patch); saveLocal(); write(patch);
     if (opts && opts.defer) {
       // Фокус ещё переходит на следующее поле: перерисуем поля ввода, когда он устроится.
@@ -5996,7 +6016,7 @@ window.ZHK_BOOT = function (document) {
     try { localStorage.setItem(CUR_PROJ, id); } catch (e) {}
     if (dbCap) { docRef = dbCap.doc("progress/" + id); const data = projects && projects[id]; docExists = !!data; S = normalize(data || {}); }
     else S = loadLocal(id);
-    regionApplied = null; openEdits.clear(); earlyFormFor = null; attDel = null; achSeen = null;
+    regionApplied = null; openEdits.clear(); earlyFormFor = null; attDel = null; achSeen = null; undoStack = [];
     applyRegion();
     selected = firstQuest();
     renderAll(); renderProjSel();
@@ -6529,6 +6549,9 @@ window.ZHK_BOOT = function (document) {
   window.ZHK = {
     setView: v => setView(v, false),
     selectStage: id => { if (byId[id]) select(id, true); },
+    canUndo: () => !readOnly && undoStack.length > 0,
+    undo: () => { if (readOnly || !undoStack.length) return false; commit(undoStack.pop(), { undo: true }); toast("Последнее изменение отменено"); return true; },
+    setB0Many: obj => { if (readOnly || !isObj(obj)) return; const d = {}; Object.keys(obj).forEach(k => { if (/^[\w.\-]{1,80}$/.test(k)) d[k] = obj[k] === "" || obj[k] == null ? null : String(obj[k]).slice(0, 300); }); if (Object.keys(d).length) commit({ b0: d }); },
     // Этапы дорожной карты со статусом, выполнением и сроками по графику (план и прогноз).
     stages: () => { const G = schedule(), P = G.P, ym = t => ymFmt(ymAdd(G.start, Math.max(0, t)));
       return T.nodes.map(n => { const p = P[n.id]; return { id: n.id, code: n.code, name: n.name, phase: n.phase, state: stateOf(n), done: doneCount(n), total: n.tasks.length, late: lateCount(n), from: ym(p.es), to: ym(Math.max(p.es, p.ef - 0.01)), fto: ym(Math.max(p.fs, p.fe - 0.01)), slip: p.fe - p.ef }; }); },
@@ -6849,14 +6872,14 @@ function viewCard() {
   return head("Карточка проекта", "Одна карточка для портала и дорожной карты. Данные видит вся команда проекта.") + `
   <div class="hint"><span>⚙</span><div>Поля в синей рамке — <b>параметры подбора стандартов</b>. Реквизиты ниже подставляются в образцы документов дорожной карты. Сейчас подходит стандартов: <b>${relevant().length}</b>.</div></div>
   <section class="panel stack"><h2>Миссия и KPI</h2>
-    <label class="field" for="card-mission"><span class="label">Миссия проекта</span><textarea id="card-mission" data-var="mission" rows="2" maxlength="400" placeholder="Зачем мы строим этот ЖК и для кого"${ro}>${esc(p.mission || "")}</textarea></label>
+    <label class="field" for="card-mission"><span class="label">Миссия проекта</span><textarea id="card-mission" class="auto" data-var="mission" rows="2" maxlength="400" placeholder="Зачем мы строим этот ЖК и для кого"${ro}>${esc(p.mission || "")}</textarea></label>
     <div class="fields">
       <label class="field" for="card-kpi_nps"><span class="label">Целевой NPS клиентов, баллов</span><input type="text" inputmode="decimal" id="card-kpi_nps" data-var="kpi_nps" value="${esc(p.kpi_nps || "")}"${ro}></label>
       <label class="field" for="card-kpi_engagement"><span class="label">Целевая вовлечённость команды, %</span><input type="text" inputmode="decimal" id="card-kpi_engagement" data-var="kpi_engagement" value="${esc(p.kpi_engagement || "")}"${ro}></label>
       ${out("Бюджет и маржа", `считаются в <a href="#model">финмодели</a>`)}${out("Срок ключей", `считается в <a href="#gantt">графике</a>`)}
     </div></section>
   <section class="panel stack"><h2>Локация и клиент</h2>
-    ${[["loc_text", "Преимущества локации", "Транспорт, школы, парки, виды, чем район лучше конкурентов"], ["facade_text", "Концепция фасада и сложные узлы", "Материалы, архитектурная идея, нестандартные узлы"], ["client_text", "Портрет покупателя и решения под него", "Кто покупает и какие технические решения сделаны под его требования"]].map(([k, l, ph]) => `<label class="field" for="card-${k}"><span class="label">${l}</span><textarea id="card-${k}" data-var="${k}" rows="2" maxlength="600" placeholder="${ph}"${ro}>${esc(p[k] || "")}</textarea></label>`).join("")}
+    ${[["loc_text", "Преимущества локации", "Транспорт, школы, парки, виды, чем район лучше конкурентов"], ["facade_text", "Концепция фасада и сложные узлы", "Материалы, архитектурная идея, нестандартные узлы"], ["client_text", "Портрет покупателя и решения под него", "Кто покупает и какие технические решения сделаны под его требования"]].map(([k, l, ph]) => `<label class="field" for="card-${k}"><span class="label">${l}</span><textarea id="card-${k}" class="auto" data-var="${k}" rows="2" maxlength="600" placeholder="${ph}"${ro}>${esc(p[k] || "")}</textarea></label>`).join("")}
     <p class="muted" style="margin:0">Материалы фасада и квартирография — из <a href="#b0">чек-листа B0</a>, цена и площади — из <a href="#data">данных проекта</a>. Всё это попадает в презентацию ПК Start.</p>
   </section>
   <section class="panel stack"><h2>Параметры подбора стандартов</h2><div class="fields">
@@ -7334,7 +7357,7 @@ function viewChess() {
       ${c.n ? `<div class="tbl"><table class="ch-et"><thead><tr><th>№</th><th>Планировка</th><th>Комнат</th><th>Площадь, м²</th><th>Статус</th></tr></thead><tbody>${c.apts.map(a => { const kq = k + ".q" + a.q + "."; return `<tr><td>${inp(kq, "no", a.noSet, a.noAuto, "Номер квартиры", 64)}</td>
         <td><select data-ch-in="${kq}t" aria-label="Планировка"${dis}><option value="">${PL.length ? "своя" : "нет планировок"}</option>${PL.map(p => `<option value="${p.id}"${a.t === p.id ? " selected" : ""}>${esc(p.name)} · ${chArea(p.area)} м²</option>`).join("")}</select></td>
         ${a.t ? `<td class="num">${a.r == null ? "—" : a.r}</td><td class="num">${a.a == null ? "—" : chArea(a.a)}</td>` : `<td>${inp(kq, "r", a.rSet, "", "Комнат", 52)}</td><td>${inp(kq, "a", a.aSet, "", "Площадь", 76)}</td>`}<td><select data-ch-in="${kq}x" aria-label="Статус"${dis}>${FS.map(x => `<option value="${x.c}"${a.x === x.c ? " selected" : ""}>${x.v}</option>`).join("")}</select></td></tr>`; }).join("")}</tbody></table></div>
-      ${ro ? "" : `<div class="row"><button class="btn" data-ch-copy="${k}">Скопировать планировки на типовые этажи</button><a class="btn ghost" href="#plans" style="text-decoration:none">Планировки</a></div><p class="muted" style="margin:0">Типовые — этажи блока с тем же числом квартир. Копируются планировки (или свои комнаты и площади), номера и статусы — нет. Серый номер — сквозная нумерация по блоку.</p>`}`
+      ${ro ? "" : `<div class="row"><label class="row" style="gap:6px"><span class="muted">Всем квартирам этажа:</span><select data-ch-all="${k}" aria-label="Статус всем квартирам этажа"><option value="">—</option>${FS.map(x => `<option value="${x.c}">${x.v}</option>`).join("")}</select></label><button class="btn" data-ch-copy="${k}">Скопировать планировки на типовые этажи</button><a class="btn ghost" href="#plans" style="text-decoration:none">Планировки</a></div><p class="muted" style="margin:0">Типовые — этажи блока с тем же числом квартир. Копируются планировки (или свои комнаты и площади), номера и статусы — нет. Серый номер — сквозная нумерация по блоку.</p>`}`
       : '<p class="muted" style="margin:0">На этаже нет квартир. Их число задаётся на слое «Число квартир».</p>'}</div>`;
   };
   const grid = b => `<div class="panel stack ch-block${editor(b) ? " wide" : ""}"><div class="row" style="justify-content:space-between"><h3>${esc(b.name)}</h3><span class="muted">${[(n => n ? "этажей: " + n : "")(b.floors.filter(f => f > 0).length), (n => n ? "подземных: " + n : "")(b.floors.filter(f => f < 0).length), "подъездов: " + b.en].filter(Boolean).join(" · ")}</span></div>
@@ -7419,7 +7442,7 @@ function viewB0() {
   const autoCell = (v, from) => `<span class="v">${esc(v == null || v === "" ? "—" : String(v))}</span><div class="muted vsrc">${from}</div>`;
   const rows = (fields, pre, autoMap) => fields.map(f => `<tr><td>${esc(f.label)}${f.unit ? `, ${esc(f.unit)}` : ""}</td><td>${f.auto ? autoCell(autoMap[f.auto], f.auto === "smr_start" ? 'из <a href="#gantt">графика</a>' : f.auto === "pumps" || f.auto === "heat" || f.auto === "vru" ? "итог по блокам ниже" : 'из <a href="#data">данных проекта</a>') : input(pre + f.id, f)}</td></tr>`).join("");
   const blocks = C.blocks;
-  const blockTbl = blocks.length ? `<div class="tbl"><table><thead><tr><th>Показатель</th>${blocks.map(b => `<th>${esc(b.name || "Блок")}</th>`).join("")}</tr></thead><tbody>${B.block.map(f => `<tr><td>${esc(f.label)}${f.unit ? `, ${esc(f.unit)}` : ""}</td>${blocks.map(b => `<td>${f.auto ? `<span class="v">${esc(C.blockAuto(b, f.auto) || "—")}</span>` : f.rooms && C.roomCnt(b, +f.id.slice(1)) != null ? `<span class="v" title="Из шахматки и планировок">${esc(C.roomCnt(b, +f.id.slice(1)))}</span>` : input("b." + b.id + "." + f.id, f)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+  const blockTbl = blocks.length ? `<div class="tbl"><table><thead><tr><th>Показатель</th>${blocks.map((b, i) => `<th>${esc(b.name || "Блок")}${i && !window.ZHK.readOnly() ? `<div><button class="btn ghost mini" type="button" data-b0-copy="${blocks[0].id}:${b.id}" title="Заполнить пустые поля значениями первого блока">Как в «${esc(blocks[0].name || "Блок")}»</button></div>` : ""}</th>`).join("")}</tr></thead><tbody>${B.block.map(f => `<tr><td>${esc(f.label)}${f.unit ? `, ${esc(f.unit)}` : ""}</td>${blocks.map(b => `<td>${f.auto ? `<span class="v">${esc(C.blockAuto(b, f.auto) || "—")}</span>` : f.rooms && C.roomCnt(b, +f.id.slice(1)) != null ? `<span class="v" title="Из шахматки и планировок">${esc(C.roomCnt(b, +f.id.slice(1)))}</span>` : input("b." + b.id + "." + f.id, f)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
     <p class="muted" style="margin:0">Назначение, этажность, подземные этажи, вид проектирования, квартиры и лифты всего — из <a href="#blocks">блоков проекта</a>.</p>`
     : `<div class="empty">Сначала заполните <a href="#blocks">блоки проекта</a>: чек-лист B0 заполняется по каждому блоку.</div>`;
   const facade = blocks.length ? `<div class="tbl"><table><thead><tr><th>Вид фасада, м²</th>${blocks.map(b => `<th>${esc(b.name || "Блок")}</th>`).join("")}</tr></thead><tbody>${B.facade.map((t, i) => `<tr><td>${esc(t)}</td>${blocks.map(b => `<td>${input("f." + i + "." + b.id, { t: "num", label: t })}</td>`).join("")}</tr>`).join("")}
@@ -7537,6 +7560,8 @@ function gbarHtml() {
   const ps = zEl("proj-sel"), sy = zEl("sync"), lb = zEl("lang-toggle");
   return `<div class="gbar" id="gbar"><select id="g-proj" aria-label="Проект">${ps ? ps.innerHTML : ""}</select>
     <span class="g-sync" data-mode="${sy ? esc(sy.dataset.mode || "") : ""}">${sy ? esc(sy.textContent) : ""}</span><span class="g-sp"></span>
+    <button class="btn ghost" id="g-undo" type="button" aria-keyshortcuts="Control+Z"${window.ZHK && window.ZHK.canUndo() ? "" : " disabled"}>Отменить</button>
+    <button class="btn ghost" id="g-hints" type="button" aria-pressed="${!document.body.classList.contains("nohints")}">Подсказки</button>
     <button class="btn ghost" id="g-search" type="button" aria-keyshortcuts="Control+K">Поиск <kbd>Ctrl K</kbd></button>
     <button class="btn ghost" id="g-lang" type="button" data-noi18n>${lb ? esc(lb.textContent) : "Қазақша"}</button></div>`;
 }
@@ -7544,10 +7569,13 @@ function bindGbar() {
   const gp = document.getElementById("g-proj");
   if (gp) gp.onchange = () => { const ps = zEl("proj-sel"); if (!ps) return; ps.value = gp.value; ps.dispatchEvent(new Event("change")); setTimeout(route, 0); };
   const gs = document.getElementById("g-search"); if (gs) gs.onclick = openSearch;
+  const gu = document.getElementById("g-undo"); if (gu) gu.onclick = () => { if (window.ZHK.undo()) setTimeout(route, 0); };
+  const gh = document.getElementById("g-hints"); if (gh) gh.onclick = () => { const off = !document.body.classList.toggle("nohints"); try { localStorage.setItem("zhk-hints", off ? "on" : "off"); } catch (e) {} renderGbar(); };
   const gl = document.getElementById("g-lang"); if (gl) gl.onclick = () => { const b = zEl("lang-toggle"); if (b) b.click(); setTimeout(route, 0); };
 }
 function renderGbar() { const g = document.getElementById("gbar"); if (!g) return; g.outerHTML = gbarHtml(); bindGbar(); }
 window.ZHK_onSync = () => renderGbar();
+try { if (localStorage.getItem("zhk-hints") === "off") document.body.classList.add("nohints"); } catch (e) {}
 
 // ---------- Сегодня: что требует внимания ----------
 const isoDay = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
@@ -7639,8 +7667,17 @@ function openSearch() {
 }
 document.addEventListener("keydown", e => {
   const typing = e.target && (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName));
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === "z" || e.key === "Z" || e.code === "KeyZ") && !typing && window.ZHK && window.ZHK.canUndo()) { e.preventDefault(); window.ZHK.undo(); setTimeout(route, 0); return; }
   if (((e.ctrlKey || e.metaKey) && (e.key === "k" || e.key === "K" || e.code === "KeyK")) || (e.key === "/" && !typing && !document.getElementById("layer").innerHTML)) { e.preventDefault(); openSearch(); }
 });
+
+// Отклонение показывается не только цветом, но и стрелкой; многострочные поля растут по тексту (где нет field-sizing).
+function polish(root) {
+  root.querySelectorAll(".delta").forEach(d => { const t = d.textContent.trim(); d.dataset.dir = /^\+/.test(t) ? "up" : /^[−-]/.test(t) ? "down" : ""; });
+  if (!CSS.supports || !CSS.supports("field-sizing", "content")) root.querySelectorAll("textarea.auto").forEach(fit);
+}
+const fit = t => { t.style.height = "auto"; t.style.height = t.scrollHeight + 2 + "px"; };
+document.addEventListener("input", e => { if (e.target.matches && e.target.matches("textarea.auto") && !(CSS.supports && CSS.supports("field-sizing", "content"))) fit(e.target); });
 
 function route() {
   let v = location.hash.slice(1);
@@ -7651,7 +7688,7 @@ function route() {
   main.innerHTML = gbarHtml() + VIEWS[v].r();
   const top = main.querySelector(".topbar"); if (top) top.insertAdjacentHTML("afterend", stageChips(v) + subTabs(v));
   if (VIEWS[v].z) mountZhk(main, VIEWS[v].z, VIEWS[v].mode);
-  bind(main); bindGbar();
+  bind(main); bindGbar(); polish(main);
   document.querySelectorAll("#nav details.nav-grp").forEach(d => d.ontoggle = () => { navOpen[d.dataset.g] = d.open; try { localStorage.setItem("zhk-nav-open", JSON.stringify(navOpen)); } catch (e) {} });
 }
 
@@ -7672,6 +7709,7 @@ function viewData() {
     if (v.type === "flag") return `<label class="row" style="gap:6px"><input type="checkbox" data-var="${v.id}"${v.raw ? " checked" : ""}> ${esc(v.text)}</label>`;
     if (v.type === "month") return `<input type="month" class="vin" data-var="${v.id}" value="${esc(v.raw || "")}" aria-label="${esc(v.name)}">`;
     const val = v.type === "num" && typeof v.raw === "number" ? String(v.raw).replace(".", ",") : (v.raw == null ? "" : v.raw);
+    if (v.type === "text" && String(val).length > 30) return `<textarea class="vin auto" data-var="${v.id}" rows="2" aria-label="${esc(v.name)}">${esc(val)}</textarea>`;
     return `<input type="text" class="vin${v.type === "num" ? " num" : ""}" data-var="${v.id}" value="${esc(val)}" aria-label="${esc(v.name)}">${v.unit ? `<span class="muted unit">${esc(v.unit)}</span>` : ""}`;
   };
   const src = v => v.calc ? `Расчёт: ${esc(v.calc)}` : `Ввод: <a href="#${HOME[v.path.split(".")[0]][1]}">${HOME[v.path.split(".")[0]][0]}</a>`;
@@ -7679,9 +7717,8 @@ function viewData() {
     : v.st === "agreed" ? `<button class="btn mini" data-vst="${v.id}:approved">Утвердить</button><button class="btn ghost mini" data-vst="${v.id}:draft">В черновик</button>`
     : `<button class="btn ghost mini" data-vst="${v.id}:draft">В черновик</button>`;
   const row = v => `<tr id="var-${v.id}">
-      <td><div class="vname">${esc(v.name)}</div><div class="mono muted">${v.id}</div>${v.dup ? `<div class="dup">Дублирует раздел «${esc(v.dup)}»</div>` : ""}</td>
+      <td><div class="vname">${esc(v.name)}</div><div class="muted vsrc"><span class="mono">${v.id}</span> · ${esc(v.owner)}</div>${v.dup ? `<div class="dup">Дублирует раздел «${esc(v.dup)}»</div>` : ""}</td>
       <td class="vval">${valCell(v)}<div class="muted vsrc">${src(v)}</div></td>
-      <td>${esc(v.owner)}</td>
       <td><span class="chip ${ST[v.st][1]}">${ST[v.st][0]}</span>${v.stBy && v.st !== "draft" ? `<div class="muted vsrc">${esc(v.stBy)}, ${dt(v.stAt)}</div>` : ""}<div class="row" style="margin-top:4px">${acts(v)}</div></td>
       <td>${v.base == null ? '<span class="muted">—</span>' : `${esc(v.base)}${v.delta && v.delta.text !== "без изменений" ? `<div class="delta ${v.delta.tone}">${esc(v.delta.text)}</div>` : ""}`}</td>
       <td class="vused">${v.used.map(u => `<span class="tag">${esc(u)}</span>`).join(" ")}${v.hist.length ? `<details class="vhist"><summary>История: ${v.hist.length}</summary>${v.hist.map(h => `<div><span class="mono muted">${dt(h.at)}</span> ${esc(h.who)}: ${esc(h.from)} → <b>${esc(h.to)}</b></div>`).join("")}</details>` : ""}</td>
@@ -7712,7 +7749,7 @@ function viewData() {
     </div>
     <p class="muted" style="margin:0">Владельцы переменных — черновик, отделы холдинга уточняются. Изменение значения возвращает статус в «Черновик».</p>
   </section>
-  ${secs.map(sec => `<section class="stack"><h2>${esc(sec)}</h2><div class="panel tbl vtable"><table><thead><tr><th>Переменная</th><th>Значение</th><th>Владелец</th><th>Статус</th><th>ПК Start</th><th>Где используется</th></tr></thead><tbody>${list.filter(v => v.sec === sec).map(row).join("")}</tbody></table></div></section>`).join("") || '<div class="empty">Ничего не найдено. Сбросьте фильтры.</div>'}
+  ${secs.map(sec => `<section class="stack"><h2>${esc(sec)}</h2><div class="panel tbl vtable"><table><thead><tr><th>Переменная</th><th>Значение</th><th>Статус</th><th>ПК Start</th><th>Где используется</th></tr></thead><tbody>${list.filter(v => v.sec === sec).map(row).join("")}</tbody></table></div></section>`).join("") || '<div class="empty">Ничего не найдено. Сбросьте фильтры.</div>'}
   ${riskHtml}`;
 }
 
@@ -7999,6 +8036,7 @@ window.ZHK_onView = v => {
 };
 // Данные проекта изменились (своя правка или синхронизация команды): обновить карточку, стандарты и счётчики.
 window.ZHK_onChange = late => {
+  renderGbar();
   // При переходе по Tab изменение приходит, когда фокус ещё «между полями»: ждём, пока он встанет на следующее поле.
   const f = document.activeElement;
   if (!late && (!f || f === document.body)) { clearTimeout(window.zocT); window.zocT = setTimeout(() => window.ZHK_onChange(true), 0); return; }
@@ -8052,6 +8090,12 @@ function bind(m) {
     const k = b.dataset.itemAdd, id = window.ZHK.setItem(k, null, k === "risks" ? { kind: "risk", level: "mid" } : k === "partners" ? { status: "tender" } : k === "blocks" ? { name: "Блок " + (window.ZHK.list("blocks").length + 1), kind: "res" } : k === "scenarios" ? { name: "Свой сценарий" } : k === "plans" ? { name: "Новая планировка" } : { role: "" });
     const el = id && document.querySelector(`[data-item="${k}:${id}:${{ risks: "title", partners: "org", blocks: "floors", scenarios: "price", plans: "name" }[k] || "role"}"]`); if (el) { el.focus(); if (el.select) el.select(); }
   });
+  m.querySelectorAll("[data-b0-copy]").forEach(b => b.onclick = () => {
+    // Пустые поля блока заполняются значениями первого блока; уже введённое не трогаем.
+    const [from, to] = b.dataset.b0Copy.split(":"), A = window.ZHK.b0(), d = {};
+    window.B0.block.filter(f => !f.auto && !f.rooms).forEach(f => { const v = A["b." + from + "." + f.id]; if (v != null && v !== "" && (A["b." + to + "." + f.id] == null || A["b." + to + "." + f.id] === "")) d["b." + to + "." + f.id] = v; });
+    if (Object.keys(d).length) window.ZHK.setB0Many(d); else { const t = b.textContent; b.textContent = "Поля уже заполнены"; setTimeout(() => { b.textContent = t; }, 1500); }
+  });
   m.querySelectorAll("[data-b0]").forEach(el => el.onchange = () => { window.ZHK.setB0(el.dataset.b0, el.type === "checkbox" ? (el.checked ? "1" : "") : el.value); if (el.tagName === "SELECT" || el.type === "checkbox") route() });
   const bx = m.querySelector("#b0-xlsx"); if (bx) bx.onclick = b0Xlsx;
   const px = m.querySelector("#pnr-xlsx"); if (px) px.onclick = pnrXlsx;
@@ -8085,6 +8129,13 @@ function bind(m) {
   });
   m.querySelectorAll("[data-plan-room]").forEach(b => b.onclick = () => { const id = window.ZHK.setItem("planRooms", null, { plan: b.dataset.planRoom, kind: "Жилая комната" }); const el = id && document.querySelector(`[data-item="planRooms:${id}:area"]`); if (el) el.focus(); });
   m.querySelectorAll("[data-ch-sel]").forEach(b => b.onclick = () => { chUI.sel = b.dataset.chSel; route() });
+  m.querySelectorAll("[data-ch-all]").forEach(sel => sel.onchange = () => {
+    if (sel.value === "") return;
+    const k = sel.dataset.chAll, [bid, e, f] = k.split("."), B = window.ZHK.chess().blocks.find(x => x.id === bid), c = B && B.cells[e + "." + f], d = {};
+    if (!c) return;
+    c.apts.forEach(a => { d[k + ".q" + a.q + ".x"] = sel.value; });
+    window.ZHK.setChess(d);
+  });
   m.querySelectorAll("[data-ch-copy]").forEach(b => b.onclick = () => {
     const src = b.dataset.chCopy, [bid, e, f] = src.split("."), B = window.ZHK.chess().blocks.find(x => x.id === bid), S0 = B && B.cells[e + "." + f], d = {};
     if (!S0) return;
