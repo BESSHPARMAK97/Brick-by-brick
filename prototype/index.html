@@ -282,6 +282,9 @@ button.ch-c { cursor: pointer } button.ch-c:disabled { cursor: default }
 .ch-q { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 20px; padding: 0 2px; border-radius: 3px; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); font: 600 .66rem var(--f-body) }
 .ch-q.x1 { background: var(--warn-soft); border-color: var(--warn) } .ch-q.x2 { background: var(--ok-soft); border-color: var(--ok) } .ch-q.x3 { background: transparent; border-style: dashed; color: var(--muted) }
 .ch-c.full { background: var(--ok-soft); border-color: var(--ok) }
+.ch-c.part { background: linear-gradient(90deg, var(--ok-soft) var(--p), var(--surface-2) var(--p)) } .ch-c.on { outline: 2px solid var(--accent); outline-offset: 1px }
+.pl-vol { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: .84rem } .pl-vol .warn { color: var(--bad) }
+.ch-fw th { white-space: normal; max-width: 92px; vertical-align: bottom } .ch-fw td { text-align: center } .ch-fw input[type=checkbox] { width: 18px; height: 18px }
 .ch-block.wide { grid-column: 1 / -1 }
 .pl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 460px), 1fr)); gap: 12px; align-items: start }
 .pl-sum { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .88rem; color: var(--muted) } .pl-sum b { color: var(--fg) }
@@ -3690,11 +3693,17 @@ window.DICTS = {
   // Шахматка: стадии СМР на этаже по порядку; stage — этап графика, из которого считается план по этажам
   chessStage: { name: "Стадия СМР на этаже", items: [{ v: "Каркас", a: "К", stage: "frame" }, { v: "Ограждение", a: "Ог", stage: "envelope" }, { v: "Инженерия", a: "Ин", stage: "mep" }, { v: "Отделка", a: "От", stage: "finish" }] },
   // Помещения типовых планировок; k — коэффициент к площади квартиры, live — жилая комната (считается в комнатность)
-  roomKind: { name: "Вид помещения квартиры", items: [{ v: "Жилая комната", k: 1, live: true }, { v: "Кухня", k: 1 }, { v: "Кухня-гостиная", k: 1 }, { v: "Санузел", k: 1 }, { v: "Ванная", k: 1 },
+  roomKind: { name: "Вид помещения квартиры", items: [{ v: "Жилая комната", k: 1, live: true }, { v: "Кухня", k: 1 }, { v: "Кухня-гостиная", k: 1 }, { v: "Санузел", k: 1, wet: true }, { v: "Ванная", k: 1, wet: true },
     { v: "Прихожая", k: 1 }, { v: "Коридор", k: 1 }, { v: "Гардеробная", k: 1 }, { v: "Кладовая", k: 1 },
-    { v: "Лоджия", k: 0.5, note: "понижающий коэффициент уточнить у ПТО и отдела продаж" }, { v: "Балкон", k: 0.3, note: "понижающий коэффициент уточнить у ПТО и отдела продаж" }, { v: "Терраса", k: 0.3, note: "понижающий коэффициент уточнить у ПТО и отдела продаж" }] },
+    { v: "Лоджия", k: 0.5, out: true, note: "понижающий коэффициент уточнить у ПТО и отдела продаж" }, { v: "Балкон", k: 0.3, out: true, note: "понижающий коэффициент уточнить у ПТО и отдела продаж" }, { v: "Терраса", k: 0.3, out: true, note: "понижающий коэффициент уточнить у ПТО и отдела продаж" }] },
   // Шахматка, уровень квартир: c — код статуса в данных проекта (свободна — без отметки)
   flatStatus: { name: "Статус квартиры", items: [{ v: "Свободна", c: 0 }, { v: "Бронь", c: 1 }, { v: "Продана", c: 2 }, { v: "Не в продаже", c: 3 }] },
+  // Отделка квартир: объём считается из помещений планировки. b — основа (floor пол, ceil потолок — площадь помещения;
+  // wall стены — периметр × высота помещений; perim — периметр), on — где делается (in — тёплые помещения, wet — санузлы и ванные,
+  // dry — тёплые кроме мокрых, out — лоджии и балконы); c — код в данных проекта. Состав работ уточнить у ПТО по виду отделки.
+  finishWork: { name: "Отделочная работа в квартире", items: [{ v: "Стяжка пола", c: "scr", u: "м²", b: "floor", on: "in" }, { v: "Штукатурка стен", c: "pl", u: "м²", b: "wall", on: "in" },
+    { v: "Шпаклёвка и покраска стен", c: "pt", u: "м²", b: "wall", on: "dry" }, { v: "Плитка стен", c: "tw", u: "м²", b: "wall", on: "wet" }, { v: "Плитка пола", c: "tf", u: "м²", b: "floor", on: "wet" },
+    { v: "Чистовое покрытие пола", c: "fl", u: "м²", b: "floor", on: "dry" }, { v: "Плинтус", c: "sk", u: "м", b: "perim", on: "dry" }, { v: "Потолок", c: "cl", u: "м²", b: "ceil", on: "in" }] },
   // Списки калькулятора ПНР
   projectKind: { name: "Вид проекта", items: [{ v: "Жилые комплексы" }, { v: "Коттеджные городки" }] },
   ecoCat: { name: "Категория здания по влиянию на окружающую среду", items: [{ v: "2 категория" }, { v: "3 категория" }] }
@@ -4298,6 +4307,7 @@ window.VARS = {
     { id: "floors", name: "Этажность", unit: "эт.", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "num", calc: "Блоки проекта", used: ["Образцы документов", "ПК Start"] },
     { id: "flats", name: "Количество квартир", unit: "шт", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "num", calc: "Блоки проекта", used: ["Образцы документов", "ПК Start"] },
     { id: "area_total", name: "Общая площадь здания", unit: "м²", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "num", path: "project.area_total", def: "model.area_total", used: ["Финмодель", "Образцы документов", "ПК Start"] },
+    { id: "ceil_h", name: "Высота помещений квартир", unit: "м", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "num", path: "project.ceil_h", used: ["Планировки", "Шахматка"] },
     { id: "area_sale", name: "Продаваемая жилая площадь", unit: "м²", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "num", path: "model.area_sale", used: ["Финмодель", "ПК Start"] },
     { id: "area_comm", name: "Коммерческая площадь", unit: "м²", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "num", path: "model.area_comm", used: ["Финмодель", "ПК Start"] },
     { id: "parking", name: "Машино-места", unit: "шт", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "num", path: "model.parking", used: ["Финмодель", "ПК Start"] },
@@ -4377,7 +4387,8 @@ window.VARS = {
     { id: "keys_fc", name: "Ключи по прогнозу", sec: "Ход проекта", owner: "Команда проекта", calc: "График", better: "down", used: ["Карточка", "Портфель", "Отчёты"] },
     { id: "delay", name: "Отставание от плана", unit: "мес.", sec: "Ход проекта", owner: "Команда проекта", calc: "График", better: "down", used: ["Портфель", "Отчёты"] },
     { id: "smr_ready", name: "Готовность СМР по шахматке", unit: "%", sec: "Ход проекта", owner: "Команда проекта", calc: "Шахматка", better: "up", used: ["Шахматка"] },
-    { id: "smr_fact", name: "Выполнено СМР по шахматке", unit: "тг", sec: "Ход проекта", owner: "Команда проекта", calc: "Шахматка", better: "up", used: ["Шахматка"] }
+    { id: "smr_fact", name: "Выполнено СМР по шахматке", unit: "тг", sec: "Ход проекта", owner: "Команда проекта", calc: "Шахматка", better: "up", used: ["Шахматка"] },
+    { id: "finish_pct", name: "Готовность отделки квартир", unit: "%", sec: "Ход проекта", owner: "Команда проекта", calc: "Шахматка", better: "up", used: ["Шахматка"] }
   ]
 };
 
@@ -4569,7 +4580,14 @@ window.I18N = (function () {
     ["Что если", "Егер де"], ["Пессимистичный", "Пессимистік"], ["Оптимистичный", "Оптимистік"], ["Стресс-тест банка", "Банктің стресс-тесті"], ["Свой сценарий", "Өз сценарийі"], ["Базовый", "Базалық"], ["Пиковый долг", "Ең жоғары қарыз"], ["Ключи", "Кілттер"], ["Сценарии «что если»", "«Егер де» сценарийлері"], ["Добавить:", "Қосу:"], ["Сценарий и изменения к базовому", "Сценарий және базалыққа өзгерістер"],
     ["Шахматка", "Шахматка"], ["СМР: факт", "ҚМЖ: факт"], ["СМР: план", "ҚМЖ: жоспар"], ["Объём: план и факт", "Көлем: жоспар және факт"], ["Продажи", "Сату"], ["Квартиры по этажам", "Қабаттар бойынша пәтерлер"], ["Готовность СМР", "ҚМЖ дайындығы"], ["Выполнено СМР", "Орындалған ҚМЖ"], ["Отстают от плана", "Жоспардан қалып жатыр"], ["Продано квартир", "Сатылған пәтерлер"], ["План на месяц", "Ай бойынша жоспар"], ["Стадия:", "Кезең:"], ["Очистить", "Тазалау"], ["Каркас", "Қаңқа"], ["Ограждение", "Қоршау"], ["Инженерия", "Инженерия"], ["Отделка", "Әрлеу"], ["Не начат", "Басталмаған"], ["Этаж", "Қабат"], ["Готовность СМР по шахматке", "Шахматка бойынша ҚМЖ дайындығы"], ["Выполнено СМР по шахматке", "Шахматка бойынша орындалған ҚМЖ"], ["Стадия СМР на этаже", "Қабаттағы ҚМЖ кезеңі"], ["Этажи и подъезды каждого блока строятся из «Блоков проекта». План по этажам считается из графика, объём СМР — из финмодели. Команда вносит только факт: стадию на этаже и продажи.", "Әр блоктың қабаттары мен кіреберістері «Жоба блоктарынан» құрылады. Қабаттар бойынша жоспар кестеден, ҚМЖ көлемі қаржы моделінен есептеледі. Команда тек фактіні енгізеді: қабаттағы кезең мен сату."], ["Выберите стадию и нажмите на ячейку. Номер этажа ставит стадию на весь этаж и на этажи ниже, где она ещё не достигнута. Красная рамка — фактическая стадия ниже плановой.", "Кезеңді таңдап, ұяшықты басыңыз. Қабат нөмірі кезеңді бүкіл қабатқа және ол әлі жетпеген төменгі қабаттарға қояды. Қызыл жиек — нақты кезең жоспардағыдан төмен."], ["Сколько квартир продано на этаже подъезда. План продаж — равномерно от старта продаж до передачи ключей по графику.", "Кіреберіс қабатында қанша пәтер сатылды. Сату жоспары — кесте бойынша сату басталғаннан кілт тапсыруға дейін біркелкі."], ["Квартиры блока по умолчанию разложены поровну по надземным этажам и подъездам. Если на этаже их другое количество, впишите его — серое число подсказка.", "Блок пәтерлері әдепкі бойынша жерүсті қабаттар мен кіреберістерге тең бөлінген. Қабатта саны басқа болса, оны жазыңыз — сұр сан кеңес."], ["Факт продаж и СМР пока вносится здесь. Когда подключим CRM продаж и журналы технадзора, он будет приходить оттуда, без повторного ввода.", "Сату мен ҚМЖ фактісі әзірге осында енгізіледі. Сату CRM-і мен техқадағалау журналдарын қосқанда, ол сол жерден қайта енгізусіз келеді."], ["Качество и охрана труда появятся, когда подключим журналы технадзора и БиОТ: вписывать эти цифры вручную здесь не нужно. Факт СМР и продаж по этажам — во вкладке «Шахматка».", "Сапа мен еңбек қорғау техқадағалау және ҚжЕҚ журналдарын қосқанда пайда болады: бұл сандарды мұнда қолмен жазудың қажеті жоқ. Қабаттар бойынша ҚМЖ мен сату фактісі — «Шахматка» қойындысында."],
     ["Квартиры", "Пәтерлер"], ["Число квартир", "Пәтерлер саны"], ["Свободна", "Бос"], ["Бронь", "Брондалған"], ["Продана", "Сатылды"], ["Не в продаже", "Сатылымда емес"], ["Статус квартиры", "Пәтер мәртебесі"], ["Квартир в брони", "Брондалған пәтерлер"], ["Площадь квартир по шахматке", "Шахматка бойынша пәтерлер ауданы"], ["Комнат", "Бөлме"], ["Площадь, м²", "Ауданы, м²"], ["Скопировать комнаты и площади на типовые этажи", "Бөлмелер мен аудандарды типтік қабаттарға көшіру"], ["Типовые — этажи блока с тем же числом квартир. Номера и статусы не копируются. Серый номер — сквозная нумерация по блоку.", "Типтік — пәтер саны бірдей блок қабаттары. Нөмірлер мен мәртебелер көшірілмейді. Сұр нөмір — блок бойынша өтпелі нөмірлеу."], ["Сколько квартир продано на этаже подъезда. Если у квартир этажа отмечены статусы, продажи считаются по ним. План продаж — равномерно от старта продаж до передачи ключей по графику.", "Кіреберіс қабатында қанша пәтер сатылды. Қабат пәтерлерінің мәртебесі белгіленсе, сату солар бойынша есептеледі. Сату жоспары — кесте бойынша сату басталғаннан кілт тапсыруға дейін біркелкі."],
-    ["Планировки", "Жоспарлар"], ["Планировка", "Жоспар"], ["Добавить планировку", "Жоспар қосу"], ["Добавить помещение", "Бөлме қосу"], ["Помещение", "Бөлме"], ["Название", "Атауы"], ["Назначить квартирам в шахматке", "Шахматкада пәтерлерге тағайындау"], ["Скопировать планировки на типовые этажи", "Жоспарларды типтік қабаттарға көшіру"], ["Помещений пока нет.", "Бөлмелер әлі жоқ."], ["Планировок пока нет.", "Жоспарлар әлі жоқ."], ["Вид помещения квартиры", "Пәтер бөлмесінің түрі"], ["Жилая комната", "Тұрғын бөлме"], ["Кухня", "Ас үй"], ["Кухня-гостиная", "Ас үй-қонақ бөлме"], ["Санузел", "Санитариялық торап"], ["Ванная", "Ванна бөлмесі"], ["Прихожая", "Кіреберіс"], ["Коридор", "Дәліз"], ["Гардеробная", "Киім бөлмесі"], ["Кладовая", "Қойма"], ["Лоджия", "Лоджия"], ["Балкон", "Балкон"], ["Терраса", "Терраса"], ["Типовые планировки вводятся один раз: помещения и их площади. Квартира в шахматке ссылается на планировку — её площадь и комнатность считаются отсюда, а из суммы по всем квартирам — продаваемая жилая площадь проекта.", "Типтік жоспарлар бір рет енгізіледі: бөлмелер және олардың аудандары. Шахматкадағы пәтер жоспарға сілтеме жасайды — оның ауданы мен бөлме саны осы жерден, ал барлық пәтерлердің қосындысынан жобаның сатылатын тұрғын ауданы есептеледі."],
+    ["Планировки", "Жоспарлар"], ["Планировка", "Жоспар"], ["Добавить планировку", "Жоспар қосу"], ["Добавить помещение", "Бөлме қосу"], ["Помещение", "Бөлме"], ["Название", "Атауы"], ["Назначить квартирам в шахматке", "Шахматкада пәтерлерге тағайындау"], ["Скопировать планировки на типовые этажи", "Жоспарларды типтік қабаттарға көшіру"], ["Помещений пока нет.", "Бөлмелер әлі жоқ."], ["Планировок пока нет.", "Жоспарлар әлі жоқ."], ["Вид помещения квартиры", "Пәтер бөлмесінің түрі"], ["Жилая комната", "Тұрғын бөлме"], ["Кухня", "Ас үй"], ["Кухня-гостиная", "Ас үй-қонақ бөлме"], ["Санузел", "Санитариялық торап"], ["Ванная", "Ванна бөлмесі"], ["Прихожая", "Кіреберіс"], ["Коридор", "Дәліз"], ["Гардеробная", "Киім бөлмесі"], ["Кладовая", "Қойма"], ["Лоджия", "Лоджия"], ["Балкон", "Балкон"], ["Терраса", "Терраса"], ["Отделка", "Әрлеу"], ["Периметр, м", "Периметрі, м"], ["Высота помещений квартир", "Пәтер бөлмелерінің биіктігі"], ["Высота помещений квартир, м", "Пәтер бөлмелерінің биіктігі, м"], ["Готовность отделки квартир", "Пәтерлерді әрлеудің дайындығы"], ["Отделочная работа в квартире", "Пәтердегі әрлеу жұмысы"],
+    ["Стяжка пола", "Еден стяжкасы"], ["Штукатурка стен", "Қабырғаларды сылау"], ["Шпаклёвка и покраска стен", "Қабырғаларды тегістеу және бояу"], ["Плитка стен", "Қабырға плиткасы"], ["Плитка пола", "Еден плиткасы"], ["Чистовое покрытие пола", "Еденнің таза жабыны"], ["Плинтус", "Плинтус"], ["Потолок", "Төбе"],
+    ["Отделка на одну квартиру", "Бір пәтерге әрлеу"], ["весь этаж", "бүкіл қабат"], ["Работа", "Жұмыс"], ["Квартир", "Пәтерлер"], ["Выполнено", "Орындалды"], ["Объём по проекту", "Жоба бойынша көлем"], ["Выполнено объёма", "Орындалған көлем"], ["Кв.", "Пәт."],
+    ["От пола до потолка, одна на проект. Нужна, чтобы считать площадь стен под отделку: периметр помещения × высота. Проёмы пока не вычитаются.", "Еденнен төбеге дейін, жобаға біреу. Әрлеуге арналған қабырға ауданын есептеу үшін қажет: бөлме периметрі × биіктік. Ойықтар әзірге шегерілмейді."],
+    ["Нажмите на этаж и отметьте выполненные работы по квартирам. Какие работы нужны и их объём — из", "Қабатты басып, пәтерлер бойынша орындалған жұмыстарды белгілеңіз. Қандай жұмыстар қажет және олардың көлемі —"],
+    ["Не задана высота помещений", "Бөлмелердің биіктігі берілмеген"], ["Задать в планировках", "Жоспарларда беру"], ["нет высоты помещений", "бөлме биіктігі жоқ"],
+    ["У квартир этажа нет планировок, поэтому неизвестно, какие работы нужны. Назначьте планировки на слое «Квартиры».", "Қабат пәтерлерінің жоспарлары жоқ, сондықтан қандай жұмыстар қажет екені белгісіз. Жоспарларды «Пәтерлер» қабатында тағайындаңыз."],
+    ["Типовые планировки вводятся один раз: помещения и их площади. Квартира в шахматке ссылается на планировку — её площадь и комнатность считаются отсюда, а из суммы по всем квартирам — продаваемая жилая площадь проекта.", "Типтік жоспарлар бір рет енгізіледі: бөлмелер және олардың аудандары. Шахматкадағы пәтер жоспарға сілтеме жасайды — оның ауданы мен бөлме саны осы жерден, ал барлық пәтерлердің қосындысынан жобаның сатылатын тұрғын ауданы есептеледі."],
     ["Сроки и стройка", "Мерзімдер және құрылыс"], ["Деньги", "Ақша"], ["ОРС", "ОРС"], ["Люди", "Адамдар"], ["Компания", "Компания"], ["Чек-лист B0", "B0 чек-парағы"], ["Поиск", "Іздеу"], ["Требует внимания", "Назар аударуды қажет етеді"], ["Ближайший месяц", "Жақын ай"], ["Весь календарь", "Бүкіл күнтізбе"], ["Срочно", "Шұғыл"], ["Внимание", "Назар"], ["Проверить", "Тексеру"], ["Текущий этап", "Ағымдағы кезең"], ["Стройка", "Құрылыс"], ["Просрочен пункт этапа", "Кезең тармағы мерзімі өтті"], ["Истекает документ", "Құжат мерзімі аяқталады"], ["Документ истёк", "Құжат мерзімі өтті"], ["Отставание от графика", "Кестеден қалу"], ["Стройка отстаёт", "Құрылыс қалып жатыр"], ["Продажи ниже плана", "Сату жоспардан төмен"], ["Перерасход бюджета", "Бюджеттің асып кетуі"], ["Данные на согласовании", "Келісудегі деректер"], ["Базовая версия ПК Start", "ПК Start базалық нұсқасы"], ["Событий нет.", "Оқиғалар жоқ."], ["Ничего не найдено.", "Ештеңе табылмады."], ["Раздел", "Бөлім"], ["Стандарт", "Стандарт"], ["Команда", "Команда"], ["Квартира", "Пәтер"], ["Что требует внимания по проекту. Всё считается из данных проекта: графика, реестра документов, шахматки, бюджета и статусов данных.", "Жоба бойынша назар аударуды қажет ететін нәрселер. Барлығы жоба деректерінен есептеледі: кесте, құжаттар тізілімі, шахматка, бюджет және деректер мәртебесі."], ["Всё в порядке: просрочек, отставаний и данных на согласовании нет.", "Бәрі жақсы: мерзімі өткен, қалып жатқан және келісудегі деректер жоқ."], ["Раздел, показатель, квартира, документ, стандарт, этап, человек", "Бөлім, көрсеткіш, пәтер, құжат, стандарт, кезең, адам"], ["↑ ↓ — выбор, Enter — открыть, Esc — закрыть", "↑ ↓ — таңдау, Enter — ашу, Esc — жабу"], ["Что найти", "Не табу керек"], ["Поиск по порталу", "Портал бойынша іздеу"],
     ["Дорожная карта", "Жол картасы"], ["Дорожная карта ЖК", "ТҮК жол картасы"], ["Этапы", "Кезеңдер"], ["Схема связей", "Байланыстар сызбасы"], ["Схема связей этапов", "Кезеңдер байланысының сызбасы"], ["Пройдено", "Өтті"], ["Идёт", "Жүріп жатыр"], ["Впереди", "Алда"], ["Инструменты этапа", "Кезең құралдары"], ["На дорожной карте:", "Жол картасында:"], ["Этапы в работе", "Жұмыстағы кезеңдер"], ["Вся дорожная карта", "Бүкіл жол картасы"], ["Открытых этапов нет.", "Ашық кезеңдер жоқ."], ["Этапы проекта по фазам — от анализа рынка до гарантии: сроки по графику, выполнение пунктов и инструменты каждого этапа. Нажмите на этап, чтобы открыть его пункты, документы, бюджет и сроки.", "Жоба кезеңдері фазалар бойынша — нарықты талдаудан кепілдікке дейін: кесте бойынша мерзімдер, тармақтардың орындалуы және әр кезеңнің құралдары. Тармақтарын, құжаттарын, бюджеті мен мерзімдерін ашу үшін кезеңді басыңыз."], ["Какой этап открывает следующий. Этап открывается, когда закрыты условия перехода на предыдущих.", "Қай кезең келесісін ашады. Кезең алдыңғыларындағы өту шарттары жабылғанда ашылады."],
     ["Отменить", "Болдырмау"], ["Подсказки", "Кеңестер"], ["Всем квартирам этажа:", "Қабаттың барлық пәтерлеріне:"], ["Последнее изменение отменено", "Соңғы өзгеріс болдырылмады"], ["Поля уже заполнены", "Өрістер толтырылған"], ["Заполнить пустые поля значениями первого блока", "Бос өрістерді бірінші блоктың мәндерімен толтыру"], ["Статус всем квартирам этажа", "Қабаттың барлық пәтерлерінің мәртебесі"],
@@ -6145,7 +6163,7 @@ window.ZHK_BOOT = function (document) {
   // Ответственный за риск хранится ссылкой на участника команды (who): переименовали роль или вписали ФИО — риск показывает новое.
   const LIST_FIELDS = { risks: ["kind", "level", "title", "measure", "who"], team: ["role", "name", "zone"], partners: ["role", "org", "subject", "status"],
     blocks: ["name", "kind", "floors", "under", "entrances", "lifts", "flats", "frame", "design", "contour"],
-    scenarios: ["name", "price", "smr", "delay", "sales", "rate"], plans: ["name", "note"], planRooms: ["plan", "kind", "name", "area"] };
+    scenarios: ["name", "price", "smr", "delay", "sales", "rate"], plans: ["name", "note"], planRooms: ["plan", "kind", "name", "area", "per"] };
   function listOf(k) { return listFrom(S, k); }
   function listFrom(st, k) {
     const o = (st && st[k]) || {};
@@ -6359,21 +6377,38 @@ window.ZHK_BOOT = function (document) {
     return { blocks: res.length, floors: lo == null ? null : lo === hi ? lo : lo + "–" + hi, flats: L.reduce((a, b) => a + (parseNum(b.flats) || 0), 0) || null };
   }
   // Типовые планировки: площадь квартиры — сумма помещений с коэффициентами (лоджии, балконы), комнатность — число жилых комнат.
+  // Объём отделки на квартиру — по помещениям: пол и потолок — площадь, стены — периметр × высота помещений, плинтус — периметр.
+  // Проёмы не вычитаются. Если у помещения нет периметра или в проекте нет высоты, объём работы по стенам не считается (null).
+  const finishHeight = st => (v => v > 0 && v < 10 ? v : null)(parseNum(((st && st.project) || {}).ceil_h));
+  const finishOn = (w, k) => w.on === "wet" ? !!k.wet : w.on === "dry" ? !k.out && !k.wet : w.on === "out" ? !!k.out : !k.out;
   function plansOf(st) {
-    const K = Object.fromEntries(window.DICTS.roomKind.items.map(i => [i.v, i])), M = {}, r1 = v => Math.round(v * 10) / 10;
-    listFrom(st, "plans").forEach(p => { M[p.id] = { id: p.id, name: p.name || "Планировка", note: p.note || "", rooms: [], area: 0, live: 0, nLive: 0, raw: 0 }; });
+    const K = Object.fromEntries(window.DICTS.roomKind.items.map(i => [i.v, i])), M = {}, r1 = v => Math.round(v * 10) / 10, H = finishHeight(st);
+    listFrom(st, "plans").forEach(p => { M[p.id] = { id: p.id, name: p.name || "Планировка", note: p.note || "", rooms: [], area: 0, live: 0, nLive: 0, raw: 0, vol: {}, miss: {} }; });
     listFrom(st, "planRooms").forEach(r => {
       const p = M[r.plan]; if (!p) return;
       const a = Math.max(0, parseNum(r.area) || 0), k = K[r.kind] || { k: 1 };
       p.rooms.push(r); p.raw += a; p.area += a * (k.k == null ? 1 : k.k); if (k.live) { p.live += a; p.nLive++; }
     });
-    Object.values(M).forEach(p => { p.area = r1(p.area); p.live = r1(p.live); p.raw = r1(p.raw); });
+    Object.values(M).forEach(p => {
+      p.area = r1(p.area); p.live = r1(p.live); p.raw = r1(p.raw);
+      window.DICTS.finishWork.items.forEach(w => {
+        let v = 0, miss = 0, any = false;
+        p.rooms.forEach(r => {
+          if (!finishOn(w, K[r.kind] || {})) return;
+          const a = Math.max(0, parseNum(r.area) || 0), per = parseNum(r.per);
+          any = true;
+          if (w.b === "floor" || w.b === "ceil") v += a; else if (per > 0) v += w.b === "wall" ? per * (H || 0) : per; else miss++;
+        });
+        p.miss[w.c] = miss;
+        p.vol[w.c] = !any ? 0 : miss || (w.b === "wall" && !H) ? null : r1(v);
+      });
+    });
     return M;
   }
   // Квартиры шахматки: число на этаже, номера, планировка, комнаты, площадь, статус. Без графика —
   // чтобы площадь квартир шла в финмодель. Ключ — «блок.подъезд.этаж.поле», квартира — «….q<№>.поле».
   function chessFlats(st) {
-    const C = (st && st.chess) || {}, PL = plansOf(st);
+    const C = (st && st.chess) || {}, PL = plansOf(st), FW = window.DICTS.finishWork.items;
     const int = k => { const v = parseNum(C[k]); return v == null ? null : Math.max(0, Math.round(v)); };
     const num = k => { const v = parseNum(C[k]); return v == null || v <= 0 ? null : v; };
     const all = listFrom(st, "blocks"), L = all.map(b => ({ b, fl: Math.min(150, Math.max(0, Math.round(parseNum(b.floors) || 0))), un: Math.min(10, Math.max(0, Math.round(parseNum(b.under) || 0))), en: Math.min(30, Math.max(1, Math.round(parseNum(b.entrances) || 1))) })).filter(x => x.fl + x.un > 0);
@@ -6391,7 +6426,8 @@ window.ZHK_BOOT = function (document) {
         N.apts = Array.from({ length: N.n }, (_, j) => {
           const kq = k + ".q" + (j + 1) + ".", noSet = int(kq + "no") || null, noAuto = first[e + "." + f] + j, t = PL[C[kq + "t"]] ? C[kq + "t"] : null, pl = t ? PL[t] : null;
           return { q: j + 1, no: noSet || noAuto, noSet, noAuto, t, plan: pl ? pl.name : "", rSet: int(kq + "r") || null, aSet: num(kq + "a"),
-            r: pl ? pl.nLive || null : int(kq + "r") || null, a: pl ? pl.area || null : num(kq + "a"), x: Math.min(3, int(kq + "x") || 0) };
+            r: pl ? pl.nLive || null : int(kq + "r") || null, a: pl ? pl.area || null : num(kq + "a"), x: Math.min(3, int(kq + "x") || 0),
+            w: Object.fromEntries(FW.filter(w => C[kq + "w." + w.c] === "1").map(w => [w.c, true])) };
         });
         cells[e + "." + f] = N;
       }
@@ -6407,7 +6443,26 @@ window.ZHK_BOOT = function (document) {
   // Шахматка: этажи и подъезды — из блоков проекта, план по этажам — из графика, объём СМР — из финмодели.
   // Команда вносит только факт: стадию СМР на этаже подъезда и проданные квартиры. Ключ — «блок.подъезд.этаж.поле».
   // Квартиры: «блок.подъезд.этаж.q<№ на этаже>.поле» — no номер, r комнат, a площадь, x статус.
-  const CHESS_KEY = /^[\w\-]{1,40}\.\d{1,2}\.-?\d{1,3}\.(st|s|n|q\d{1,2}\.(no|r|a|x|t))$/;
+  // Отделка квартиры: «….q<№>.w.<код работы>» = "1", когда работа выполнена.
+  const CHESS_KEY = /^[\w\-]{1,40}\.\d{1,2}\.-?\d{1,3}\.(st|s|n|q\d{1,2}\.(no|r|a|x|t|w\.[a-z]{1,4}))$/;
+  // Отделка по квартирам: объём каждой работы — по планировкам квартир, факт — по отметкам в шахматке.
+  // Квартиры без планировки не считаются: у них нет помещений, значит и объёмов.
+  function finishCalc(st) {
+    const CF = chessFlats(st), W = window.DICTS.finishWork.items.map(w => Object.assign({}, w, { plan: 0, fact: 0, flats: 0, done: 0, unk: 0 }));
+    let flats = 0, noPlan = 0, pairs = 0, done = 0;
+    CF.blocks.forEach(B => Object.values(B.cells).forEach(c => c.apts.forEach(a => {
+      flats++;
+      const p = a.t ? CF.PL[a.t] : null;
+      if (!p) { noPlan++; return; }
+      W.forEach(w => {
+        const v = p.vol[w.c]; if (v === 0) return;
+        w.flats++; pairs++; if (v == null) w.unk++; else w.plan += v;
+        if (a.w[w.c]) { w.done++; done++; if (v != null) w.fact += v; }
+      });
+    })));
+    W.forEach(w => { w.plan = Math.round(w.plan * 10) / 10; w.fact = Math.round(w.fact * 10) / 10; });
+    return { works: W, flats, noPlan, pairs, done, pct: pairs ? done / pairs * 100 : null, h: finishHeight(st) };
+  }
   function chessCalc(at, R) {
     const G = schedule(), P = G.P, C = S.chess || {};
     const t = /^\d{4}-\d{2}$/.test(at || "") ? monthsFrom(G.start, at + "-01") + 1 : G.now;
@@ -6494,7 +6549,7 @@ window.ZHK_BOOT = function (document) {
       blocks: B.blocks, floors: B.floors, flats: B.flats,
       ...(EQ => ({ eq_crane_m: EQ.blocks.length ? EQ.crane : null, eq_lift_m: EQ.blocks.length ? EQ.lift : null, eq_pump_m: EQ.blocks.length ? EQ.pump : null, eq_sum: EQ.sumFile }))(equipCalc()),
       smr_ready: ch ? X.tot.fw / X.tot.cells * 100 : null, smr_fact: ch ? X.tot.fact : null, sold_flats: ch ? X.tot.sold : null,
-      reserved_flats: ch ? X.tot.rsv : null, apts_area: X.tot.aptA ? Math.round(X.tot.area * 10) / 10 : null,
+      reserved_flats: ch ? X.tot.rsv : null, finish_pct: finishCalc(S).pct, apts_area: X.tot.aptA ? Math.round(X.tot.area * 10) / 10 : null,
       fin_rev: t.rev, fin_cost: t.costT, fin_cost_m2: t.costM2, fin_pbt: t.pbt, fin_net: t.net,
       fin_margin: t.margin * 100, fin_irr: t.irr == null ? null : t.irr * 100, fin_npv: t.npv, fin_peak_debt: t.peakDebt,
       cur_stage: cur.code + " · " + cur.name, stages_done: T.nodes.filter(isDone).length,
@@ -6690,12 +6745,15 @@ window.ZHK_BOOT = function (document) {
     chess: at => chessCalc(at),
     // Типовые планировки с помещениями и итогами: площадь (с коэффициентами), жилая площадь, комнатность.
     plans: () => Object.values(plansOf(S)),
+    // Отделка квартир: объёмы по работам (план из планировок, факт по отметкам в шахматке).
+    finish: () => finishCalc(S),
     setChess: patch => {
       if (readOnly || !isObj(patch)) return;
       const d = {};
       Object.keys(patch).forEach(k => {
         if (!CHESS_KEY.test(k)) return;
         const f = k.slice(k.lastIndexOf(".") + 1);
+        if (/\.w\.[a-z]+$/.test(k)) { d[k] = window.DICTS.finishWork.items.some(w => w.c === f) && (patch[k] === true || patch[k] === "1" || patch[k] === 1) ? "1" : null; return; }
         if (f === "t") { const id = String(patch[k] == null ? "" : patch[k]); d[k] = /^[\w\-]{1,40}$/.test(id) ? id : null; return; }
         const v = parseNum(patch[k]);
         d[k] = v == null || v < 0 || (v === 0 && f !== "n") ? null : f === "a" ? String(Math.round(Math.min(v, 9999) * 10) / 10) : String(Math.round(Math.min(v, f === "no" ? 99999 : f === "x" ? 3 : 9999)));
@@ -7426,6 +7484,9 @@ function viewEquip() {
 // ---------- Типовые планировки ----------
 function viewPlans() {
   const P = window.ZHK.plans(), ro = window.ZHK.readOnly(), dis = ro ? " disabled" : "", K = window.DICTS.roomKind.items, X = window.ZHK.chess(), use = {};
+  const FW = window.DICTS.finishWork.items, H = window.ZHK.vars().find(v => v.id === "ceil_h"), num = v => String(v).replace(".", ",");
+  const vols = p => { const W = FW.filter(w => p.vol[w.c] !== 0); return W.length ? `<div class="stack" style="gap:4px"><span class="label">Отделка на одну квартиру</span><div class="pl-vol">${W.map(w => `<span>${esc(w.v)}: ${p.vol[w.c] == null
+    ? `<span class="warn">${p.miss[w.c] ? "нет периметра у помещений: " + p.miss[w.c] : "нет высоты помещений"}</span>` : `<b>${chArea(p.vol[w.c])}</b> ${w.u}`}</span>`).join("")}</div></div>` : ""; };
   X.blocks.forEach(b => Object.values(b.cells).forEach(c => c.apts.forEach(a => { if (a.t) use[a.t] = (use[a.t] || 0) + 1; })));
   const kk = K.filter(k => k.k !== 1).map(k => k.v.toLowerCase() + " × " + String(k.k).replace(".", ",")).join(", ");
   const card = p => `<div class="panel stack">
@@ -7433,21 +7494,25 @@ function viewPlans() {
       <input type="text" class="vin" style="width:240px" data-item="plans:${p.id}:note" value="${esc(p.note)}" aria-label="Примечание" placeholder="Примечание" maxlength="120"${dis}></div>
       ${ro ? "" : `<button class="btn ghost mini" data-item-del="plans:${p.id}" aria-label="Удалить планировку">Удалить</button>`}</div>
     <div class="pl-sum"><span><b>${chArea(p.area)} м²</b> площадь квартиры</span><span>${chArea(p.live)} м² жилая</span><span>комнат: ${p.nLive}</span><span>квартир с этой планировкой: ${use[p.id] || 0}</span></div>
-    ${p.rooms.length ? `<div class="tbl"><table class="pl-t"><thead><tr><th>Помещение</th><th>Название</th><th class="num">Площадь, м²</th><th></th></tr></thead><tbody>${p.rooms.map(r => `<tr>
+    ${p.rooms.length ? `<div class="tbl"><table class="pl-t"><thead><tr><th>Помещение</th><th>Название</th><th class="num">Площадь, м²</th><th class="num">Периметр, м</th><th></th></tr></thead><tbody>${p.rooms.map(r => `<tr>
       <td><select data-item="planRooms:${r.id}:kind" aria-label="Вид помещения"${dis}>${K.map(k => `<option${r.kind === k.v ? " selected" : ""}>${esc(k.v)}</option>`).join("")}</select></td>
       <td><input type="text" class="vin" data-item="planRooms:${r.id}:name" value="${esc(r.name || "")}" placeholder="—" maxlength="40" aria-label="Название помещения"${dis}></td>
       <td><input type="text" inputmode="decimal" class="vin num" style="width:90px" data-item="planRooms:${r.id}:area" value="${esc(r.area || "")}" maxlength="8" aria-label="Площадь помещения"${dis}></td>
+      <td><input type="text" inputmode="decimal" class="vin num" style="width:90px" data-item="planRooms:${r.id}:per" value="${esc(r.per || "")}" maxlength="8" aria-label="Периметр помещения"${dis}></td>
       <td>${ro ? "" : `<button class="btn ghost mini" data-item-del="planRooms:${r.id}" aria-label="Удалить помещение">×</button>`}</td></tr>`).join("")}</tbody></table></div>` : '<p class="muted" style="margin:0">Помещений пока нет.</p>'}
+    ${vols(p)}
     ${ro ? "" : `<div class="row"><button class="btn" data-plan-room="${p.id}">Добавить помещение</button></div>`}
   </div>`;
   return head("Планировки", "Типовые планировки вводятся один раз: помещения и их площади. Квартира в шахматке ссылается на планировку — её площадь и комнатность считаются отсюда, а из суммы по всем квартирам — продаваемая жилая площадь проекта.") + `
+  <section class="panel row" style="align-items:flex-end;gap:16px"><label class="field" style="margin:0"><span class="label">Высота помещений квартир, м</span><input type="text" inputmode="decimal" style="width:120px" data-var="ceil_h" value="${H && H.raw != null && H.raw !== "" ? esc(num(H.raw)) : ""}" placeholder="—"${dis}></label>
+    <p class="muted" style="margin:0;flex:1 1 280px">От пола до потолка, одна на проект. Нужна, чтобы считать площадь стен под отделку: периметр помещения × высота. Проёмы пока не вычитаются.</p></section>
   ${P.length ? `<div class="pl-grid">${P.map(card).join("")}</div>` : '<section class="panel"><div class="empty">Планировок пока нет.</div></section>'}
   ${ro ? "" : '<div class="row"><button class="btn primary" data-item-add="plans">Добавить планировку</button><a class="btn ghost" href="#chess" style="text-decoration:none">Назначить квартирам в шахматке</a></div>'}
   <p class="muted">Площадь квартиры — сумма помещений, летние помещения с коэффициентом: ${esc(kk)}. Коэффициенты — в справочнике «Вид помещения квартиры»; их нужно подтвердить у ПТО и отдела продаж. Когда площадь есть у всех квартир шахматки, «Продаваемая жилая площадь» в финмодели, ТЭП и презентации считается по ним и вручную не вводится.</p>`;
 }
 
 // ---------- Шахматка ----------
-const CH_LAYERS = [["smr", "СМР: факт"], ["plan", "СМР: план"], ["vol", "Объём: план и факт"], ["sales", "Продажи"], ["apts", "Квартиры"], ["flats", "Число квартир"]];
+const CH_LAYERS = [["smr", "СМР: факт"], ["plan", "СМР: план"], ["vol", "Объём: план и факт"], ["sales", "Продажи"], ["apts", "Квартиры"], ["fin", "Отделка"], ["flats", "Число квартир"]];
 const chUI = { layer: "smr", brush: 1, at: "", sel: "", f: { x: "", r: "", t: "" } };
 const chArea = v => (Math.round(v * 10) / 10).toLocaleString("ru-RU").replace(/[  ]/g, " ");
 try { const x = localStorage.getItem("zhk-chess-layer"); if (CH_LAYERS.some(l => l[0] === x)) chUI.layer = x; } catch (e) {}
@@ -7461,6 +7526,10 @@ function viewChess() {
   const F = chUI.f, aptHit = a => (F.x === "" || String(a.x) === F.x) && (F.r === "" || (F.r === "5" ? a.r >= 5 : String(a.r) === F.r)) && (F.t === "" || a.t === F.t);
   const FS = window.DICTS.flatStatus.items, X = window.ZHK.chess(chUI.at), ro = window.ZHK.readOnly(), L = chUI.layer, ST = X.stages, T = X.tot, at = chYm(X.at), dis = ro ? " disabled" : "";
   const sw = k => `<span class="ch-sw st${k}"></span>`;
+  // Отделка: по квартирам с планировкой — сколько работ (с ненулевым объёмом) отмечено выполненными.
+  const FW = window.DICTS.finishWork.items, PLM = Object.fromEntries(window.ZHK.plans().map(p => [p.id, p]));
+  const aptW = a => a.t && PLM[a.t] ? FW.filter(w => PLM[a.t].vol[w.c] !== 0) : null;
+  const finOf = apts => apts.reduce((r, a) => { const W = aptW(a); if (!W) { r.np++; return r; } r.n += W.length; r.d += W.filter(w => a.w[w.c]).length; return r; }, { n: 0, d: 0, np: 0 });
   const stName = k => k ? ST[k - 1].v : "Не начат";
   const top = head("Шахматка", "Этажи и подъезды каждого блока строятся из «Блоков проекта». План по этажам считается из графика, объём СМР — из финмодели. Команда вносит только факт: стадию на этаже и продажи.");
   if (!X.blocks.length) return top + `<section class="panel"><div class="empty">Шахматка появится, когда в «Блоках проекта» будет этажность. <a href="#blocks">Заполнить блоки</a></div></section>`;
@@ -7477,6 +7546,8 @@ function viewChess() {
     if (L === "vol") { const d = c.fd - c.pd; return `<span class="ch-c ${d < -1e-6 ? "behind" : d > 1e-6 ? "ahead" : ""}" title="${esc(where + ": план " + chMoney(c.plan) + ", факт " + chMoney(c.fact))}">${Math.round(c.fd * 100)}%</span>`; }
     if (!c.flat) return `<span class="ch-c na" title="${esc(where + ": квартир нет")}">—</span>`;
     if (L === "apts") return `<button class="ch-apts${chUI.sel === k ? " on" : ""}" data-ch-sel="${k}" aria-label="${esc("Квартиры: " + where)}">${c.apts.length ? c.apts.map(a => `<span class="ch-q big x${a.x}${aptHit(a) ? "" : " dim"}" title="${esc("Кв. " + a.no + (a.plan ? ", " + a.plan : "") + (a.r ? ", комнат: " + a.r : "") + (a.a ? ", " + chArea(a.a) + " м²" : "") + (a.a && PRICE ? ", " + chMln(a.a * PRICE) : "") + ", " + FS[a.x].v.toLowerCase())}"><b>${a.no}</b><small>${a.r ? a.r + "к" : "—"}${a.a ? " · " + chArea(a.a) : ""}</small>${a.a && PRICE ? `<small>${chMln(a.a * PRICE)}</small>` : ""}</span>`).join("") : '<span class="muted">0</span>'}</button>`;
+    if (L === "fin") { const r = finOf(c.apts), p = r.n ? Math.round(r.d / r.n * 100) : null;
+      return `<button class="ch-c${p === 100 ? " full" : p ? " part" : ""}${chUI.sel === k ? " on" : ""}" style="--p:${p || 0}%" data-ch-sel="${k}" title="${esc(where + (r.n ? ": отмечено " + r.d + " из " + r.n + " работ" : ": нет квартир с планировкой") + (r.np ? ", без планировки: " + r.np : ""))}" aria-label="${esc("Отделка: " + where)}">${p == null ? "—" : p + "%"}</button>`; }
     if (L === "sales" && c.aptMode) return `<span class="ch-c${c.n && c.s >= c.n ? " full" : ""}" title="${esc(where + ": по статусам квартир, бронь " + c.rsv)}">${c.s}/${c.n}</span>`;
     if (L === "sales") return `<label class="ch-in${c.n && c.s >= c.n ? " full" : ""}"><input type="text" inputmode="numeric" class="vin num" data-ch-in="${k}.s" value="${c.s || ""}" placeholder="0" maxlength="3" aria-label="${esc("Продано: " + where)}"${dis}><span>/${c.n}</span></label>`;
     return `<input type="text" inputmode="numeric" class="vin num ch-n" data-ch-in="${k}.n" value="${c.nSet == null ? "" : c.nSet}" placeholder="${c.nAuto}" maxlength="3" aria-label="${esc("Квартир: " + where)}"${dis}>`;
@@ -7485,11 +7556,22 @@ function viewChess() {
     const t = b.tot;
     if (L === "sales") return `Продано ${t.sold} из ${t.flats} кв. (${chPct(t.sold, t.flats)}), план на ${at}: ${t.soldPlan}`;
     if (L === "apts") return `Продано ${t.sold}, бронь ${t.rsv}, всего ${t.flats} кв. · площадь квартир ${chArea(t.area)} м²` + (t.aptA < t.flats ? ` (задана у ${t.aptA} из ${t.flats})` : "");
+    if (L === "fin") { const r = finOf([].concat(...Object.values(b.cells).map(c => c.apts))); return r.n ? `Отделка: отмечено ${r.d} из ${r.n} работ (${chPct(r.d, r.n)})` + (r.np ? ` · без планировки: ${r.np} кв.` : "") : "Нет квартир с планировкой — объёмы отделки не считаются"; }
     if (L === "flats") return `Квартир по этажам: ${t.flats}, в «Блоках проекта»: ${b.flatsBlock}` + (t.flats !== b.flatsBlock && b.kind === "res" ? ` <span class="bad-t">— не совпадает, проверьте раскладку</span>` : "");
     return `Готовность: факт ${chPct(t.fw, t.cells)}, план ${chPct(t.pw, t.cells)} · выполнено ${chMoney(t.fact)} из плана ${chMoney(t.plan)}` + (t.late ? ` · <span class="bad-t">отстают: ${t.late}</span>` : "");
   };
   // Квартиры этажа: номер (по умолчанию сквозной), комнаты, площадь и статус; типовой этаж копируется на остальные.
+  // Отделка этажа: квартиры × работы; «весь этаж» отмечает или снимает работу у всех квартир этажа.
+  const finEditor = (b, e, f, c, k) => {
+    const W = FW.filter(w => c.apts.some(a => (aptW(a) || []).includes(w)));
+    return `<div class="ch-ed stack"><div class="row" style="justify-content:space-between"><b>Отделка: этаж ${esc(f)}, подъезд ${esc(e)}</b><button class="btn ghost mini" data-ch-sel="">Закрыть</button></div>
+      ${W.length ? `<div class="tbl"><table class="ch-et ch-fw"><thead><tr><th>Кв.</th>${W.map(w => `<th>${esc(w.v)}${ro ? "" : `<div><button class="btn ghost mini" data-ch-wall="${k}:${w.c}" title="Отметить или снять у всех квартир этажа">весь этаж</button></div>`}</th>`).join("")}</tr></thead><tbody>${c.apts.map(a => { const AW = aptW(a);
+        return `<tr><td><b>${a.no}</b>${a.plan ? `<div class="muted vsrc">${esc(a.plan)}</div>` : ""}</td>${AW ? W.map(w => { const v = PLM[a.t].vol[w.c]; return AW.includes(w) ? `<td><input type="checkbox" data-ch-w="${k}.q${a.q}.w.${w.c}"${a.w[w.c] ? " checked" : ""} title="${esc(w.v + (v == null ? "" : ": " + chArea(v) + " " + w.u))}" aria-label="${esc("Кв. " + a.no + ": " + w.v)}"${dis}></td>` : "<td class=\"muted\">—</td>"; }).join("")
+          : `<td colspan="${W.length}" class="muted">нет планировки — <a href="#chess" data-ch-goapts="${k}">назначить</a></td>`}</tr>`; }).join("")}</tbody></table></div>`
+      : `<p class="muted" style="margin:0">У квартир этажа нет планировок, поэтому неизвестно, какие работы нужны. Назначьте планировки на слое «Квартиры».</p>`}</div>`;
+  };
   const editor = b => {
+    if (L === "fin" && chUI.sel && chUI.sel.split(".")[0] === b.id) { const [, e, f] = chUI.sel.split("."), c = b.cells[e + "." + f]; return c && c.flat ? finEditor(b, e, f, c, chUI.sel) : ""; }
     if (L !== "apts" || !chUI.sel || chUI.sel.split(".")[0] !== b.id) return "";
     const [, e, f] = chUI.sel.split("."), c = b.cells[e + "." + f], k = chUI.sel;
     if (!c || !c.flat) return "";
@@ -7519,6 +7601,13 @@ function viewChess() {
           ${PL.length ? `<label class="row" style="gap:6px"><span class="muted">Планировка:</span><select data-ch-ft aria-label="Планировка"><option value="">Все</option>${PL.map(p => `<option value="${p.id}"${F.t === p.id ? " selected" : ""}>${esc(p.name)}</option>`).join("")}</select></label>` : ""}</div>
           <p class="muted" style="margin:0">Найдено квартир: <b>${cnt(aptHit)}</b> из ${A.length}${PRICE ? `, сумма по цене проекта — ${chMln(A.filter(aptHit).reduce((s, a) => s + (a.a || 0) * PRICE, 0))}` : ""}.</p>`;
       })() + `<div class="row ch-legend">${FS.map(x => `<span><span class="ch-q x${x.c}">&nbsp;</span> ${esc(x.v)}</span>`).join("")}</div><p class="muted" style="margin:0">Нажмите на этаж, чтобы выбрать планировки и статусы квартир. ${X.areaSale ? `Площадь задана у всех квартир: продаваемая жилая площадь проекта — ${chArea(X.areaSale)} м², она идёт в финмодель, ТЭП и презентацию.` : (v => `Площадь задана у ${T.aptA} из ${T.flats} квартир (${chArea(T.area)} м²). Пока не у всех, в финмодели остаётся продаваемая жилая площадь из данных проекта — ${v ? esc(v.text) : "—"}.`)(window.ZHK.vars().find(v => v.id === "area_sale"))}</p>`
+    : L === "fin" ? (() => {
+        const Fc = window.ZHK.finish(), W = Fc.works.filter(w => w.flats);
+        return `<p class="muted" style="margin:0">Нажмите на этаж и отметьте выполненные работы по квартирам. Какие работы нужны и их объём — из <a href="#plans">планировок</a>: пол и потолок по площади помещений, стены — периметр × высота помещений. Готовность — доля отмеченных работ.</p>
+          ${W.length ? `<div class="tbl"><table><thead><tr><th>Работа</th><th class="num">Квартир</th><th class="num">Выполнено</th><th class="num">Объём по проекту</th><th class="num">Выполнено объёма</th></tr></thead><tbody>${W.map(w => `<tr><td>${esc(w.v)}</td><td class="num">${w.flats}</td><td class="num">${w.done} (${chPct(w.done, w.flats)})</td>
+            <td class="num">${chArea(w.plan)} ${w.u}${w.unk ? `<div class="bad-t vsrc">не посчитано у ${w.unk} кв.</div>` : ""}</td><td class="num">${chArea(w.fact)} ${w.u}</td></tr>`).join("")}</tbody></table></div>` : ""}
+          ${Fc.noPlan ? `<p class="muted" style="margin:0">Без планировки ${Fc.noPlan} из ${Fc.flats} квартир — у них объёмы отделки не считаются.</p>` : ""}${Fc.h ? "" : `<p class="muted" style="margin:0"><span class="bad-t">Не задана высота помещений</span> — объёмы по стенам не считаются. <a href="#plans">Задать в планировках</a>.</p>`}`;
+      })()
     : `<p class="muted" style="margin:0">Квартиры блока по умолчанию разложены поровну по надземным этажам и подъездам. Если на этаже их другое количество, впишите его — серое число подсказка.</p>`;
   return top + `<div class="grid ch-k">${K.map(([l, v, d]) => `<div class="panel kpi"><span class="label">${l}</span><div class="big num">${esc(v)}</div><div class="muted" style="font-size:.85rem">${esc(d)}</div></div>`).join("")}</div>
   <section class="panel stack">
@@ -8228,7 +8317,9 @@ function bind(m) {
   m.querySelectorAll("[data-pk]").forEach(el => el.onchange = () => window.ZHK.setProject({ [el.dataset.pk]: el.value.trim() }));
   m.querySelectorAll("[data-var]").forEach(el => el.onchange = () => {
     const r = window.ZHK.setVar(el.dataset.var, el.type === "checkbox" ? el.checked : el.value);
-    if (typeof r === "string") { el.setCustomValidity(r); el.reportValidity(); setTimeout(() => el.setCustomValidity(""), 2000) }
+    if (typeof r === "string") { el.setCustomValidity(r); el.reportValidity(); setTimeout(() => el.setCustomValidity(""), 2000); return; }
+    // Нормы спецтехники и высота помещений сразу пересчитывают таблицы страницы, даже если фокус ушёл в соседнее поле.
+    if (cur === "plans" || cur === "equip") setTimeout(() => { const a = document.activeElement, d = a && a.dataset ? (a.dataset.var ? ["data-var", a.dataset.var] : a.dataset.item ? ["data-item", a.dataset.item] : null) : null; route(); const nx = d && document.querySelector(`[${d[0]}="${d[1]}"]`); if (nx) nx.focus(); }, 0);
   });
   m.querySelectorAll("[data-vst]").forEach(b => b.onclick = () => { const [id, st] = b.dataset.vst.split(":"); window.ZHK.setVarStatus(id, st) });
   m.querySelectorAll("[data-df]").forEach(el => { el[el.tagName === "INPUT" ? "oninput" : "onchange"] = () => {
@@ -8317,6 +8408,19 @@ function bind(m) {
       S0.apts.forEach(a => { const kq = k + ".q" + a.q + "."; d[kq + "t"] = a.t; d[kq + "r"] = a.rSet; d[kq + "a"] = a.aSet; }); } });
     window.ZHK.setChess(d);
   });
+  m.querySelectorAll("[data-ch-w]").forEach(el => el.onchange = () => {
+    const key = el.dataset.chW;
+    window.ZHK.setChess({ [key]: el.checked ? "1" : null });
+    setTimeout(() => { route(); const nx = document.querySelector(`[data-ch-w="${key}"]`); if (nx) nx.focus(); }, 0);
+  });
+  m.querySelectorAll("[data-ch-wall]").forEach(b => b.onclick = () => {
+    const [k, code] = b.dataset.chWall.split(":"), [bid, e, f] = k.split("."), B = window.ZHK.chess().blocks.find(x => x.id === bid), c = B && B.cells[e + "." + f];
+    if (!c) return;
+    const PL = Object.fromEntries(window.ZHK.plans().map(p => [p.id, p])), A = c.apts.filter(a => a.t && PL[a.t] && PL[a.t].vol[code] !== 0), on = !A.every(a => a.w[code]), d = {};
+    A.forEach(a => { d[k + ".q" + a.q + ".w." + code] = on ? "1" : null; });
+    window.ZHK.setChess(d);
+  });
+  m.querySelectorAll("[data-ch-goapts]").forEach(a => a.onclick = ev => { ev.preventDefault(); chUI.layer = "apts"; chUI.sel = a.dataset.chGoapts; route(); });
   m.querySelectorAll("[data-ch-in]").forEach(el => el.onchange = () => {
     window.ZHK.setChess({ [el.dataset.chIn]: el.value });
     setTimeout(() => { const a = document.activeElement, sel = a && a.dataset ? a.dataset.chIn : null; route(); const nx = sel && document.querySelector(`[data-ch-in="${sel}"]`); if (nx) nx.focus(); }, 0);
