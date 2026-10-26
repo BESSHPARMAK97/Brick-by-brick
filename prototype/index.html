@@ -239,7 +239,23 @@ body.nohints .topbar .muted, body.nohints .hint { display: none }
 .wi-params span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
 .wi-params .vin { width: 100% }
 .ch-k { grid-template-columns: repeat(4, minmax(0, 1fr)) }
-.ch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 12px; align-items: start }
+.ch-grid { display: flex; gap: 12px; align-items: flex-end; overflow-x: auto; padding-bottom: 6px }
+.ch-grid > .ch-block { flex: 0 0 auto; max-width: none }
+.ch-grid > .ch-block.wide { flex-basis: 100% }
+.ch-q.big { flex-direction: column; min-width: 64px; height: auto; padding: 3px 5px; gap: 1px; line-height: 1.15; text-align: center }
+.ch-q.big b { font-size: .78rem } .ch-q.big small { font: 500 .62rem var(--f-body); color: var(--muted); white-space: nowrap }
+.ch-q.dim { opacity: .18 }
+.eq-t { width: auto; border-collapse: separate; border-spacing: 0 } .eq-t th, .eq-t td { padding: 3px 4px; font-size: .74rem; text-align: center; border-bottom: 1px solid var(--line); white-space: nowrap }
+.eq-t td:first-child, .eq-t thead th:first-child { text-align: left; position: sticky; left: 0; background: var(--surface); padding-right: 10px }
+.eq-t td.eq-on { min-width: 22px } .eq-found { background: var(--surface-2) } .eq-mono { background: var(--info-soft) } .eq-mas { background: var(--accent-soft) }
+.eq-crane { background: var(--warn-soft) } .eq-lift { background: var(--ok-soft) } .eq-pump { background: var(--bad-soft) }
+.eq-b th { text-align: left; font-size: .8rem; color: var(--fg); padding-top: 10px; position: sticky; left: 0 } .eq-tot td { font-weight: 600; font-family: var(--f-mono) }
+.ch-filt { display: flex; flex-wrap: wrap; align-items: center; gap: 6px }
+@media print {
+  .side, .gbar, .subtabs, .st-chips, .ch-k, .ch-layers, .ch-filt, #ch-print, #ch-at, .ch-ed, .topbar .muted, #main > p.muted { display: none !important }
+  .app { display: block } body { background: #fff } .main { padding: 0 } .panel { border-color: #bbb; break-inside: avoid }
+  .ch-grid { flex-wrap: wrap; overflow: visible } .ch-q.dim { opacity: .35 }
+}
 .ch-t { border-collapse: separate; border-spacing: 3px; width: auto }
 .ch-t th, .ch-t td { padding: 0; border: 0; text-align: center; font-size: .75rem }
 .ch-t thead th { color: var(--muted); font-weight: 500; padding-bottom: 2px }
@@ -4265,7 +4281,7 @@ window.XLSXEngine = (function () {
 // Владельцы — черновик: отделы холдинга уточняются.
 window.VARS = {
   owners: ["Команда проекта", "Развитие", "Юристы", "Продажи", "ОРС", "Финансы"],
-  sections: ["Миссия и KPI", "Локация и клиент", "Паспорт и ТЭП", "Участок и реквизиты", "Подбор стандартов", "Продажи", "Затраты", "Финансирование и налоги", "Сроки", "Результаты финмодели", "Ход проекта"],
+  sections: ["Миссия и KPI", "Локация и клиент", "Паспорт и ТЭП", "Участок и реквизиты", "Подбор стандартов", "Продажи", "Затраты", "Финансирование и налоги", "Сроки", "Результаты финмодели", "Ход проекта", "Спецтехника"],
   items: [
     { id: "mission", name: "Миссия проекта", sec: "Миссия и KPI", owner: "Команда проекта", type: "text", path: "project.mission", used: ["Карточка", "ПК Start"] },
     { id: "kpi_nps", name: "Целевой NPS клиентов", unit: "баллов", sec: "Миссия и KPI", owner: "Команда проекта", type: "num", path: "project.kpi_nps", better: "up", used: ["Карточка", "ПК Start"] },
@@ -4310,6 +4326,18 @@ window.VARS = {
     { id: "apts_area", name: "Площадь квартир по шахматке", unit: "м²", sec: "Продажи", owner: "Продажи", calc: "Шахматка", used: ["Шахматка"] },
     { id: "sales", name: "Условия продаж", sec: "Продажи", owner: "Продажи", type: "text", path: "project.sales", used: ["Карточка", "ПК Start"] },
 
+    // Спецтехника: нормы ГПР «этаж в месяц» (меняются под проект) и итоги потребности по блокам и графику
+    { id: "eq_mono", name: "Скорость монолита", unit: "эт./мес", sec: "Спецтехника", owner: "Команда проекта", type: "num", path: "equip.mono", dflt: 3, used: ["Спецтехника"] },
+    { id: "eq_mas", name: "Скорость кладки", unit: "эт./мес", sec: "Спецтехника", owner: "Команда проекта", type: "num", path: "equip.mas", dflt: 3, used: ["Спецтехника"] },
+    { id: "eq_lift", name: "Подъёмник нужен с этажа монолита", unit: "эт.", sec: "Спецтехника", owner: "Команда проекта", type: "num", path: "equip.lift", dflt: 12, used: ["Спецтехника"] },
+    { id: "eq_crane_tail", name: "Кран после монолита (кровля и кладка)", unit: "мес.", sec: "Спецтехника", owner: "Команда проекта", type: "num", path: "equip.craneTail", dflt: 2, used: ["Спецтехника"] },
+    { id: "eq_lift_tail", name: "Подъёмник после кладки", unit: "мес.", sec: "Спецтехника", owner: "Команда проекта", type: "num", path: "equip.liftTail", dflt: 2, used: ["Спецтехника"] },
+    { id: "eq_abn", name: "Плит перекрытий на автобетононасосе", unit: "шт", sec: "Спецтехника", owner: "Команда проекта", type: "num", path: "equip.abn", dflt: 4, used: ["Спецтехника"] },
+    { id: "eq_stagger", name: "Сдвиг старта следующего блока", unit: "мес.", sec: "Спецтехника", owner: "Команда проекта", type: "num", path: "equip.stagger", dflt: 0, used: ["Спецтехника"] },
+    { id: "eq_crane_m", name: "Башенные краны, потребность", unit: "кран-мес", sec: "Спецтехника", owner: "Команда проекта", calc: "Спецтехника", used: ["Спецтехника"] },
+    { id: "eq_lift_m", name: "Подъёмники, потребность", unit: "мес.", sec: "Спецтехника", owner: "Команда проекта", calc: "Спецтехника", used: ["Спецтехника"] },
+    { id: "eq_pump_m", name: "Стационарный бетононасос, потребность", unit: "мес.", sec: "Спецтехника", owner: "Команда проекта", calc: "Спецтехника", used: ["Спецтехника"] },
+    { id: "eq_sum", name: "Спецтехника по плану (файл), с НДС", unit: "тг", sec: "Спецтехника", owner: "Команда проекта", calc: "Спецтехника", used: ["Спецтехника"] },
     { id: "land", name: "Стоимость земли", unit: "тг", sec: "Затраты", owner: "Развитие", type: "num", path: "model.land", better: "down", used: ["Финмодель", "Бюджет"] },
     { id: "design", name: "ИРД, изыскания, проект", unit: "тг/м²", sec: "Затраты", owner: "ОРС", type: "num", path: "model.design", better: "down", used: ["Финмодель", "Бюджет"] },
     { id: "smr", name: "СМР", unit: "тг/м²", sec: "Затраты", owner: "ОРС", type: "num", path: "model.smr", better: "down", used: ["Финмодель", "Бюджет", "ПК Start"] },
@@ -4546,6 +4574,7 @@ window.I18N = (function () {
     ["Дорожная карта", "Жол картасы"], ["Дорожная карта ЖК", "ТҮК жол картасы"], ["Этапы", "Кезеңдер"], ["Схема связей", "Байланыстар сызбасы"], ["Схема связей этапов", "Кезеңдер байланысының сызбасы"], ["Пройдено", "Өтті"], ["Идёт", "Жүріп жатыр"], ["Впереди", "Алда"], ["Инструменты этапа", "Кезең құралдары"], ["На дорожной карте:", "Жол картасында:"], ["Этапы в работе", "Жұмыстағы кезеңдер"], ["Вся дорожная карта", "Бүкіл жол картасы"], ["Открытых этапов нет.", "Ашық кезеңдер жоқ."], ["Этапы проекта по фазам — от анализа рынка до гарантии: сроки по графику, выполнение пунктов и инструменты каждого этапа. Нажмите на этап, чтобы открыть его пункты, документы, бюджет и сроки.", "Жоба кезеңдері фазалар бойынша — нарықты талдаудан кепілдікке дейін: кесте бойынша мерзімдер, тармақтардың орындалуы және әр кезеңнің құралдары. Тармақтарын, құжаттарын, бюджеті мен мерзімдерін ашу үшін кезеңді басыңыз."], ["Какой этап открывает следующий. Этап открывается, когда закрыты условия перехода на предыдущих.", "Қай кезең келесісін ашады. Кезең алдыңғыларындағы өту шарттары жабылғанда ашылады."],
     ["Отменить", "Болдырмау"], ["Подсказки", "Кеңестер"], ["Всем квартирам этажа:", "Қабаттың барлық пәтерлеріне:"], ["Последнее изменение отменено", "Соңғы өзгеріс болдырылмады"], ["Поля уже заполнены", "Өрістер толтырылған"], ["Заполнить пустые поля значениями первого блока", "Бос өрістерді бірінші блоктың мәндерімен толтыру"], ["Статус всем квартирам этажа", "Қабаттың барлық пәтерлерінің мәртебесі"],
     ["Мой отдел", "Менің бөлімім"], ["Мои разделы", "Менің бөлімдерім"], ["Я — все разделы", "Мен — барлық бөлімдер"], ["По вашему отделу всё в порядке.", "Сіздің бөлім бойынша бәрі жақсы."],
+    ["Нормы ГПР", "ЖӨК нормалары"], ["ГПР и потребность по месяцам", "Айлар бойынша ЖӨК және қажеттілік"], ["План спецтехники (файл)", "Арнайы техника жоспары (файл)"], ["Загрузить план (Excel)", "Жоспарды жүктеу (Excel)"], ["Убрать файл", "Файлды алып тастау"], ["Башенные краны", "Мұнаралы крандар"], ["Подъёмники", "Көтергіштер"], ["Стационарный насос", "Стационарлық сорғы"], ["Автобетононасос", "Автобетонсорғы"], ["Фундамент", "Іргетас"], ["Монолит", "Монолит"], ["Кладка", "Қалау"], ["Башенный кран", "Мұнаралы кран"], ["Подъёмник", "Көтергіш"], ["Стац. насос", "Стац. сорғы"], ["Кранов", "Крандар"], ["Подъёмников", "Көтергіштер"], ["Печать / PDF", "Басып шығару / PDF"], ["Статус:", "Мәртебе:"], ["Комнат:", "Бөлме:"], ["Планировка:", "Жоспар:"], ["Все", "Барлығы"], ["Техника", "Техника"], ["Ед.", "Бірл."], ["По файлу", "Файл бойынша"], ["Период", "Кезең"], ["Сумма с НДС", "ҚҚС-пен сома"],
     ["Казначей", "Қазынашы"], ["Факт бюджета внесён по 5+ этапам", "5+ кезең бойынша бюджет фактісі енгізілді"], ["План из финмодели, тг", "Қаржы моделінен жоспар, тг"], ["План считается из финмодели автоматически: земля, проектирование по этапам проекта, СМР с технадзором и резервом по этапам стройки, сети, маркетинг, административные расходы и проценты. Чтобы изменить план, измените исходные данные финмодели или сроки в графике.", "Жоспар қаржы моделінен автоматты түрде есептеледі: жер, жоба кезеңдері бойынша жобалау, құрылыс кезеңдері бойынша техқадағалау мен резервті қоса ҚМЖ, желілер, маркетинг, әкімшілік шығыстар және пайыздар. Жоспарды өзгерту үшін қаржы моделінің бастапқы деректерін немесе кестедегі мерзімдерді өзгертіңіз."],
     ["Документы под контролем", "Құжаттар бақылауда"], ["5+ документов в реестре сроков, ни одного истёкшего", "Мерзімдер тізілімінде 5+ құжат, бірде-біреуінің мерзімі өтпеген"],
     ["Полный архив", "Толық мұрағат"], ["10+ вложений к пунктам чек-листов", "Чек-парақ тармақтарына 10+ тіркеме"],
@@ -4750,7 +4779,7 @@ window.ZHK_BOOT = function (document) {
   const RANKS = [[0, "Стажёр"], [1, "Аналитик"], [4, "Девелопер"], [8, "Застройщик"], [13, "Генеральный застройщик"], [21, "Магнат ЖК"]];
   const STATUS = { locked: "Закрыт", open: "Доступен", active: "В работе", risk: "Начат с риском", done: "Пройден" };
   const LOCAL_KEY = "zhk-skill-tree-v2", LEGACY_KEY = "zhk-skill-tree-v1";
-  const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines", "sched", "vars", "baseline", "risks", "team", "partners", "blocks", "b0", "pnr", "pnrCalc", "smeta", "scenarios", "chess", "plans", "planRooms"];
+  const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines", "sched", "vars", "baseline", "risks", "team", "partners", "blocks", "b0", "pnr", "pnrCalc", "smeta", "scenarios", "chess", "plans", "planRooms", "equip"];
   const VIEWS = ["tree", "gantt", "model", "budget", "deadlines", "projects"];
 
   // S — всё состояние проекта, хранится одним документом.
@@ -6298,7 +6327,7 @@ window.ZHK_BOOT = function (document) {
       resetZone.innerHTML = '<span class="reset-confirm">Сбросить отметки, назначения и досрочные старты? Карточка проекта, финмодель, бюджет и реестр сроков останутся. <button class="btn" id="reset-yes">Да, сбросить</button><button class="btn ghost" id="reset-no">Отмена</button></span>';
     } else if (e.target.id === "reset-yes" || e.target.id === "reset-no") {
       if (e.target.id === "reset-yes" && !readOnly) {
-        S = normalize({ project: S.project, model: S.model, budget: S.budget, deadlines: S.deadlines, sched: S.sched, vars: S.vars, baseline: S.baseline, risks: S.risks, team: S.team, partners: S.partners, blocks: S.blocks, b0: S.b0, pnr: S.pnr, pnrCalc: S.pnrCalc, smeta: S.smeta, scenarios: S.scenarios, chess: S.chess, plans: S.plans, planRooms: S.planRooms });
+        S = normalize({ project: S.project, model: S.model, budget: S.budget, deadlines: S.deadlines, sched: S.sched, vars: S.vars, baseline: S.baseline, risks: S.risks, team: S.team, partners: S.partners, blocks: S.blocks, b0: S.b0, pnr: S.pnr, pnrCalc: S.pnrCalc, smeta: S.smeta, scenarios: S.scenarios, chess: S.chess, plans: S.plans, planRooms: S.planRooms, equip: S.equip });
         openEdits.clear();
         saveLocal();
         if (docRef) { const ref = docRef, proj = curProject, full = JSON.parse(JSON.stringify(S)); writeChain = writeChain.then(() => ref.set(full).then(() => { if (proj === curProject) docExists = true; }).catch(() => {})); }
@@ -6416,10 +6445,54 @@ window.ZHK_BOOT = function (document) {
     tot.soldPlan = Math.round(tot.flats * share); tot.cost = smr;
     return { blocks, tot, stages: ST, at: ymAdd(G.start, Math.max(0, t - 0.01)), skipped: CF.skipped, areaSale: aptsArea(S) };
   }
+  // Спецтехника. Блок: фундамент — этап «Нулевой цикл» графика; монолит и кладка — «этаж в месяц» по нормам;
+  // кран — от фундамента до конца монолита + кровля и кладка; подъёмник — с заданного этажа монолита до конца кладки + хвост;
+  // автобетононасос — фундамент и первые плиты, дальше стационарный насос (один на проект). Аренда считается целыми месяцами.
+  const EQ_DEF = { mono: 3, mas: 3, lift: 12, craneTail: 2, liftTail: 2, abn: 4, stagger: 0 };
+  function equipCalc() {
+    const G = schedule(), P = G.P, E = S.equip || {}, q = {};
+    Object.keys(EQ_DEF).forEach(k => { const v = parseNum(E[k]); q[k] = v != null && v >= 0 ? v : EQ_DEF[k]; });
+    q.mono = Math.max(0.5, q.mono); q.mas = Math.max(0.5, q.mas);
+    const all = listOf("blocks"), res = all.filter(b => (b.kind || "res") === "res" && parseNum(b.floors) > 0);
+    const z0 = P.zero.es, zd = P.zero.dur;
+    const blocks = res.map((b, i) => {
+      const N = Math.round(parseNum(b.floors)), t0 = z0 + i * q.stagger, m0 = t0 + zd, m1 = m0 + N / q.mono, k0 = m0 + 1, k1 = k0 + N / q.mas;
+      return { id: b.id, name: b.name || "Блок", floors: N, found: [t0, m0], mono: [m0, m1], mas: [k0, k1], crane: [t0, m1 + q.craneTail],
+        lift: N > q.lift ? [m0 + q.lift / q.mono, k1 + q.liftTail] : null, pump: N > q.abn ? [m0 + q.abn / q.mono, m1] : null };
+    });
+    const pours = blocks.reduce((a, b) => a + 1 + Math.min(b.floors, q.abn), 0) + all.filter(b => b.kind === "parking").reduce((a, b) => a + 1 + Math.round(parseNum(b.under) || 0), 0);
+    const ends = blocks.map(b => Math.max(b.crane[1], b.lift ? b.lift[1] : 0)), from = blocks.length ? Math.floor(Math.min(...blocks.map(b => b.found[0]))) : 0, to = blocks.length ? Math.ceil(Math.max(...ends)) : 0;
+    const on = (iv, m) => iv && Math.min(iv[1], m + 1) - Math.max(iv[0], m) > 0.25;
+    const months = [];
+    for (let m = from; m < to; m++) months.push({ ym: ymAdd(G.start, m), crane: blocks.filter(b => on(b.crane, m)).length, lift: blocks.filter(b => on(b.lift, m)).length, pump: blocks.some(b => on(b.pump, m)) ? 1 : 0 });
+    const sum = k => months.reduce((a, x) => a + x[k], 0);
+    const ym = t => ymAdd(G.start, Math.max(0, t));
+    blocks.forEach(b => ["found", "mono", "mas", "crane", "lift", "pump"].forEach(k => { if (b[k]) b[k + "Ym"] = [ym(b[k][0]), ym(b[k][1] - 0.01)]; }));
+    // План из файла: строки с количеством и суммой; цены остаются в файле отдела.
+    const F = E.file && E.file.lines ? E.file : null, kindOf = l => /кран башенн/i.test(l.kind) && /мес/i.test(l.unit) ? "crane" : /подъ[её]мник/i.test(l.kind) && /мес/i.test(l.unit) ? "lift" : /^бетононасос стационарн/i.test(l.kind) && /мес/i.test(l.unit) ? "pump" : "";
+    const calcQ = { crane: sum("crane"), lift: sum("lift"), pump: sum("pump") };
+    const span = (a, b) => { const out = []; if (!/^\d{4}-\d{2}$/.test(a || "") || !/^\d{4}-\d{2}$/.test(b || "")) return out; for (let x = a; x <= b && out.length < 120; x = ymAdd(x, 1)) out.push(x); return out; };
+    const byMonth = {}, add = (m, k, v) => { (byMonth[m] = byMonth[m] || { file: 0, calc: 0 })[k] += v; };
+    let sumFile = 0, sumCalc = 0;
+    const lines = F ? F.lines.map(l => {
+      const k = kindOf(l), ms = span(l.from, l.to), rate = l.qty > 0 ? l.sum / l.qty : 0;
+      sumFile += l.sum || 0;
+      (ms.length ? ms : [null]).forEach(m => { if (m) add(m, "file", (l.sum || 0) / ms.length); });
+      if (k && rate) { months.forEach(x => { if (x[k]) add(x.ym, "calc", rate * x[k]); }); sumCalc += rate * calcQ[k]; }
+      else { (ms.length ? ms : []).forEach(m => add(m, "calc", (l.sum || 0) / ms.length)); sumCalc += l.sum || 0; }
+      return Object.assign({}, l, { k, calc: k ? calcQ[k] : null });
+    }) : [];
+    // Месяцы таблицы — объединение расчёта и периодов из файла.
+    Object.keys(byMonth).forEach(m => { if (!months.some(x => x.ym === m)) months.push({ ym: m, crane: 0, lift: 0, pump: 0 }); });
+    months.sort((a, b) => a.ym.localeCompare(b.ym));
+    return { q, blocks, months, crane: calcQ.crane, lift: calcQ.lift, pump: calcQ.pump, pours, file: F ? { name: F.name, at: F.at, by: F.by ? nameOf(F.by) : "", lines, sum: sumFile } : null,
+      sumFile: F ? sumFile : null, sumCalc: F ? sumCalc : null, byMonth };
+  }
   function calcAll() {
     const R = window.runModel(params()), t = R.t, G = schedule(), cur = byId[firstQuest()], M = schedMonths(), B = blockTotals(), X = chessCalc(null, R), ch = X.blocks.length > 0;
     return {
       blocks: B.blocks, floors: B.floors, flats: B.flats,
+      ...(EQ => ({ eq_crane_m: EQ.blocks.length ? EQ.crane : null, eq_lift_m: EQ.blocks.length ? EQ.lift : null, eq_pump_m: EQ.blocks.length ? EQ.pump : null, eq_sum: EQ.sumFile }))(equipCalc()),
       smr_ready: ch ? X.tot.fw / X.tot.cells * 100 : null, smr_fact: ch ? X.tot.fact : null, sold_flats: ch ? X.tot.sold : null,
       reserved_flats: ch ? X.tot.rsv : null, apts_area: X.tot.aptA ? Math.round(X.tot.area * 10) / 10 : null,
       fin_rev: t.rev, fin_cost: t.costT, fin_cost_m2: t.costM2, fin_pbt: t.pbt, fin_net: t.net,
@@ -6451,7 +6524,7 @@ window.ZHK_BOOT = function (document) {
     if (v.calc) return (C || calcAll())[v.id];
     const x = pathGet(st, v.path);
     if (v.path.indexOf("model.") === 0) return modelVal(st, v.path.slice(6));
-    if (vType(v) === "num") { const n = parseNum(x); return n != null ? n : v.def ? modelVal(st, v.def.slice(6)) : null; }
+    if (vType(v) === "num") { const n = parseNum(x); return n != null ? n : v.def ? modelVal(st, v.def.slice(6)) : v.dflt != null ? v.dflt : null; }
     if (vType(v) === "month") return /^\d{4}-\d{2}$/.test(x || "") ? x : thisMonth();
     return x == null ? "" : x;
   }
@@ -6491,7 +6564,7 @@ window.ZHK_BOOT = function (document) {
   }
   // Изменение значения переменной: запись в историю, статус возвращается в «черновик».
   function trackVars(patch) {
-    const roots = Object.keys(patch).filter(k => k === "project" || k === "model" || k === "sched" || k === "pnr");
+    const roots = Object.keys(patch).filter(k => k === "project" || k === "model" || k === "sched" || k === "pnr" || k === "equip");
     if (!roots.length || !S.vars) return;
     const after = JSON.parse(JSON.stringify(S)); merge(after, patch);
     const at = new Date().toISOString();
@@ -6553,6 +6626,8 @@ window.ZHK_BOOT = function (document) {
   window.ZHK = {
     setView: v => setView(v, false),
     selectStage: id => { if (byId[id]) select(id, true); },
+    equip: () => equipCalc(),
+    setEquipFile: f => { if (readOnly) return; commit({ equip: { file: f ? Object.assign({ by: meId || "" }, f) : null } }); },
     canUndo: () => !readOnly && undoStack.length > 0,
     undo: () => { if (readOnly || !undoStack.length) return false; commit(undoStack.pop(), { undo: true }); toast("Последнее изменение отменено"); return true; },
     setB0Many: obj => { if (readOnly || !isObj(obj)) return; const d = {}; Object.keys(obj).forEach(k => { if (/^[\w.\-]{1,80}$/.test(k)) d[k] = obj[k] === "" || obj[k] == null ? null : String(obj[k]).slice(0, 300); }); if (Object.keys(d).length) commit({ b0: d }); },
@@ -6823,6 +6898,7 @@ const VIEWS = {
   today: { g: "today", t: "Сегодня", cnt: () => window.ZHK ? todayItems().filter(x => x.lvl === "bad").length || "" : "", alert: true, r: viewToday },
   card: { g: "obj", t: "Карточка проекта", cnt: () => "", r: viewCard },
   blocks: { g: "obj", t: "Блоки проекта", cnt: () => window.ZHK ? window.ZHK.list("blocks").length || "" : "", r: viewBlocks },
+  equip: { g: "obj", t: "Спецтехника", cnt: () => "", r: viewEquip },
   plans: { g: "obj", t: "Планировки", cnt: () => window.ZHK ? window.ZHK.plans().length || "" : "", r: viewPlans },
   chess: { g: "obj", t: "Шахматка", cnt: () => "", r: viewChess },
   data: { g: "obj", t: "Данные проекта", cnt: () => "", r: viewData },
@@ -6851,7 +6927,7 @@ const TOOL_STAGES = {
   card: ["idea", "land"], whatif: ["idea", "finance", "pkstart"], model: ["idea", "finance", "pkstart"], blocks: ["sketch", "psd"], plans: ["sketch", "psd", "dolevka"],
   b0: ["sketch"], pnr: ["survey", "sketch"], smeta: ["psd", "tender"], deadlines: ["land", "ird", "expert", "dolevka", "start", "commission"], partners: ["tender", "start"],
   pk: ["pkstart"], kpi: ["pkstart"], data: ["pkstart"], team: ["start"], standards: ["start", "zero", "frame", "envelope", "mep", "finish"],
-  budget: ["start", "zero", "nets", "frame", "envelope", "mep", "finish"], chess: ["dolevka", "zero", "frame", "envelope", "mep", "finish", "commission", "handover"]
+  budget: ["start", "zero", "nets", "frame", "envelope", "mep", "finish"], equip: ["start", "zero", "frame", "envelope"], chess: ["dolevka", "zero", "frame", "envelope", "mep", "finish", "commission", "handover"]
 };
 window.STAGE_TOOLS = {};
 Object.entries(TOOL_STAGES).forEach(([k, st]) => st.forEach(id => (window.STAGE_TOOLS[id] = window.STAGE_TOOLS[id] || []).push([k, VIEWS[k].t])));
@@ -7289,6 +7365,64 @@ function viewWhatIf() {
   </section>`;
 }
 
+// ---------- Спецтехника ----------
+// Файл «План спецтехники» (выгрузка ЦДС/ПТО, xlsx): в проект сохраняются строки с количеством, периодом и суммой; цены остаются в файле.
+let eqMsg = "";
+async function equipLoad(f) {
+  eqMsg = "Читаю «" + f.name + "»…"; route();
+  try {
+    const R = await window.XLSXEngine.rows(await f.arrayBuffer(), "ABCDEFGHIJKLMNOPQRSTU".split(""));
+    const hr = R.find(r => Object.values(r).some(v => typeof v === "string" && /вид техники/i.test(v)));
+    if (!hr) throw new Error("не найдена строка заголовка «Вид техники» — это план спецтехники?");
+    const col = re => Object.keys(hr).find(c => c.length <= 2 && typeof hr[c] === "string" && re.test(hr[c]));
+    const C = { kind: col(/вид техники/i), ch: col(/характеристик/i), from: col(/дата начала/i), to: col(/дата окончания/i), unit: col(/единица|ед\.?\s*изм/i), qty: col(/^количество$/i) || col(/плановое количество/i), units: col(/количество единиц/i), sum: col(/сумма с ндс/i), net: col(/сумма без ндс/i) };
+    if (!C.kind || !C.qty || !C.sum) throw new Error("нет колонок «Вид техники», «Количество» или «Сумма с НДС»");
+    const n = v => typeof v === "number" ? v : (x => isFinite(x) ? x : 0)(parseFloat(String(v || "").replace(/[\s ]/g, "").replace(",", ".")));
+    const ym = v => { if (typeof v === "number") { const d = new Date(Date.UTC(1899, 11, 30) + v * 86400000); return d.getUTCFullYear() + "-" + String(d.getUTCMonth() + 1).padStart(2, "0"); } const m = /(\d{1,2})\.(\d{4})/.exec(String(v || "")); return m ? m[2] + "-" + m[1].padStart(2, "0") : ""; };
+    const lines = R.filter(r => r.r > hr.r && typeof r[C.kind] === "string" && r[C.kind].trim() && n(r[C.sum]) > 0 && !/^итого/i.test(r[C.kind].trim())).map(r => ({
+      kind: r[C.kind].trim().slice(0, 80), char: String(r[C.ch] || "").trim().slice(0, 120), unit: String(r[C.unit] || "").trim().slice(0, 12),
+      qty: n(r[C.qty]), units: n(r[C.units]) || null, from: ym(r[C.from]), to: ym(r[C.to]), sum: Math.round(n(r[C.sum])), net: Math.round(n(r[C.net])) || null }));
+    if (!lines.length) throw new Error("в файле нет строк с суммой");
+    window.ZHK.setEquipFile({ name: f.name.slice(0, 120), at: new Date().toISOString(), lines });
+    eqMsg = "Загружено строк: " + lines.length + ".";
+  } catch (e) { eqMsg = ("Не удалось разобрать файл: " + (e && e.message ? e.message : "ошибка")).replace(/([^.?!])$/, "$1."); }
+  route();
+}
+function viewEquip() {
+  const E = window.ZHK.equip(), V = Object.fromEntries(window.ZHK.vars().map(v => [v.id, v])), ro = window.ZHK.readOnly();
+  const mln = x => x == null ? "—" : Math.abs(x) >= 1e9 ? (x / 1e9).toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + " млрд тг" : (x / 1e6).toLocaleString("ru-RU", { maximumFractionDigits: 1 }) + " млн тг";
+  const f = E.file, fq = k => f ? f.lines.filter(l => l.k === k).reduce((a, l) => a + l.qty, 0) : null, d = (c, p) => p == null ? "" : c === p ? "совпадает с файлом" : (c > p ? "больше" : "меньше") + " файла на " + Math.abs(Math.round((c - p) * 10) / 10);
+  const top = head("Спецтехника", "Потребность в башенных кранах, подъёмниках и бетононасосах считается из блоков проекта и графика по нормам «этаж в месяц». План из файла ЦДС/ПТО сравнивается с расчётом; цены остаются в файле, в проект сохраняются только строки с количеством и суммой.");
+  if (!E.blocks.length) return top + '<section class="panel"><div class="empty">Спецтехника посчитается, когда в <a href="#blocks">«Блоках проекта»</a> будет этажность жилых блоков.</div></section>';
+  const K = [
+    ["Башенные краны", E.crane + " кран-мес", f ? "по файлу " + fq("crane") + " · " + d(E.crane, fq("crane")) : E.blocks.length + " кр. на " + E.blocks.length + " блоках"],
+    ["Подъёмники", E.lift + " мес", f ? "по файлу " + fq("lift") + " · " + d(E.lift, fq("lift")) : "с " + E.q.lift + "-го этажа монолита"],
+    ["Стационарный насос", E.pump + " мес", f ? "по файлу " + fq("pump") + " · " + d(E.pump, fq("pump")) : "после " + E.q.abn + " плит на автобетононасосе"],
+    ["Автобетононасос", E.pours + " заливок", "фундаменты и первые " + E.q.abn + " плиты блоков, плиты паркинга"],
+    ["Сумма", f ? mln(E.sumFile) : "нет файла", f ? "по потребности " + mln(E.sumCalc) + (E.sumCalc < E.sumFile ? " · экономия " + mln(E.sumFile - E.sumCalc) : E.sumCalc > E.sumFile ? " · не хватает " + mln(E.sumCalc - E.sumFile) : "") : "загрузите план спецтехники"]
+  ];
+  const norms = ["eq_mono", "eq_mas", "eq_lift", "eq_crane_tail", "eq_lift_tail", "eq_abn", "eq_stagger"].map(id => V[id]).filter(Boolean);
+  const Ms = E.months, mm = x => x.slice(5, 7) + "." + x.slice(2, 4);
+  const inIv = (iv, ym) => iv && ym >= iv[0] && ym <= iv[1];
+  const ROWS = [["found", "Фундамент"], ["mono", "Монолит"], ["mas", "Кладка"], ["crane", "Башенный кран"], ["lift", "Подъёмник"], ["pump", "Стац. насос"]];
+  const gpr = `<div class="tbl"><table class="eq-t"><thead><tr><th></th>${Ms.map(x => `<th>${mm(x.ym)}</th>`).join("")}</tr></thead><tbody>${E.blocks.map(b => `<tr class="eq-b"><th colspan="${Ms.length + 1}">${esc(b.name)} · ${b.floors} эт.</th></tr>` + ROWS.filter(([k]) => b[k]).map(([k, l]) => `<tr><td>${l}</td>${Ms.map(x => `<td class="${inIv(b[k + "Ym"], x.ym) ? "eq-on eq-" + k : ""}"></td>`).join("")}</tr>`).join("")).join("")}
+    <tr class="eq-tot"><td>Кранов</td>${Ms.map(x => `<td>${x.crane || ""}</td>`).join("")}</tr><tr class="eq-tot"><td>Подъёмников</td>${Ms.map(x => `<td>${x.lift || ""}</td>`).join("")}</tr><tr class="eq-tot"><td>Стац. насос</td>${Ms.map(x => `<td>${x.pump || ""}</td>`).join("")}</tr>
+    ${f ? `<tr class="eq-tot"><td>Расход по файлу, млн</td>${Ms.map(x => `<td>${(v => v ? Math.round(v / 1e6) : "")((E.byMonth[x.ym] || {}).file)}</td>`).join("")}</tr><tr class="eq-tot"><td>По потребности, млн</td>${Ms.map(x => `<td>${(v => v ? Math.round(v / 1e6) : "")((E.byMonth[x.ym] || {}).calc)}</td>`).join("")}</tr>` : ""}</tbody></table></div>`;
+  const fileTbl = f ? `<div class="tbl"><table><thead><tr><th>Техника</th><th>Ед.</th><th class="num">По файлу</th><th class="num">Расчёт</th><th>Период</th><th class="num">Сумма с НДС</th></tr></thead><tbody>${f.lines.map(l => `<tr><td><b>${esc(l.kind)}</b><div class="muted vsrc">${esc(l.char)}</div></td><td>${esc(l.unit)}</td><td class="num">${l.qty.toLocaleString("ru-RU")}${l.units ? `<div class="muted vsrc">ед.: ${l.units}</div>` : ""}</td><td class="num">${l.calc == null ? '<span class="muted">—</span>' : `${l.calc}${l.calc !== l.qty ? `<div class="delta ${l.calc < l.qty ? "good" : "bad"}">${l.calc > l.qty ? "+" : "−"}${Math.abs(Math.round((l.calc - l.qty) * 10) / 10)}</div>` : ""}`}</td><td class="mono">${l.from ? mm(l.from) : ""}–${l.to ? mm(l.to) : ""}</td><td class="num">${mln(l.sum)}</td></tr>`).join("")}
+    <tr class="total"><td><b>Итого</b></td><td></td><td></td><td></td><td></td><td class="num"><b>${mln(E.sumFile)}</b></td></tr></tbody></table></div>` : "";
+  return top + `<div class="grid g5">${K.map(([l, v, s]) => `<div class="panel kpi"><span class="label">${l}</span><div class="big num">${esc(v)}</div><div class="muted" style="font-size:.85rem">${esc(s)}</div></div>`).join("")}</div>
+  <section class="panel stack"><h2 class="h2">Нормы ГПР</h2>
+    <div class="fields">${norms.map(v => `<label class="field"><span class="label">${esc(v.name)}${v.unit ? ", " + esc(v.unit) : ""}</span><input type="text" inputmode="decimal" data-var="${v.id}" value="${esc(String(v.raw).replace(".", ","))}"${ro ? " disabled" : ""}></label>`).join("")}</div>
+    <p class="muted hint" style="margin:0">Фундамент блока — этап «Нулевой цикл» графика, дальше монолит и кладка по скоростям «этаж в месяц». Кран — от фундамента до конца монолита плюс кровля и кладка; подъёмник — с заданного этажа монолита до конца кладки плюс хвост; автобетононасос — фундамент и первые плиты, дальше один стационарный насос на проект. Аренда — целыми месяцами (месяц засчитывается, если техника нужна больше недели).</p>
+  </section>
+  <section class="panel stack"><h2 class="h2">ГПР и потребность по месяцам</h2>${gpr}</section>
+  <section class="panel stack"><div class="row" style="justify-content:space-between"><h2 class="h2">План спецтехники (файл)</h2>${ro ? "" : `<div class="row"><label class="btn primary">Загрузить план (Excel)<input type="file" id="eq-file" accept=".xlsx" hidden></label>${f ? '<button class="btn ghost" id="eq-del">Убрать файл</button>' : ""}</div>`}</div>
+    ${eqMsg ? `<p class="muted" style="margin:0">${esc(eqMsg)}</p>` : ""}
+    ${f ? `<p class="muted" style="margin:0">Файл «${esc(f.name)}», загружен ${new Date(f.at).toLocaleString("ru-RU")}${f.by ? ", " + esc(f.by) : ""}. Краны, подъёмники и стационарный насос сравниваются с расчётом; «по потребности» — цена строки × расчётное количество.</p>${fileTbl}`
+      : '<p class="muted" style="margin:0">Выгрузка «План спецтехники» (колонки «Вид техники», «Дата начала», «Дата окончания», «Единица измерения», «Количество», «Сумма с НДС»). Старый формат .xls сохраните в Excel как .xlsx.</p>'}
+  </section>`;
+}
+
 // ---------- Типовые планировки ----------
 function viewPlans() {
   const P = window.ZHK.plans(), ro = window.ZHK.readOnly(), dis = ro ? " disabled" : "", K = window.DICTS.roomKind.items, X = window.ZHK.chess(), use = {};
@@ -7314,13 +7448,17 @@ function viewPlans() {
 
 // ---------- Шахматка ----------
 const CH_LAYERS = [["smr", "СМР: факт"], ["plan", "СМР: план"], ["vol", "Объём: план и факт"], ["sales", "Продажи"], ["apts", "Квартиры"], ["flats", "Число квартир"]];
-const chUI = { layer: "smr", brush: 1, at: "", sel: "" };
+const chUI = { layer: "smr", brush: 1, at: "", sel: "", f: { x: "", r: "", t: "" } };
 const chArea = v => (Math.round(v * 10) / 10).toLocaleString("ru-RU").replace(/[  ]/g, " ");
 try { const x = localStorage.getItem("zhk-chess-layer"); if (CH_LAYERS.some(l => l[0] === x)) chUI.layer = x; } catch (e) {}
 const chMoney = n => { const a = Math.abs(n || 0); return a >= 1e9 ? (n / 1e9).toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + " млрд тг" : a >= 1e6 ? (n / 1e6).toLocaleString("ru-RU", { maximumFractionDigits: 1 }) + " млн тг" : Math.round(n || 0).toLocaleString("ru-RU") + " тг"; };
 const chPct = (a, b) => b ? Math.round(a / b * 100) + "%" : "—";
 const chYm = ym => ym.slice(5, 7) + "." + ym.slice(0, 4);
 function viewChess() {
+  // Цена квартиры — площадь × цена жилья из данных проекта (на старте продаж, без роста цен).
+  const PRICE = (v => v && v.raw > 0 ? v.raw : 0)(window.ZHK.vars().find(v => v.id === "price"));
+  const chMln = n => n >= 1e9 ? (n / 1e9).toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + " млрд" : (n / 1e6).toLocaleString("ru-RU", { maximumFractionDigits: 1 }) + " млн";
+  const F = chUI.f, aptHit = a => (F.x === "" || String(a.x) === F.x) && (F.r === "" || (F.r === "5" ? a.r >= 5 : String(a.r) === F.r)) && (F.t === "" || a.t === F.t);
   const FS = window.DICTS.flatStatus.items, X = window.ZHK.chess(chUI.at), ro = window.ZHK.readOnly(), L = chUI.layer, ST = X.stages, T = X.tot, at = chYm(X.at), dis = ro ? " disabled" : "";
   const sw = k => `<span class="ch-sw st${k}"></span>`;
   const stName = k => k ? ST[k - 1].v : "Не начат";
@@ -7338,7 +7476,7 @@ function viewChess() {
     if (L === "plan") return `<span class="ch-c st${c.pl}" title="${esc(where + ". " + ST.map((s, j) => s.v + " — " + chYm(c.due[j])).join(", "))}">${c.pl ? ST[c.pl - 1].a : ""}</span>`;
     if (L === "vol") { const d = c.fd - c.pd; return `<span class="ch-c ${d < -1e-6 ? "behind" : d > 1e-6 ? "ahead" : ""}" title="${esc(where + ": план " + chMoney(c.plan) + ", факт " + chMoney(c.fact))}">${Math.round(c.fd * 100)}%</span>`; }
     if (!c.flat) return `<span class="ch-c na" title="${esc(where + ": квартир нет")}">—</span>`;
-    if (L === "apts") return `<button class="ch-apts${chUI.sel === k ? " on" : ""}" data-ch-sel="${k}" aria-label="${esc("Квартиры: " + where)}">${c.apts.length ? c.apts.map(a => `<span class="ch-q x${a.x}" title="${esc("Кв. " + a.no + (a.plan ? ", " + a.plan : "") + (a.r ? ", комнат: " + a.r : "") + (a.a ? ", " + chArea(a.a) + " м²" : "") + ", " + FS[a.x].v.toLowerCase())}">${a.no}</span>`).join("") : '<span class="muted">0</span>'}</button>`;
+    if (L === "apts") return `<button class="ch-apts${chUI.sel === k ? " on" : ""}" data-ch-sel="${k}" aria-label="${esc("Квартиры: " + where)}">${c.apts.length ? c.apts.map(a => `<span class="ch-q big x${a.x}${aptHit(a) ? "" : " dim"}" title="${esc("Кв. " + a.no + (a.plan ? ", " + a.plan : "") + (a.r ? ", комнат: " + a.r : "") + (a.a ? ", " + chArea(a.a) + " м²" : "") + (a.a && PRICE ? ", " + chMln(a.a * PRICE) : "") + ", " + FS[a.x].v.toLowerCase())}"><b>${a.no}</b><small>${a.r ? a.r + "к" : "—"}${a.a ? " · " + chArea(a.a) : ""}</small>${a.a && PRICE ? `<small>${chMln(a.a * PRICE)}</small>` : ""}</span>`).join("") : '<span class="muted">0</span>'}</button>`;
     if (L === "sales" && c.aptMode) return `<span class="ch-c${c.n && c.s >= c.n ? " full" : ""}" title="${esc(where + ": по статусам квартир, бронь " + c.rsv)}">${c.s}/${c.n}</span>`;
     if (L === "sales") return `<label class="ch-in${c.n && c.s >= c.n ? " full" : ""}"><input type="text" inputmode="numeric" class="vin num" data-ch-in="${k}.s" value="${c.s || ""}" placeholder="0" maxlength="3" aria-label="${esc("Продано: " + where)}"${dis}><span>/${c.n}</span></label>`;
     return `<input type="text" inputmode="numeric" class="vin num ch-n" data-ch-in="${k}.n" value="${c.nSet == null ? "" : c.nSet}" placeholder="${c.nAuto}" maxlength="3" aria-label="${esc("Квартир: " + where)}"${dis}>`;
@@ -7372,12 +7510,20 @@ function viewChess() {
     : L === "plan" ? `<div class="row ch-legend">${[0].concat(ST.map((_, i) => i + 1)).map(k => `<span>${sw(k)}${esc(stName(k))}</span>`).join("")}</div><p class="muted" style="margin:0">Стадия, которая по графику должна быть закончена к концу выбранного месяца. Этажи идут снизу вверх равномерно в пределах этапа графика; наведите на ячейку, чтобы увидеть месяцы.</p>`
     : L === "vol" ? `<p class="muted" style="margin:0">Доля выполненного объёма СМР на этаже подъезда по факту. Зелёный — опережение плана, красный — отставание. Объём СМР из финмодели (${chMoney(T.cost)}) распределён поровну на этажи подъездов, внутри этажа — по длительности стадий в графике.</p>`
     : L === "sales" ? `<p class="muted" style="margin:0">Сколько квартир продано на этаже подъезда. Если у квартир этажа отмечены статусы, продажи считаются по ним. План продаж — равномерно от старта продаж до передачи ключей по графику.</p>`
-    : L === "apts" ? `<div class="row ch-legend">${FS.map(x => `<span><span class="ch-q x${x.c}">&nbsp;</span> ${esc(x.v)}</span>`).join("")}</div><p class="muted" style="margin:0">Нажмите на этаж, чтобы выбрать планировки и статусы квартир. ${X.areaSale ? `Площадь задана у всех квартир: продаваемая жилая площадь проекта — ${chArea(X.areaSale)} м², она идёт в финмодель, ТЭП и презентацию.` : (v => `Площадь задана у ${T.aptA} из ${T.flats} квартир (${chArea(T.area)} м²). Пока не у всех, в финмодели остаётся продаваемая жилая площадь из данных проекта — ${v ? esc(v.text) : "—"}.`)(window.ZHK.vars().find(v => v.id === "area_sale"))}</p>`
+    : L === "apts" ? (() => {
+        const A = []; X.blocks.forEach(b => Object.values(b.cells).forEach(c => c.apts.forEach(a => A.push(a))));
+        const cnt = f => A.filter(f).length, PL = window.ZHK.plans();
+        const chip = (g, v, l, n) => `<button class="btn mini${F[g] === v ? " primary" : ""}" data-ch-f="${g}:${v}" aria-pressed="${F[g] === v}">${l}${n != null ? ` <span class="mono">${n}</span>` : ""}</button>`;
+        return `<div class="ch-filt"><span class="muted">Статус:</span>${chip("x", "", "Все", A.length)}${FS.map(x => chip("x", String(x.c), x.v, cnt(a => a.x === x.c))).join("")}</div>
+          <div class="ch-filt"><span class="muted">Комнат:</span>${chip("r", "", "Все")}${["1", "2", "3", "4", "5"].map(r => chip("r", r, r === "5" ? "5+" : r, cnt(a => r === "5" ? a.r >= 5 : String(a.r) === r))).join("")}
+          ${PL.length ? `<label class="row" style="gap:6px"><span class="muted">Планировка:</span><select data-ch-ft aria-label="Планировка"><option value="">Все</option>${PL.map(p => `<option value="${p.id}"${F.t === p.id ? " selected" : ""}>${esc(p.name)}</option>`).join("")}</select></label>` : ""}</div>
+          <p class="muted" style="margin:0">Найдено квартир: <b>${cnt(aptHit)}</b> из ${A.length}${PRICE ? `, сумма по цене проекта — ${chMln(A.filter(aptHit).reduce((s, a) => s + (a.a || 0) * PRICE, 0))}` : ""}.</p>`;
+      })() + `<div class="row ch-legend">${FS.map(x => `<span><span class="ch-q x${x.c}">&nbsp;</span> ${esc(x.v)}</span>`).join("")}</div><p class="muted" style="margin:0">Нажмите на этаж, чтобы выбрать планировки и статусы квартир. ${X.areaSale ? `Площадь задана у всех квартир: продаваемая жилая площадь проекта — ${chArea(X.areaSale)} м², она идёт в финмодель, ТЭП и презентацию.` : (v => `Площадь задана у ${T.aptA} из ${T.flats} квартир (${chArea(T.area)} м²). Пока не у всех, в финмодели остаётся продаваемая жилая площадь из данных проекта — ${v ? esc(v.text) : "—"}.`)(window.ZHK.vars().find(v => v.id === "area_sale"))}</p>`
     : `<p class="muted" style="margin:0">Квартиры блока по умолчанию разложены поровну по надземным этажам и подъездам. Если на этаже их другое количество, впишите его — серое число подсказка.</p>`;
   return top + `<div class="grid ch-k">${K.map(([l, v, d]) => `<div class="panel kpi"><span class="label">${l}</span><div class="big num">${esc(v)}</div><div class="muted" style="font-size:.85rem">${esc(d)}</div></div>`).join("")}</div>
   <section class="panel stack">
     <div class="row" style="justify-content:space-between;align-items:flex-end"><div class="row ch-layers" role="group" aria-label="Слой шахматки">${CH_LAYERS.map(([k, l]) => `<button class="btn${L === k ? " primary" : ""}" data-ch-layer="${k}" aria-pressed="${L === k}">${l}</button>`).join("")}</div>
-      <label class="field" style="margin:0"><span class="label">План на месяц</span><input type="month" id="ch-at" value="${X.at}"></label></div>
+      <div class="row" style="align-items:flex-end"><label class="field" style="margin:0"><span class="label">План на месяц</span><input type="month" id="ch-at" value="${X.at}"></label><button class="btn ghost" type="button" id="ch-print">Печать / PDF</button></div></div>
     ${tools}
   </section>
   <div class="ch-grid">${X.blocks.map(grid).join("")}</div>
@@ -7566,7 +7712,7 @@ const ROLES = {
   fin: { t: "Финансы", views: ["model", "whatif", "budget", "smeta", "kpi"], owners: ["Финансы", "ФМ проекта"], hrefs: ["budget", "model", "data", "pnr"] },
   ors: { t: "ОРС", views: ["pnr", "b0", "smeta", "blocks", "plans"], owners: ["ОРС", "ОРС Общестрой", "ОРС Сети"], hrefs: ["pnr", "b0"] },
   sales: { t: "Продажи", views: ["chess", "plans", "whatif", "pk"], owners: ["Продажи"], hrefs: ["chess", "data"] },
-  build: { t: "Стройка и ПТО", views: ["roadmap", "chess", "gantt", "budget", "standards", "deadlines"], owners: ["Команда проекта"], hrefs: ["roadmap", "chess", "gantt", "deadlines", "budget"] },
+  build: { t: "Стройка и ПТО", views: ["roadmap", "chess", "equip", "gantt", "budget", "standards", "deadlines"], owners: ["Команда проекта"], hrefs: ["roadmap", "chess", "gantt", "deadlines", "budget"] },
   dev: { t: "Развитие и юристы", views: ["card", "deadlines", "partners", "data"], owners: ["Развитие", "Юристы"], hrefs: ["deadlines", "data"] }
 };
 let myRole = "";
@@ -7716,7 +7862,7 @@ function route() {
 
 // Данные проекта: все переменные проекта в одном месте — значение, владелец, статус, история и отклонение от базовой версии.
 const ST = { draft: ["Черновик", "s-new"], agreed: ["Согласовано", "s-agreed"], approved: ["Утверждено", "s-done"], calc: ["Расчёт", "s-changed"] };
-const HOME = { project: ["Карточка проекта", "card"], model: ["Финмодель", "model"], sched: ["График", "gantt"], pnr: ["Показатели ПНР", "pnr"] };
+const HOME = { project: ["Карточка проекта", "card"], model: ["Финмодель", "model"], sched: ["График", "gantt"], pnr: ["Показатели ПНР", "pnr"], equip: ["Спецтехника", "equip"] };
 let dataF = { sec: "", owner: "", st: "", q: "" }, baseAsk = false;
 function viewData() {
   const all = window.ZHK.vars(), ro = window.ZHK.readOnly(), B = window.ZHK.baseline();
@@ -8151,6 +8297,11 @@ function bind(m) {
     window.ZHK.setChess(d);
   });
   m.querySelectorAll("[data-plan-room]").forEach(b => b.onclick = () => { const id = window.ZHK.setItem("planRooms", null, { plan: b.dataset.planRoom, kind: "Жилая комната" }); const el = id && document.querySelector(`[data-item="planRooms:${id}:area"]`); if (el) el.focus(); });
+  const eqf = m.querySelector("#eq-file"); if (eqf) eqf.onchange = () => { const fl = eqf.files && eqf.files[0]; if (fl) equipLoad(fl); };
+  const eqd = m.querySelector("#eq-del"); if (eqd) eqd.onclick = () => { eqMsg = ""; window.ZHK.setEquipFile(null); };
+  m.querySelectorAll("[data-ch-f]").forEach(b => b.onclick = () => { const [g, v] = b.dataset.chF.split(":"); chUI.f[g] = v; route(); });
+  const cft = m.querySelector("[data-ch-ft]"); if (cft) cft.onchange = () => { chUI.f.t = cft.value; route(); };
+  const cpr = m.querySelector("#ch-print"); if (cpr) cpr.onclick = () => window.print();
   m.querySelectorAll("[data-ch-sel]").forEach(b => b.onclick = () => { chUI.sel = b.dataset.chSel; route() });
   m.querySelectorAll("[data-ch-all]").forEach(sel => sel.onchange = () => {
     if (sel.value === "") return;

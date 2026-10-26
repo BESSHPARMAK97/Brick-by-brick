@@ -116,7 +116,7 @@ fs.writeFileSync(path.join(root, "docs/checklists.md"), checklist.join("\n"));
 
 // Словарь данных проекта: docs/variables.md
 const V = ctx.window.VARS;
-const HOME = { project: "Карточка проекта", model: "Финмодель", sched: "График", pnr: "Показатели ПНР" };
+const HOME = { project: "Карточка проекта", model: "Финмодель", sched: "График", pnr: "Показатели ПНР", equip: "Спецтехника" };
 const TYPE = { text: "текст", num: "число", sel: "список", month: "месяц", flag: "да/нет" };
 const vd = ["# Словарь данных проекта", "",
   "Каждая переменная вводится в одном месте (столбец «Где вводится»), остальные инструменты читают её оттуда. Расчётные значения считает инструмент, вручную они не вводятся.", "",
