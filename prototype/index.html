@@ -143,6 +143,9 @@ body.nohints .topbar .muted, body.nohints .hint { display: none }
 .cf-st { position: absolute; top: 0; right: 0; font-size: .75rem; font-weight: 700 } .cf-st.ok { color: var(--ok) }
 .d-more > summary { cursor: pointer; list-style: none; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px } .d-more > summary::-webkit-details-marker { display: none }
 .d-more > summary h2::after { content: " ▸"; color: var(--muted) } .d-more[open] > summary h2::after { content: " ▾" }
+.vtoggle { display: inline-flex; align-items: center; gap: 4px; padding: 3px; border: 1px solid var(--line); border-radius: 99px; background: var(--surface); align-self: flex-start }
+.vtoggle .muted { padding: 0 6px 0 8px; font-size: .85rem } .vtoggle a { padding: 5px 14px; border-radius: 99px; text-decoration: none; color: var(--fg); font-size: .9rem }
+.vtoggle a[aria-current="page"] { background: color-mix(in srgb, #2f6fde 14%, transparent); color: #2f6fde; font-weight: 600 }
 .mod-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px }
 .mod-item { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--line); border-left: 3px solid var(--gc); border-radius: 8px; cursor: pointer }
 .mod-item > span { display: flex; flex-direction: column; gap: 2px } .mod-item .muted { font-size: .84rem } .mod-item input { margin-top: 3px }
@@ -161,7 +164,14 @@ body.nohints .topbar .muted, body.nohints .hint { display: none }
 .hm-now { position: absolute; top: -16px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--fg); pointer-events: none }
 .hm-now b { position: absolute; top: -2px; left: 6px; font: 600 .72rem var(--f-body); white-space: nowrap }
 .hm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px }
-.hm-tile { display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: inherit } .hm-tile:hover { border-color: var(--accent) }
+.hm-tile { display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: inherit; text-align: left; font: inherit; cursor: pointer; width: 100% } .hm-tile:hover { border-color: var(--accent) }
+.hm-tile.on, .hm-why.on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent) }
+.hm-why { align-self: flex-start; margin-top: 6px }
+.hm-drill { border-color: var(--accent) } .hm-dcols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px }
+.hm-rows { display: flex; flex-direction: column } .hm-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line) }
+.hm-row > span:first-child { display: flex; flex-direction: column } .hm-row small { font-size: .78rem } .hm-ok { color: var(--ok); font-weight: 700 }
+.hm-in { display: flex; align-items: center; gap: 6px; flex: none } .hm-in .vin { width: 130px } .hm-in .unit { white-space: nowrap; font-size: .82rem }
+.hm-out { display: flex; flex-direction: column; align-items: flex-end; text-align: right } .hm-out .delta { font-size: .8rem }
 .hm-v { font: 600 1.7rem/1.1 var(--f-body) }
 .hm-m { position: relative; height: 8px; border-radius: 99px; background: var(--line) } .hm-m i { display: block; height: 100%; border-radius: 99px; background: var(--accent) }
 .hm-m b { position: absolute; top: -3px; width: 2px; height: 14px; margin-left: -1px; background: var(--fg) }
@@ -4641,7 +4651,8 @@ window.I18N = (function () {
     ["Дорожная карта", "Жол картасы"], ["Дорожная карта ЖК", "ТҮК жол картасы"], ["Этапы", "Кезеңдер"], ["Схема связей", "Байланыстар сызбасы"], ["Схема связей этапов", "Кезеңдер байланысының сызбасы"], ["Пройдено", "Өтті"], ["Идёт", "Жүріп жатыр"], ["Впереди", "Алда"], ["Инструменты этапа", "Кезең құралдары"], ["На дорожной карте:", "Жол картасында:"], ["Этапы в работе", "Жұмыстағы кезеңдер"], ["Вся дорожная карта", "Бүкіл жол картасы"], ["Открытых этапов нет.", "Ашық кезеңдер жоқ."], ["Этапы проекта по фазам — от анализа рынка до гарантии: сроки по графику, выполнение пунктов и инструменты каждого этапа. Нажмите на этап, чтобы открыть его пункты, документы, бюджет и сроки.", "Жоба кезеңдері фазалар бойынша — нарықты талдаудан кепілдікке дейін: кесте бойынша мерзімдер, тармақтардың орындалуы және әр кезеңнің құралдары. Тармақтарын, құжаттарын, бюджеті мен мерзімдерін ашу үшін кезеңді басыңыз."], ["Какой этап открывает следующий. Этап открывается, когда закрыты условия перехода на предыдущих.", "Қай кезең келесісін ашады. Кезең алдыңғыларындағы өту шарттары жабылғанда ашылады."],
     ["Отменить", "Болдырмау"], ["Подсказки", "Кеңестер"], ["Всем квартирам этажа:", "Қабаттың барлық пәтерлеріне:"], ["Последнее изменение отменено", "Соңғы өзгеріс болдырылмады"], ["Поля уже заполнены", "Өрістер толтырылған"], ["Заполнить пустые поля значениями первого блока", "Бос өрістерді бірінші блоктың мәндерімен толтыру"], ["Статус всем квартирам этажа", "Қабаттың барлық пәтерлерінің мәртебесі"],
     ["Мой отдел", "Менің бөлімім"], ["Мои разделы", "Менің бөлімдерім"], ["Я — все разделы", "Мен — барлық бөлімдер"], ["По вашему отделу всё в порядке.", "Сіздің бөлім бойынша бәрі жақсы."],
-    ["План по работам ГПР", "ЖӨК жұмыстары бойынша жоспар"], ["Паспорт", "Паспорт"], ["Сроки и продажи", "Мерзімдер және сатылым"], ["Затраты и финансирование", "Шығындар және қаржыландыру"], ["Затраты", "Шығындар"], ["Команда", "Команда"], ["Риски", "Тәуекелдер"],
+    ["План по работам ГПР", "ЖӨК жұмыстары бойынша жоспар"], ["Из чего считается", "Неден есептеледі"], ["Свернуть", "Жию"], ["Исходные данные — можно поменять здесь", "Бастапқы деректер — осы жерде өзгертуге болады"], ["Результат расчёта", "Есептеу нәтижесі"],
+    ["Вид:", "Түрі:"], ["Список", "Тізім"], ["Схема", "Сызба"], ["Паспорт", "Паспорт"], ["Сроки и продажи", "Мерзімдер және сатылым"], ["Затраты и финансирование", "Шығындар және қаржыландыру"], ["Затраты", "Шығындар"], ["Команда", "Команда"], ["Риски", "Тәуекелдер"],
     ["Описание", "Сипаттама"], ["Описание и реквизиты", "Сипаттама және деректемелер"], ["Все параметры", "Барлық параметрлер"], ["Команда и партнёры", "Команда және серіктестер"],
     ["миссия, тексты для ПК Start, стандарты, реквизиты для документов", "миссия, ПК Start мәтіндері, стандарттар, құжаттарға арналған деректемелер"], ["Данные", "Деректер"], ["Модули", "Модульдер"], ["Модули проекта", "Жоба модульдері"], ["Настроить модули", "Модульдерді баптау"], ["не подключены", "қосылмаған"],
     ["Стройка", "Құрылыс"], ["Портфель", "Портфель"], ["Финансы", "Қаржы"], ["Комитет", "Комитет"], ["финмодель, «что если», бюджет, смета 1С", "қаржы моделі, «егер», бюджет, 1С сметасы"], ["показатели ПНР, чек-лист B0", "ӨҮШ көрсеткіштері, B0 чек-парағы"],
@@ -7141,10 +7152,11 @@ const VIEWS = {
 };
 
 // Состав групп по порядку вкладок; первый раздел группы открывается из меню. Шахматка и планировки — на паузе (без вкладки).
-const GV = { home: ["home", "today", "kpi"], map: ["roadmap", "gantt", "calendar", "deadlines", "scheme"], data: ["data"],
+const GV = { home: ["home", "today", "kpi"], map: ["roadmap", "gantt", "calendar", "deadlines"], data: ["data"],
   fin: ["model", "whatif", "budget", "smeta"], ors: ["pnr", "b0"], build: ["equip", "standards"], pk: ["pk"], co: ["projects"] };
 Object.entries(GV).forEach(([g, ks]) => ks.forEach(k => { VIEWS[k].g = g; }));
 ["chess", "plans"].forEach(k => { VIEWS[k].g = "build"; VIEWS[k].off = true; });
+VIEWS.scheme.g = "map"; VIEWS.scheme.off = true; // «Схема связей» — вид вкладки «Этапы»
 ["card", "blocks", "team", "partners"].forEach(k => { VIEWS[k].g = "data"; VIEWS[k].off = true; });
 
 // Инструменты этапов: раздел портала → этапы дорожной карты, где он нужен. Одно место связи: из него строятся
@@ -8059,6 +8071,18 @@ function todayItems() {
 }
 // ---------- Обзор проекта: положение проекта одним экраном, без пояснительного текста ----------
 // Всё считается из данных проекта: график, шахматка, бюджет, финмодель, спецтехника. Плитка ведёт в свой раздел.
+// Раскрытие показателя на «Обзоре»: из каких данных он считается (вводимые — правятся здесь же) и итоги расчёта.
+// inp — вводимые переменные, out — расчётные; href — раздел с подробностями.
+const HM_DRILL = {
+  keys: { t: "Ключи по прогнозу", href: "gantt", link: "График", note: "Ключи — конец этапа «Передача квартир» по графику. Прогноз сдвигается, когда пункты этапов не закрыты в срок.", inp: ["sched_start"], out: ["keys_fc", "keys_plan", "delay", "cur_stage", "stages_done"] },
+  smr: { t: "Строительство", href: "roadmap", link: "Дорожная карта", note: "Готовность — доля выполненных стадий СМР по этажам; план — по графику.", inp: [], out: ["smr_ready", "smr_fact", "cur_stage", "delay"] },
+  sales: { t: "Продажи", href: "model", link: "Финмодель", note: "Продано — по статусам квартир; план — равномерно от старта продаж до ключей.", inp: ["price", "growth", "area_sale"], out: ["sold_flats", "reserved_flats", "flats", "sales_start", "sales_dur", "fin_rev"] },
+  budget: { t: "Бюджет", href: "budget", link: "Бюджет", note: "План по этапам — из финмодели, факт вносит команда в модуле «Финансы».", inp: ["land", "design", "smr", "nets"], out: ["fin_cost", "fin_cost_m2"] },
+  margin: { t: "Маржа", href: "model", link: "Финмодель", note: "Маржа к себестоимости = (выручка − затраты) / затраты по финмодели.", inp: ["price", "area_sale", "smr", "land", "design", "nets"], out: ["fin_margin", "fin_irr", "fin_npv", "fin_rev", "fin_cost"] },
+  debt: { t: "Пиковый долг банку", href: "model", link: "Финмодель", note: "Наибольший долг банку в помесячном потоке: затраты, которые идут раньше выручки, покрываются кредитом.", inp: ["equity", "rate", "smr"], out: ["fin_peak_debt", "build_start", "build_dur", "sales_start", "fin_irr"] },
+  equip: { t: "Спецтехника", href: "equip", link: "Спецтехника", note: "Сумма по плану ГПР — строки плана техники по этапам графика × цены строк файла ЦДС/ПТО.", inp: ["eq_mono", "eq_mas"], out: ["eq_plan_sum", "eq_crane_m", "eq_lift_m", "eq_pump_m", "eq_sum"] }
+};
+let hmOpen = "";
 function viewHome() {
   const Z = window.ZHK, V = Object.fromEntries(Z.vars().map(v => [v.id, v])), t = id => V[id] && V[id].text ? V[id].text : "—", raw = id => V[id] ? V[id].raw : null;
   const X = Z.chess(), B = Z.budget(), ST = Z.stages(), items = todayItems();
@@ -8077,7 +8101,7 @@ function viewHome() {
   const curSt = ST.find(x => x.state === "active") || ST.find(x => x.state === "open") || null, done = ST.filter(x => x.state === "done").length;
   const strip = `<div class="hm-strip" role="img" aria-label="${esc("Фазы проекта, сейчас: " + (curSt ? curSt.name : "—"))}">${PH.map(g => `<a class="hm-ph ${g.s}" href="#roadmap" style="flex:${Math.max(1, g.b - g.a + 1)}" title="${esc(g.ph)}"><span>${esc(g.ph)}</span></a>`).join("")}<i class="hm-now" style="left:${at}%"><b>сегодня</b></i></div><div class="hm-dates"><span>${PH.length ? ymFmt2(lo) : ""}</span><span>${PH.length ? ymFmt2(hi - 1) : ""}</span></div>`;
   // Плитки: значение, шкала «факт / план», статус значком и словом.
-  const tile = (href, label, value, sub, s, meter) => `<a class="panel hm-tile" href="#${href}"><span class="label">${label}</span><div class="hm-v">${esc(value)}</div>${meter ? `<div class="hm-m"><i style="width:${Math.min(100, meter[0])}%"></i>${meter[1] != null ? `<b style="left:${Math.min(100, meter[1])}%" title="план"></b>` : ""}</div>` : ""}<div class="hm-sub${s ? " " + s : ""}">${s ? `<span class="hm-ic" aria-hidden="true">${ICON[s]}</span>` : ""}${esc(sub)}</div></a>`;
+  const tile = (id, label, value, sub, s, meter) => `<button type="button" class="panel hm-tile${hmOpen === id ? " on" : ""}" data-hm="${id}" aria-expanded="${hmOpen === id}"><span class="label">${label}</span><div class="hm-v">${esc(value)}</div>${meter ? `<div class="hm-m"><i style="width:${Math.min(100, meter[0])}%"></i>${meter[1] != null ? `<b style="left:${Math.min(100, meter[1])}%" title="план"></b>` : ""}</div>` : ""}<div class="hm-sub${s ? " " + s : ""}">${s ? `<span class="hm-ic" aria-hidden="true">${ICON[s]}</span>` : ""}${esc(sub)}</div></button>`;
   const T = X.tot, smr = T.cells ? pc(T.fw, T.cells) : null, smrP = T.cells ? pc(T.pw, T.cells) : null;
   const sales = T.flats ? pc(T.sold, T.flats) : null, salesP = T.flats ? pc(T.soldPlan, T.flats) : null;
   const bud = B.plan ? pc(B.fact, B.plan) : null;
@@ -8089,23 +8113,36 @@ function viewHome() {
   const dS = bD == null || cD == null || !(bD > 0) ? "" : cD <= bD * 1.0005 ? "ok" : cD <= bD * 1.1 ? "warn" : "bad";
   const lvl = (f, p, tol) => f == null || p == null ? "" : f >= p - tol ? "ok" : f >= p - 3 * tol ? "warn" : "bad";
   const tiles = [
-    tile("chess", "Строительство", smr == null ? "—" : smr + "%", smr == null ? "нет факта СМР" : "по плану " + smrP + "%", lvl(smr, smrP, 3), smr == null ? null : [smr, smrP]),
-    tile("chess", "Продажи", sales == null ? "—" : T.sold + " из " + T.flats, sales == null ? "нет квартир" : "по плану " + T.soldPlan + " кв.", lvl(sales, salesP, 3), sales == null ? null : [sales, salesP]),
+    tile("smr", "Строительство", smr == null ? "—" : smr + "%", smr == null ? "нет факта СМР" : "по плану " + smrP + "%", lvl(smr, smrP, 3), smr == null ? null : [smr, smrP]),
+    tile("sales", "Продажи", sales == null ? "—" : T.sold + " из " + T.flats, sales == null ? "нет квартир" : "по плану " + T.soldPlan + " кв.", lvl(sales, salesP, 3), sales == null ? null : [sales, salesP]),
     tile("budget", "Бюджет освоен", bud == null ? "—" : bud + "%", bud == null ? "нет плана" : mln(B.fact) + " из " + mln(B.plan) + (B.over ? " · перерасход: " + B.over : ""), bud == null ? "" : !B.over ? "ok" : B.over <= 2 ? "warn" : "bad", bud == null ? null : [bud, null]),
-    tile("model", "Маржа", t("fin_margin"), (bM == null ? "нет базы ПК Start" : "база " + V.fin_margin.base) + " · IRR " + t("fin_irr"), mS, null),
-    tile("model", "Пиковый долг банку", t("fin_peak_debt"), bD == null ? "нет базы ПК Start" : "база " + V.fin_peak_debt.base, dS, null),
+    tile("margin", "Маржа", t("fin_margin"), (bM == null ? "нет базы ПК Start" : "база " + V.fin_margin.base) + " · IRR " + t("fin_irr"), mS, null),
+    tile("debt", "Пиковый долг банку", t("fin_peak_debt"), bD == null ? "нет базы ПК Start" : "база " + V.fin_peak_debt.base, dS, null),
     tile("equip", "Спецтехника", mln(Ep.sumPlan), eqD >= 1e6 ? "+" + mln(eqD) + " из-за отставания" : Ep.sumPlan == null ? "нет цен из файла ЦДС/ПТО" : "по плану ГПР", eqD >= 1e6 ? "warn" : Ep.sumPlan == null ? "" : "ok", null)
   ];
+  // Панель показателя: вводимые данные — полями (меняются здесь же), расчётные — значением и отклонением от базы ПК Start.
+  const ro = Z.readOnly();
+  const inpCtl = v => v.type === "month" ? `<input type="month" class="vin" data-var="${v.id}" value="${esc(v.raw || "")}"${ro ? " disabled" : ""}>`
+    : `<input type="text" inputmode="decimal" class="vin num" data-var="${v.id}" value="${esc(v.raw == null ? "" : String(typeof v.raw === "number" ? Math.round(v.raw * 100) / 100 : v.raw).replace(".", ","))}"${ro ? " disabled" : ""}>${v.unit ? `<span class="muted unit">${esc(v.unit)}</span>` : ""}`;
+  const drill = id => { const D = HM_DRILL[id]; if (!D) return "";
+    const ins = D.inp.map(k => V[k]).filter(Boolean), outs = D.out.map(k => V[k]).filter(Boolean);
+    return `<section class="panel stack hm-drill" id="hm-drill"><div class="row" style="justify-content:space-between"><h2 class="h2">${esc(D.t)}: из чего считается</h2><div class="row"><a class="btn ghost mini" href="#${D.href}">Подробно: ${esc(D.link)} →</a><button type="button" class="btn ghost mini" data-hm="">Свернуть</button></div></div>
+      <p class="muted" style="margin:0">${esc(D.note)}</p>
+      <div class="hm-dcols">${ins.length ? `<div class="stack"><span class="label">Исходные данные — можно поменять здесь</span><div class="hm-rows">${ins.map(v => `<label class="hm-row"><span><span>${esc(v.name)}${v.st === "approved" ? ' <span class="hm-ok" title="Утверждено">✓</span>' : ""}</span><small class="muted">${esc(v.owner)}</small></span><span class="hm-in">${inpCtl(v)}</span></label>`).join("")}</div></div>` : ""}
+        <div class="stack"><span class="label">Результат расчёта</span><div class="hm-rows">${outs.map(v => `<div class="hm-row"><span>${esc(v.name)}</span><span class="hm-out"><b>${esc(v.text)}</b>${v.delta && v.delta.text !== "без изменений" ? `<span class="delta ${v.delta.tone}">${esc(v.delta.text)} к базе</span>` : ""}</span></div>`).join("")}</div></div></div>
+    </section>`; };
   const t0 = isoDay(d0), soon = Z.events().filter(e => e.kind !== "hol" && e.date >= t0).slice(0, 5);
   const att = items.filter(x => x.lvl !== "info");
   return `<div class="topbar"><div class="stack" style="gap:4px"><div class="crumbs"><span class="label">${esc(projTitle())}</span></div><h1>Обзор проекта</h1></div></div>
   <section class="panel hm-hero">
-    <div class="stack" style="gap:2px"><span class="label">Ключи по прогнозу</span><div class="hm-key">${esc(t("keys_fc"))}</div><span class="muted">по плану ${esc(t("keys_plan"))}</span></div>
+    <div class="stack" style="gap:2px"><span class="label">Ключи по прогнозу</span><div class="hm-key">${esc(t("keys_fc"))}</div><span class="muted">по плану ${esc(t("keys_plan"))}</span><button type="button" class="btn ghost mini hm-why${hmOpen === "keys" ? " on" : ""}" data-hm="keys" aria-expanded="${hmOpen === "keys"}">Из чего считается</button></div>
     <span class="hm-pill ${st}"><span aria-hidden="true">${ICON[st]}</span> ${esc(stTxt)}</span>
     <div class="stack hm-cur" style="gap:2px"><span class="label">Сейчас</span><b>${curSt ? esc(curSt.code + " · " + curSt.name) : "—"}</b><span class="muted">пройдено ${done} из ${ST.length} этапов</span></div>
   </section>
   <section class="panel stack">${strip}</section>
+  ${hmOpen === "keys" ? drill("keys") : ""}
   <div class="hm-grid">${tiles.join("")}</div>
+  ${hmOpen && hmOpen !== "keys" ? drill(hmOpen) : ""}
   <div class="hm-two">
     <section class="panel stack"><div class="row" style="justify-content:space-between"><h2 class="h2">Требует решения</h2><a class="btn ghost mini" href="#today">Все${items.length ? " · " + items.length : ""}</a></div>
       ${att.length ? `<ul class="hm-list">${att.slice(0, 4).map(x => `<li class="${x.lvl}"><span class="hm-ic" aria-hidden="true">${ICON[x.lvl]}</span><a href="#${x.href}">${esc(x.what)}</a><span class="muted">${esc(x.text)}</span></li>`).join("")}</ul>` : `<p class="hm-sub ok" style="margin:0"><span class="hm-ic" aria-hidden="true">✓</span>Срочного нет</p>`}</section>
@@ -8204,7 +8241,7 @@ function route() {
   document.getElementById("nav").innerHTML = navHtml(v);
   const main = document.getElementById("main");
   main.innerHTML = gbarHtml() + VIEWS[v].r();
-  const top = main.querySelector(".topbar"); if (top) top.insertAdjacentHTML("afterend", stageChips(v) + subTabs(v));
+  const top = main.querySelector(".topbar"); if (top) top.insertAdjacentHTML("afterend", stageChips(v) + subTabs(v) + viewToggle(v));
   if (VIEWS[v].z) mountZhk(main, VIEWS[v].z, VIEWS[v].mode);
   // Ссылка на этап (#frame и т. п.) с другой страницы — открыть дорожную карту на этом этапе, а не на текущем.
   const sid = location.hash.slice(1); if (v === "roadmap" && sid !== v && window.ZHK && window.TREE.nodes.some(n => n.id === sid)) window.ZHK.selectStage(sid);
@@ -8564,10 +8601,16 @@ async function deckPptx() {
 
 // Показатели: сводка, финмодель и сроки документов — подразделы одной страницы.
 // Разделы той же группы — вкладками под заголовком (на телефоне, где меню свёрнуто в ленту групп).
+// Вид вкладки «Этапы»: список по фазам или схема связей этапов.
+function viewToggle(v) {
+  if (v !== "roadmap" && v !== "scheme") return "";
+  return `<div class="vtoggle" role="group" aria-label="Вид"><span class="muted">Вид:</span><a href="#roadmap"${v === "roadmap" ? ' aria-current="page"' : ""}>Список</a><a href="#scheme"${v === "scheme" ? ' aria-current="page"' : ""}>Схема</a></div>`;
+}
 function subTabs(v) {
   const items = (GV[VIEWS[v].g] || []).filter(k => VIEWS[k] && !VIEWS[k].off);
   if (items.length < 2) return "";
-  return `<nav class="subtabs" data-g="${VIEWS[v].g}" aria-label="Разделы группы">${items.map(k => { const n = navCnt(k, VIEWS[k]); return `<a href="#${k}"${k === v ? ' aria-current="page"' : ""}>${VIEWS[k].t}${n && (VIEWS[k].z || VIEWS[k].alert) ? ` <span class="cnt alert">${n}</span>` : ""}</a>`; }).join("")}</nav>`;
+  const at = v === "scheme" ? "roadmap" : v;
+  return `<nav class="subtabs" data-g="${VIEWS[v].g}" aria-label="Разделы группы">${items.map(k => { const n = navCnt(k, VIEWS[k]); return `<a href="#${k}"${k === at ? ' aria-current="page"' : ""}>${VIEWS[k].t}${n && (VIEWS[k].z || VIEWS[k].alert) ? ` <span class="cnt alert">${n}</span>` : ""}</a>`; }).join("")}</nav>`;
 }
 
 // ---------- Дорожная карта (приложение этапов) ----------
@@ -8603,8 +8646,8 @@ window.ZHK_onView = v => {
   const k = v === "tree" ? (cur === "scheme" ? "scheme" : "roadmap") : ZKEY[v]; if (!k) return;
   cur = k; zhkHost.dataset.view = v;
   document.getElementById("nav").innerHTML = navHtml(k);
-  const old = document.querySelector("#main > .subtabs"); if (old) old.remove();
-  const top = document.querySelector("#main > .topbar"); if (top) top.outerHTML = VIEWS[k].r() + subTabs(k);
+  document.querySelectorAll("#main > .subtabs, #main > .vtoggle").forEach(x => x.remove());
+  const top = document.querySelector("#main > .topbar"); if (top) top.outerHTML = VIEWS[k].r() + subTabs(k) + viewToggle(k);
 };
 // Данные проекта изменились (своя правка или синхронизация команды): обновить карточку, стандарты и счётчики.
 window.ZHK_onChange = late => {
@@ -8633,10 +8676,11 @@ function bind(m) {
     const r = window.ZHK.setVar(el.dataset.var, el.type === "checkbox" ? el.checked : el.value);
     if (typeof r === "string") { el.setCustomValidity(r); el.reportValidity(); setTimeout(() => el.setCustomValidity(""), 2000); return; }
     // Нормы спецтехники и ключевые данные сразу пересчитывают таблицы, даже если фокус ушёл в соседнее поле.
-    if (cur === "equip" || cur === "data") setTimeout(() => { const a = document.activeElement, id = a && a.dataset ? a.dataset.var : null; route(); const nx = id && document.querySelector(`[data-var="${id}"]`); if (nx) nx.focus(); }, 0);
+    if (cur === "equip" || cur === "data" || cur === "home") setTimeout(() => { const a = document.activeElement, id = a && a.dataset ? a.dataset.var : null; route(); const nx = id && document.querySelector(`[data-var="${id}"]`); if (nx) nx.focus(); }, 0);
   });
   m.querySelectorAll("[data-vst]").forEach(b => b.onclick = () => { const [id, st] = b.dataset.vst.split(":"), err = window.ZHK.setVarStatus(id, st); if (err) { b.title = err; b.disabled = true; } });
   renderBackups(m);
+  m.querySelectorAll("[data-hm]").forEach(b => b.onclick = () => { const id = b.dataset.hm; hmOpen = hmOpen === id ? "" : id; route(); const d = document.getElementById("hm-drill"); if (d && hmOpen) d.scrollIntoView({ block: "nearest" }); });
   m.querySelectorAll("details.d-more").forEach(d => d.ontoggle = () => { dataOpen[d.id.slice(4)] = d.open; saveDataOpen(); });
   const jump = id => { if (id === "about" || id === "all") dataOpen[id] = true; const d = m.querySelector("#sec-" + id); if (d) { if (d.tagName === "DETAILS") d.open = true; d.scrollIntoView({ block: "start" }); } };
   m.querySelectorAll("[data-dsec]").forEach(a => a.onclick = e => { e.preventDefault(); jump(a.dataset.dsec); });
