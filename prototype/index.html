@@ -101,6 +101,18 @@ button { cursor: pointer }
 .td-tag { font-size: .72rem; font-weight: 600; border-radius: 99px; padding: 2px 8px; text-align: center }
 .td-bad .td-tag { background: var(--bad-soft); color: var(--bad) } .td-warn .td-tag { background: var(--warn-soft); color: var(--warn) } .td-info .td-tag { background: var(--accent-soft); color: var(--accent) }
 .td-soon li { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; padding: 7px 0; border-bottom: 1px dashed var(--line); font-size: .92rem }
+.st-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: .85rem }
+.st-chips a { text-decoration: none; color: var(--fg); border: 1px solid var(--line); border-radius: 99px; padding: 2px 10px; background: var(--surface) }
+.st-chips a:hover { border-color: var(--accent) } .st-chips a[data-state="done"] { color: var(--ok); border-color: var(--ok-soft); background: var(--ok-soft) }
+.st-chips a[data-state="active"], .st-chips a[data-state="open"] { color: var(--accent); border-color: var(--accent); background: var(--accent-soft) }
+.td-stages { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column }
+.td-stages li { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) 120px; grid-template-areas: "n d p" "t t t"; gap: 4px 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line) }
+.td-stages li:last-child { border-bottom: 0 }
+.td-st { grid-area: n; display: flex; gap: 10px; align-items: baseline; text-decoration: none; color: var(--fg) } .td-st:hover b { color: var(--accent) }
+.td-stages li > .muted { grid-area: d; font-size: .85rem } .td-prog { grid-area: p; display: flex; flex-direction: column; gap: 4px; font-size: .8rem; text-align: right }
+.mbar2 { height: 6px; border-radius: 99px; background: var(--line); overflow: hidden } .mbar2 i { display: block; height: 100%; background: var(--accent) }
+.td-tools { grid-area: t; display: flex; flex-wrap: wrap; gap: 6px } .td-tools a { font-size: .78rem; text-decoration: none; color: var(--accent); border: 1px solid var(--line); border-radius: 99px; padding: 2px 9px }
+@media (max-width: 760px) { .td-stages li { grid-template-columns: minmax(0, 1fr) 90px; grid-template-areas: "n p" "d d" "t t" } }
 .h2 { font-family: var(--f-display); font-size: 1.05rem; font-weight: 700; margin: 0 }
 .search { position: fixed; z-index: 21; top: max(10vh, 16px); left: 50%; transform: translateX(-50%); width: min(640px, calc(100% - 32px)); max-height: 76vh; display: flex; flex-direction: column; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; box-shadow: 0 20px 60px rgb(0 0 0 / .25) }
 .search input { width: 100%; border: 1px solid var(--line); background: var(--surface-2); border-radius: 8px; padding: 10px 12px; font: 500 1rem var(--f-body); color: var(--fg) }
@@ -783,16 +795,44 @@ dialog.viewer::backdrop { background: rgba(10, 20, 35, .55); }
 .rank { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; min-width: 0; }
 .rank .xpbar { flex: 1 1 160px; }
 #proj-sel { width: auto; min-width: 200px; }
-/* Выбор проекта, статус сохранения и язык — в общей панели портала; игровой прогресс и предупреждения — только на дереве этапов. */
-#proj-sel, .rank > .row, .hud-meta .sync { display: none !important; }
-:host(:not([data-view="tree"])) .hud, :host(:not([data-view="tree"])) .alerts { display: none; }
+/* Выбор проекта, статус сохранения и язык — в общей панели портала. Без игровых очков и рангов: прогресс виден по этапам. */
+.hud, #ach { display: none !important; }
+:host(:not([data-view="tree"])) .alerts { display: none; }
+/* Дорожная карта: основной вид — этапы списком по фазам; схема связей — отдельный вид. */
+:host([data-mode="map"]) .tree, :host([data-mode="map"]) .legend, :host([data-mode="map"]) .minimap { display: none !important; }
+:host(:not([data-mode="map"])) .map { display: none; }
+.map { display: flex; flex-direction: column; gap: 14px; }
+.ph { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.ph-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; padding: 10px 14px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+.ph-h b { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; }
+.ph-h .mono { font-size: 12px; color: var(--muted); }
+.ph-st { margin-left: auto; font-size: 12px; font-weight: 600; border-radius: 99px; padding: 2px 9px; }
+.ph-st[data-s="done"] { background: var(--done-soft); color: var(--done); } .ph-st[data-s="now"] { background: var(--accent-soft, #e3ebfb); color: var(--accent); } .ph-st[data-s="next"] { background: var(--surface); color: var(--muted); border: 1px solid var(--line); }
+.mrow { display: grid; grid-template-columns: 34px minmax(0, 1fr) 150px; gap: 4px 12px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--line); cursor: pointer; }
+.mrow:last-child { border-bottom: 0; }
+.mrow:hover { background: var(--surface-2); }
+.mrow[aria-current="true"] { box-shadow: inset 3px 0 0 var(--accent); background: var(--surface-2); }
+.mrow .mc { font: 600 12px var(--f-mono, monospace); width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; border: 1px solid var(--line); color: var(--muted); }
+.mrow[data-state="done"] .mc { background: var(--done-soft); border-color: var(--done); color: var(--done); }
+.mrow[data-state="active"] .mc, .mrow[data-state="open"] .mc { background: var(--accent-soft, #e3ebfb); border-color: var(--accent); color: var(--accent); }
+.mrow[data-state="risk"] .mc { background: var(--risk-soft); border-color: var(--risk); color: var(--risk); }
+.mrow .mn { font-weight: 600; } .mrow .ms { font-size: 12px; color: var(--muted); }
+.mrow .ms .late { color: var(--late); font-weight: 600; }
+.mrow .mp { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); text-align: right; }
+.mrow .mbar { height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; } .mrow .mbar i { display: block; height: 100%; background: var(--accent); }
+.mrow[data-state="done"] .mbar i { background: var(--done); }
+.mtools { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
+.mtools a, .tools a { font-size: 12px; text-decoration: none; color: var(--accent); border: 1px solid var(--line); border-radius: 99px; padding: 2px 9px; background: var(--surface); }
+.mtools a:hover, .tools a:hover { border-color: var(--accent); }
+.tools { display: flex; flex-wrap: wrap; gap: 6px; }
+@media (max-width: 640px) { .mrow { grid-template-columns: 30px minmax(0, 1fr); } .mrow .mp { grid-column: 2; text-align: left; } }
 </style>
 <div class="zhk">
 <div class="wrap">
   <header class="hud">
     <div>
       <div class="eyebrow" id="project-line">Девелопмент · Республика Казахстан</div>
-      <h1>Дерево прокачки ЖК</h1>
+      <h1>Дорожная карта ЖК</h1>
       <p>Этапы строительства жилого комплекса от идеи до ключей. Этап открывается, когда закрыты все условия перехода на предыдущих. Внутри каждого этапа есть образцы документов.</p>
     </div>
     <div class="rank" aria-live="polite">
@@ -806,7 +846,7 @@ dialog.viewer::backdrop { background: rgba(10, 20, 35, .55); }
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Разделы">
-    <button class="tab" type="button" role="tab" data-view="tree" aria-selected="true">Дерево этапов</button>
+    <button class="tab" type="button" role="tab" data-view="tree" aria-selected="true">Дорожная карта</button>
     <button class="tab" type="button" role="tab" data-view="gantt" aria-selected="false">График <span class="badge" id="badge-gantt" hidden></span></button>
     <button class="tab" type="button" role="tab" data-view="model" aria-selected="false">Финмодель</button>
     <button class="tab" type="button" role="tab" data-view="budget" aria-selected="false">Бюджет <span class="badge" id="badge-budget" hidden></span></button>
@@ -816,7 +856,7 @@ dialog.viewer::backdrop { background: rgba(10, 20, 35, .55); }
   <div class="alerts" id="alerts" hidden></div>
 
   <div class="main" id="view-tree">
-    <section class="tree-card" aria-label="Дерево этапов">
+    <section class="tree-card" aria-label="Дорожная карта">
       <div class="legend">
         <span><i style="background:var(--done)"></i>Пройден</span>
         <span><i style="background:var(--accent)"></i>Доступен</span>
@@ -824,7 +864,7 @@ dialog.viewer::backdrop { background: rgba(10, 20, 35, .55); }
       </div>
       <div class="minimap" id="minimap"></div>
       <div class="region-bar" id="region-bar"></div>
-      <details class="ach" id="ach"></details>
+      <div class="map" id="map"></div>
       <div class="tree" id="tree"><svg class="edges" id="edges" aria-hidden="true"></svg></div>
       <div class="foot">
         <span>Образцы документов приведены для ознакомления. Перед использованием сверьте их с действующим законодательством РК и юристом.</span>
@@ -4447,7 +4487,7 @@ window.I18N = (function () {
     ["График", "Кесте"], ["График строительства", "Құрылыс кестесі"], ["Старт проекта", "Жобаның басталуы"], ["Ключи по плану", "Жоспар бойынша кілттер"],
     ["Ключи по прогнозу", "Болжам бойынша кілттер"], ["До ключей", "Кілтке дейін"], ["Отставание", "Артта қалу"], ["нет", "жоқ"], ["Старт", "Басталуы"],
     ["Типовые длительности", "Үлгілік ұзақтықтар"], ["Сегодня", "Бүгін"], ["отстаёт", "артта қалуда"], ["Срок этапа по плану прошёл", "Кезеңнің жоспарлы мерзімі өтті"], ["Прогноз отставания, мес.", "Артта қалу болжамы, ай"],
-    ["График строится из связей дерева: этап начинается, когда закончены все этапы, которые он требует. Красные этапы лежат на критическом пути: если любой из них задержится, сдвинутся ключи. Длительности можно менять, план пересчитается сразу.", "Кесте ағаш байланыстарынан құрылады: кезең ол талап ететін барлық кезеңдер аяқталғанда басталады. Қызыл кезеңдер сыни жолда жатыр: олардың кез келгені кешіксе, кілттер жылжиды. Ұзақтықтарды өзгертуге болады, жоспар бірден қайта есептеледі."],
+    ["График строится из связей этапов дорожной карты: этап начинается, когда закончены все этапы, которые он требует. Красные этапы лежат на критическом пути: если любой из них задержится, сдвинутся ключи. Длительности можно менять, план пересчитается сразу.", "Кесте жол картасы кезеңдерінің байланыстарынан құрылады: кезең ол талап ететін барлық кезеңдер аяқталғанда басталады. Қызыл кезеңдер сыни жолда жатыр: олардың кез келгені кешіксе, кілттер жылжиды. Ұзақтықтарды өзгертуге болады, жоспар бірден қайта есептеледі."],
     ["Сдачу сейчас определяют:", "Қазір тапсыруды айқындайтындар:"], ["Весь проект", "Бүкіл жоба"], ["Старт СМР", "ҚМЖ бастау"], ["Только СМР (ГПР)", "Тек ҚМЖ (ЖЖК)"], ["ГПР: строительно-монтажные работы", "ЖЖК: құрылыс-монтаж жұмыстары"], ["Ввод по плану", "Жоспар бойынша пайдалануға беру"], ["Ввод по прогнозу", "Болжам бойынша пайдалануға беру"], ["Длительность СМР", "ҚМЖ ұзақтығы"], ["Отставание ввода", "Пайдалануға беруден қалу"], ["Критический путь", "Сыни жол"], ["Есть резерв", "Резерві бар"], ["Резерв времени", "Уақыт резерві"],
     ["Прогноз сдвига", "Жылжу болжамы"], ["Прогноз: пройденный этап заканчивается по дате последней отметки, незавершённый этап, у которого вышел срок, сдвигает все последующие. Гарантия идёт после ключей и в критический путь не входит.", "Болжам: өткен кезең соңғы белгі күні бойынша аяқталады, мерзімі өткен аяқталмаған кезең кейінгілердің бәрін жылжытады. Кепілдік кілттерден кейін жүреді және сыни жолға кірмейді."],
     ["Введите длительность в месяцах, от 0 до 120", "Ұзақтықты айлармен енгізіңіз, 0-ден 120-ға дейін"], ["Возвращены типовые длительности", "Үлгілік ұзақтықтар қайтарылды"],
@@ -4489,6 +4529,7 @@ window.I18N = (function () {
     ["Квартиры", "Пәтерлер"], ["Число квартир", "Пәтерлер саны"], ["Свободна", "Бос"], ["Бронь", "Брондалған"], ["Продана", "Сатылды"], ["Не в продаже", "Сатылымда емес"], ["Статус квартиры", "Пәтер мәртебесі"], ["Квартир в брони", "Брондалған пәтерлер"], ["Площадь квартир по шахматке", "Шахматка бойынша пәтерлер ауданы"], ["Комнат", "Бөлме"], ["Площадь, м²", "Ауданы, м²"], ["Скопировать комнаты и площади на типовые этажи", "Бөлмелер мен аудандарды типтік қабаттарға көшіру"], ["Типовые — этажи блока с тем же числом квартир. Номера и статусы не копируются. Серый номер — сквозная нумерация по блоку.", "Типтік — пәтер саны бірдей блок қабаттары. Нөмірлер мен мәртебелер көшірілмейді. Сұр нөмір — блок бойынша өтпелі нөмірлеу."], ["Сколько квартир продано на этаже подъезда. Если у квартир этажа отмечены статусы, продажи считаются по ним. План продаж — равномерно от старта продаж до передачи ключей по графику.", "Кіреберіс қабатында қанша пәтер сатылды. Қабат пәтерлерінің мәртебесі белгіленсе, сату солар бойынша есептеледі. Сату жоспары — кесте бойынша сату басталғаннан кілт тапсыруға дейін біркелкі."],
     ["Планировки", "Жоспарлар"], ["Планировка", "Жоспар"], ["Добавить планировку", "Жоспар қосу"], ["Добавить помещение", "Бөлме қосу"], ["Помещение", "Бөлме"], ["Название", "Атауы"], ["Назначить квартирам в шахматке", "Шахматкада пәтерлерге тағайындау"], ["Скопировать планировки на типовые этажи", "Жоспарларды типтік қабаттарға көшіру"], ["Помещений пока нет.", "Бөлмелер әлі жоқ."], ["Планировок пока нет.", "Жоспарлар әлі жоқ."], ["Вид помещения квартиры", "Пәтер бөлмесінің түрі"], ["Жилая комната", "Тұрғын бөлме"], ["Кухня", "Ас үй"], ["Кухня-гостиная", "Ас үй-қонақ бөлме"], ["Санузел", "Санитариялық торап"], ["Ванная", "Ванна бөлмесі"], ["Прихожая", "Кіреберіс"], ["Коридор", "Дәліз"], ["Гардеробная", "Киім бөлмесі"], ["Кладовая", "Қойма"], ["Лоджия", "Лоджия"], ["Балкон", "Балкон"], ["Терраса", "Терраса"], ["Типовые планировки вводятся один раз: помещения и их площади. Квартира в шахматке ссылается на планировку — её площадь и комнатность считаются отсюда, а из суммы по всем квартирам — продаваемая жилая площадь проекта.", "Типтік жоспарлар бір рет енгізіледі: бөлмелер және олардың аудандары. Шахматкадағы пәтер жоспарға сілтеме жасайды — оның ауданы мен бөлме саны осы жерден, ал барлық пәтерлердің қосындысынан жобаның сатылатын тұрғын ауданы есептеледі."],
     ["Сроки и стройка", "Мерзімдер және құрылыс"], ["Деньги", "Ақша"], ["ОРС", "ОРС"], ["Люди", "Адамдар"], ["Компания", "Компания"], ["Чек-лист B0", "B0 чек-парағы"], ["Поиск", "Іздеу"], ["Требует внимания", "Назар аударуды қажет етеді"], ["Ближайший месяц", "Жақын ай"], ["Весь календарь", "Бүкіл күнтізбе"], ["Срочно", "Шұғыл"], ["Внимание", "Назар"], ["Проверить", "Тексеру"], ["Текущий этап", "Ағымдағы кезең"], ["Стройка", "Құрылыс"], ["Просрочен пункт этапа", "Кезең тармағы мерзімі өтті"], ["Истекает документ", "Құжат мерзімі аяқталады"], ["Документ истёк", "Құжат мерзімі өтті"], ["Отставание от графика", "Кестеден қалу"], ["Стройка отстаёт", "Құрылыс қалып жатыр"], ["Продажи ниже плана", "Сату жоспардан төмен"], ["Перерасход бюджета", "Бюджеттің асып кетуі"], ["Данные на согласовании", "Келісудегі деректер"], ["Базовая версия ПК Start", "ПК Start базалық нұсқасы"], ["Событий нет.", "Оқиғалар жоқ."], ["Ничего не найдено.", "Ештеңе табылмады."], ["Раздел", "Бөлім"], ["Стандарт", "Стандарт"], ["Команда", "Команда"], ["Квартира", "Пәтер"], ["Что требует внимания по проекту. Всё считается из данных проекта: графика, реестра документов, шахматки, бюджета и статусов данных.", "Жоба бойынша назар аударуды қажет ететін нәрселер. Барлығы жоба деректерінен есептеледі: кесте, құжаттар тізілімі, шахматка, бюджет және деректер мәртебесі."], ["Всё в порядке: просрочек, отставаний и данных на согласовании нет.", "Бәрі жақсы: мерзімі өткен, қалып жатқан және келісудегі деректер жоқ."], ["Раздел, показатель, квартира, документ, стандарт, этап, человек", "Бөлім, көрсеткіш, пәтер, құжат, стандарт, кезең, адам"], ["↑ ↓ — выбор, Enter — открыть, Esc — закрыть", "↑ ↓ — таңдау, Enter — ашу, Esc — жабу"], ["Что найти", "Не табу керек"], ["Поиск по порталу", "Портал бойынша іздеу"],
+    ["Дорожная карта", "Жол картасы"], ["Дорожная карта ЖК", "ТҮК жол картасы"], ["Этапы", "Кезеңдер"], ["Схема связей", "Байланыстар сызбасы"], ["Схема связей этапов", "Кезеңдер байланысының сызбасы"], ["Пройдено", "Өтті"], ["Идёт", "Жүріп жатыр"], ["Впереди", "Алда"], ["Инструменты этапа", "Кезең құралдары"], ["На дорожной карте:", "Жол картасында:"], ["Этапы в работе", "Жұмыстағы кезеңдер"], ["Вся дорожная карта", "Бүкіл жол картасы"], ["Открытых этапов нет.", "Ашық кезеңдер жоқ."], ["Этапы проекта по фазам — от анализа рынка до гарантии: сроки по графику, выполнение пунктов и инструменты каждого этапа. Нажмите на этап, чтобы открыть его пункты, документы, бюджет и сроки.", "Жоба кезеңдері фазалар бойынша — нарықты талдаудан кепілдікке дейін: кесте бойынша мерзімдер, тармақтардың орындалуы және әр кезеңнің құралдары. Тармақтарын, құжаттарын, бюджеті мен мерзімдерін ашу үшін кезеңді басыңыз."], ["Какой этап открывает следующий. Этап открывается, когда закрыты условия перехода на предыдущих.", "Қай кезең келесісін ашады. Кезең алдыңғыларындағы өту шарттары жабылғанда ашылады."],
     ["Казначей", "Қазынашы"], ["Факт бюджета внесён по 5+ этапам", "5+ кезең бойынша бюджет фактісі енгізілді"], ["План из финмодели, тг", "Қаржы моделінен жоспар, тг"], ["План считается из финмодели автоматически: земля, проектирование по этапам проекта, СМР с технадзором и резервом по этапам стройки, сети, маркетинг, административные расходы и проценты. Чтобы изменить план, измените исходные данные финмодели или сроки в графике.", "Жоспар қаржы моделінен автоматты түрде есептеледі: жер, жоба кезеңдері бойынша жобалау, құрылыс кезеңдері бойынша техқадағалау мен резервті қоса ҚМЖ, желілер, маркетинг, әкімшілік шығыстар және пайыздар. Жоспарды өзгерту үшін қаржы моделінің бастапқы деректерін немесе кестедегі мерзімдерді өзгертіңіз."],
     ["Документы под контролем", "Құжаттар бақылауда"], ["5+ документов в реестре сроков, ни одного истёкшего", "Мерзімдер тізілімінде 5+ құжат, бірде-біреуінің мерзімі өтпеген"],
     ["Полный архив", "Толық мұрағат"], ["10+ вложений к пунктам чек-листов", "Чек-парақ тармақтарына 10+ тіркеме"],
@@ -4937,7 +4978,7 @@ window.ZHK_BOOT = function (document) {
     Object.keys(tiers).map(Number).sort((a, b) => a - b).forEach(lvl => {
       const row = document.createElement("div");
       row.className = "tier";
-      row.innerHTML = '<div class="tier-label"><b>LVL ' + String(lvl).padStart(2, "0") + '</b><span></span></div><div class="tier-nodes"></div>';
+      row.innerHTML = '<div class="tier-label"><span></span></div><div class="tier-nodes"></div>';
       row.querySelector(".tier-label span").textContent = tiers[lvl][0].phase;
       const wrap = row.querySelector(".tier-nodes");
       tiers[lvl].forEach(n => {
@@ -5050,7 +5091,7 @@ window.ZHK_BOOT = function (document) {
     el.innerHTML = lines.join("") + '<button class="linkbtn" type="button" data-goview="deadlines">Открыть реестр сроков</button>';
   }
 
-  function renderChrome() { applyRegion(); renderHud(); renderTree(); renderTabs(); renderAlerts(); renderRegion(); renderMinimap(); renderAch(); }
+  function renderChrome() { applyRegion(); renderHud(); renderTree(); renderMap(); renderTabs(); renderAlerts(); renderRegion(); renderMinimap(); }
 
   // --- region bar ---------------------------------------------------------
   const regionBar = document.getElementById("region-bar");
@@ -5269,15 +5310,15 @@ window.ZHK_BOOT = function (document) {
     const late = lateCount(n);
 
     inner.innerHTML =
-      '<div class="panel-head"><div class="eyebrow">Этап ' + n.code + " · LVL " + n.lvl + " · " + esc(n.phase) + "</div>" +
+      '<div class="panel-head"><div class="eyebrow">Этап ' + n.code + " · " + esc(n.phase) + "</div>" +
       "<h2>" + esc(n.name) + '</h2><div class="chips"><span class="chip status" data-state="' + st + '">' + STATUS[st] + '</span><span class="chip">Срок: ' + esc(n.dur) + "</span>" +
       (late ? '<span class="chip" style="background:var(--late);color:var(--surface);border-color:var(--late)">Просрочено: ' + late + "</span>" : "") + "</div></div>" +
-      '<p class="desc">' + esc(n.desc) + "</p>" +
+      '<p class="desc">' + esc(n.desc) + "</p>" + toolsHtml(n) +
       '<dl class="facts">' +
         (n.req.length ? '<dt>Требует</dt><dd class="chips">' + n.req.map(chip).join("") + "</dd>" : "<dt>Требует</dt><dd>Стартовый этап</dd>") +
         (children[n.id].length ? '<dt>Открывает</dt><dd class="chips">' + children[n.id].map(chip).join("") + "</dd>" : "") +
       "</dl>" +
-      '<div><div class="section-title"><h3 class="eyebrow">Условия перехода</h3><span class="mono" style="font-size:12px;color:var(--muted)">' + dc + " / " + n.tasks.length + " · +" + n.tasks.length * XP_PER_TASK + " XP</span></div>" +
+      '<div><div class="section-title"><h3 class="eyebrow">Условия перехода</h3><span class="mono" style="font-size:12px;color:var(--muted)">' + dc + " / " + n.tasks.length + "</span></div>" +
         gateHtml(n, st, dc) + '<ul class="tasks" style="margin-top:8px">' + n.tasks.map((t, i) => taskHtml(n, t, i)).join("") + "</ul></div>" +
       budgetMiniHtml(n) +
       deadlinesMiniHtml(n) +
@@ -5402,7 +5443,36 @@ window.ZHK_BOOT = function (document) {
       try { history.replaceState(null, "", "#" + id); } catch (e) {}
       panel.scrollTop = 0;
     }
-    renderHud(); renderTree(); renderPanel(true);
+    renderHud(); renderTree(); renderMap(); renderPanel(true);
+  }
+  // Инструменты этапа (блоки, шахматка, бюджет, B0, ПНР…) — ссылки на разделы портала; связь задаёт портал (window.STAGE_TOOLS).
+  function toolsHtml(n) {
+    const t = (window.STAGE_TOOLS || {})[n.id] || [];
+    return t.length ? '<div><div class="section-title"><h3 class="eyebrow">Инструменты этапа</h3></div><div class="tools">' + t.map(([k, l]) => '<a href="#' + k + '">' + esc(l) + "</a>").join("") + "</div></div>" : "";
+  }
+  // --- дорожная карта: этапы по фазам ----------------------------------------
+  const mapEl = document.getElementById("map");
+  function renderMap() {
+    if (!mapEl) return;
+    const G = schedule(), P = G.P, ym = t => ymFmt(ymAdd(G.start, Math.max(0, t))), TL = window.STAGE_TOOLS || {}, groups = [];
+    T.nodes.forEach(n => { let g = groups.find(x => x.ph === n.phase); if (!g) groups.push(g = { ph: n.phase, ns: [] }); g.ns.push(n); });
+    mapEl.innerHTML = groups.map(g => {
+      const sts = g.ns.map(stateOf), s = sts.every(x => x === "done") ? "done" : sts.some(x => x !== "locked" && x !== "done") || sts.some(x => x === "done") ? "now" : "next";
+      const from = Math.min(...g.ns.map(n => P[n.id].es)), to = Math.max(...g.ns.map(n => P[n.id].ef));
+      return '<section class="ph"><div class="ph-h"><b>' + esc(g.ph) + '</b><span class="mono">' + ym(from) + " – " + ym(Math.max(from, to - 0.01)) + '</span><span class="ph-st" data-s="' + s + '">' + { done: "Пройдено", now: "Идёт", next: "Впереди" }[s] + "</span></div>" +
+        g.ns.map(n => {
+          const p = P[n.id], st = stateOf(n), dc = doneCount(n), late = lateCount(n), slip = p.fe - p.ef > 0.25 && st !== "done";
+          return '<div class="mrow" role="button" tabindex="0" data-map="' + n.id + '" data-state="' + st + '" aria-current="' + (selected === n.id) + '">' +
+            '<span class="mc">' + (st === "done" ? "✓" : n.code) + "</span>" +
+            '<div><div class="mn">' + esc(n.name) + '</div><div class="ms">' + ym(p.es) + " – " + ym(Math.max(p.es, p.ef - 0.01)) + (slip ? ' · <span class="late">прогноз до ' + ym(p.fe - 0.01) + "</span>" : "") + " · " + STATUS[st] + (late ? ' · <span class="late">просрочено пунктов: ' + late + "</span>" : "") + "</div></div>" +
+            '<div class="mp"><span>' + dc + " / " + n.tasks.length + '</span><span class="mbar"><i style="width:' + Math.round(dc / n.tasks.length * 100) + '%"></i></span></div>' +
+            ((TL[n.id] || []).length ? '<div class="mtools">' + TL[n.id].map(([k, l]) => '<a href="#' + k + '">' + esc(l) + "</a>").join("") + "</div>" : "") + "</div>";
+        }).join("") + "</section>";
+    }).join("");
+  }
+  if (mapEl) {
+    mapEl.addEventListener("click", e => { if (e.target.closest("a")) return; const r = e.target.closest("[data-map]"); if (r) select(r.dataset.map, true); });
+    mapEl.addEventListener("keydown", e => { const r = e.target.closest("[data-map]"); if (r && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); select(r.dataset.map, true); } });
   }
 
   // --- financial model ----------------------------------------------------
@@ -5864,7 +5934,7 @@ window.ZHK_BOOT = function (document) {
       '<div class="card"><div class="section-title"><h2 class="view-title">' + (smr ? "ГПР: строительно-монтажные работы" : "График строительства") + '</h2>' +
         '<div class="row"><label class="field" for="g-start" style="grid-auto-flow:column;align-items:center;gap:8px"><span>Старт</span><input type="month" id="g-start" class="sel" value="' + G.start + '"' + (readOnly ? " disabled" : "") + "></label>" +
         (readOnly ? "" : '<button class="btn ghost" type="button" id="g-reset">Типовые длительности</button>') + "</div></div>" +
-        '<p class="muted">График строится из связей дерева: этап начинается, когда закончены все этапы, которые он требует. Красные этапы лежат на критическом пути: если любой из них задержится, сдвинутся ключи. Длительности можно менять, план пересчитается сразу.</p>' +
+        '<p class="muted">График строится из связей этапов дорожной карты: этап начинается, когда закончены все этапы, которые он требует. Красные этапы лежат на критическом пути: если любой из них задержится, сдвинутся ключи. Длительности можно менять, план пересчитается сразу.</p>' +
         (blocking.length ? '<p class="g-crit"><b>Сдачу сейчас определяют:</b> ' + blocking.slice(0, 6).map(n => '<button class="chip" type="button" data-open-stage="' + n.id + '" data-state="' + stateOf(n) + '">' + esc(n.code + " · " + n.name) + "</button>").join(" ") + "</p>" : "") +
         '<div class="g-legend"><span><i class="lg-crit"></i>Критический путь</span><span><i class="lg-bar"></i>Есть резерв</span><span><i class="lg-slack"></i>Резерв времени</span><span><i class="lg-late"></i>Прогноз сдвига</span><span><i class="lg-done"></i>Пройден</span><span><i class="lg-now"></i>Сегодня</span></div>' +
         '<div class="g-wrap"><div class="g-inner" style="min-width:' + (300 + total * W) + 'px"><div class="g-row g-head"><div class="g-label"></div><div class="g-track g-axis" style="width:' + (span * W) + 'px">' + ticks.join("") + "</div></div>" +
@@ -6459,6 +6529,10 @@ window.ZHK_BOOT = function (document) {
   window.ZHK = {
     setView: v => setView(v, false),
     selectStage: id => { if (byId[id]) select(id, true); },
+    // Этапы дорожной карты со статусом, выполнением и сроками по графику (план и прогноз).
+    stages: () => { const G = schedule(), P = G.P, ym = t => ymFmt(ymAdd(G.start, Math.max(0, t)));
+      return T.nodes.map(n => { const p = P[n.id]; return { id: n.id, code: n.code, name: n.name, phase: n.phase, state: stateOf(n), done: doneCount(n), total: n.tasks.length, late: lateCount(n), from: ym(p.es), to: ym(Math.max(p.es, p.ef - 0.01)), fto: ym(Math.max(p.fs, p.fe - 0.01)), slip: p.fe - p.ef }; }); },
+    redraw: () => { renderTree(); renderMap(); },
     project: () => S.project,
     setProject: patch => { if (!readOnly) commit({ project: patch }); },
     readOnly: () => readOnly,
@@ -6716,7 +6790,8 @@ function relevant() { return STD.filter(s => matches(s, { ...pick(card) })) }
 // ---------- Экраны ----------
 const Z = (t, sub) => () => head(t, sub);
 // Меню по группам: что за объект, сроки и стройка, деньги, ОРС, люди, комитет. alert — счётчик требует внимания.
-const NAV_G = [["today", ""], ["obj", "Объект"], ["time", "Сроки и стройка"], ["money", "Деньги"], ["ors", "ОРС"], ["people", "Люди"], ["pk", "Комитет"], ["co", "Компания"]];
+// Основа портала — дорожная карта: этапы проекта. Остальные разделы — инструменты этапов (связь в TOOL_STAGES).
+const NAV_G = [["today", ""], ["map", "Дорожная карта"], ["obj", "Объект"], ["money", "Деньги"], ["ors", "ОРС"], ["people", "Люди"], ["pk", "Комитет"], ["co", "Компания"]];
 const VIEWS = {
   today: { g: "today", t: "Сегодня", cnt: () => window.ZHK ? todayItems().filter(x => x.lvl === "bad").length || "" : "", alert: true, r: viewToday },
   card: { g: "obj", t: "Карточка проекта", cnt: () => "", r: viewCard },
@@ -6725,10 +6800,11 @@ const VIEWS = {
   chess: { g: "obj", t: "Шахматка", cnt: () => "", r: viewChess },
   data: { g: "obj", t: "Данные проекта", cnt: () => "", r: viewData },
   standards: { g: "obj", t: "Стандарты", cnt: () => relevant().length, r: viewStandards },
-  roadmap: { g: "time", z: "tree", t: "Этапы и чек-листы", cnt: () => "", r: Z("Этапы и чек-листы", "От анализа рынка до гарантии, включая проектный комитет «Start». Этап открывается, когда закрыты условия перехода на предыдущих.") },
-  gantt: { g: "time", z: "gantt", t: "График", cnt: () => "", r: Z("График строительства", "Диаграмма Ганта из связей этапов, критический путь и прогноз даты ключей.") },
-  calendar: { g: "time", t: "Календарь событий", cnt: () => calEvents().filter(e => e.kind !== "hol" && new Date(e.date) >= TODAY).length || "", r: viewCal },
-  deadlines: { g: "time", z: "deadlines", t: "Сроки документов", cnt: () => "", r: Z("Сроки документов", "АПЗ, техусловия, лицензии и гарантии с предупреждением за 60 и 30 дней.") },
+  roadmap: { g: "map", z: "tree", mode: "map", t: "Этапы", cnt: () => "", r: Z("Дорожная карта", "Этапы проекта по фазам — от анализа рынка до гарантии: сроки по графику, выполнение пунктов и инструменты каждого этапа. Нажмите на этап, чтобы открыть его пункты, документы, бюджет и сроки.") },
+  scheme: { g: "map", z: "tree", mode: "scheme", t: "Схема связей", cnt: () => "", r: Z("Схема связей этапов", "Какой этап открывает следующий. Этап открывается, когда закрыты условия перехода на предыдущих.") },
+  gantt: { g: "map", z: "gantt", t: "График", cnt: () => "", r: Z("График строительства", "Диаграмма Ганта из связей этапов, критический путь и прогноз даты ключей.") },
+  calendar: { g: "map", t: "Календарь событий", cnt: () => calEvents().filter(e => e.kind !== "hol" && new Date(e.date) >= TODAY).length || "", r: viewCal },
+  deadlines: { g: "map", z: "deadlines", t: "Сроки документов", cnt: () => "", r: Z("Сроки документов", "АПЗ, техусловия, лицензии и гарантии с предупреждением за 60 и 30 дней.") },
   model: { g: "money", z: "model", t: "Финмодель", cnt: () => "", r: Z("Финансовая модель", "Помесячный денежный поток, НДС, кредит, КПН, IRR и NPV.") },
   whatif: { g: "money", t: "Что если", cnt: () => "", r: viewWhatIf },
   budget: { g: "money", z: "budget", t: "Бюджет", cnt: () => "", r: Z("Бюджет: план и факт", "План по этапам заполняется из финмодели, факт вносит команда.") },
@@ -6742,6 +6818,21 @@ const VIEWS = {
   projects: { g: "co", z: "projects", t: "Портфель проектов", cnt: () => "", r: Z("Портфель проектов", "Все ЖК компании и их прогресс по дорожной карте.") },
 };
 
+// Инструменты этапов: раздел портала → этапы дорожной карты, где он нужен. Одно место связи: из него строятся
+// ссылки «Инструменты этапа» в дорожной карте и отметка «На дорожной карте» на странице раздела.
+const TOOL_STAGES = {
+  card: ["idea", "land"], whatif: ["idea", "finance", "pkstart"], model: ["idea", "finance", "pkstart"], blocks: ["sketch", "psd"], plans: ["sketch", "psd", "dolevka"],
+  b0: ["sketch"], pnr: ["survey", "sketch"], smeta: ["psd", "tender"], deadlines: ["land", "ird", "expert", "dolevka", "start", "commission"], partners: ["tender", "start"],
+  pk: ["pkstart"], kpi: ["pkstart"], data: ["pkstart"], team: ["start"], standards: ["start", "zero", "frame", "envelope", "mep", "finish"],
+  budget: ["start", "zero", "nets", "frame", "envelope", "mep", "finish"], chess: ["dolevka", "zero", "frame", "envelope", "mep", "finish", "commission", "handover"]
+};
+window.STAGE_TOOLS = {};
+Object.entries(TOOL_STAGES).forEach(([k, st]) => st.forEach(id => (window.STAGE_TOOLS[id] = window.STAGE_TOOLS[id] || []).push([k, VIEWS[k].t])));
+function stageChips(v) {
+  const st = TOOL_STAGES[v]; if (!st || !window.TREE) return "";
+  const S = window.ZHK && window.ZHK.stages ? Object.fromEntries(window.ZHK.stages().map(x => [x.id, x])) : {};
+  return `<div class="st-chips"><span class="muted">На дорожной карте:</span>${st.map(id => { const n = TREE.nodes.find(x => x.id === id), x = S[id]; return n ? `<a href="#${id}" data-state="${x ? x.state : ""}">${n.code} · ${esc(n.name)}</a>` : ""; }).join("")}</div>`;
+}
 function head(title, sub, demo) {
   return `<div class="topbar"><div class="stack" style="gap:4px"><div class="crumbs"><span class="label">${esc(projTitle())}</span></div><h1>${title}</h1>${sub ? `<div class="muted">${sub}</div>` : ""}</div>${demo ? '<span class="demo">Демо-данные</span>' : ""}</div>`;
 }
@@ -7484,15 +7575,19 @@ function viewToday() {
   const t0 = isoDay(new Date()), t30 = isoDay(new Date(Date.now() + 30 * 86400000));
   const soon = Z.events().filter(e => e.kind !== "hol" && e.date >= t0 && e.date <= t30).slice(0, 12);
   const K = [
-    ["Текущий этап", t("cur_stage"), "пройдено этапов: " + t("stages_done"), "roadmap"],
+    ["Текущий этап", t("cur_stage"), "пройдено этапов: " + t("stages_done") + " из " + window.TREE.nodes.length, "roadmap"],
     ["Ключи", t("keys_fc"), V.delay && V.delay.raw > 0.25 ? "по плану " + t("keys_plan") + ", отставание " + t("delay") : "по плану " + t("keys_plan"), "gantt"],
     ["Стройка", X.tot.cells ? Math.round(X.tot.fw / X.tot.cells * 100) + "%" : "—", X.tot.cells ? "план " + Math.round(X.tot.pw / X.tot.cells * 100) + "%" : "заполните блоки", "chess"],
     ["Продажи", X.tot.flats ? X.tot.sold + " из " + X.tot.flats : "—", X.tot.flats ? "план " + X.tot.soldPlan + (X.tot.rsv ? ", бронь " + X.tot.rsv : "") : "нет квартир в шахматке", "chess"],
     ["Финмодель", t("fin_margin"), "маржа · IRR " + t("fin_irr"), "model"]
   ];
   const ic = { bad: "Срочно", warn: "Внимание", info: "Проверить" };
+  const now = Z.stages().filter(x => x.state === "active" || x.state === "open" || x.state === "risk");
   return head("Сегодня", "Что требует внимания по проекту. Всё считается из данных проекта: графика, реестра документов, шахматки, бюджета и статусов данных.") + `
   <div class="grid g5">${K.map(([l, v, d, h]) => `<a class="panel kpi" href="#${h}" style="text-decoration:none;color:inherit"><span class="label">${l}</span><div class="big num">${esc(v)}</div><div class="muted" style="font-size:.85rem">${esc(d)}</div></a>`).join("")}</div>
+  <section class="panel stack"><div class="row" style="justify-content:space-between"><h2 class="h2">Этапы в работе</h2><a class="btn ghost mini" href="#roadmap">Вся дорожная карта</a></div>
+    ${now.length ? `<ul class="td-stages">${now.map(x => `<li><a class="td-st" href="#${x.id}"><span class="mono">${x.code}</span><b>${esc(x.name)}</b></a><span class="muted">${x.from} – ${x.to}${x.slip > 0.25 ? ", прогноз до " + x.fto : ""}${x.late ? ` · <span class="bad-t">просрочено: ${x.late}</span>` : ""}</span><span class="td-prog"><span class="mono">${x.done} / ${x.total}</span><span class="mbar2"><i style="width:${Math.round(x.done / x.total * 100)}%"></i></span></span><span class="td-tools">${(window.STAGE_TOOLS[x.id] || []).map(([k, l]) => `<a href="#${k}">${esc(l)}</a>`).join("")}</span></li>`).join("")}</ul>` : '<p class="muted" style="margin:0">Открытых этапов нет.</p>'}
+  </section>
   <section class="panel stack"><h2 class="h2">Требует внимания</h2>
     ${items.length ? `<ul class="td-list">${items.map(x => `<li class="td-${x.lvl}"><span class="td-tag">${ic[x.lvl]}</span><div><b>${esc(x.what)}</b>${x.when ? ` <span class="mono muted">${dmy(x.when)}</span>` : ""}<div class="muted">${esc(x.text)}</div></div><a class="btn ghost mini" href="#${x.href}">Открыть</a></li>`).join("")}</ul>` : '<div class="empty">Всё в порядке: просрочек, отставаний и данных на согласовании нет.</div>'}
   </section>
@@ -7554,8 +7649,8 @@ function route() {
   document.getElementById("nav").innerHTML = navHtml(v);
   const main = document.getElementById("main");
   main.innerHTML = gbarHtml() + VIEWS[v].r();
-  const top = main.querySelector(".topbar"); if (top) top.insertAdjacentHTML("afterend", subTabs(v));
-  if (VIEWS[v].z) mountZhk(main, VIEWS[v].z);
+  const top = main.querySelector(".topbar"); if (top) top.insertAdjacentHTML("afterend", stageChips(v) + subTabs(v));
+  if (VIEWS[v].z) mountZhk(main, VIEWS[v].z, VIEWS[v].mode);
   bind(main); bindGbar();
   document.querySelectorAll("#nav details.nav-grp").forEach(d => d.ontoggle = () => { navOpen[d.dataset.g] = d.open; try { localStorage.setItem("zhk-nav-open", JSON.stringify(navOpen)); } catch (e) {} });
 }
@@ -7866,7 +7961,7 @@ function subTabs(v) {
   return `<nav class="subtabs" aria-label="Разделы группы">${items.map(k => { const n = navCnt(k, VIEWS[k]); return `<a href="#${k}"${k === v ? ' aria-current="page"' : ""}>${VIEWS[k].t}${n && (VIEWS[k].z || VIEWS[k].alert) ? ` <span class="cnt alert">${n}</span>` : ""}</a>`; }).join("")}</nav>`;
 }
 
-// ---------- Дорожная карта (приложение дерева этапов) ----------
+// ---------- Дорожная карта (приложение этапов) ----------
 // Работает в изолированном блоке (shadow DOM): свои стили не пересекаются с порталом, цвета берутся из портала.
 let cur = "card", zhkHost = null;
 const ZKEY = Object.fromEntries(Object.entries(VIEWS).filter(([, x]) => x.z).map(([k, x]) => [x.z, k]));
@@ -7883,18 +7978,20 @@ function bootZhk() {
     fonts: document.fonts, body, documentElement: document.documentElement, get activeElement() { return root.activeElement },
   });
 }
-function mountZhk(main, view) {
+function mountZhk(main, view, mode) {
   main.appendChild(zhkHost);
   zhkHost.dataset.view = view;
+  zhkHost.dataset.mode = mode || "";
   window.ZHK.setView(view);
+  if (mode) window.ZHK.redraw();
 }
 function zhkBadge(view) {
   const b = zhkHost && zhkHost.shadowRoot.getElementById("badge-" + view);
   return b && !b.hidden && b.textContent.trim() ? b.textContent.trim() : "";
 }
-// Переход внутри дерева (например, «Открыть в графике»): обновить заголовок и меню без перерисовки дерева.
+// Переход внутри дорожной карты (например, «Открыть в графике»): обновить заголовок и меню без перерисовки дерева.
 window.ZHK_onView = v => {
-  const k = ZKEY[v]; if (!k) return;
+  const k = v === "tree" ? (cur === "scheme" ? "scheme" : "roadmap") : ZKEY[v]; if (!k) return;
   cur = k; zhkHost.dataset.view = v;
   document.getElementById("nav").innerHTML = navHtml(k);
   const old = document.querySelector("#main > .subtabs"); if (old) old.remove();
