@@ -96,6 +96,9 @@ body.nohints .topbar .muted, body.nohints .hint { display: none }
 .nav-grp > summary:hover { color: var(--fg) }
 .nav-dot { width: 7px; height: 7px; border-radius: 99px; background: var(--bad); flex: none }
 .nav-ribbon { display: none }
+.nav-mine { display: flex; flex-direction: column; gap: 2px; padding-bottom: 8px; margin-bottom: 4px; border-bottom: 1px dashed var(--line) }
+.nav-mine .nav-g { color: var(--accent) }
+.td-more summary { cursor: pointer; color: var(--muted); font-size: .9rem; padding: 6px 0 }
 .gbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line) }
 .gbar select { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 8px; font: 500 .9rem var(--f-body); color: var(--fg); max-width: 100% }
 .g-sync { font-size: .78rem; color: var(--muted) } .g-sync[data-mode="shared"]::before { content: "● "; color: var(--ok) } .g-sync[data-mode="local"]::before { content: "● "; color: var(--warn) }
@@ -4542,6 +4545,7 @@ window.I18N = (function () {
     ["Сроки и стройка", "Мерзімдер және құрылыс"], ["Деньги", "Ақша"], ["ОРС", "ОРС"], ["Люди", "Адамдар"], ["Компания", "Компания"], ["Чек-лист B0", "B0 чек-парағы"], ["Поиск", "Іздеу"], ["Требует внимания", "Назар аударуды қажет етеді"], ["Ближайший месяц", "Жақын ай"], ["Весь календарь", "Бүкіл күнтізбе"], ["Срочно", "Шұғыл"], ["Внимание", "Назар"], ["Проверить", "Тексеру"], ["Текущий этап", "Ағымдағы кезең"], ["Стройка", "Құрылыс"], ["Просрочен пункт этапа", "Кезең тармағы мерзімі өтті"], ["Истекает документ", "Құжат мерзімі аяқталады"], ["Документ истёк", "Құжат мерзімі өтті"], ["Отставание от графика", "Кестеден қалу"], ["Стройка отстаёт", "Құрылыс қалып жатыр"], ["Продажи ниже плана", "Сату жоспардан төмен"], ["Перерасход бюджета", "Бюджеттің асып кетуі"], ["Данные на согласовании", "Келісудегі деректер"], ["Базовая версия ПК Start", "ПК Start базалық нұсқасы"], ["Событий нет.", "Оқиғалар жоқ."], ["Ничего не найдено.", "Ештеңе табылмады."], ["Раздел", "Бөлім"], ["Стандарт", "Стандарт"], ["Команда", "Команда"], ["Квартира", "Пәтер"], ["Что требует внимания по проекту. Всё считается из данных проекта: графика, реестра документов, шахматки, бюджета и статусов данных.", "Жоба бойынша назар аударуды қажет ететін нәрселер. Барлығы жоба деректерінен есептеледі: кесте, құжаттар тізілімі, шахматка, бюджет және деректер мәртебесі."], ["Всё в порядке: просрочек, отставаний и данных на согласовании нет.", "Бәрі жақсы: мерзімі өткен, қалып жатқан және келісудегі деректер жоқ."], ["Раздел, показатель, квартира, документ, стандарт, этап, человек", "Бөлім, көрсеткіш, пәтер, құжат, стандарт, кезең, адам"], ["↑ ↓ — выбор, Enter — открыть, Esc — закрыть", "↑ ↓ — таңдау, Enter — ашу, Esc — жабу"], ["Что найти", "Не табу керек"], ["Поиск по порталу", "Портал бойынша іздеу"],
     ["Дорожная карта", "Жол картасы"], ["Дорожная карта ЖК", "ТҮК жол картасы"], ["Этапы", "Кезеңдер"], ["Схема связей", "Байланыстар сызбасы"], ["Схема связей этапов", "Кезеңдер байланысының сызбасы"], ["Пройдено", "Өтті"], ["Идёт", "Жүріп жатыр"], ["Впереди", "Алда"], ["Инструменты этапа", "Кезең құралдары"], ["На дорожной карте:", "Жол картасында:"], ["Этапы в работе", "Жұмыстағы кезеңдер"], ["Вся дорожная карта", "Бүкіл жол картасы"], ["Открытых этапов нет.", "Ашық кезеңдер жоқ."], ["Этапы проекта по фазам — от анализа рынка до гарантии: сроки по графику, выполнение пунктов и инструменты каждого этапа. Нажмите на этап, чтобы открыть его пункты, документы, бюджет и сроки.", "Жоба кезеңдері фазалар бойынша — нарықты талдаудан кепілдікке дейін: кесте бойынша мерзімдер, тармақтардың орындалуы және әр кезеңнің құралдары. Тармақтарын, құжаттарын, бюджеті мен мерзімдерін ашу үшін кезеңді басыңыз."], ["Какой этап открывает следующий. Этап открывается, когда закрыты условия перехода на предыдущих.", "Қай кезең келесісін ашады. Кезең алдыңғыларындағы өту шарттары жабылғанда ашылады."],
     ["Отменить", "Болдырмау"], ["Подсказки", "Кеңестер"], ["Всем квартирам этажа:", "Қабаттың барлық пәтерлеріне:"], ["Последнее изменение отменено", "Соңғы өзгеріс болдырылмады"], ["Поля уже заполнены", "Өрістер толтырылған"], ["Заполнить пустые поля значениями первого блока", "Бос өрістерді бірінші блоктың мәндерімен толтыру"], ["Статус всем квартирам этажа", "Қабаттың барлық пәтерлерінің мәртебесі"],
+    ["Мой отдел", "Менің бөлімім"], ["Мои разделы", "Менің бөлімдерім"], ["Я — все разделы", "Мен — барлық бөлімдер"], ["По вашему отделу всё в порядке.", "Сіздің бөлім бойынша бәрі жақсы."],
     ["Казначей", "Қазынашы"], ["Факт бюджета внесён по 5+ этапам", "5+ кезең бойынша бюджет фактісі енгізілді"], ["План из финмодели, тг", "Қаржы моделінен жоспар, тг"], ["План считается из финмодели автоматически: земля, проектирование по этапам проекта, СМР с технадзором и резервом по этапам стройки, сети, маркетинг, административные расходы и проценты. Чтобы изменить план, измените исходные данные финмодели или сроки в графике.", "Жоспар қаржы моделінен автоматты түрде есептеледі: жер, жоба кезеңдері бойынша жобалау, құрылыс кезеңдері бойынша техқадағалау мен резервті қоса ҚМЖ, желілер, маркетинг, әкімшілік шығыстар және пайыздар. Жоспарды өзгерту үшін қаржы моделінің бастапқы деректерін немесе кестедегі мерзімдерді өзгертіңіз."],
     ["Документы под контролем", "Құжаттар бақылауда"], ["5+ документов в реестре сроков, ни одного истёкшего", "Мерзімдер тізілімінде 5+ құжат, бірде-біреуінің мерзімі өтпеген"],
     ["Полный архив", "Толық мұрағат"], ["10+ вложений к пунктам чек-листов", "Чек-парақ тармақтарына 10+ тіркеме"],
@@ -7552,13 +7556,29 @@ function navHtml(v) {
   }).join("");
   // На телефоне — лента групп; разделы группы показываются вкладками на странице.
   const ribbon = NAV_G.map(([g, t]) => { const items = Object.keys(VIEWS).filter(k => VIEWS[k].g === g), to = items.indexOf(v) >= 0 ? v : items[0]; return `<a href="#${to}"${g === cg ? ' aria-current="page"' : ""}>${t || VIEWS[items[0]].t}</a>`; }).join("");
-  return `<div class="nav-tree">${tree}</div><div class="nav-ribbon">${ribbon}</div>`;
+  const R = role(), mine = R ? `<div class="nav-mine"><span class="nav-g">Мои разделы · ${R.t}</span>${R.views.filter(k => VIEWS[k]).map(k => link([k, VIEWS[k]])).join("")}</div>` : "";
+  return `<div class="nav-tree">${mine}${tree}</div><div class="nav-ribbon">${ribbon}</div>`;
 }
+// ---------- Мой отдел: настройка человека (в браузере), общие данные не меняет ----------
+// views — «Мои разделы» сверху меню; owners — владельцы переменных для фильтра «Данных проекта»; hrefs — пункты «Сегодня» отдела.
+const ROLES = {
+  rp: { t: "Руководитель проекта", views: ["roadmap", "gantt", "deadlines", "kpi", "pk", "team"], owners: null, hrefs: null },
+  fin: { t: "Финансы", views: ["model", "whatif", "budget", "smeta", "kpi"], owners: ["Финансы", "ФМ проекта"], hrefs: ["budget", "model", "data", "pnr"] },
+  ors: { t: "ОРС", views: ["pnr", "b0", "smeta", "blocks", "plans"], owners: ["ОРС", "ОРС Общестрой", "ОРС Сети"], hrefs: ["pnr", "b0"] },
+  sales: { t: "Продажи", views: ["chess", "plans", "whatif", "pk"], owners: ["Продажи"], hrefs: ["chess", "data"] },
+  build: { t: "Стройка и ПТО", views: ["roadmap", "chess", "gantt", "budget", "standards", "deadlines"], owners: ["Команда проекта"], hrefs: ["roadmap", "chess", "gantt", "deadlines", "budget"] },
+  dev: { t: "Развитие и юристы", views: ["card", "deadlines", "partners", "data"], owners: ["Развитие", "Юристы"], hrefs: ["deadlines", "data"] }
+};
+let myRole = "";
+try { myRole = ROLES[localStorage.getItem("zhk-role")] ? localStorage.getItem("zhk-role") : ""; } catch (e) {}
+const role = () => ROLES[myRole] || null;
+
 // ---------- Общая панель: проект, сохранение, поиск, язык ----------
 const zEl = id => zhkHost && zhkHost.shadowRoot.getElementById(id);
 function gbarHtml() {
   const ps = zEl("proj-sel"), sy = zEl("sync"), lb = zEl("lang-toggle");
   return `<div class="gbar" id="gbar"><select id="g-proj" aria-label="Проект">${ps ? ps.innerHTML : ""}</select>
+    <select id="g-role" aria-label="Мой отдел" title="Мой отдел: свои разделы сверху меню и свои пункты в «Сегодня»"><option value="">Я — все разделы</option>${Object.entries(ROLES).map(([k, r]) => `<option value="${k}"${k === myRole ? " selected" : ""}>Я — ${r.t}</option>`).join("")}</select>
     <span class="g-sync" data-mode="${sy ? esc(sy.dataset.mode || "") : ""}">${sy ? esc(sy.textContent) : ""}</span><span class="g-sp"></span>
     <button class="btn ghost" id="g-undo" type="button" aria-keyshortcuts="Control+Z"${window.ZHK && window.ZHK.canUndo() ? "" : " disabled"}>Отменить</button>
     <button class="btn ghost" id="g-hints" type="button" aria-pressed="${!document.body.classList.contains("nohints")}">Подсказки</button>
@@ -7569,6 +7589,7 @@ function bindGbar() {
   const gp = document.getElementById("g-proj");
   if (gp) gp.onchange = () => { const ps = zEl("proj-sel"); if (!ps) return; ps.value = gp.value; ps.dispatchEvent(new Event("change")); setTimeout(route, 0); };
   const gs = document.getElementById("g-search"); if (gs) gs.onclick = openSearch;
+  const gr = document.getElementById("g-role"); if (gr) gr.onchange = () => { myRole = gr.value; try { localStorage.setItem("zhk-role", myRole); } catch (e) {} if (dataF.owner === "*") dataF.owner = ""; route(); };
   const gu = document.getElementById("g-undo"); if (gu) gu.onclick = () => { if (window.ZHK.undo()) setTimeout(route, 0); };
   const gh = document.getElementById("g-hints"); if (gh) gh.onclick = () => { const off = !document.body.classList.toggle("nohints"); try { localStorage.setItem("zhk-hints", off ? "on" : "off"); } catch (e) {} renderGbar(); };
   const gl = document.getElementById("g-lang"); if (gl) gl.onclick = () => { const b = zEl("lang-toggle"); if (b) b.click(); setTimeout(route, 0); };
@@ -7600,6 +7621,7 @@ function todayItems() {
 }
 function viewToday() {
   const Z = window.ZHK, V = Object.fromEntries(Z.vars().map(v => [v.id, v])), t = id => V[id] ? V[id].text : "—", X = Z.chess(), items = todayItems();
+  const R = role(), isMine = x => !R || !R.hrefs || R.hrefs.indexOf(x.href) >= 0, mineItems = items.filter(isMine), otherItems = items.filter(x => !isMine(x));
   const t0 = isoDay(new Date()), t30 = isoDay(new Date(Date.now() + 30 * 86400000));
   const soon = Z.events().filter(e => e.kind !== "hol" && e.date >= t0 && e.date <= t30).slice(0, 12);
   const K = [
@@ -7616,8 +7638,8 @@ function viewToday() {
   <section class="panel stack"><div class="row" style="justify-content:space-between"><h2 class="h2">Этапы в работе</h2><a class="btn ghost mini" href="#roadmap">Вся дорожная карта</a></div>
     ${now.length ? `<ul class="td-stages">${now.map(x => `<li><a class="td-st" href="#${x.id}"><span class="mono">${x.code}</span><b>${esc(x.name)}</b></a><span class="muted">${x.from} – ${x.to}${x.slip > 0.25 ? ", прогноз до " + x.fto : ""}${x.late ? ` · <span class="bad-t">просрочено: ${x.late}</span>` : ""}</span><span class="td-prog"><span class="mono">${x.done} / ${x.total}</span><span class="mbar2"><i style="width:${Math.round(x.done / x.total * 100)}%"></i></span></span><span class="td-tools">${(window.STAGE_TOOLS[x.id] || []).map(([k, l]) => `<a href="#${k}">${esc(l)}</a>`).join("")}</span></li>`).join("")}</ul>` : '<p class="muted" style="margin:0">Открытых этапов нет.</p>'}
   </section>
-  <section class="panel stack"><h2 class="h2">Требует внимания</h2>
-    ${items.length ? `<ul class="td-list">${items.map(x => `<li class="td-${x.lvl}"><span class="td-tag">${ic[x.lvl]}</span><div><b>${esc(x.what)}</b>${x.when ? ` <span class="mono muted">${dmy(x.when)}</span>` : ""}<div class="muted">${esc(x.text)}</div></div><a class="btn ghost mini" href="#${x.href}">Открыть</a></li>`).join("")}</ul>` : '<div class="empty">Всё в порядке: просрочек, отставаний и данных на согласовании нет.</div>'}
+  <section class="panel stack"><h2 class="h2">Требует внимания${R && R.hrefs ? " · " + esc(R.t) : ""}</h2>
+    ${items.length ? `<ul class="td-list">${mineItems.map(x => `<li class="td-${x.lvl}"><span class="td-tag">${ic[x.lvl]}</span><div><b>${esc(x.what)}</b>${x.when ? ` <span class="mono muted">${dmy(x.when)}</span>` : ""}<div class="muted">${esc(x.text)}</div></div><a class="btn ghost mini" href="#${x.href}">Открыть</a></li>`).join("")}</ul>${mineItems.length ? "" : '<p class="muted" style="margin:0">По вашему отделу всё в порядке.</p>'}${otherItems.length ? `<details class="td-more"><summary>Другим отделам: ${otherItems.length}</summary><ul class="td-list">${otherItems.map(x => `<li class="td-${x.lvl}"><span class="td-tag">${ic[x.lvl]}</span><div><b>${esc(x.what)}</b>${x.when ? ` <span class="mono muted">${dmy(x.when)}</span>` : ""}<div class="muted">${esc(x.text)}</div></div><a class="btn ghost mini" href="#${x.href}">Открыть</a></li>`).join("")}</ul></details>` : ""}` : '<div class="empty">Всё в порядке: просрочек, отставаний и данных на согласовании нет.</div>'}
   </section>
   <section class="panel stack"><div class="row" style="justify-content:space-between"><h2 class="h2">Ближайший месяц</h2><a class="btn ghost mini" href="#calendar">Весь календарь</a></div>
     ${soon.length ? `<ul class="td-soon">${soon.map(e => `<li><span class="mono">${dmy(e.date)}</span><span>${esc(e.title)}</span></li>`).join("")}</ul>` : '<p class="muted" style="margin:0">Событий нет.</p>'}
@@ -7699,7 +7721,8 @@ let dataF = { sec: "", owner: "", st: "", q: "" }, baseAsk = false;
 function viewData() {
   const all = window.ZHK.vars(), ro = window.ZHK.readOnly(), B = window.ZHK.baseline();
   const q = dataF.q.trim().toLowerCase();
-  const list = all.filter(v => (!dataF.sec || v.sec === dataF.sec) && (!dataF.owner || v.owner === dataF.owner) && (!dataF.st || v.st === dataF.st) &&
+  const R = role(), owners = dataF.owner === "*" ? null : dataF.owner ? [dataF.owner] : R && R.owners;
+  const list = all.filter(v => (!dataF.sec || v.sec === dataF.sec) && (!owners || owners.indexOf(v.owner) >= 0) && (!dataF.st || v.st === dataF.st) &&
     (!q || (v.name + " " + v.id + " " + v.text).toLowerCase().includes(q)));
   const n = st => all.filter(v => v.st === st).length;
   const opt = (arr, cur, fmt = x => x) => arr.map(x => `<option value="${esc(x)}"${x === cur ? " selected" : ""}>${esc(fmt(x))}</option>`).join("");
@@ -7743,7 +7766,7 @@ function viewData() {
         : `<button class="btn" id="base-fix">${B ? "Обновить базовую версию" : "Зафиксировать базовую версию"}</button>`}</div></div>
     <div class="filters">
       <label>Раздел<select id="df-sec" data-df="sec"><option value="">Все</option>${opt(window.VARS.sections, dataF.sec)}</select></label>
-      <label>Владелец<select id="df-owner" data-df="owner"><option value="">Все</option>${opt(window.VARS.owners, dataF.owner)}</select></label>
+      <label>Владелец<select id="df-owner" data-df="owner"><option value="">${R && R.owners ? "Мой отдел: " + esc(R.t) : "Все"}</option>${R && R.owners ? `<option value="*"${dataF.owner === "*" ? " selected" : ""}>Все</option>` : ""}${opt(window.VARS.owners, dataF.owner)}</select></label>
       <label>Статус<select id="df-st" data-df="st"><option value="">Все</option>${opt(Object.keys(ST), dataF.st, x => ST[x][0])}</select></label>
       <label>Поиск<input type="text" id="df-q" data-df="q" value="${esc(dataF.q)}" placeholder="название или код"></label>
     </div>
