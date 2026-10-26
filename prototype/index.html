@@ -133,6 +133,30 @@ body.nohints .topbar .muted, body.nohints .hint { display: none }
 .td-stages li:last-child { border-bottom: 0 }
 .td-st { grid-area: n; display: flex; gap: 10px; align-items: baseline; text-decoration: none; color: var(--fg) } .td-st:hover b { color: var(--accent) }
 .td-stages li > .muted { grid-area: d; font-size: .85rem } .td-prog { grid-area: p; display: flex; flex-direction: column; gap: 4px; font-size: .8rem; text-align: right }
+.hm-hero { display: flex; flex-wrap: wrap; gap: 16px 32px; align-items: center; justify-content: space-between }
+.hm-key { font: 600 clamp(2.2rem, 5vw, 3.2rem)/1.05 var(--f-body); letter-spacing: -.01em }
+.hm-cur b { font-size: 1.05rem }
+.hm-pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 99px; font-weight: 600; font-size: 1.05rem }
+.hm-pill.ok, .hm-sub.ok { color: var(--ok) } .hm-pill.warn, .hm-sub.warn { color: var(--warn) } .hm-pill.bad, .hm-sub.bad { color: var(--bad) }
+.hm-pill.ok { background: var(--ok-soft) } .hm-pill.warn { background: var(--warn-soft) } .hm-pill.bad { background: var(--bad-soft) }
+.hm-strip { position: relative; display: flex; gap: 2px; height: 34px; margin: 18px 0 2px }
+.hm-ph { display: flex; align-items: center; min-width: 0; padding: 0 8px; border-radius: 6px; text-decoration: none; font-size: .78rem; font-weight: 600; overflow: hidden; container-type: inline-size }
+@container (max-width: 72px) { .hm-ph span { display: none } }
+.hm-dates { display: flex; justify-content: space-between; font: .78rem var(--f-mono); color: var(--muted) }
+.hm-ph span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.hm-ph.done { background: var(--accent); color: var(--surface) } .hm-ph.now { background: var(--accent-soft); color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent) } .hm-ph.next { background: var(--surface-2); color: var(--muted) }
+.hm-now { position: absolute; top: -16px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--fg); pointer-events: none }
+.hm-now b { position: absolute; top: -2px; left: 6px; font: 600 .72rem var(--f-body); white-space: nowrap }
+.hm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px }
+.hm-tile { display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: inherit } .hm-tile:hover { border-color: var(--accent) }
+.hm-v { font: 600 1.7rem/1.1 var(--f-body) }
+.hm-m { position: relative; height: 8px; border-radius: 99px; background: var(--line) } .hm-m i { display: block; height: 100%; border-radius: 99px; background: var(--accent) }
+.hm-m b { position: absolute; top: -3px; width: 2px; height: 14px; margin-left: -1px; background: var(--fg) }
+.hm-sub { display: flex; align-items: center; gap: 6px; font-size: .86rem; color: var(--muted) }
+.hm-ic { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; font-size: .72rem; font-weight: 700; border: 1.5px solid currentColor; flex: none }
+.hm-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px }
+.hm-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px }
+.hm-list li { display: flex; gap: 10px; align-items: center; min-width: 0 } .hm-list .muted { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0 } .hm-list li.bad { color: var(--bad) } .hm-list li.warn { color: var(--warn) } .hm-list li a { color: var(--fg); white-space: nowrap; flex: none }
 .mbar2 { height: 6px; border-radius: 99px; background: var(--line); overflow: hidden } .mbar2 i { display: block; height: 100%; background: var(--accent) }
 .td-tools { grid-area: t; display: flex; flex-wrap: wrap; gap: 6px } .td-tools a { font-size: .78rem; text-decoration: none; color: var(--accent); border: 1px solid var(--line); border-radius: 99px; padding: 2px 9px }
 @media (max-width: 760px) { .td-stages li { grid-template-columns: minmax(0, 1fr) 90px; grid-template-areas: "n p" "d d" "t t" } }
@@ -4605,7 +4629,9 @@ window.I18N = (function () {
     ["Дорожная карта", "Жол картасы"], ["Дорожная карта ЖК", "ТҮК жол картасы"], ["Этапы", "Кезеңдер"], ["Схема связей", "Байланыстар сызбасы"], ["Схема связей этапов", "Кезеңдер байланысының сызбасы"], ["Пройдено", "Өтті"], ["Идёт", "Жүріп жатыр"], ["Впереди", "Алда"], ["Инструменты этапа", "Кезең құралдары"], ["На дорожной карте:", "Жол картасында:"], ["Этапы в работе", "Жұмыстағы кезеңдер"], ["Вся дорожная карта", "Бүкіл жол картасы"], ["Открытых этапов нет.", "Ашық кезеңдер жоқ."], ["Этапы проекта по фазам — от анализа рынка до гарантии: сроки по графику, выполнение пунктов и инструменты каждого этапа. Нажмите на этап, чтобы открыть его пункты, документы, бюджет и сроки.", "Жоба кезеңдері фазалар бойынша — нарықты талдаудан кепілдікке дейін: кесте бойынша мерзімдер, тармақтардың орындалуы және әр кезеңнің құралдары. Тармақтарын, құжаттарын, бюджеті мен мерзімдерін ашу үшін кезеңді басыңыз."], ["Какой этап открывает следующий. Этап открывается, когда закрыты условия перехода на предыдущих.", "Қай кезең келесісін ашады. Кезең алдыңғыларындағы өту шарттары жабылғанда ашылады."],
     ["Отменить", "Болдырмау"], ["Подсказки", "Кеңестер"], ["Всем квартирам этажа:", "Қабаттың барлық пәтерлеріне:"], ["Последнее изменение отменено", "Соңғы өзгеріс болдырылмады"], ["Поля уже заполнены", "Өрістер толтырылған"], ["Заполнить пустые поля значениями первого блока", "Бос өрістерді бірінші блоктың мәндерімен толтыру"], ["Статус всем квартирам этажа", "Қабаттың барлық пәтерлерінің мәртебесі"],
     ["Мой отдел", "Менің бөлімім"], ["Мои разделы", "Менің бөлімдерім"], ["Я — все разделы", "Мен — барлық бөлімдер"], ["По вашему отделу всё в порядке.", "Сіздің бөлім бойынша бәрі жақсы."],
-    ["План по работам ГПР", "ЖӨК жұмыстары бойынша жоспар"], ["По плану графика", "Кесте жоспары бойынша"], ["По прогнозу графика", "Кесте болжамы бойынша"], ["По прогнозу ГПР", "ЖӨК болжамы бойынша"], ["Спецтехника на этапе", "Кезеңдегі арнайы техника"], ["План спецтехники", "Арнайы техника жоспары"],
+    ["План по работам ГПР", "ЖӨК жұмыстары бойынша жоспар"], ["Обзор", "Шолу"], ["Обзор проекта", "Жоба шолуы"], ["Ключи по прогнозу", "Болжам бойынша кілттер"], ["В графике", "Кесте бойынша"], ["Сейчас", "Қазір"], ["сегодня", "бүгін"],
+    ["Строительство", "Құрылыс"], ["Продажи", "Сатылым"], ["Бюджет освоен", "Бюджет игерілді"], ["Маржа", "Маржа"], ["Пиковый долг банку", "Банкке ең жоғары қарыз"], ["Требует решения", "Шешім қажет"], ["Ближайшие вехи", "Жақын белестер"], ["Срочного нет", "Шұғыл ештеңе жоқ"], ["Календарь", "Күнтізбе"],
+    ["нет факта СМР", "ҚМЖ фактісі жоқ"], ["нет квартир", "пәтерлер жоқ"], ["нет плана", "жоспар жоқ"], ["по финмодели", "қаржы моделі бойынша"], ["по плану ГПР", "ЖӨК жоспары бойынша"], ["Событий нет", "Оқиғалар жоқ"], ["По плану графика", "Кесте жоспары бойынша"], ["По прогнозу графика", "Кесте болжамы бойынша"], ["По прогнозу ГПР", "ЖӨК болжамы бойынша"], ["Спецтехника на этапе", "Кезеңдегі арнайы техника"], ["План спецтехники", "Арнайы техника жоспары"],
     ["Отставание удлиняет аренду техники", "Артта қалу техника жалын ұзартады"], ["Прогноз графика совпадает с планом: техники по прогнозу столько же.", "Кесте болжамы жоспармен сәйкес: болжам бойынша техника да сонша."], ["Скачать план (Excel)", "Жоспарды жүктеп алу (Excel)"], ["через", "кейін"], ["мес на", "айға"],
     ["Если техника нужна не на всех работах, укажите «через … мес» от начала первого этапа и «на … мес»; пусто — весь период работ.", "Техника барлық жұмыстарға қажет болмаса, бірінші кезең басынан «… айдан кейін» және «… айға» деп көрсетіңіз; бос болса — жұмыстардың бүкіл кезеңі."], ["Добавить технику", "Техника қосу"], ["Перенести строки из файла", "Файлдан жолдарды көшіру"], ["Потребность по месяцам на весь ЖЦП", "Жобаның бүкіл өмірлік циклі бойынша айлық қажеттілік"],
     ["Краны, подъёмники и бетононасос по блокам", "Блоктар бойынша крандар, көтергіштер және бетон сорғы"], ["Техника и характеристика", "Техника және сипаттамасы"], ["Работы ГПР: с — по", "ЖӨК жұмыстары: бастап — дейін"], ["Единиц × в месяц на ед.", "Бірлік × бірлікке айына"],
@@ -7009,6 +7035,7 @@ const Z = (t, sub) => () => head(t, sub);
 // Основа портала — дорожная карта: этапы проекта. Остальные разделы — инструменты этапов (связь в TOOL_STAGES).
 const NAV_G = [["today", ""], ["map", "Дорожная карта"], ["obj", "Объект"], ["money", "Деньги"], ["ors", "ОРС"], ["people", "Люди"], ["pk", "Комитет"], ["co", "Компания"]];
 const VIEWS = {
+  home: { g: "today", t: "Обзор", cnt: () => "", r: viewHome },
   today: { g: "today", t: "Сегодня", cnt: () => window.ZHK ? todayItems().filter(x => x.lvl === "bad").length || "" : "", alert: true, r: viewToday },
   card: { g: "obj", t: "Карточка проекта", cnt: () => "", r: viewCard },
   blocks: { g: "obj", t: "Блоки проекта", cnt: () => window.ZHK ? window.ZHK.list("blocks").length || "" : "", r: viewBlocks },
@@ -7914,7 +7941,8 @@ function bindGbar() {
 }
 function renderGbar() { const g = document.getElementById("gbar"); if (!g) return; g.outerHTML = gbarHtml(); bindGbar(); }
 window.ZHK_onSync = () => renderGbar();
-try { if (localStorage.getItem("zhk-hints") === "off") document.body.classList.add("nohints"); } catch (e) {}
+// Пояснения на страницах — подсказки: по умолчанию скрыты, кнопка «Подсказки» показывает их.
+try { if (localStorage.getItem("zhk-hints") !== "on") document.body.classList.add("nohints"); } catch (e) { document.body.classList.add("nohints"); }
 
 // ---------- Сегодня: что требует внимания ----------
 const isoDay = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
@@ -7939,6 +7967,58 @@ function todayItems() {
   const bl = b0Progress().left; if (bl) out.push({ lvl: "info", what: "Чек-лист B0 для ОРС", text: "не заполнено: " + bl, href: "b0" });
   const R = { bad: 0, warn: 1, info: 2 };
   return out.sort((a, b) => R[a.lvl] - R[b.lvl] || (a.when || "9").localeCompare(b.when || "9"));
+}
+// ---------- Обзор проекта: положение проекта одним экраном, без пояснительного текста ----------
+// Всё считается из данных проекта: график, шахматка, бюджет, финмодель, спецтехника. Плитка ведёт в свой раздел.
+function viewHome() {
+  const Z = window.ZHK, V = Object.fromEntries(Z.vars().map(v => [v.id, v])), t = id => V[id] && V[id].text ? V[id].text : "—", raw = id => V[id] ? V[id].raw : null;
+  const X = Z.chess(), B = Z.budget(), ST = Z.stages(), items = todayItems();
+  const mi = x => /^\d{2}\.\d{4}$/.test(x || "") ? +x.slice(3) * 12 + +x.slice(0, 2) - 1 : null, d0 = new Date(), nowI = d0.getFullYear() * 12 + d0.getMonth();
+  const pc = (a, b) => b ? Math.round(a / b * 100) : null;
+  const ICON = { ok: "✓", warn: "!", bad: "×" };
+  // Статус проекта — по отставанию прогноза ключей от плана.
+  const dly = raw("delay") || 0, st = dly > 2 ? "bad" : dly > 0.25 ? "warn" : "ok";
+  const stTxt = { ok: "В графике", warn: "Отставание " + t("delay"), bad: "Отставание " + t("delay") }[st];
+  // Фазы дорожной карты: период по плану, состояние по этапам.
+  const PH = [];
+  ST.forEach(x => { let g = PH.find(y => y.ph === x.phase); if (!g) PH.push(g = { ph: x.phase, a: Infinity, b: -Infinity, sts: [] }); const a = mi(x.from), b = mi(x.to); if (a != null) g.a = Math.min(g.a, a); if (b != null) g.b = Math.max(g.b, b); g.sts.push(x.state); });
+  PH.forEach(g => { g.s = g.sts.every(x => x === "done") ? "done" : g.sts.some(x => x !== "locked") ? "now" : "next"; });
+  const lo = Math.min(...PH.map(g => g.a)), hi = Math.max(...PH.map(g => g.b)) + 1, span = Math.max(1, hi - lo), at = Math.min(100, Math.max(0, (nowI + 0.5 - lo) / span * 100));
+  const ymFmt2 = i => String(i % 12 + 1).padStart(2, "0") + "." + Math.floor(i / 12);
+  const curSt = ST.find(x => x.state === "active") || ST.find(x => x.state === "open") || null, done = ST.filter(x => x.state === "done").length;
+  const strip = `<div class="hm-strip" role="img" aria-label="${esc("Фазы проекта, сейчас: " + (curSt ? curSt.name : "—"))}">${PH.map(g => `<a class="hm-ph ${g.s}" href="#roadmap" style="flex:${Math.max(1, g.b - g.a + 1)}" title="${esc(g.ph)}"><span>${esc(g.ph)}</span></a>`).join("")}<i class="hm-now" style="left:${at}%"><b>сегодня</b></i></div><div class="hm-dates"><span>${PH.length ? ymFmt2(lo) : ""}</span><span>${PH.length ? ymFmt2(hi - 1) : ""}</span></div>`;
+  // Плитки: значение, шкала «факт / план», статус значком и словом.
+  const tile = (href, label, value, sub, s, meter) => `<a class="panel hm-tile" href="#${href}"><span class="label">${label}</span><div class="hm-v">${esc(value)}</div>${meter ? `<div class="hm-m"><i style="width:${Math.min(100, meter[0])}%"></i>${meter[1] != null ? `<b style="left:${Math.min(100, meter[1])}%" title="план"></b>` : ""}</div>` : ""}<div class="hm-sub${s ? " " + s : ""}">${s ? `<span class="hm-ic" aria-hidden="true">${ICON[s]}</span>` : ""}${esc(sub)}</div></a>`;
+  const T = X.tot, smr = T.cells ? pc(T.fw, T.cells) : null, smrP = T.cells ? pc(T.pw, T.cells) : null;
+  const sales = T.flats ? pc(T.sold, T.flats) : null, salesP = T.flats ? pc(T.soldPlan, T.flats) : null;
+  const bud = B.plan ? pc(B.fact, B.plan) : null;
+  const Ep = Z.equipPlan(), Ef = Z.equipPlan(true), eqD = Ep.sumPlan != null && Ef.sumPlan != null ? Ef.sumPlan - Ep.sumPlan : 0;
+  const mln = x => x == null ? "—" : Math.abs(x) >= 1e9 ? (x / 1e9).toLocaleString("ru-RU", { maximumFractionDigits: 1 }) + " млрд тг" : Math.round(x / 1e6).toLocaleString("ru-RU") + " млн тг";
+  const lvl = (f, p, tol) => f == null || p == null ? "" : f >= p - tol ? "ok" : f >= p - 3 * tol ? "warn" : "bad";
+  const tiles = [
+    tile("chess", "Строительство", smr == null ? "—" : smr + "%", smr == null ? "нет факта СМР" : "по плану " + smrP + "%", lvl(smr, smrP, 3), smr == null ? null : [smr, smrP]),
+    tile("chess", "Продажи", sales == null ? "—" : T.sold + " из " + T.flats, sales == null ? "нет квартир" : "по плану " + T.soldPlan + " кв.", lvl(sales, salesP, 3), sales == null ? null : [sales, salesP]),
+    tile("budget", "Бюджет освоен", bud == null ? "—" : bud + "%", bud == null ? "нет плана" : mln(B.fact) + " из " + mln(B.plan) + (B.over ? " · перерасход: " + B.over : ""), bud == null ? "" : !B.over ? "ok" : B.over <= 2 ? "warn" : "bad", bud == null ? null : [bud, null]),
+    tile("model", "Маржа", t("fin_margin"), "IRR " + t("fin_irr") + " · NPV " + t("fin_npv"), "", null),
+    tile("model", "Пиковый долг банку", t("fin_peak_debt"), "по финмодели", "", null),
+    tile("equip", "Спецтехника", mln(Ep.sumPlan), eqD >= 1e6 ? "+" + mln(eqD) + " из-за отставания" : Ep.sumPlan == null ? "нет цен из файла ЦДС/ПТО" : "по плану ГПР", eqD >= 1e6 ? "warn" : Ep.sumPlan == null ? "" : "ok", null)
+  ];
+  const t0 = isoDay(d0), soon = Z.events().filter(e => e.kind !== "hol" && e.date >= t0).slice(0, 5);
+  const att = items.filter(x => x.lvl !== "info");
+  return `<div class="topbar"><div class="stack" style="gap:4px"><div class="crumbs"><span class="label">${esc(projTitle())}</span></div><h1>Обзор проекта</h1></div></div>
+  <section class="panel hm-hero">
+    <div class="stack" style="gap:2px"><span class="label">Ключи по прогнозу</span><div class="hm-key">${esc(t("keys_fc"))}</div><span class="muted">по плану ${esc(t("keys_plan"))}</span></div>
+    <span class="hm-pill ${st}"><span aria-hidden="true">${ICON[st]}</span> ${esc(stTxt)}</span>
+    <div class="stack hm-cur" style="gap:2px"><span class="label">Сейчас</span><b>${curSt ? esc(curSt.code + " · " + curSt.name) : "—"}</b><span class="muted">пройдено ${done} из ${ST.length} этапов</span></div>
+  </section>
+  <section class="panel stack">${strip}</section>
+  <div class="hm-grid">${tiles.join("")}</div>
+  <div class="hm-two">
+    <section class="panel stack"><div class="row" style="justify-content:space-between"><h2 class="h2">Требует решения</h2><a class="btn ghost mini" href="#today">Все${items.length ? " · " + items.length : ""}</a></div>
+      ${att.length ? `<ul class="hm-list">${att.slice(0, 4).map(x => `<li class="${x.lvl}"><span class="hm-ic" aria-hidden="true">${ICON[x.lvl]}</span><a href="#${x.href}">${esc(x.what)}</a><span class="muted">${esc(x.text)}</span></li>`).join("")}</ul>` : `<p class="hm-sub ok" style="margin:0"><span class="hm-ic" aria-hidden="true">✓</span>Срочного нет</p>`}</section>
+    <section class="panel stack"><div class="row" style="justify-content:space-between"><h2 class="h2">Ближайшие вехи</h2><a class="btn ghost mini" href="#calendar">Календарь</a></div>
+      ${soon.length ? `<ul class="hm-list">${soon.map(e => `<li><span class="mono">${dmy(e.date)}</span><span>${esc(e.title)}</span></li>`).join("")}</ul>` : '<p class="muted" style="margin:0">Событий нет</p>'}</section>
+  </div>`;
 }
 function viewToday() {
   const Z = window.ZHK, V = Object.fromEntries(Z.vars().map(v => [v.id, v])), t = id => V[id] ? V[id].text : "—", X = Z.chess(), items = todayItems();
@@ -8024,7 +8104,7 @@ document.addEventListener("input", e => { if (e.target.matches && e.target.match
 
 function route() {
   let v = location.hash.slice(1);
-  if (!VIEWS[v]) v = window.TREE && TREE.nodes.some(n => n.id === v) ? "roadmap" : "today";
+  if (!VIEWS[v]) v = window.TREE && TREE.nodes.some(n => n.id === v) ? "roadmap" : "home";
   cur = v;
   document.getElementById("nav").innerHTML = navHtml(v);
   const main = document.getElementById("main");
