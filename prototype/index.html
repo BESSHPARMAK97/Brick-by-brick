@@ -3915,10 +3915,21 @@ window.XLSXEngine = (function () {
   const dec = new TextDecoder();
   const xml = s => s.replace(/&(lt|gt|quot|apos|amp|#(\d+)|#x([0-9a-fA-F]+));/g, (m, k, d, h) =>
     d ? String.fromCodePoint(+d) : h ? String.fromCodePoint(parseInt(h, 16)) : { lt: "<", gt: ">", quot: '"', apos: "'", amp: "&" }[k]);
+  // Защита от «zip-бомбы»: часть файла после распаковки не больше 500 МБ (больше браузер всё равно не прочитает как текст).
+  const MAX_UNZIP = 500 * 1048576;
   async function inflate(data) {
-    const ds = new DecompressionStream("deflate-raw");
-    const out = new Response(new Blob([data]).stream().pipeThrough(ds));
-    return new Uint8Array(await out.arrayBuffer());
+    const r = new Blob([data]).stream().pipeThrough(new DecompressionStream("deflate-raw")).getReader(), parts = [];
+    let n = 0;
+    for (;;) {
+      const { done, value } = await r.read();
+      if (done) break;
+      n += value.length;
+      if (n > MAX_UNZIP) { r.cancel(); throw new Error("файл слишком большой после распаковки"); }
+      parts.push(value);
+    }
+    const out = new Uint8Array(n); let o = 0;
+    parts.forEach(x => { out.set(x, o); o += x.length; });
+    return out;
   }
   async function unzip(buf) {
     const u8 = new Uint8Array(buf), dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength), files = {};
@@ -4837,6 +4848,13 @@ window.ZHK_BOOT = function (document) {
   const isDone = n => doneCount(n) === n.tasks.length;
   const isUnlocked = n => n.req.every(r => isDone(byId[r]));
   const metaOf = k => S.meta[k] || {};
+  // Ответственный (задача, документ) — участник команды по ссылке (id); старые записи с текстом показываются как есть.
+  const teamLabel = m => [m.role, m.name].filter(Boolean).join(" — ") || "Без роли";
+  const whoText = v => isObj((S.team || {})[v]) ? teamLabel(S.team[v]) : v || "";
+  const whoSelect = (attrs, v) => '<select ' + attrs + '><option value="">Не выбран</option>' + (v && !isObj((S.team || {})[v]) ? '<option value="' + esc(v) + '" selected>' + esc(v) + "</option>" : "") +
+    listOf("team").map(m => '<option value="' + m.id + '"' + (m.id === v ? " selected" : "") + ">" + esc(teamLabel(m)) + "</option>").join("") + "</select>";
+  // Ячейка CSV: без разделителя и переносов; текст, начинающийся с = + - @, Excel не должен считать формулой.
+  const csvCell = x => { const t = String(x == null ? "" : x).replace(/;/g, ",").replace(/[\r\n]+/g, " "); return /^[=+\-@\t]/.test(t) ? "'" + t : t; };
   const isLate = k => !S.checked[k] && metaOf(k).due && daysTo(metaOf(k).due) < 0;
   const lateCount = n => n.tasks.reduce((s, _, i) => s + (isLate(key(n, i)) ? 1 : 0), 0);
   function stateOf(n) {
@@ -5156,7 +5174,7 @@ window.ZHK_BOOT = function (document) {
     const dis = editable(n) ? "" : " disabled";
     const chips = [];
     if (n.keyIds && !/^\d+$/.test(n.keyIds[i])) chips.push('<span class="mchip" data-tone="soon">Требования региона</span>');
-    if (m.who) chips.push('<span class="mchip">Отв.: ' + esc(m.who) + "</span>");
+    if (m.who) chips.push('<span class="mchip">Отв.: ' + esc(whoText(m.who)) + "</span>");
     if (done && m.doneAt) chips.push('<span class="mchip" data-tone="ok">Выполнено ' + fmt(m.doneAt) + (m.doneBy ? " · " + esc(nameOf(m.doneBy)) : "") + "</span>");
     else if (m.due) {
       const d = daysTo(m.due);
@@ -5177,7 +5195,7 @@ window.ZHK_BOOT = function (document) {
       (editable(n) ? '<button class="btn ghost task-more" type="button" data-edit="' + k + '" aria-expanded="' + open + '">' + (open ? "Готово" : (m.who || m.due || atts.length ? "Изменить" : "Назначить")) + "</button>" : "") + "</div>" +
       '<div class="task-meta">' + chips.join("") + "</div>" +
       (open && editable(n)
-        ? '<div class="task-edit"><label class="field" for="who-' + k + '"><span>Ответственный</span><input type="text" id="who-' + k + '" data-meta="who" data-k="' + k + '" maxlength="80" placeholder="ФИО или роль" value="' + esc(m.who || "") + '"></label>' +
+        ? '<div class="task-edit"><label class="field" for="who-' + k + '"><span>Ответственный</span>' + whoSelect('id="who-' + k + '" data-meta="who" data-k="' + k + '"', m.who) + "</label>" +
           '<label class="field" for="due-' + k + '"><span>Срок</span><input type="date" id="due-' + k + '" data-meta="due" data-k="' + k + '" value="' + esc(m.due || "") + '"></label>' + attBoxHtml(k, m) + "</div>"
         : "") +
       "</li>";
@@ -5605,7 +5623,7 @@ window.ZHK_BOOT = function (document) {
     if (e.target.closest("[data-budget-csv]")) {
       const lines = ["Этап;План, тг;Факт, тг;Отклонение, тг;Комментарий"].concat(budgetRows().map(r => {
         const b = bOf(r.id);
-        return [r.code + " " + r.name, b.plan || 0, b.fact || 0, (b.fact || 0) - (b.plan || 0), (b.note || "").replace(/;/g, ",")].join(";");
+        return [csvCell(r.code + " " + r.name), b.plan || 0, b.fact || 0, (b.fact || 0) - (b.plan || 0), csvCell(b.note)].join(";");
       }));
       save(fileName({ title: "Бюджет план факт" }, "csv"), "﻿" + lines.join("\r\n"));
     }
@@ -5632,7 +5650,7 @@ window.ZHK_BOOT = function (document) {
       '<label class="field" for="dl-num"><span>Номер</span><input type="text" id="dl-num" maxlength="60" value="' + esc(d.num || "") + '"></label>' +
       '<label class="field" for="dl-issued"><span>Выдан</span><input type="date" id="dl-issued" value="' + esc(d.issued || "") + '"></label>' +
       '<label class="field" for="dl-expires"><span>Действует до *</span><input type="date" id="dl-expires" required value="' + esc(d.expires || "") + '"></label>' +
-      '<label class="field" for="dl-owner"><span>Ответственный</span><input type="text" id="dl-owner" maxlength="80" placeholder="Кто продлевает" value="' + esc(d.owner || "") + '"></label>' +
+      '<label class="field" for="dl-owner"><span>Ответственный</span>' + whoSelect('id="dl-owner"', d.owner) + "</label>" +
       '<label class="field" for="dl-stage"><span>Этап</span><select id="dl-stage">' + opts + "</select></label>" +
       '<label class="field wide" for="dl-note"><span>Примечание</span><input type="text" id="dl-note" maxlength="200" placeholder="Например, продление подаётся за 30 дней" value="' + esc(d.note || "") + '"></label>' +
       '<div class="row dl-actions"><button class="btn primary" type="submit">' + (id ? "Сохранить" : "Добавить") + '</button><button class="btn ghost" type="button" data-dl-cancel>Отмена</button></div></form>';
@@ -5680,7 +5698,7 @@ window.ZHK_BOOT = function (document) {
         "<td>" + (st ? '<button class="chip" type="button" data-open-stage="' + st.id + '" data-state="' + stateOf(st) + '">' + esc(st.code + " · " + st.name) + "</button>" : '<span class="muted">—</span>') + "</td>" +
         '<td class="num">' + fmt(d.issued) + '</td><td class="num">' + fmt(d.expires) + "</td>" +
         '<td><span class="mchip"' + (s.tone ? ' data-tone="' + s.tone + '"' : "") + ">" + s.text + "</span></td>" +
-        "<td>" + esc(d.owner || "") + '</td><td><div class="row" style="flex-wrap:nowrap">' + actions + "</div></td></tr>";
+        "<td>" + esc(whoText(d.owner)) + '</td><td><div class="row" style="flex-wrap:nowrap">' + actions + "</div></td></tr>";
     }).join("");
     dlList.innerHTML = '<div class="card"><div class="tablewrap"><table class="t"><tr><th>Документ</th><th>Этап</th><th class="num">Выдан</th><th class="num">Действует до</th><th>Статус</th><th>Ответственный</th><th></th></tr>' + rows + "</table></div></div>";
   }
@@ -5701,7 +5719,7 @@ window.ZHK_BOOT = function (document) {
   });
   document.getElementById("dl-csv").addEventListener("click", () => {
     const lines = ["Документ;Номер;Этап;Выдан;Действует до;Статус;Ответственный;Примечание"].concat(deadlineList().map(d =>
-      [d.title, d.num, d.stage && byId[d.stage] ? byId[d.stage].name : "", fmt(d.issued), fmt(d.expires), dlStatus(d).text, d.owner, d.note].map(x => String(x || "").replace(/;/g, ",")).join(";")));
+      [d.title, d.num, d.stage && byId[d.stage] ? byId[d.stage].name : "", fmt(d.issued), fmt(d.expires), dlStatus(d).text, whoText(d.owner), d.note].map(csvCell).join(";")));
     save(fileName({ title: "Реестр сроков документов" }, "csv"), "﻿" + lines.join("\r\n"));
   });
 
@@ -7345,7 +7363,7 @@ function viewKpi() {
     ["Бюджет", bt.plan ? Math.round(bt.fact / bt.plan * 100) + "%" : "—", `освоено: факт ${money(bt.fact)} из плана ${money(bt.plan)}`, bt.over ? `этапов с перерасходом: ${bt.over}` : "перерасхода нет", bt.over ? "down" : "up", "budget"],
     ["Финмодель", t("fin_margin"), "маржа к себестоимости", `IRR ${t("fin_irr")}, прибыль ${t("fin_net")}`, "up", "model"],
     ["Документы", String(dc.total), "в реестре сроков", dc.expired ? `истекло: ${dc.expired}` : dc.soon ? `истекают в 60 дней: ${dc.soon}` : "сроки в порядке", dc.expired || dc.soon ? "down" : "up", "deadlines"],
-    ["Данные проекта", ap + " из " + inp.length, "переменных утверждено", window.ZHK.baseline() ? "базовая версия ПК Start зафиксирована" : "базовая версия не зафиксирована", ap === inp.length ? "up" : "down", "data"],
+    ["Данные проекта", ap + " из " + inp.length, "переменных утверждено", (ap === inp.length ? "все утверждены" : "не утверждено: " + (inp.length - ap)) + (window.ZHK.baseline() ? ", базовая версия ПК Start зафиксирована" : ", базовая версия не зафиксирована"), window.ZHK.baseline() ? "up" : "down", "data"],
   ];
   return head("Показатели проекта", "Все показатели считаются из данных проекта: графика, бюджета, финмодели, реестра документов.") + `
   <div class="grid g5">${K.map(([l, v, d, dl, dir, href]) => `<a class="panel kpi" href="#${href}" style="text-decoration:none;color:inherit"><span class="label">${l}</span><div class="big num">${esc(v)}</div><div class="muted" style="font-size:.85rem">${esc(d)}</div><div class="delta ${dir}">${esc(dl)}</div></a>`).join("")}</div>
