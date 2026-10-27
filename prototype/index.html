@@ -310,6 +310,7 @@ body.nohints .topbar .muted, body.nohints .hint { display: none }
 .eq-t td:first-child, .eq-t thead th:first-child { text-align: left; position: sticky; left: 0; background: var(--surface); padding-right: 10px }
 .eq-t td.eq-on { min-width: 22px } .eq-found { background: var(--surface-2) } .eq-mono { background: var(--info-soft) } .eq-mas { background: var(--accent-soft) }
 .eq-crane { background: var(--warn-soft) } .eq-lift { background: var(--ok-soft) } .eq-pump { background: var(--bad-soft) }
+.act-pre { white-space: pre-wrap; font: 13px/1.5 var(--mono, ui-monospace, monospace); background: var(--surface-2); border: 1px solid var(--line, #ddd); border-radius: 8px; padding: 14px; margin: 0; max-height: 520px; overflow: auto }
 .eq-calc td { background: var(--surface-2) } .eq-mode { gap: 8px; align-items: center } .eq-mode .muted { flex: 1 1 260px; font-size: .88rem } .eq-p td, .eq-p th { padding: 4px 6px; vertical-align: top } .eq-p select { max-width: 200px } .eq-2 { display: flex; flex-direction: column; gap: 3px; min-width: 170px } .eq-2 .vin { width: 100% }
 .eq-st td { font-size: .72rem; font-weight: 600; color: var(--muted); text-align: left } .eq-st td.eq-on { background: var(--accent-soft) } .eq-x { background: var(--info-soft) }
 .eq-det > summary { cursor: pointer; list-style: none } .eq-det > summary::-webkit-details-marker { display: none } .eq-det > summary h2::after { content: " ▾"; color: var(--muted) } .eq-det:not([open]) > summary h2::after { content: " ▸" }
@@ -3772,6 +3773,13 @@ window.DICTS = {
     { v: "Автовышка", u: "ч", st: "envelope", st2: "finish" }, { v: "Водовоз", u: "рейс", st: "frame", st2: "finish" }, { v: "Каток", u: "смен", st: "finish", st2: "finish" },
     { v: "Асфальтоукладчик", u: "смен", st: "finish", st2: "finish" }] },
   equipUnit: { name: "Единица спецтехники", items: [{ v: "мес" }, { v: "смен" }, { v: "ч" }, { v: "рейс" }] },
+  // Документы стройки (раздел «Акты и предписания»): k — код вида, tpl — образец этого документа в дорожной карте.
+  actKind: { name: "Вид документа стройки", items: [
+    { v: "Акт освидетельствования скрытых работ", k: "hidden", tpl: "hidden_works" },
+    { v: "Акт промежуточной приёмки ответственных конструкций", k: "resp" },
+    { v: "Акт индивидуального испытания", k: "test", tpl: "test_act" },
+    { v: "Дефектный акт", k: "defect" },
+    { v: "Предписание об устранении замечаний", k: "order", tpl: "defect_order" }] },
   // Списки калькулятора ПНР
   projectKind: { name: "Вид проекта", items: [{ v: "Жилые комплексы" }, { v: "Коттеджные городки" }] },
   ecoCat: { name: "Категория здания по влиянию на окружающую среду", items: [{ v: "2 категория" }, { v: "3 категория" }] }
@@ -4669,6 +4677,15 @@ window.I18N = (function () {
     ["Строка — техника на работах ГПР: с этапа и по этап графика (по умолчанию — для вида техники). Для «мес» указывается число единиц, для смен, часов и рейсов — ещё загрузка в месяц на единицу. Количество = единиц × загрузка × месяцев работ. Сумма — по цене той же строки (вид, характеристика, единица) в файле ЦДС/ПТО.", "Жол — ЖӨК жұмыстарындағы техника: кестенің бір кезеңінен екіншісіне дейін (әдепкі бойынша — техника түріне қарай). «Ай» үшін бірлік саны, ауысым, сағат және рейстер үшін — бірлікке айлық жүктеме де көрсетіледі. Саны = бірлік × жүктеме × жұмыс айлары. Сомасы — ЦДС/ПТО файлындағы сол жолдың (түрі, сипаттамасы, бірлігі) бағасы бойынша."],
     ["Нормы ГПР", "ЖӨК нормалары"], ["ГПР и потребность по месяцам", "Айлар бойынша ЖӨК және қажеттілік"], ["План спецтехники (файл)", "Арнайы техника жоспары (файл)"], ["Загрузить план (Excel)", "Жоспарды жүктеу (Excel)"], ["Убрать файл", "Файлды алып тастау"], ["Башенные краны", "Мұнаралы крандар"], ["Подъёмники", "Көтергіштер"], ["Стационарный насос", "Стационарлық сорғы"], ["Автобетононасос", "Автобетонсорғы"], ["Фундамент", "Іргетас"], ["Монолит", "Монолит"], ["Кладка", "Қалау"], ["Башенный кран", "Мұнаралы кран"], ["Подъёмник", "Көтергіш"], ["Стац. насос", "Стац. сорғы"], ["Кранов", "Крандар"], ["Подъёмников", "Көтергіштер"], ["Печать / PDF", "Басып шығару / PDF"], ["Статус:", "Мәртебе:"], ["Комнат:", "Бөлме:"], ["Планировка:", "Жоспар:"], ["Все", "Барлығы"], ["Техника", "Техника"], ["Ед.", "Бірл."], ["По файлу", "Файл бойынша"], ["Период", "Кезең"], ["Сумма с НДС", "ҚҚС-пен сома"],
     ["Казначей", "Қазынашы"], ["Факт бюджета внесён по 5+ этапам", "5+ кезең бойынша бюджет фактісі енгізілді"], ["План из финмодели, тг", "Қаржы моделінен жоспар, тг"], ["План считается из финмодели автоматически: земля, проектирование по этапам проекта, СМР с технадзором и резервом по этапам стройки, сети, маркетинг, административные расходы и проценты. Чтобы изменить план, измените исходные данные финмодели или сроки в графике.", "Жоспар қаржы моделінен автоматты түрде есептеледі: жер, жоба кезеңдері бойынша жобалау, құрылыс кезеңдері бойынша техқадағалау мен резервті қоса ҚМЖ, желілер, маркетинг, әкімшілік шығыстар және пайыздар. Жоспарды өзгерту үшін қаржы моделінің бастапқы деректерін немесе кестедегі мерзімдерді өзгертіңіз."],
+    ["Акты и предписания", "Актілер мен нұсқамалар"], ["Заполнить по данным", "Деректер бойынша толтыру"], ["Новый документ:", "Жаңа құжат:"], ["Реестр документов", "Құжаттар тізілімі"],
+    ["Акт освидетельствования скрытых работ", "Жасырын жұмыстарды куәландыру актісі"], ["Акт промежуточной приёмки ответственных конструкций", "Жауапты конструкцияларды аралық қабылдау актісі"],
+    ["Акт индивидуального испытания", "Жеке сынау актісі"], ["Дефектный акт", "Ақаулар актісі"], ["Предписание об устранении замечаний", "Ескертулерді жою туралы нұсқама"],
+    ["Скачать Word", "Word жүктеу"], ["Закрыть", "Жабу"], ["Номер", "Нөмір"], ["Дата", "Күні"], ["Блок", "Блок"], ["Этап графика", "Кесте кезеңі"], ["Место: этаж, оси", "Орны: қабат, осьтер"],
+    ["Добавить строку", "Жол қосу"], ["Не хватает данных для документов.", "Құжаттарға деректер жетпейді."], ["Документ", "Құжат"], ["Работы", "Жұмыстар"], ["Открыть", "Ашу"],
+    ["Что предъявлено", "Не ұсынылды"], ["Проект: шифр, листы", "Жоба: шифр, парақтар"], ["Материалы, сертификаты", "Материалдар, сертификаттар"], ["Разрешаются работы", "Рұқсат етілетін жұмыстар"],
+    ["Конструкция", "Конструкция"], ["Материалы, протоколы испытаний", "Материалдар, сынақ хаттамалары"], ["Система или оборудование", "Жүйе немесе жабдық"], ["Условия испытания", "Сынақ шарттары"],
+    ["Результат", "Нәтиже"], ["Что осматривали", "Не қаралды"], ["Основание проверки", "Тексеру негізі"], ["Приостановить до устранения", "Жойылғанға дейін тоқтата тұру"],
+    ["Место", "Орны"], ["Дефект", "Ақау"], ["Нарушение", "Бұзушылық"], ["Пункт ПСД / норм", "ЖСҚ / норма тармағы"], ["Срок устранения", "Жою мерзімі"],
     ["Документы под контролем", "Құжаттар бақылауда"], ["5+ документов в реестре сроков, ни одного истёкшего", "Мерзімдер тізілімінде 5+ құжат, бірде-біреуінің мерзімі өтпеген"],
     ["Полный архив", "Толық мұрағат"], ["10+ вложений к пунктам чек-листов", "Чек-парақ тармақтарына 10+ тіркеме"],
     ["Командная работа", "Командалық жұмыс"], ["В журнале действия 3+ участников", "Журналда 3+ қатысушының әрекеттері"],
@@ -4872,7 +4889,7 @@ window.ZHK_BOOT = function (document) {
   const RANKS = [[0, "Стажёр"], [1, "Аналитик"], [4, "Девелопер"], [8, "Застройщик"], [13, "Генеральный застройщик"], [21, "Магнат ЖК"]];
   const STATUS = { locked: "Закрыт", open: "Доступен", active: "В работе", risk: "Начат с риском", done: "Пройден" };
   const LOCAL_KEY = "zhk-skill-tree-v2", LEGACY_KEY = "zhk-skill-tree-v1";
-  const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines", "sched", "vars", "baseline", "risks", "team", "partners", "blocks", "b0", "pnr", "pnrCalc", "smeta", "scenarios", "chess", "plans", "planRooms", "equip", "equipPlan"];
+  const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines", "sched", "vars", "baseline", "risks", "team", "partners", "blocks", "b0", "pnr", "pnrCalc", "smeta", "scenarios", "chess", "plans", "planRooms", "equip", "equipPlan", "acts", "actItems"];
   const VIEWS = ["tree", "gantt", "model", "budget", "deadlines", "projects"];
 
   // S — всё состояние проекта, хранится одним документом.
@@ -5487,7 +5504,8 @@ window.ZHK_BOOT = function (document) {
     const dc = doneCount(n);
     const docs = n.docs.map(d => {
       const tpl = T.templates[d];
-      return '<div class="doc"><span class="doc-ext">' + (tpl.ext === "csv" ? "xls" : "docx") + '</span><span class="doc-title">' + esc(tpl.title) + '</span><button class="btn" type="button" data-doc="' + d + '">Открыть</button></div>';
+      return '<div class="doc"><span class="doc-ext">' + (tpl.ext === "csv" ? "xls" : "docx") + '</span><span class="doc-title">' + esc(tpl.title) + '</span><button class="btn" type="button" data-doc="' + d + '">Открыть</button>' +
+        (window.DICTS.actKind.items.some(k => k.tpl === d) ? '<a class="btn" href="#acts">Заполнить по данным</a>' : "") + "</div>";
     }).join("");
     const late = lateCount(n);
 
@@ -6286,7 +6304,8 @@ window.ZHK_BOOT = function (document) {
   const LIST_FIELDS = { risks: ["kind", "level", "title", "measure", "who"], team: ["role", "name", "zone", "dept", "uid"], partners: ["role", "org", "subject", "status"],
     blocks: ["name", "kind", "floors", "under", "entrances", "lifts", "flats", "frame", "design", "contour"],
     scenarios: ["name", "price", "smr", "delay", "sales", "rate"], plans: ["name", "note"], planRooms: ["plan", "kind", "name", "area"],
-    equipPlan: ["kind", "char", "unit", "stage", "stage2", "units", "load", "off", "dur"] };
+    equipPlan: ["kind", "char", "unit", "stage", "stage2", "units", "load", "off", "dur"],
+    acts: ["kind", "no", "date", "block", "stage", "place", "work", "docs", "mats", "next"], actItems: ["act", "place", "text", "norm", "due"] };
   function listOf(k) { return listFrom(S, k); }
   function listFrom(st, k) {
     const o = (st && st[k]) || {};
@@ -6468,7 +6487,7 @@ window.ZHK_BOOT = function (document) {
       resetZone.innerHTML = '<span class="reset-confirm">Сбросить отметки, назначения и досрочные старты? Карточка проекта, финмодель, бюджет и реестр сроков останутся. <button class="btn" id="reset-yes">Да, сбросить</button><button class="btn ghost" id="reset-no">Отмена</button></span>';
     } else if (e.target.id === "reset-yes" || e.target.id === "reset-no") {
       if (e.target.id === "reset-yes" && !readOnly) {
-        S = normalize({ project: S.project, model: S.model, budget: S.budget, deadlines: S.deadlines, sched: S.sched, vars: S.vars, baseline: S.baseline, risks: S.risks, team: S.team, partners: S.partners, blocks: S.blocks, b0: S.b0, pnr: S.pnr, pnrCalc: S.pnrCalc, smeta: S.smeta, scenarios: S.scenarios, chess: S.chess, plans: S.plans, planRooms: S.planRooms, equip: S.equip, equipPlan: S.equipPlan });
+        S = normalize({ project: S.project, model: S.model, budget: S.budget, deadlines: S.deadlines, sched: S.sched, vars: S.vars, baseline: S.baseline, risks: S.risks, team: S.team, partners: S.partners, blocks: S.blocks, b0: S.b0, pnr: S.pnr, pnrCalc: S.pnrCalc, smeta: S.smeta, scenarios: S.scenarios, chess: S.chess, plans: S.plans, planRooms: S.planRooms, equip: S.equip, equipPlan: S.equipPlan, acts: S.acts, actItems: S.actItems });
         openEdits.clear();
         saveLocal();
         if (docRef) { const ref = docRef, proj = curProject, full = JSON.parse(JSON.stringify(S)); writeChain = writeChain.then(() => ref.set(full).then(() => { if (proj === curProject) docExists = true; }).catch(() => {})); }
@@ -7120,7 +7139,7 @@ const Z = (t, sub) => () => head(t, sub);
 // Портал — три экрана: Обзор, Дорожная карта, Данные. Остальное — модули отделов: по умолчанию выключены,
 // включаются в «Данных» (project.modules — коды модулей через пробел). Разделы группы — вкладки внутри экрана.
 const NAV_G = [["home", "Обзор"], ["map", "Дорожная карта"], ["data", "Данные"]];
-const MODS = [["fin", "Финансы", "финмодель, «что если», бюджет, смета 1С"], ["ors", "ОРС", "показатели ПНР, чек-лист B0"], ["build", "Стройка", "спецтехника, стандарты"], ["pk", "Комитет", "презентация ПК Start"], ["co", "Портфель", "все ЖК компании"]];
+const MODS = [["fin", "Финансы", "финмодель, «что если», бюджет, смета 1С"], ["ors", "ОРС", "показатели ПНР, чек-лист B0"], ["build", "Стройка", "спецтехника, акты и предписания, стандарты"], ["pk", "Комитет", "презентация ПК Start"], ["co", "Портфель", "все ЖК компании"]];
 const GROUPS = NAV_G.concat(MODS);
 const modsOn = () => { const m = String(window.ZHK && window.ZHK.project() ? window.ZHK.project().modules || "" : "").split(" "); return MODS.filter(([g]) => m.indexOf(g) >= 0); };
 const VIEWS = {
@@ -7129,6 +7148,7 @@ const VIEWS = {
   card: { g: "obj", t: "Карточка проекта", cnt: () => "", r: viewCard },
   blocks: { g: "obj", t: "Блоки проекта", cnt: () => window.ZHK ? window.ZHK.list("blocks").length || "" : "", r: viewBlocks },
   equip: { g: "obj", t: "Спецтехника", cnt: () => "", r: viewEquip },
+  acts: { g: "obj", t: "Акты и предписания", cnt: () => window.ZHK ? window.ZHK.list("acts").length || "" : "", r: viewActs },
   plans: { g: "obj", t: "Планировки", cnt: () => window.ZHK ? window.ZHK.plans().length || "" : "", r: viewPlans },
   chess: { g: "obj", t: "Шахматка", cnt: () => "", r: viewChess },
   data: { g: "obj", t: "Данные проекта", cnt: () => "", r: viewData },
@@ -7153,7 +7173,7 @@ const VIEWS = {
 
 // Состав групп по порядку вкладок; первый раздел группы открывается из меню. Шахматка и планировки — на паузе (без вкладки).
 const GV = { home: ["home", "today", "kpi"], map: ["roadmap", "gantt", "calendar", "deadlines"], data: ["data"],
-  fin: ["model", "whatif", "budget", "smeta"], ors: ["pnr", "b0"], build: ["equip", "standards"], pk: ["pk"], co: ["projects"] };
+  fin: ["model", "whatif", "budget", "smeta"], ors: ["pnr", "b0"], build: ["equip", "acts", "standards"], pk: ["pk"], co: ["projects"] };
 Object.entries(GV).forEach(([g, ks]) => ks.forEach(k => { VIEWS[k].g = g; }));
 ["chess", "plans"].forEach(k => { VIEWS[k].g = "build"; VIEWS[k].off = true; });
 VIEWS.scheme.g = "map"; VIEWS.scheme.off = true; // «Схема связей» — вид вкладки «Этапы»
@@ -7165,7 +7185,8 @@ const TOOL_STAGES = {
   card: ["idea", "land"], whatif: ["idea", "finance", "pkstart"], model: ["idea", "finance", "pkstart"], blocks: ["sketch", "psd"], plans: ["sketch", "psd", "dolevka"],
   b0: ["sketch"], pnr: ["survey", "sketch"], smeta: ["psd", "tender"], deadlines: ["land", "ird", "expert", "dolevka", "start", "commission"], partners: ["tender", "start"],
   pk: ["pkstart"], kpi: ["pkstart"], data: ["pkstart"], team: ["start"], standards: ["start", "zero", "frame", "envelope", "mep", "finish"],
-  budget: ["start", "zero", "nets", "frame", "envelope", "mep", "finish"], equip: ["start", "zero", "nets", "frame", "envelope", "mep", "finish"], chess: ["dolevka", "zero", "frame", "envelope", "mep", "finish", "commission", "handover"]
+  budget: ["start", "zero", "nets", "frame", "envelope", "mep", "finish"], equip: ["start", "zero", "nets", "frame", "envelope", "mep", "finish"],
+  acts: ["zero", "nets", "frame", "envelope", "mep", "finish", "commission"], chess: ["dolevka", "zero", "frame", "envelope", "mep", "finish", "commission", "handover"]
 };
 window.STAGE_TOOLS = {};
 Object.entries(TOOL_STAGES).forEach(([k, st]) => st.forEach(id => (window.STAGE_TOOLS[id] = window.STAGE_TOOLS[id] || []).push([k, VIEWS[k].t])));
@@ -7721,6 +7742,165 @@ function equipXlsx() {
   const sheets = [{ name: "План спецтехники", widths: [26, 30, 40, 13, 13, 10, 10, 11].concat(Ms.map(() => 8)), bold: [0, 2],
     rows: [[projTitle() + " — план спецтехники по работам ГПР" + (eqUI.fc ? " (по прогнозу графика)" : ""), "", new Date().toLocaleDateString("ru-RU")], [], head].concat(rows) }];
   window.ZHK.save(("План спецтехники " + (card.name || "проект")).replace(/[^\p{L}\p{N}\s-]/gu, "").trim().replace(/\s+/g, "_") + ".xlsx", window.buildXlsx(sheets));
+}
+
+// ---------- Акты и предписания ----------
+// Документ хранит только своё: вид, номер, дату, ссылки на блок и этап, место и суть работ; замечания — строки actItems
+// со ссылкой на документ. Объект, застройщик, подписанты и сроки этапа по графику подставляются из данных проекта
+// при каждом открытии: поправили организацию партнёра — все акты показывают новую.
+const ACT_KIND = Object.fromEntries(window.DICTS.actKind.items.map(i => [i.k, i]));
+const ACT_STAGES = ["start", "zero", "nets", "frame", "envelope", "mep", "finish", "commission", "handover", "warranty"];
+const ACT_ITEMS = ["defect", "order"];
+// Подписи полей по виду документа: [название, подсказка]. Поля, которых нет у вида, не показываются.
+const ACT_F = {
+  hidden: { work: ["Что предъявлено", "армирование плиты перекрытия 5 этажа"], docs: ["Проект: шифр, листы", "КЖ-1, л. 12–14"], mats: ["Материалы, сертификаты", "арматура А500С Ø12, паспорт №"], next: ["Разрешаются работы", "бетонирование плиты"] },
+  resp: { work: ["Конструкция", "колонны 3 этажа в осях 1–6"], docs: ["Проект: шифр, листы", "КЖ-2, л. 4"], mats: ["Материалы, протоколы испытаний", "бетон В30, протокол прочности №"], next: ["Разрешаются работы", "монтаж перекрытия 4 этажа"] },
+  test: { work: ["Система или оборудование", "внутренний водопровод В1"], docs: ["Проект: шифр, листы", "ВК-1"], mats: ["Условия испытания", "гидравлическое, 1,0 МПа, 10 мин"], next: ["Результат", "падения давления и течей нет"] },
+  defect: { work: ["Что осматривали", "фасад блока, секция 1"] },
+  order: { work: ["Основание проверки", "плановый обход технадзора"], next: ["Приостановить до устранения", "можно не заполнять"] }
+};
+let actOpen = "";
+const actIso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+const actDate = iso => iso ? iso.slice(8, 10) + "." + iso.slice(5, 7) + "." + iso.slice(0, 4) : "";
+const actAdd = (iso, days) => { const d = new Date((iso || actIso(new Date())) + "T00:00:00"); d.setDate(d.getDate() + days); return actIso(d); };
+// Подписанты — из карточки, партнёров и команды по роли. Кого нет в данных — пустое поле и ссылка, где его ввести.
+function actPeople() {
+  const P = window.ZHK.list("partners"), Tm = window.ZHK.list("team"), c = window.ZHK.project();
+  const org = re => (P.find(x => re.test(x.role || "") && x.org) || {}).org || "";
+  const man = re => { const m = Tm.find(x => re.test(x.role || "") && x.name); return m ? m.name + ", " + m.role.toLowerCase() : ""; };
+  return {
+    cust: { t: "Заказчик (застройщик)", org: c.company || "", who: man(/руководитель проекта/i), fo: "data", fw: "team" },
+    gp: { t: "Генподрядчик", org: org(/генподряд/i), who: man(/начальник участка/i), fo: "partners", fw: "team" },
+    tn: { t: "Технический надзор", org: org(/технадзор|техническ\S* надзор|инжиниринг/i), who: man(/технадзор|техническ\S* надзор/i), fo: "partners", fw: "team" },
+    an: { t: "Авторский надзор", org: org(/авторск|проектн/i), who: "", fo: "partners" },
+    pto: { t: "Составил (ПТО)", org: "", who: man(/пто/i), fw: "team" }
+  };
+}
+const actWho = p => [p.org, p.who].filter(Boolean).join(", ") || "[" + (p.org === "" && p.fo ? "организация, " : "") + "ФИО, должность]";
+const actGap = (v, ph) => v ? v : "[" + ph + "]";
+function actText(a) {
+  const K = ACT_KIND[a.kind] || {}, c = window.ZHK.project(), P = actPeople();
+  const B = window.ZHK.list("blocks").find(b => b.id === a.block), S = window.ZHK.stages().find(s => s.id === a.stage);
+  const items = window.ZHK.list("actItems").filter(x => x.act === a.id), F = ACT_F[a.kind] || {};
+  const g = f => actGap(a[f], (F[f] || [f])[0].toLowerCase());
+  const obj = "Объект: ЖК «" + actGap(c.name, "название ЖК") + "», " + [c.city ? "г. " + c.city : "", c.address].filter(Boolean).join(", ");
+  const where = "Место: " + [B ? B.name : "[блок]", a.place].filter(Boolean).join(", ");
+  const stage = S ? "Этап по графику: " + S.code + " " + S.name + " (план " + S.from + " – " + S.to + ")" : "";
+  const team = ks => ks.map(k => "— " + P[k].t.toLowerCase() + ": " + actWho(P[k])).join("\n");
+  const signs = ks => ks.map(k => P[k].t + " ________ " + (P[k].who ? P[k].who.split(",")[0] : "[ФИО]")).join("\n");
+  const table = () => "№ | Место | Описание | Пункт ПСД / норм | Срок устранения\n" + (items.length ? items : [{}]).map((x, i) =>
+    (i + 1) + " | " + actGap(x.place, "блок, этаж, оси") + " | " + actGap(x.text, "описание") + " | " + (x.norm || "—") + " | " + actGap(actDate(x.due), "дата")).join("\n");
+  const top = (t1, t2) => [t1, t2, "", obj + "      " + actGap(actDate(a.date), "дата"), where, stage].filter(x => x !== "").join("\n").replace(t2 + "\n", t2 + "\n\n");
+  const ge = c.ge ? " (заключение госэкспертизы: " + c.ge + ")" : "";
+  if (a.kind === "hidden" || a.kind === "resp") return [
+    top("АКТ № " + actGap(a.no, "№"), a.kind === "hidden" ? "ОСВИДЕТЕЛЬСТВОВАНИЯ СКРЫТЫХ РАБОТ" : "ПРОМЕЖУТОЧНОЙ ПРИЁМКИ ОТВЕТСТВЕННЫХ КОНСТРУКЦИЙ"), "",
+    "Комиссия в составе:", team(["cust", "gp", "tn", "an"]),
+    "произвела осмотр работ, выполненных " + actGap(P.gp.org, "генподрядчик") + ", и составила настоящий акт.", "",
+    "1. " + (a.kind === "hidden" ? "К освидетельствованию предъявлены" : "К приёмке предъявлены") + ": " + g("work"),
+    "2. Работы выполнены по проекту: " + g("docs") + ge,
+    "3. Применены материалы: " + g("mats"),
+    "4. Отклонения от проекта: [нет / перечень и согласование с проектировщиком]", "",
+    "РЕШЕНИЕ КОМИССИИ",
+    "Работы выполнены в соответствии с проектом и нормативными требованиями.",
+    "Разрешается производство последующих работ: " + g("next"), "",
+    "Подписи:", signs(["cust", "gp", "tn", "an"])].join("\n");
+  if (a.kind === "test") return [
+    top("АКТ № " + actGap(a.no, "№"), "ИНДИВИДУАЛЬНОГО ИСПЫТАНИЯ"), "",
+    "Комиссия в составе:", team(["cust", "gp", "tn"]),
+    "провела индивидуальное испытание и установила:", "",
+    "1. Испытана система / оборудование: " + g("work"),
+    "2. Смонтирована по проекту: " + g("docs"),
+    "3. Условия испытания: " + g("mats"),
+    "4. Результат: " + g("next"), "",
+    "ЗАКЛЮЧЕНИЕ",
+    "Система / оборудование выдержала испытание и считается готовой к комплексному опробованию.", "",
+    "Подписи:", signs(["cust", "gp", "tn"])].join("\n");
+  if (a.kind === "defect") return [
+    top("ДЕФЕКТНЫЙ АКТ № " + actGap(a.no, "№"), "О ВЫЯВЛЕННЫХ ДЕФЕКТАХ"), "",
+    "Комиссия в составе:", team(["cust", "gp", "tn"]),
+    "провела осмотр: " + g("work") + " — и выявила дефекты:", "",
+    table(), "",
+    "ЗАКЛЮЧЕНИЕ",
+    "Дефекты устраняет " + actGap(P.gp.org, "генподрядчик") + " в сроки, указанные в таблице, с повторным предъявлением комиссии.", "",
+    "Подписи:", signs(["cust", "gp", "tn"])].join("\n");
+  return [
+    top("ПРЕДПИСАНИЕ № " + actGap(a.no, "№"), "ОБ УСТРАНЕНИИ ЗАМЕЧАНИЙ"), "",
+    "Выдано: " + actWho(P.gp),
+    "Выдал: " + actWho(P.tn),
+    "Основание: " + g("work"), "",
+    "ВЫЯВЛЕННЫЕ НАРУШЕНИЯ", table(), "",
+    "ТРЕБОВАНИЯ",
+    "1. Устранить нарушения в указанные сроки.",
+    "2. " + (a.next ? "До устранения приостановить работы: " + a.next + "." : "Работы не приостанавливаются."),
+    "3. Письменно уведомить о выполнении с приложением фото и исполнительной документации.", "",
+    "Предписание получил: ________ " + (P.gp.who ? P.gp.who.split(",")[0] : "[ФИО]") + "   Дата: [___]",
+    "Отметка об устранении: ________ " + (P.tn.who ? P.tn.who.split(",")[0] : "[ФИО технадзора]") + "   Дата: [___]"].join("\n");
+}
+// Новый документ: следующий номер по виду, сегодняшняя дата, текущий этап стройки и первый блок — остальное по месту.
+function actNew(kind) {
+  const L = window.ZHK.list("acts").filter(a => a.kind === kind), no = L.reduce((m, a) => Math.max(m, parseInt(a.no, 10) || 0), 0) + 1;
+  const bl = window.ZHK.list("blocks")[0], cur = window.ZHK.current(), date = actIso(new Date());
+  const id = window.ZHK.setItem("acts", null, { kind, no: String(no), date, block: bl ? bl.id : "", stage: ACT_STAGES.indexOf(cur) >= 0 ? cur : "" });
+  if (id && ACT_ITEMS.indexOf(kind) >= 0) window.ZHK.setItem("actItems", null, { act: id, due: actAdd(date, 14) });
+  actOpen = id || ""; route();
+}
+function actDel(id) {
+  window.ZHK.list("actItems").filter(x => x.act === id).forEach(x => window.ZHK.setItem("actItems", x.id, null));
+  window.ZHK.setItem("acts", id, null);
+  if (actOpen === id) actOpen = ""; route();
+}
+function actFile(a) {
+  const K = ACT_KIND[a.kind] || { v: "Документ" }, c = window.ZHK.project();
+  return (K.v + " " + a.no + " " + (c.name || "")).replace(/[^\p{L}\p{N}\s-]/gu, "").trim().replace(/\s+/g, "_") + ".docx";
+}
+function viewActs() {
+  const A = window.ZHK.list("acts"), ro = window.ZHK.readOnly(), dis = ro ? " disabled" : "", P = actPeople(), c = window.ZHK.project();
+  const BL = window.ZHK.list("blocks"), ST = window.ZHK.stages().filter(s => ACT_STAGES.indexOf(s.id) >= 0);
+  const a = A.find(x => x.id === actOpen);
+  // Чего не хватает в данных проекта, чтобы документы собирались без ручных вставок.
+  const miss = [];
+  if (!c.name) miss.push(["название ЖК", "data"]);
+  if (!c.company) miss.push(["застройщик", "data"]);
+  if (!BL.length) miss.push(["блоки проекта", "blocks"]);
+  Object.values(P).forEach(p => { if (p.fo && !p.org) miss.push([p.t.toLowerCase() + ": организация", p.fo]); if (p.fw && !p.who) miss.push([p.t.toLowerCase() + ": ФИО в команде", p.fw]); });
+  const sel = (f, opts, val, label) => `<select data-item="acts:${a.id}:${f}" aria-label="${label}"${dis}><option value="">—</option>${opts.map(([v, t]) => `<option value="${esc(v)}"${v === val ? " selected" : ""}>${esc(t)}</option>`).join("")}</select>`;
+  const fld = (f, w) => { const L = (ACT_F[a.kind] || {})[f]; return L ? `<label class="stack" style="gap:2px"><span class="muted">${L[0]}</span><input type="text" class="vin" style="width:${w || 320}px" data-item="acts:${a.id}:${f}" value="${esc(a[f] || "")}" placeholder="${esc(L[1])}" maxlength="300"${dis}></label>` : ""; };
+  const lab = (t, h) => `<label class="stack" style="gap:2px"><span class="muted">${t}</span>${h}</label>`;
+  const items = a ? window.ZHK.list("actItems").filter(x => x.act === a.id) : [];
+  const ii = (x, f, w, ph, type) => `<input type="${type || "text"}" class="vin" style="width:${w}px" data-item="actItems:${x.id}:${f}" value="${esc(x[f] || "")}" placeholder="${ph}" maxlength="300"${dis}>`;
+  const editor = a ? `<section class="panel stack" id="act-ed">
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0">${esc((ACT_KIND[a.kind] || {}).v || "Документ")} № ${esc(a.no || "")}</h2>
+      <div class="row"><button class="btn primary" id="act-docx">Скачать Word</button><button class="btn ghost" id="act-close">Закрыть</button></div></div>
+    <div class="row" style="align-items:flex-end;flex-wrap:wrap">
+      ${lab("Номер", `<input type="text" class="vin" style="width:70px" data-item="acts:${a.id}:no" value="${esc(a.no || "")}" maxlength="20"${dis}>`)}
+      ${lab("Дата", `<input type="date" class="vin" data-item="acts:${a.id}:date" value="${esc(a.date || "")}"${dis}>`)}
+      ${lab("Блок", sel("block", BL.map(b => [b.id, b.name || "Блок"]), a.block, "Блок"))}
+      ${lab("Этап графика", sel("stage", ST.map(s => [s.id, s.code + " " + s.name]), a.stage, "Этап графика"))}
+      ${lab("Место: этаж, оси", `<input type="text" class="vin" style="width:200px" data-item="acts:${a.id}:place" value="${esc(a.place || "")}" placeholder="5 этаж, оси 1–8 / А–Г" maxlength="300"${dis}>`)}
+    </div>
+    <div class="row" style="align-items:flex-end;flex-wrap:wrap">${fld("work")}${fld("docs", 200)}${fld("mats")}${fld("next", 260)}</div>
+    ${ACT_ITEMS.indexOf(a.kind) >= 0 ? `<div class="tbl"><table><thead><tr><th>№</th><th>Место</th><th>${a.kind === "defect" ? "Дефект" : "Нарушение"}</th><th>Пункт ПСД / норм</th><th>Срок устранения</th><th></th></tr></thead><tbody>
+      ${items.map((x, i) => `<tr><td>${i + 1}</td><td>${ii(x, "place", 150, "блок, этаж, оси")}</td><td>${ii(x, "text", 300, "описание")}</td><td>${ii(x, "norm", 140, "СН РК, лист ПСД")}</td><td>${ii(x, "due", 140, "", "date")}</td>
+        <td>${ro ? "" : `<button class="btn ghost mini" data-item-del="actItems:${x.id}" aria-label="Удалить строку">×</button>`}</td></tr>`).join("")}</tbody></table></div>
+      ${ro ? "" : `<div class="row"><button class="btn" id="act-item-add">Добавить строку</button></div>`}` : ""}
+    <div class="muted">Так документ будет выглядеть в Word. Объект, комиссия и сроки этапа взяты из данных проекта; в квадратных скобках — то, чего в данных пока нет.</div>
+    <pre class="act-pre">${esc(actText(a))}</pre>
+  </section>` : "";
+  const rows = A.slice().sort((x, y) => (y.date || "").localeCompare(x.date || "") || (parseInt(y.no, 10) || 0) - (parseInt(x.no, 10) || 0));
+  const bName = id => (BL.find(b => b.id === id) || {}).name || "";
+  return head("Акты и предписания", "Документы стройки собираются из данных проекта: объект, застройщик, блоки, этапы графика, команда и партнёры. Вводится только то, что относится к самому документу.") +
+    (miss.length ? `<section class="panel stack"><div><b>Не хватает данных для документов.</b> <span class="muted">Пока их нет, в документе стоят пустые поля в скобках. Заполните один раз — подставятся во все акты.</span></div>
+      <div class="row" style="flex-wrap:wrap">${miss.map(([t, h]) => `<a class="btn ghost mini" href="#${h}">${esc(t)}</a>`).join("")}</div></section>` : "") +
+    (ro ? "" : `<section class="panel stack"><div class="row" style="flex-wrap:wrap"><span class="muted">Новый документ:</span>${window.DICTS.actKind.items.map(k => `<button class="btn" data-act-new="${k.k}">${esc(k.v)}</button>`).join("")}</div></section>`) +
+    editor +
+    `<section class="panel stack"><h3 class="eyebrow" style="margin:0">Реестр документов</h3>${rows.length ? `<div class="tbl"><table><thead><tr><th>Документ</th><th>№</th><th>Дата</th><th>Блок</th><th>Работы</th><th></th></tr></thead><tbody>${rows.map(x => `<tr${x.id === actOpen ? ' class="on"' : ""}>
+      <td>${esc((ACT_KIND[x.kind] || {}).v || "")}</td><td>${esc(x.no || "")}</td><td>${actDate(x.date)}</td><td>${esc(bName(x.block))}</td><td>${esc(x.work || x.place || "")}</td>
+      <td><div class="row" style="gap:4px;flex-wrap:nowrap"><button class="btn mini" data-act-open="${x.id}">Открыть</button><button class="btn ghost mini" data-act-docx="${x.id}">Word</button>${ro ? "" : `<button class="btn ghost mini" data-act-del="${x.id}" aria-label="Удалить документ">×</button>`}</div></td></tr>`).join("")}</tbody></table></div>`
+      : '<div class="empty">Документов пока нет. Выберите вид документа выше — номер, дата, объект и комиссия заполнятся сами.</div>'}</section>`;
+}
+function actDocx(id) {
+  const a = window.ZHK.list("acts").find(x => x.id === id); if (!a) return;
+  window.ZHK.save(actFile(a), window.buildDocx(actText(a)));
 }
 
 // ---------- Типовые планировки ----------
@@ -8712,7 +8892,7 @@ function bind(m) {
     window.ZHK.setItem(k, id, { [f]: el.value });
     if (el.tagName === "SELECT") route();
     // Сценарии «что если»: итоги пересчитываются сразу, курсор остаётся в поле, куда перешёл пользователь.
-    else if (k === "scenarios" || k === "plans" || k === "planRooms" || k === "equipPlan") setTimeout(() => { const a = document.activeElement, sel = a && a.dataset ? a.dataset.item : null; route(); const nx = sel && document.querySelector(`[data-item="${sel}"]`); if (nx) nx.focus(); }, 0);
+    else if (k === "scenarios" || k === "plans" || k === "planRooms" || k === "equipPlan" || k === "acts" || k === "actItems") setTimeout(() => { const a = document.activeElement, sel = a && a.dataset ? a.dataset.item : null; route(); const nx = sel && document.querySelector(`[data-item="${sel}"]`); if (nx) nx.focus(); }, 0);
   });
   m.querySelectorAll("[data-item-del]").forEach(b => b.onclick = () => { const [k, id] = b.dataset.itemDel.split(":"); window.ZHK.setItem(k, id, null) });
   m.querySelectorAll("[data-item-add]").forEach(b => b.onclick = () => {
@@ -8770,6 +8950,13 @@ function bind(m) {
   m.querySelectorAll("[data-eq-import]").forEach(b => b.onclick = () => { const n = window.ZHK.equipFromFile(); eqMsg = n ? "Перенесено строк из файла: " + n + ". Проверьте работы ГПР и загрузку." : ""; route(); });
   m.querySelectorAll("[data-eq-mode]").forEach(b => b.onclick = () => { eqUI.fc = b.dataset.eqMode === "fc"; try { localStorage.setItem("zhk-eq-mode", eqUI.fc ? "fc" : "plan"); } catch (e) {} route(); });
   const eqx = m.querySelector("#eq-xlsx"); if (eqx) eqx.onclick = equipXlsx;
+  m.querySelectorAll("[data-act-new]").forEach(b => b.onclick = () => actNew(b.dataset.actNew));
+  m.querySelectorAll("[data-act-open]").forEach(b => b.onclick = () => { actOpen = b.dataset.actOpen; route(); const e = document.getElementById("act-ed"); if (e) e.scrollIntoView({ block: "start" }); });
+  m.querySelectorAll("[data-act-docx]").forEach(b => b.onclick = () => actDocx(b.dataset.actDocx));
+  m.querySelectorAll("[data-act-del]").forEach(b => b.onclick = () => actDel(b.dataset.actDel));
+  const acx = m.querySelector("#act-close"); if (acx) acx.onclick = () => { actOpen = ""; route(); };
+  const acd = m.querySelector("#act-docx"); if (acd) acd.onclick = () => actDocx(actOpen);
+  const aci = m.querySelector("#act-item-add"); if (aci) aci.onclick = () => { const a = window.ZHK.list("acts").find(x => x.id === actOpen); if (a) window.ZHK.setItem("actItems", null, { act: a.id, due: actAdd(a.date, 14) }); route(); };
   const eqd = m.querySelector("#eq-del"); if (eqd) eqd.onclick = () => { eqMsg = ""; window.ZHK.setEquipFile(null); };
   m.querySelectorAll("[data-ch-f]").forEach(b => b.onclick = () => { const [g, v] = b.dataset.chF.split(":"); chUI.f[g] = v; route(); });
   const cft = m.querySelector("[data-ch-ft]"); if (cft) cft.onchange = () => { chUI.f.t = cft.value; route(); };
