@@ -121,6 +121,7 @@ body.nohints .topbar .muted, body.nohints .hint { display: none }
 .gbar select { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 8px; font: 500 .9rem var(--f-body); color: var(--fg); max-width: 100% }
 .g-sync { font-size: .78rem; color: var(--muted) } .g-sync[data-mode="shared"]::before { content: "● "; color: var(--ok) } .g-sync[data-mode="local"]::before { content: "● "; color: var(--warn) }
 .g-sp { flex: 1 }
+.warn-line { border: 1px solid var(--warn); background: var(--warn-soft, transparent); border-radius: 10px; padding: 8px 12px; font-size: .92rem }
 .g-acts { display: inline-flex; flex-wrap: wrap; gap: 8px; align-items: center } .g-act:disabled { opacity: .45; cursor: default } #g-undo:not(:disabled) { border-color: var(--accent); color: var(--accent) }
 .g-what { display: inline-block; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; font-weight: 400 }
 @media (min-width: 981px) { .gbar { position: sticky; top: 0; z-index: 20; background: var(--bg); padding-top: 10px } }
@@ -2415,7 +2416,7 @@ window.MODEL_DEFAULTS = {
   area_sale: 32000, area_comm: 2000, parking: 250, area_total: 45000,
   price: 550000, price_comm: 700000, price_park: 4000000, growth: 5,
   land: 2000000000, design: 12000, smr: 260000, nets: 25000,
-  supervision: 2, marketing: 3, admin: 2, reserve: 7,
+  supervision: 2, marketing: 3, admin: 2, reserve: 7, pnr: 0,
   land_m: 1, design_start: 2, design_dur: 8, build_start: 10, build_dur: 26, sales_start: 12, sales_dur: 30,
   equity: 1500000000, rate: 21, discount: 18,
   vat: 16, vat_exempt: 1, cit: 20
@@ -2447,14 +2448,16 @@ window.runModel = function (p, f) {
   const cat = {
     land: z(), design: even(p.design_start, p.design_dur, p.design * p.area_total),
     smr: bell(p.build_start, p.build_dur, p.smr * kS * p.area_total),
-    nets: even(p.build_start, p.build_dur, p.nets * p.area_total)
+    nets: even(p.build_start, p.build_dur, p.nets * p.area_total),
+    // ПНР — производственно-накладные расходы по калькулятору ОРС: сумма с НДС, равномерно по месяцам СМР.
+    pnr: even(p.build_start, p.build_dur, p.pnr || 0)
   };
   cat.land[p.land_m] = p.land;
   cat.supervision = cat.smr.map(x => x * p.supervision / 100);
   cat.reserve = cat.smr.map(x => x * p.reserve / 100);
   cat.marketing = rev.map(x => x * p.marketing / 100);
   cat.admin = even(1, N, totalRev * p.admin / 100);
-  const vatable = ["design", "smr", "nets", "supervision", "reserve", "marketing"];
+  const vatable = ["design", "smr", "nets", "pnr", "supervision", "reserve", "marketing"];
   const share = totalRev ? sum(taxRev) / totalRev : 0;
   const rate = p.rate / 100 / 12, dm = Math.pow(1 + p.discount / 100, 1 / 12) - 1;
   let cash = 0, debt = 0, eqUsed = 0, vatBal = 0, cum = 0, peakDebt = 0, peakNeed = 0, interestT = 0, vatPaidT = 0, outVatT = 0, credT = 0;
@@ -4450,6 +4453,7 @@ window.VARS = {
     { id: "reserve", name: "Резерв", unit: "% СМР", sec: "Затраты", owner: "ОРС", type: "num", path: "model.reserve", used: ["Финмодель"] },
     { id: "marketing", name: "Маркетинг и продажи", unit: "% выручки", sec: "Затраты", owner: "Продажи", type: "num", path: "model.marketing", better: "down", used: ["Финмодель"] },
     { id: "admin", name: "Административные расходы", unit: "% выручки", sec: "Затраты", owner: "Финансы", type: "num", path: "model.admin", better: "down", used: ["Финмодель"] },
+    { id: "pnr_cost", name: "ПНР по калькулятору ОРС", unit: "тг", sec: "Затраты", owner: "ОРС", calc: "Калькулятор ПНР", better: "down", used: ["Финмодель", "Бюджет"] },
 
     { id: "equity", name: "Собственный капитал", unit: "тг", sec: "Финансирование и налоги", owner: "Финансы", type: "num", path: "model.equity", used: ["Финмодель"] },
     { id: "rate", name: "Ставка кредита", unit: "% год.", sec: "Финансирование и налоги", owner: "Финансы", type: "num", path: "model.rate", better: "down", used: ["Финмодель"] },
@@ -4675,7 +4679,7 @@ window.I18N = (function () {
     ["Квартиры", "Пәтерлер"], ["Число квартир", "Пәтерлер саны"], ["Свободна", "Бос"], ["Бронь", "Брондалған"], ["Продана", "Сатылды"], ["Не в продаже", "Сатылымда емес"], ["Статус квартиры", "Пәтер мәртебесі"], ["Квартир в брони", "Брондалған пәтерлер"], ["Площадь квартир по шахматке", "Шахматка бойынша пәтерлер ауданы"], ["Комнат", "Бөлме"], ["Площадь, м²", "Ауданы, м²"], ["Скопировать комнаты и площади на типовые этажи", "Бөлмелер мен аудандарды типтік қабаттарға көшіру"], ["Типовые — этажи блока с тем же числом квартир. Номера и статусы не копируются. Серый номер — сквозная нумерация по блоку.", "Типтік — пәтер саны бірдей блок қабаттары. Нөмірлер мен мәртебелер көшірілмейді. Сұр нөмір — блок бойынша өтпелі нөмірлеу."], ["Сколько квартир продано на этаже подъезда. Если у квартир этажа отмечены статусы, продажи считаются по ним. План продаж — равномерно от старта продаж до передачи ключей по графику.", "Кіреберіс қабатында қанша пәтер сатылды. Қабат пәтерлерінің мәртебесі белгіленсе, сату солар бойынша есептеледі. Сату жоспары — кесте бойынша сату басталғаннан кілт тапсыруға дейін біркелкі."],
     ["Планировки", "Жоспарлар"], ["Планировка", "Жоспар"], ["Добавить планировку", "Жоспар қосу"], ["Добавить помещение", "Бөлме қосу"], ["Помещение", "Бөлме"], ["Название", "Атауы"], ["Назначить квартирам в шахматке", "Шахматкада пәтерлерге тағайындау"], ["Скопировать планировки на типовые этажи", "Жоспарларды типтік қабаттарға көшіру"], ["Помещений пока нет.", "Бөлмелер әлі жоқ."], ["Планировок пока нет.", "Жоспарлар әлі жоқ."], ["Вид помещения квартиры", "Пәтер бөлмесінің түрі"], ["Жилая комната", "Тұрғын бөлме"], ["Кухня", "Ас үй"], ["Кухня-гостиная", "Ас үй-қонақ бөлме"], ["Санузел", "Санитариялық торап"], ["Ванная", "Ванна бөлмесі"], ["Прихожая", "Кіреберіс"], ["Коридор", "Дәліз"], ["Гардеробная", "Киім бөлмесі"], ["Кладовая", "Қойма"], ["Лоджия", "Лоджия"], ["Балкон", "Балкон"], ["Терраса", "Терраса"], ["Типовые планировки вводятся один раз: помещения и их площади. Квартира в шахматке ссылается на планировку — её площадь и комнатность считаются отсюда, а из суммы по всем квартирам — продаваемая жилая площадь проекта.", "Типтік жоспарлар бір рет енгізіледі: бөлмелер және олардың аудандары. Шахматкадағы пәтер жоспарға сілтеме жасайды — оның ауданы мен бөлме саны осы жерден, ал барлық пәтерлердің қосындысынан жобаның сатылатын тұрғын ауданы есептеледі."],
     ["Сроки и стройка", "Мерзімдер және құрылыс"], ["Деньги", "Ақша"], ["ОРС", "ОРС"], ["Люди", "Адамдар"], ["Компания", "Компания"], ["Чек-лист B0", "B0 чек-парағы"], ["Поиск", "Іздеу"], ["Требует внимания", "Назар аударуды қажет етеді"], ["Ближайший месяц", "Жақын ай"], ["Весь календарь", "Бүкіл күнтізбе"], ["Срочно", "Шұғыл"], ["Внимание", "Назар"], ["Проверить", "Тексеру"], ["Текущий этап", "Ағымдағы кезең"], ["Стройка", "Құрылыс"], ["Просрочен пункт этапа", "Кезең тармағы мерзімі өтті"], ["Истекает документ", "Құжат мерзімі аяқталады"], ["Документ истёк", "Құжат мерзімі өтті"], ["Отставание от графика", "Кестеден қалу"], ["Стройка отстаёт", "Құрылыс қалып жатыр"], ["Продажи ниже плана", "Сату жоспардан төмен"], ["Перерасход бюджета", "Бюджеттің асып кетуі"], ["Данные на согласовании", "Келісудегі деректер"], ["Базовая версия ПК Start", "ПК Start базалық нұсқасы"], ["Событий нет.", "Оқиғалар жоқ."], ["Ничего не найдено.", "Ештеңе табылмады."], ["Раздел", "Бөлім"], ["Стандарт", "Стандарт"], ["Команда", "Команда"], ["Квартира", "Пәтер"], ["Что требует внимания по проекту. Всё считается из данных проекта: графика, реестра документов, шахматки, бюджета и статусов данных.", "Жоба бойынша назар аударуды қажет ететін нәрселер. Барлығы жоба деректерінен есептеледі: кесте, құжаттар тізілімі, шахматка, бюджет және деректер мәртебесі."], ["Всё в порядке: просрочек, отставаний и данных на согласовании нет.", "Бәрі жақсы: мерзімі өткен, қалып жатқан және келісудегі деректер жоқ."], ["Раздел, показатель, квартира, документ, стандарт, этап, человек", "Бөлім, көрсеткіш, пәтер, құжат, стандарт, кезең, адам"], ["↑ ↓ — выбор, Enter — открыть, Esc — закрыть", "↑ ↓ — таңдау, Enter — ашу, Esc — жабу"], ["Что найти", "Не табу керек"], ["Поиск по порталу", "Портал бойынша іздеу"],
-    ["Дорожная карта", "Жол картасы"], ["Дорожная карта ЖК", "ТҮК жол картасы"], ["Этапы", "Кезеңдер"], ["Схема связей", "Байланыстар сызбасы"], ["Схема связей этапов", "Кезеңдер байланысының сызбасы"], ["Пройдено", "Өтті"], ["Идёт", "Жүріп жатыр"], ["Впереди", "Алда"], ["Инструменты этапа", "Кезең құралдары"], ["Шаги этапа", "Кезең қадамдары"], ["К этапу →", "Кезеңге →"], ["На дорожной карте:", "Жол картасында:"], ["Этапы в работе", "Жұмыстағы кезеңдер"], ["Вся дорожная карта", "Бүкіл жол картасы"], ["Открытых этапов нет.", "Ашық кезеңдер жоқ."], ["Этапы проекта по фазам — от анализа рынка до гарантии: сроки по графику, выполнение пунктов и инструменты каждого этапа. Нажмите на этап, чтобы открыть его пункты, документы, бюджет и сроки.", "Жоба кезеңдері фазалар бойынша — нарықты талдаудан кепілдікке дейін: кесте бойынша мерзімдер, тармақтардың орындалуы және әр кезеңнің құралдары. Тармақтарын, құжаттарын, бюджеті мен мерзімдерін ашу үшін кезеңді басыңыз."], ["Какой этап открывает следующий. Этап открывается, когда закрыты условия перехода на предыдущих.", "Қай кезең келесісін ашады. Кезең алдыңғыларындағы өту шарттары жабылғанда ашылады."],
+    ["Дорожная карта", "Жол картасы"], ["Дорожная карта ЖК", "ТҮК жол картасы"], ["Этапы", "Кезеңдер"], ["Схема связей", "Байланыстар сызбасы"], ["Схема связей этапов", "Кезеңдер байланысының сызбасы"], ["Пройдено", "Өтті"], ["Идёт", "Жүріп жатыр"], ["Впереди", "Алда"], ["Инструменты этапа", "Кезең құралдары"], ["Шаги этапа", "Кезең қадамдары"], ["ПНР по калькулятору ОРС", "ОРС калькуляторы бойынша ӨҮШ"], ["Итог устарел:", "Қорытынды ескірді:"], ["К этапу →", "Кезеңге →"], ["На дорожной карте:", "Жол картасында:"], ["Этапы в работе", "Жұмыстағы кезеңдер"], ["Вся дорожная карта", "Бүкіл жол картасы"], ["Открытых этапов нет.", "Ашық кезеңдер жоқ."], ["Этапы проекта по фазам — от анализа рынка до гарантии: сроки по графику, выполнение пунктов и инструменты каждого этапа. Нажмите на этап, чтобы открыть его пункты, документы, бюджет и сроки.", "Жоба кезеңдері фазалар бойынша — нарықты талдаудан кепілдікке дейін: кесте бойынша мерзімдер, тармақтардың орындалуы және әр кезеңнің құралдары. Тармақтарын, құжаттарын, бюджеті мен мерзімдерін ашу үшін кезеңді басыңыз."], ["Какой этап открывает следующий. Этап открывается, когда закрыты условия перехода на предыдущих.", "Қай кезең келесісін ашады. Кезең алдыңғыларындағы өту шарттары жабылғанда ашылады."],
     ["Отменить", "Болдырмау"], ["← Назад", "← Артқа"], ["↶ Отменить", "↶ Болдырмау"], ["↷ Вернуть", "↷ Қайтару"], ["Подсказки", "Кеңестер"], ["Всем квартирам этажа:", "Қабаттың барлық пәтерлеріне:"], ["Последнее изменение отменено", "Соңғы өзгеріс болдырылмады"], ["Поля уже заполнены", "Өрістер толтырылған"], ["Заполнить пустые поля значениями первого блока", "Бос өрістерді бірінші блоктың мәндерімен толтыру"], ["Статус всем квартирам этажа", "Қабаттың барлық пәтерлерінің мәртебесі"],
     ["Мой отдел", "Менің бөлімім"], ["Мои разделы", "Менің бөлімдерім"], ["Я — все разделы", "Мен — барлық бөлімдер"], ["По вашему отделу всё в порядке.", "Сіздің бөлім бойынша бәрі жақсы."],
     ["План по работам ГПР", "ЖӨК жұмыстары бойынша жоспар"], ["Из чего считается", "Неден есептеледі"], ["Свернуть", "Жию"], ["Исходные данные — можно поменять здесь", "Бастапқы деректер — осы жерде өзгертуге болады"], ["Результат расчёта", "Есептеу нәтижесі"],
@@ -5747,6 +5751,7 @@ window.ZHK_BOOT = function (document) {
     const p = Object.assign({}, window.MODEL_DEFAULTS);
     Object.keys(S.model).forEach(k => { if (typeof S.model[k] === "number") p[k] = S.model[k]; });
     const sm = smetaModel(S); if (sm) Object.assign(p, sm);
+    p.pnr = pnrModel(S); // итог калькулятора ПНР; при включённой смете 1С — 0 (накладные уже в смете)
     const aa = aptsArea(S); if (aa) p.area_sale = aa; // площадь квартир по шахматке
     const at = parseNum(S.project.area_total); // общая площадь — одна на карточку и финмодель
     if (at > 0) p.area_total = at;
@@ -5779,6 +5784,12 @@ window.ZHK_BOOT = function (document) {
     if (!note) { note = document.createElement("p"); note.id = "model-smeta-note"; note.className = "muted"; modelForm.insertBefore(note, modelForm.children[2] || null); }
     note.hidden = !sm;
     note.textContent = sm ? "СМР, внешние сети, проектирование, технадзор и резерв берутся из сметы 1С (" + (S.smeta.file || "смета") + "). Чтобы ввести их вручную, отключите смету на странице «Смета из 1С»." : "";
+    let pn = document.getElementById("model-pnr-note");
+    if (!pn) { pn = document.createElement("p"); pn.id = "model-pnr-note"; pn.className = "muted"; note.insertAdjacentElement("afterend", pn); }
+    const pc = S.pnrCalc && S.pnrCalc.at ? S.pnrCalc : null;
+    pn.textContent = !pc ? "ПНР (производственно-накладные расходы) не посчитан: рассчитайте его в калькуляторе ПНР — итог войдёт в затраты отдельной статьёй."
+      : sm ? "ПНР по калькулятору не добавляется: включена смета 1С, накладные уже в ней."
+      : "ПНР по калькулятору ОРС: " + num(p.pnr) + " тг с НДС, равномерно по месяцам СМР (расчёт от " + new Date(pc.at).toLocaleDateString("ru-RU") + ")." + (window.PNR_STALE && window.PNR_STALE() ? " Данные изменились после расчёта — пересчитайте ПНР." : "");
     const r = document.getElementById("model-reset"); if (r) r.hidden = readOnly;
   }
   function readModelForm() {
@@ -5909,8 +5920,8 @@ window.ZHK_BOOT = function (document) {
   modelOut.addEventListener("click", e => {
     if (e.target.id === "model-csv") {
       const R = window.runModel(params());
-      const head = ["Месяц", "Выручка", "Земля", "ИРД и проект", "СМР", "Сети", "Технадзор", "Резерв", "Маркетинг", "Административные", "НДС к уплате", "Проценты", "Поток до финансирования", "Накопленный поток", "Долг банку"];
-      const rows = R.months.map(m => [m.m, m.rev, m.cat.land, m.cat.design, m.cat.smr, m.cat.nets, m.cat.supervision, m.cat.reserve, m.cat.marketing, m.cat.admin, m.vat, m.interest, m.rev - m.cost - m.vat, m.cum, m.debt].map(v => Math.round(v)).join(";"));
+      const head = ["Месяц", "Выручка", "Земля", "ИРД и проект", "СМР", "Сети", "ПНР", "Технадзор", "Резерв", "Маркетинг", "Административные", "НДС к уплате", "Проценты", "Поток до финансирования", "Накопленный поток", "Долг банку"];
+      const rows = R.months.map(m => [m.m, m.rev, m.cat.land, m.cat.design, m.cat.smr, m.cat.nets, m.cat.pnr, m.cat.supervision, m.cat.reserve, m.cat.marketing, m.cat.admin, m.vat, m.interest, m.rev - m.cost - m.vat, m.cum, m.debt].map(v => Math.round(v)).join(";"));
       save(fileName({ title: "Финмодель помесячно" }, "csv"), "﻿" + [head.join(";")].concat(rows).join("\r\n"));
     }
   });
@@ -5927,7 +5938,7 @@ window.ZHK_BOOT = function (document) {
     budgetRows().forEach(r => { plan[r.id] = 0; });
     plan.land = c.land;
     Object.keys(SPLIT_DESIGN).forEach(k => { plan[k] += c.design * SPLIT_DESIGN[k]; });
-    Object.keys(SPLIT_SMR).forEach(k => { plan[k] += (c.smr + c.supervision + c.reserve) * SPLIT_SMR[k]; });
+    Object.keys(SPLIT_SMR).forEach(k => { plan[k] += (c.smr + c.supervision + c.reserve + (c.pnr || 0)) * SPLIT_SMR[k]; });
     plan.nets = c.nets; plan.dolevka = c.marketing; plan._admin = c.admin; plan._interest = R.t.interest;
     Object.keys(plan).forEach(k => { plan[k] = Math.round(plan[k] / 1000) * 1000; });
     planCache = { key, plan };
@@ -6761,7 +6772,7 @@ window.ZHK_BOOT = function (document) {
       ...(EQ => ({ eq_crane_m: EQ.blocks.length ? EQ.crane : null, eq_lift_m: EQ.blocks.length ? EQ.lift : null, eq_pump_m: EQ.blocks.length ? EQ.pump : null, eq_sum: EQ.sumFile }))(equipCalc()), eq_plan_sum: equipPlanCalc().sumPlan,
       smr_ready: ch ? X.tot.fw / X.tot.cells * 100 : null, smr_fact: ch ? X.tot.fact : null, sold_flats: ch ? X.tot.sold : null,
       reserved_flats: ch ? X.tot.rsv : null, apts_area: X.tot.aptA ? Math.round(X.tot.area * 10) / 10 : null,
-      fin_rev: t.rev, fin_cost: t.costT, fin_cost_m2: t.costM2, fin_pbt: t.pbt, fin_net: t.net,
+      pnr_cost: R.byCat.pnr || null, fin_rev: t.rev, fin_cost: t.costT, fin_cost_m2: t.costM2, fin_pbt: t.pbt, fin_net: t.net,
       fin_margin: t.margin * 100, fin_irr: t.irr == null ? null : t.irr * 100, fin_npv: t.npv, fin_peak_debt: t.peakDebt,
       cur_stage: cur.code + " · " + cur.name, stages_done: T.nodes.filter(isDone).length,
       keys_plan: ymAdd(G.start, G.end), keys_fc: ymAdd(G.start, G.fend), delay: Math.max(0, G.fend - G.end),
@@ -6785,6 +6796,13 @@ window.ZHK_BOOT = function (document) {
     const vat = typeof md.vat === "number" ? md.vat : window.MODEL_DEFAULTS.vat, k = m.vatIncl ? 1 : 1 + vat / 100;
     if (!(at > 0)) return null;
     return { smr: m.cats.smr * k / at, nets: m.cats.nets * k / at, design: m.cats.design * k / at, supervision: m.cats.supervision / m.cats.smr * 100, reserve: m.cats.reserve / m.cats.smr * 100 };
+  }
+  // ПНР в финмодель: итог калькулятора ОРС (без НДС) + НДС. Пока включена смета 1С — не добавляется: накладные в ней уже есть.
+  function pnrModel(st) {
+    const c = st && st.pnrCalc;
+    if (!c || !c.at || !(c.total > 0) || smetaModel(st)) return 0;
+    const md = st.model || {}, vat = typeof md.vat === "number" ? md.vat : window.MODEL_DEFAULTS.vat;
+    return c.total * (1 + vat / 100);
   }
   function varRaw(v, st, C) {
     if (v.calc) return (C || calcAll())[v.id];
@@ -7252,7 +7270,8 @@ window.STEP_STATE = (k, sid) => {
   const Z = window.ZHK; if (!Z) return null;
   try {
     if (k === "b0") { const B = b0Progress(); return B.left ? { s: B.left < B.total ? "part" : "", t: "осталось полей: " + B.left } : { s: "done", t: "заполнен" }; }
-    if (k === "pnr") { const n = pnrLeft(); return n ? { s: "part", t: "осталось показателей: " + n } : { s: "done", t: "заполнен" }; }
+    if (k === "pnr") { const n = pnrLeft(), c = Z.pnrCalc(); return n ? { s: "part", t: "осталось показателей: " + n } : !c ? { s: "part", t: "заполнен, не посчитан" } : pnrStale() ? { s: "part", t: "итог устарел — пересчитайте" } : { s: "done", t: "посчитан" }; }
+    if (k === "model" && sid === "pkstart") { const c = Z.pnrCalc(), v = Z.vars().find(x => x.id === "pnr_cost"); return Z.smeta() && Z.smeta().use ? { s: "done", t: "затраты по смете 1С" } : !c ? { s: "", t: "ПНР ещё не посчитан" } : { s: pnrStale() ? "part" : "done", t: "ПНР в финмодели: " + (v ? v.text : "") + (pnrStale() ? ", устарел" : "") }; }
     if (k === "blocks") { const n = Z.list("blocks").length; return n ? { s: "done", t: "блоков: " + n } : { s: "", t: "блоков нет" }; }
     if (k === "team") { const L = Z.list("team"), n = L.filter(m => m.name).length; return n ? { s: n === L.length ? "done" : "part", t: "назначено: " + n + " из " + L.length } : { s: "", t: "никто не назначен" }; }
     if (k === "partners") { const L = Z.list("partners"), n = L.filter(m => m.org).length; return n ? { s: n === L.length ? "done" : "part", t: "с организацией: " + n + " из " + L.length } : { s: "", t: "нет партнёров" }; }
@@ -7542,6 +7561,11 @@ const isPnrInput = src => src === "num" || src === "flag" || src.indexOf("sel:")
 // Курс сума нужен только проектам в Ташкенте — в других городах он не считается незаполненным.
 const pnrNeeded = p => p[0] !== 172 || (window.ZHK.project().city || "") === "Ташкент";
 function pnrLeft() { const A = window.ZHK.pnr(); return window.PNR.filter(p => isPnrInput(p[4]) && pnrNeeded(p) && (A["n" + p[0]] == null || A["n" + p[0]] === "")).length; }
+// Отпечаток исходных данных ПНР: те же значения, что уходят в файл калькулятора (цены ОРС в него не входят).
+function pnrSig() { const C = pnrCtx(); return JSON.stringify(window.PNR.map(p => { const x = pnrVal(p, C).x; return x && typeof x === "object" ? x.d : x == null ? null : x; })); }
+// Итог устарел: после расчёта поменялись данные, которые уходят в калькулятор.
+function pnrStale() { const c = window.ZHK.pnrCalc(); return !!(c && c.sig && c.sig !== pnrSig()); }
+window.PNR_STALE = () => { try { return pnrStale(); } catch (e) { return false; } };
 function pnrCtx() {
   const V = Object.fromEntries(window.ZHK.vars().map(v => [v.id, v])), A = window.ZHK.b0(), blocks = window.ZHK.list("blocks"), d = window.ZHK.deck();
   const n = x => { const v = parseFloat(String(x == null ? "" : x).replace(",", ".")); return isFinite(v) ? v : null; };
@@ -7644,7 +7668,7 @@ async function pnrCalcRun() {
     const items = lvl2.map(x => ({ a: x.a, name: x.name, sum: Math.round(sumUnder(x.a)), err: errUnder(x.a) }));
     const sections = top.map(x => ({ a: x.a, name: x.name, sum: Math.round(sumUnder(x.a)), err: errUnder(x.a) }));
     const total = sections.reduce((s, x) => s + x.sum, 0);
-    window.ZHK.setPnrCalc({ at: new Date().toISOString(), file: F.name, total, sections, items, mism, left: pnrLeft() });
+    window.ZHK.setPnrCalc({ at: new Date().toISOString(), file: F.name, total, sections, items, mism, left: pnrLeft(), sig: pnrSig() });
     setTimeout(() => pnrSay(mism > 5 ? `Посчитано. Внимание: ${mism} строк листа «Показатели проекта» в файле не совпадают с порталом — возможно, другая версия калькулятора.` : "Посчитано и сохранено в проект."), 0);
     return true;
   } catch (e) { pnrSay(("Не удалось прочитать файл: " + (e && e.message ? e.message : "ошибка")).replace(/([^.?!])$/, "$1.")); return false; }
@@ -7657,6 +7681,7 @@ function pnrCalcHtml() {
       <div class="row">${ro ? "" : `<label class="btn">Выбрать файл калькулятора<input type="file" id="pnr-file" accept=".xlsx" hidden></label><button class="btn primary" id="pnr-run">Рассчитать</button>`}</div></div>
     <p class="muted" style="margin:0">Портал считает по формулам и ценам из файла ОРС: показатели подставляются из этой страницы. Файл остаётся в этом браузере, в проект сохраняются только итоги. Цены обновит ОРС в своём файле.</p>
     <div class="muted" aria-live="polite" id="pnr-msg">${esc(pnrMsg)}</div>
+    ${R && pnrStale() ? `<div class="warn-line" role="status"><b>Итог устарел:</b> данные проекта или B0 изменились после расчёта. Нажмите «Рассчитать» — в финмодели пока последний итог.</div>` : ""}
     ${R ? `<div class="sl-kpis sl-k3 pnr-kpis"><div class="sl-kpi"><span>ПНР всего, без НДС</span><b>${mln(R.total)} млн тг</b></div>${R.sections.map(x => `<div class="sl-kpi"><span>${esc(x.name)}</span><b>${mln(x.sum)} млн</b></div>`).join("")}</div>
       <div class="tbl"><table><thead><tr><th>№</th><th>Статья</th><th class="num">Сумма без НДС, тг</th><th></th></tr></thead><tbody>${R.items.map(x => `<tr><td class="mono muted">${x.a}</td><td>${esc(x.name)}</td><td class="num">${x.sum.toLocaleString("ru-RU")}</td><td>${x.err ? `<span class="chip s-fail">не посчитано строк: ${x.err}</span>` : ""}</td></tr>`).join("")}</tbody></table></div>
       <p class="muted" style="margin:0">Рассчитано ${new Date(R.at).toLocaleString("ru-RU")}${R.by ? ", " + esc(window.ZHK.who(R.by)) : ""}, файл «${esc(R.file)}».${R.left ? ` Не заполнено показателей: ${R.left} — часть статей может быть занижена.` : ""}${errs.length ? " Статьи с непосчитанными строками ждут показателей или выбора из списков в файле ОРС (район изысканий, вид проектирования)." : ""}</p>`
@@ -8402,7 +8427,7 @@ const HM_DRILL = {
   keys: { t: "Ключи по прогнозу", href: "gantt", link: "График", note: "Ключи — конец этапа «Передача квартир» по графику. Прогноз сдвигается, когда пункты этапов не закрыты в срок.", inp: ["sched_start"], out: ["keys_fc", "keys_plan", "delay", "cur_stage", "stages_done"] },
   smr: { t: "Строительство", href: "roadmap", link: "Дорожная карта", note: "Готовность — доля выполненных стадий СМР по этажам; план — по графику.", inp: [], out: ["smr_ready", "smr_fact", "cur_stage", "delay"] },
   sales: { t: "Продажи", href: "model", link: "Финмодель", note: "Продано — по статусам квартир; план — равномерно от старта продаж до ключей.", inp: ["price", "growth", "area_sale"], out: ["sold_flats", "reserved_flats", "flats", "sales_start", "sales_dur", "fin_rev"] },
-  budget: { t: "Бюджет", href: "budget", link: "Бюджет", note: "План по этапам — из финмодели, факт вносит команда в модуле «Финансы».", inp: ["land", "design", "smr", "nets"], out: ["fin_cost", "fin_cost_m2"] },
+  budget: { t: "Бюджет", href: "budget", link: "Бюджет", note: "План по этапам — из финмодели, факт вносит команда в модуле «Финансы».", inp: ["land", "design", "smr", "nets"], out: ["pnr_cost", "fin_cost", "fin_cost_m2"] },
   margin: { t: "Маржа", href: "model", link: "Финмодель", note: "Маржа к себестоимости = (выручка − затраты) / затраты по финмодели.", inp: ["price", "area_sale", "smr", "land", "design", "nets"], out: ["fin_margin", "fin_irr", "fin_npv", "fin_rev", "fin_cost"] },
   debt: { t: "Пиковый долг банку", href: "model", link: "Финмодель", note: "Наибольший долг банку в помесячном потоке: затраты, которые идут раньше выручки, покрываются кредитом.", inp: ["equity", "rate", "smr"], out: ["fin_peak_debt", "build_start", "build_dur", "sales_start", "fin_irr"] },
   equip: { t: "Спецтехника", href: "equip", link: "Спецтехника", note: "Сумма по плану ГПР — строки плана техники по этапам графика × цены строк файла ЦДС/ПТО.", inp: ["eq_mono", "eq_mas"], out: ["eq_plan_sum", "eq_crane_m", "eq_lift_m", "eq_pump_m", "eq_sum"] }
