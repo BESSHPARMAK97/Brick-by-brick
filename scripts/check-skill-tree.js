@@ -66,11 +66,18 @@ V.items.forEach(v => {
   if (root === "model" && !(k in ctx.window.MODEL_DEFAULTS)) fail(`variable ${v.id}: unknown model input ${k}`);
   else if (root === "project" && !fields.has(k) && !PROJECT_EXTRA.includes(k)) fail(`variable ${v.id}: unknown project field ${k}`);
   else if (root === "sched" && k !== "start") fail(`variable ${v.id}: unknown schedule field ${k}`);
-  else if (root === "pnr" && !ctx.window.PNR.some(p => "n" + p[0] === k)) fail(`variable ${v.id}: unknown PNR indicator ${k}`);
+  else if (root === "pnr" && !ctx.window.PNR.some(p => "n" + p[0] === k) && !(ctx.window.PNR_SHEETS || []).some(g => g.rows.some(r => r[0] === k))) fail(`variable ${v.id}: unknown PNR indicator ${k}`);
   else if (root === "equip" && (!["mono", "mas", "lift", "craneTail", "liftTail", "abn", "stagger"].includes(k) || typeof v.dflt !== "number")) fail(`variable ${v.id}: unknown equipment norm ${k} or no default`);
   else if (!["model", "project", "sched", "pnr", "equip"].includes(root)) fail(`variable ${v.id}: bad path ${v.path}`);
   if (v.type === "sel" && v.dict && !ctx.window.DICTS[v.dict]) fail(`variable ${v.id}: unknown dictionary ${v.dict}`);
 });
+// Листы калькулятора ПНР: уникальные ключи и ячейки, известные справочники.
+const PS = ctx.window.PNR_SHEETS || [], pkeys = new Set(), pcells = new Set();
+PS.forEach(g => g.rows.forEach(([key, cell, , , src]) => {
+  if (pkeys.has(key)) fail(`PNR sheet row ${key}: duplicate key`); pkeys.add(key);
+  if (pcells.has(g.sheet + "!" + cell)) fail(`PNR sheet row ${key}: duplicate cell ${g.sheet}!${cell}`); pcells.add(g.sheet + "!" + cell);
+  if (src.indexOf("sel:") === 0 && !ctx.window.DICTS[src.slice(4)]) fail(`PNR sheet row ${key}: unknown dictionary ${src.slice(4)}`);
+}));
 // Справочники: уникальные значения без запятых (в Excel запятая делит пункт выпадающего списка на два)
 const DICTS = ctx.window.DICTS;
 const DKEYS = Object.keys(DICTS).filter(k => typeof DICTS[k] === "object");
