@@ -348,6 +348,25 @@ button.ch-c { cursor: pointer } button.ch-c:disabled { cursor: default }
 .ch-in .vin { width: 26px; height: 24px; border: 0; padding: 0 2px; text-align: right; background: transparent; font-size: .75rem }
 .ch-in span { color: var(--muted); font-size: .7rem }
 .ch-n { width: 52px; height: 26px; padding: 0 4px; font-size: .75rem; text-align: center }
+.fl-tbl { max-height: 70vh; overflow: auto }
+.fl-t { border-collapse: separate; border-spacing: 3px; width: auto }
+.fl-t th, .fl-t td { padding: 0; border: 0; text-align: center; font-size: .78rem; vertical-align: middle }
+.fl-t thead th { position: sticky; top: 0; background: var(--surface); z-index: 2; vertical-align: bottom; padding-bottom: 4px; width: 120px; min-width: 120px; max-width: 120px }
+.fl-t .fl-f { position: sticky; left: 0; background: var(--surface); z-index: 1; color: var(--muted); font-weight: 600; min-width: 64px; text-align: right; padding-right: 4px; white-space: nowrap }
+.fl-t thead .fl-f { z-index: 3; min-width: 64px }
+.fl-t tfoot td, .fl-t tfoot th { padding-top: 6px; font-size: .75rem }
+.fl-h { display: flex; align-items: center; gap: 2px } .fl-h .vin { flex: 1; width: 0; min-width: 0; font-weight: 600; font-size: .78rem; padding: 3px 5px }
+.fl-all { width: 100%; margin-top: 3px; font-size: .72rem; padding: 2px 4px }
+.fl-row { width: 22px; margin-left: 4px; font-size: .7rem; padding: 0; border: 1px solid var(--line); border-radius: 4px; background: var(--surface-2); color: var(--muted); cursor: pointer }
+.fl-c { position: relative; display: flex; align-items: center; justify-content: center; width: 120px; height: 28px; border-radius: 5px; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); font: 600 .74rem var(--f-body) }
+.fl-c select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font-size: 16px }
+.fl-c:focus-within { outline: 2px solid var(--accent); outline-offset: 1px }
+.fl-c.s1, .fl-sw.s1 { background: var(--warn-soft); border-color: var(--warn) }
+.fl-c.s2, .fl-sw.s2 { background: var(--ok-soft); border-color: var(--ok) }
+.fl-c.s3, .fl-sw.s3 { background: var(--ok); border-color: var(--ok); color: #fff }
+.fl-c.s4, .fl-sw.s4 { background: var(--bad-soft); border-color: var(--bad) }
+.fl-sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--line); background: var(--surface-2); margin-right: 6px; vertical-align: -1px }
+@media (max-width: 640px) { .fl-c, .fl-t thead th { width: 84px; min-width: 84px } }
 .ch-apts { display: flex; gap: 2px; padding: 2px; min-height: 26px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); cursor: pointer }
 .ch-apts.on { outline: 2px solid var(--accent); outline-offset: 1px }
 .ch-q { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 20px; padding: 0 2px; border-radius: 3px; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); font: 600 .66rem var(--f-body) }
@@ -3783,6 +3802,9 @@ window.DICTS = {
     { v: "Лоджия", k: 0.5, note: "понижающий коэффициент уточнить у ПТО и отдела продаж" }, { v: "Балкон", k: 0.3, note: "понижающий коэффициент уточнить у ПТО и отдела продаж" }, { v: "Терраса", k: 0.3, note: "понижающий коэффициент уточнить у ПТО и отдела продаж" }] },
   // Шахматка, уровень квартир: c — код статуса в данных проекта (свободна — без отметки)
   flatStatus: { name: "Статус квартиры", items: [{ v: "Свободна", c: 0 }, { v: "Бронь", c: 1 }, { v: "Продана", c: 2 }, { v: "Не в продаже", c: 3 }] },
+  // Этажная шахматка работ: c — код статуса в данных проекта (не начато — без отметки), a — коротко в ячейке, done — работа на этаже готова
+  floorStatus: { name: "Статус работы на этаже", items: [{ v: "Не начато", c: 0, a: "" }, { v: "В работе", c: 1, a: "В работе" }, { v: "Выполнено", c: 2, a: "Готово", done: true },
+    { v: "Принято технадзором", c: 3, a: "Принято", done: true }, { v: "Замечания", c: 4, a: "Замеч." }] },
   // Спецтехника: вид и работы ГПР по умолчанию (st — с этапа, st2 — по этап); calc — считается из блоков по нормам, вручную не вводится.
   // Работы по умолчанию — подсказка при добавлении и переносе из файла; в плане их можно поменять.
   equipKind: { name: "Вид спецтехники", items: [{ v: "Кран башенный", u: "мес", calc: "crane" }, { v: "Подъемник", u: "мес", calc: "lift" }, { v: "Бетононасос стационарный", u: "мес", calc: "pump" },
@@ -4695,6 +4717,7 @@ window.I18N = (function () {
     ["нет цены", "бағасы жоқ"], ["нет в плане", "жоспарда жоқ"], ["по блокам", "блоктар бойынша"], ["Спецтехника по плану ГПР", "ЖӨК жоспары бойынша арнайы техника"], ["Вид спецтехники", "Арнайы техника түрі"], ["Единица спецтехники", "Арнайы техника бірлігі"],
     ["Строка — техника на работах ГПР: с этапа и по этап графика (по умолчанию — для вида техники). Для «мес» указывается число единиц, для смен, часов и рейсов — ещё загрузка в месяц на единицу. Количество = единиц × загрузка × месяцев работ. Сумма — по цене той же строки (вид, характеристика, единица) в файле ЦДС/ПТО.", "Жол — ЖӨК жұмыстарындағы техника: кестенің бір кезеңінен екіншісіне дейін (әдепкі бойынша — техника түріне қарай). «Ай» үшін бірлік саны, ауысым, сағат және рейстер үшін — бірлікке айлық жүктеме де көрсетіледі. Саны = бірлік × жүктеме × жұмыс айлары. Сомасы — ЦДС/ПТО файлындағы сол жолдың (түрі, сипаттамасы, бірлігі) бағасы бойынша."],
     ["Нормы ГПР", "ЖӨК нормалары"], ["ГПР и потребность по месяцам", "Айлар бойынша ЖӨК және қажеттілік"], ["План спецтехники (файл)", "Арнайы техника жоспары (файл)"], ["Загрузить план (Excel)", "Жоспарды жүктеу (Excel)"], ["Убрать файл", "Файлды алып тастау"], ["Башенные краны", "Мұнаралы крандар"], ["Подъёмники", "Көтергіштер"], ["Стационарный насос", "Стационарлық сорғы"], ["Автобетононасос", "Автобетонсорғы"], ["Фундамент", "Іргетас"], ["Монолит", "Монолит"], ["Кладка", "Қалау"], ["Башенный кран", "Мұнаралы кран"], ["Подъёмник", "Көтергіш"], ["Стац. насос", "Стац. сорғы"], ["Кранов", "Крандар"], ["Подъёмников", "Көтергіштер"], ["Печать / PDF", "Басып шығару / PDF"], ["Статус:", "Мәртебе:"], ["Комнат:", "Бөлме:"], ["Планировка:", "Жоспар:"], ["Все", "Барлығы"], ["Техника", "Техника"], ["Ед.", "Бірл."], ["По файлу", "Файл бойынша"], ["Период", "Кезең"], ["Сумма с НДС", "ҚҚС-пен сома"],
+    ["Этажная шахматка", "Қабаттық шахматка"], ["Статус работ по этажам блока. Количество этажей — из «Блоков проекта»: введите его здесь или там, добавьте работы и нажмите на ячейку, чтобы выбрать статус. Отчёт PDF собирается из этих же отметок.", "Блок қабаттары бойынша жұмыстар мәртебесі. Қабаттар саны «Жоба блоктарынан» алынады: оны осында немесе сонда енгізіңіз, жұмыстарды қосып, мәртебені таңдау үшін ұяшықты басыңыз. PDF есебі осы белгілерден жиналады."], ["Сколько этажей в доме?", "Үйде неше қабат?"], ["Количество этажей", "Қабаттар саны"], ["Подземных этажей", "Жерасты қабаттары"], ["например, 12", "мысалы, 12"], ["Построить шахматку", "Шахматканы құру"], ["Создаётся «Блок 1» в «Блоках проекта»: этажность вводится один раз и дальше используется в чек-листе B0, ПНР и отчётах. Другие блоки добавляются там же.", "«Жоба блоктарында» «Блок 1» құрылады: қабат саны бір рет енгізіліп, B0 чек-парағында, ПНР-да және есептерде қолданылады. Басқа блоктар сол жерде қосылады."], ["Блоков пока нет.", "Блоктар әлі жоқ."], ["выполнено и принято", "орындалды және қабылданды"], ["Принято технадзором", "Техқадағалау қабылдады"], ["ячеек этаж × работа", "қабат × жұмыс ұяшықтары"], ["Замечания", "Ескертулер"], ["Не начато", "Басталмаған"], ["Выполнено", "Орындалды"], ["Принято", "Қабылданды"], ["Замеч.", "Ескерт."], ["Статус работы на этаже", "Қабаттағы жұмыс мәртебесі"], ["Добавьте первую работу — например, «Монолит», «Кладка», «Электромонтаж». Столбец появится для всех этажей.", "Бірінші жұмысты қосыңыз — мысалы, «Монолит», «Қалау», «Электр монтажы». Баған барлық қабаттар үшін пайда болады."], ["Введите количество этажей блока выше.", "Блоктың қабаттар санын жоғарыда енгізіңіз."], ["Название работы", "Жұмыс атауы"], ["Удалить работу", "Жұмысты жою"], ["Удалить работу и её статусы (можно отменить кнопкой «Отменить»)", "Жұмысты және оның мәртебелерін жою («Болдырмау» батырмасымен қайтаруға болады)"], ["Всем этажам…", "Барлық қабаттарға…"], ["Статус на всех этажах", "Барлық қабаттардағы мәртебе"], ["Этажей", "Қабаттар"], ["Подземных", "Жерасты"], ["Новая работа", "Жаңа жұмыс"], ["например, Монолит", "мысалы, Монолит"], ["Добавить работу", "Жұмыс қосу"], ["Сформировать отчёт", "Есеп құру"], ["Нажмите на ячейку и выберите статус. «Всем этажам…» под названием работы ставит статус на весь столбец, «…» у номера этажа — на все работы этажа. Это то же поле, что и этажность в разделе", "Ұяшықты басып, мәртебені таңдаңыз. Жұмыс атауының астындағы «Барлық қабаттарға…» мәртебені бүкіл бағанға, қабат нөмірінің жанындағы «…» — қабаттың барлық жұмыстарына қояды. Бұл келесі бөлімдегі қабат санымен бір өріс:"], ["«Блоки проекта»", "«Жоба блоктары»"], ["Готово", "Дайын"], ["Готовлю PDF…", "PDF дайындалуда…"], ["Отчёт готов.", "Есеп дайын."], ["Не удалось собрать PDF. Повторите ещё раз.", "PDF жинау мүмкін болмады. Қайталап көріңіз."], ["Не удалось собрать PDF: нет доступа к библиотеке. Проверьте интернет и повторите.", "PDF жинау мүмкін болмады: кітапханаға қолжетімділік жоқ. Интернетті тексеріп, қайталаңыз."], ["Замечания по этажам", "Қабаттар бойынша ескертулер"], ["Этажная шахматка: статус работ по этажам и отчёт", "Қабаттық шахматка: қабаттар бойынша жұмыстар мәртебесі және есеп"], ["спецтехника, акты и предписания, этажная шахматка, стандарты", "арнайы техника, актілер мен нұсқамалар, қабаттық шахматка, стандарттар"], ["Отчёт о ходе работ по этажам", "Қабаттар бойынша жұмыстардың барысы туралы есеп"], ["Сводка по работам", "Жұмыстар бойынша жиынтық"], ["Работа", "Жұмыс"], ["Этажи", "Қабаттар"], ["Сформировано в портале проекта из данных этажной шахматки", "Жоба порталында қабаттық шахматка деректерінен құрылды"], ["Замечаний и незавершённых работ нет.", "Ескертулер мен аяқталмаған жұмыстар жоқ."], ["требуют устранения", "жоюды қажет етеді"],
     ["Казначей", "Қазынашы"], ["Факт бюджета внесён по 5+ этапам", "5+ кезең бойынша бюджет фактісі енгізілді"], ["План из финмодели, тг", "Қаржы моделінен жоспар, тг"], ["План считается из финмодели автоматически: земля, проектирование по этапам проекта, СМР с технадзором и резервом по этапам стройки, сети, маркетинг, административные расходы и проценты. Чтобы изменить план, измените исходные данные финмодели или сроки в графике.", "Жоспар қаржы моделінен автоматты түрде есептеледі: жер, жоба кезеңдері бойынша жобалау, құрылыс кезеңдері бойынша техқадағалау мен резервті қоса ҚМЖ, желілер, маркетинг, әкімшілік шығыстар және пайыздар. Жоспарды өзгерту үшін қаржы моделінің бастапқы деректерін немесе кестедегі мерзімдерді өзгертіңіз."],
     ["Акты и предписания", "Актілер мен нұсқамалар"], ["Заполнить по данным", "Деректер бойынша толтыру"], ["Новый документ:", "Жаңа құжат:"], ["Реестр документов", "Құжаттар тізілімі"],
     ["Акт освидетельствования скрытых работ", "Жасырын жұмыстарды куәландыру актісі"], ["Акт промежуточной приёмки ответственных конструкций", "Жауапты конструкцияларды аралық қабылдау актісі"],
@@ -4748,6 +4771,16 @@ window.I18N = (function () {
     [/^Сначала пройдите: (.+)\.$/, m => "Алдымен өтіңіз: " + trList(m[1]) + "."],
     [/^Причина: (.+)$/, m => "Себебі: " + m[1]],
     [/^Осталось (\d+) из (\d+)\.?$/, m => m[2] + " тармақтың " + m[1] + " қалды"],
+    [/^работ: (\d+)$/, m => "жұмыстар: " + m[1]],
+    [/^этажей: (\d+)$/, m => "қабаттар: " + m[1]],
+    [/^(\d+) из (\d+)$/, m => m[2] + " ішінен " + m[1]],
+    [/^готово: (\d+)%$/, m => "дайын: " + m[1] + "%"],
+    [/^ячеек этажной шахматки с замечаниями: (\d+)$/, m => "ескертулері бар қабаттық шахматка ұяшықтары: " + m[1]],
+    [/^по состоянию на (.+)$/, m => m[1] + " жағдай бойынша"],
+    [/^Стр\. (\d+) из (\d+)$/, m => "Бет " + m[1] + " / " + m[2]],
+    [/^выполнено и принято: (\d+) из (\d+)$/, m => "орындалды және қабылданды: " + m[2] + " ішінен " + m[1]],
+    [/^(.+): шахматка работ(.*)$/, m => m[1] + ": жұмыстар шахматкасы" + m[2].replace("этажи", "қабаттар")],
+    [/^(Сводка по работам|Требует внимания) \(продолжение\)$/, m => tr(m[1]) + " (жалғасы)"],
     [/^Отв\.: (.+)$/, m => "Жауапты: " + m[1]],
     [/^Выполнено (\d\d\.\d\d\.\d{4})(?: · (.+))?$/, m => "Орындалды " + m[1] + (m[2] ? " · " + tr(m[2]) : "")],
     [/^Просрочено, срок был (.+)$/, m => "Мерзімі өтті, мерзім " + m[1] + " болған"],
@@ -4910,7 +4943,7 @@ window.ZHK_BOOT = function (document) {
   const RANKS = [[0, "Стажёр"], [1, "Аналитик"], [4, "Девелопер"], [8, "Застройщик"], [13, "Генеральный застройщик"], [21, "Магнат ЖК"]];
   const STATUS = { locked: "Закрыт", open: "Доступен", active: "В работе", risk: "Начат с риском", done: "Пройден" };
   const LOCAL_KEY = "zhk-skill-tree-v2", LEGACY_KEY = "zhk-skill-tree-v1";
-  const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines", "sched", "vars", "baseline", "risks", "team", "partners", "blocks", "b0", "pnr", "pnrCalc", "smeta", "scenarios", "chess", "plans", "planRooms", "equip", "equipPlan", "acts", "actItems"];
+  const KEYS = ["checked", "meta", "early", "project", "model", "budget", "deadlines", "sched", "vars", "baseline", "risks", "team", "partners", "blocks", "b0", "pnr", "pnrCalc", "smeta", "scenarios", "chess", "plans", "planRooms", "equip", "equipPlan", "acts", "actItems", "floorWorks", "floorGrid"];
   const VIEWS = ["tree", "gantt", "model", "budget", "deadlines", "projects"];
 
   // S — всё состояние проекта, хранится одним документом.
@@ -5034,7 +5067,7 @@ window.ZHK_BOOT = function (document) {
   const UNDO_SEC = { project: "карточка проекта", model: "финмодель", budget: "бюджет", deadlines: "сроки документов", sched: "график", vars: "статус данных",
     baseline: "базовая версия", risks: "риски", team: "команда", partners: "партнёры", blocks: "блоки", b0: "чек-лист B0", pnr: "показатели ПНР", pnrCalc: "калькулятор ПНР",
     smeta: "смета", scenarios: "сценарии", chess: "шахматка", plans: "планировки", planRooms: "помещения планировок", equip: "спецтехника", equipPlan: "план спецтехники",
-    acts: "акты", actItems: "замечания в актах", checked: "отметки этапов", meta: "назначения этапов", early: "досрочный старт" };
+    acts: "акты", actItems: "замечания в актах", floorWorks: "работы этажной шахматки", floorGrid: "статусы этажной шахматки", checked: "отметки этапов", meta: "назначения этапов", early: "досрочный старт" };
   function undoLabel(p) {
     const ks = Object.keys(p);
     for (const k of ks) if (isObj(p[k])) for (const f of Object.keys(p[k])) { const v = VARS.find(x => x.path === k + "." + f); if (v) return v.name; }
@@ -6342,7 +6375,7 @@ window.ZHK_BOOT = function (document) {
     blocks: ["name", "kind", "floors", "under", "entrances", "lifts", "flats", "frame", "design", "contour"],
     scenarios: ["name", "price", "smr", "delay", "sales", "rate"], plans: ["name", "note"], planRooms: ["plan", "kind", "name", "area"],
     equipPlan: ["kind", "char", "unit", "stage", "stage2", "units", "load", "off", "dur"],
-    acts: ["kind", "no", "date", "block", "stage", "place", "sub", "work", "norm", "docs", "mats", "dev", "d1", "d2", "next"], actItems: ["act", "place", "text", "norm", "due"] };
+    acts: ["kind", "no", "date", "block", "stage", "place", "sub", "work", "norm", "docs", "mats", "dev", "d1", "d2", "next"], actItems: ["act", "place", "text", "norm", "due"], floorWorks: ["name"] };
   function listOf(k) { return listFrom(S, k); }
   function listFrom(st, k) {
     const o = (st && st[k]) || {};
@@ -6524,7 +6557,7 @@ window.ZHK_BOOT = function (document) {
       resetZone.innerHTML = '<span class="reset-confirm">Сбросить отметки, назначения и досрочные старты? Карточка проекта, финмодель, бюджет и реестр сроков останутся. <button class="btn" id="reset-yes">Да, сбросить</button><button class="btn ghost" id="reset-no">Отмена</button></span>';
     } else if (e.target.id === "reset-yes" || e.target.id === "reset-no") {
       if (e.target.id === "reset-yes" && !readOnly) {
-        S = normalize({ project: S.project, model: S.model, budget: S.budget, deadlines: S.deadlines, sched: S.sched, vars: S.vars, baseline: S.baseline, risks: S.risks, team: S.team, partners: S.partners, blocks: S.blocks, b0: S.b0, pnr: S.pnr, pnrCalc: S.pnrCalc, smeta: S.smeta, scenarios: S.scenarios, chess: S.chess, plans: S.plans, planRooms: S.planRooms, equip: S.equip, equipPlan: S.equipPlan, acts: S.acts, actItems: S.actItems });
+        S = normalize({ project: S.project, model: S.model, budget: S.budget, deadlines: S.deadlines, sched: S.sched, vars: S.vars, baseline: S.baseline, risks: S.risks, team: S.team, partners: S.partners, blocks: S.blocks, b0: S.b0, pnr: S.pnr, pnrCalc: S.pnrCalc, smeta: S.smeta, scenarios: S.scenarios, chess: S.chess, plans: S.plans, planRooms: S.planRooms, equip: S.equip, equipPlan: S.equipPlan, acts: S.acts, actItems: S.actItems, floorWorks: S.floorWorks, floorGrid: S.floorGrid });
         openEdits.clear();
         saveLocal();
         if (docRef) { const ref = docRef, proj = curProject, full = JSON.parse(JSON.stringify(S)); writeChain = writeChain.then(() => ref.set(full).then(() => { if (proj === curProject) docExists = true; }).catch(() => {})); }
@@ -6612,6 +6645,29 @@ window.ZHK_BOOT = function (document) {
   // Шахматка: этажи и подъезды — из блоков проекта, план по этажам — из графика, объём СМР — из финмодели.
   // Команда вносит только факт: стадию СМР на этаже подъезда и проданные квартиры. Ключ — «блок.подъезд.этаж.поле».
   // Квартиры: «блок.подъезд.этаж.q<№ на этаже>.поле» — no номер, r комнат, a площадь, x статус.
+  // Этажная шахматка работ: этажи — из «Блоков проекта» (надземные сверху вниз, затем подземные), работы — список floorWorks,
+  // статус — floorGrid["блок.работа.этаж"] = код из справочника floorStatus. Итоги по работе и блоку считаются здесь.
+  const FLOOR_KEY = /^[\w\-]{1,40}\.[\w\-]{1,40}\.-?\d{1,3}$/;
+  function floorsCalc() {
+    const G = S.floorGrid || {}, FS = window.DICTS.floorStatus.items, W = listOf("floorWorks"), nS = FS.length;
+    const zero = () => FS.map(() => 0);
+    const tot = { cells: 0, done: 0, by: zero() };
+    const blocks = listOf("blocks").map(b => {
+      const fl = Math.min(150, Math.max(0, Math.round(parseNum(b.floors) || 0))), un = Math.min(10, Math.max(0, Math.round(parseNum(b.under) || 0)));
+      const floors = []; for (let f = fl; f >= 1; f--) floors.push(f); for (let f = -1; f >= -un; f--) floors.push(f);
+      const cells = {}, works = W.map(w => {
+        const by = zero(); cells[w.id] = {};
+        floors.forEach(f => { const c = Math.min(nS - 1, Math.max(0, parseInt(G[b.id + "." + w.id + "." + f], 10) || 0)); cells[w.id][f] = c; by[c]++; });
+        const done = FS.reduce((a, x, i) => a + (x.done ? by[i] : 0), 0);
+        return { id: w.id, name: w.name || "", n: floors.length, by, done };
+      });
+      const bt = { cells: floors.length * W.length, done: works.reduce((a, w) => a + w.done, 0), by: zero() };
+      works.forEach(w => w.by.forEach((v, i) => { bt.by[i] += v; }));
+      tot.cells += bt.cells; tot.done += bt.done; bt.by.forEach((v, i) => { tot.by[i] += v; });
+      return { id: b.id, name: b.name || "Блок", fl, un, floors, cells, works, tot: bt };
+    });
+    return { works: W, blocks, tot };
+  }
   const CHESS_KEY = /^[\w\-]{1,40}\.\d{1,2}\.-?\d{1,3}\.(st|s|n|q\d{1,2}\.(no|r|a|x|t))$/;
   function chessCalc(at, R) {
     const G = schedule(), P = G.P, C = S.chess || {};
@@ -6974,6 +7030,20 @@ window.ZHK_BOOT = function (document) {
     chess: at => chessCalc(at),
     // Типовые планировки с помещениями и итогами: площадь (с коэффициентами), жилая площадь, комнатность.
     plans: () => Object.values(plansOf(S)),
+    // Этажная шахматка работ: этажи из блоков, работы и статусы по этажам с итогами.
+    floors: () => floorsCalc(),
+    setFloors: patch => {
+      if (readOnly || !isObj(patch)) return;
+      const d = {}, nS = window.DICTS.floorStatus.items.length;
+      Object.keys(patch).forEach(k => { if (!FLOOR_KEY.test(k)) return; const c = parseInt(patch[k], 10); d[k] = c > 0 && c < nS ? String(c) : null; });
+      if (Object.keys(d).length) commit({ floorGrid: d });
+    },
+    // Работа удаляется вместе со своими статусами одним шагом (одна отмена).
+    delFloorWork: id => {
+      if (readOnly || !id) return;
+      const g = {}; Object.keys(S.floorGrid || {}).forEach(k => { if (k.split(".")[1] === id) g[k] = null; });
+      commit(Object.assign({ floorWorks: { [id]: null } }, Object.keys(g).length ? { floorGrid: g } : {}));
+    },
     setChess: patch => {
       if (readOnly || !isObj(patch)) return;
       const d = {};
@@ -7180,7 +7250,7 @@ const Z = (t, sub) => () => head(t, sub);
 // Портал — три экрана: Обзор, Дорожная карта, Данные. Остальное — модули отделов: по умолчанию выключены,
 // включаются в «Данных» (project.modules — коды модулей через пробел). Разделы группы — вкладки внутри экрана.
 const NAV_G = [["home", "Обзор"], ["map", "Дорожная карта"], ["data", "Данные"]];
-const MODS = [["fin", "Финансы", "финмодель, «что если», бюджет, смета 1С"], ["ors", "ОРС", "показатели ПНР, чек-лист B0"], ["build", "Стройка", "спецтехника, акты и предписания, стандарты"], ["pk", "Комитет", "презентация ПК Start"], ["co", "Портфель", "все ЖК компании"]];
+const MODS = [["fin", "Финансы", "финмодель, «что если», бюджет, смета 1С"], ["ors", "ОРС", "показатели ПНР, чек-лист B0"], ["build", "Стройка", "спецтехника, акты и предписания, этажная шахматка, стандарты"], ["pk", "Комитет", "презентация ПК Start"], ["co", "Портфель", "все ЖК компании"]];
 const GROUPS = NAV_G.concat(MODS);
 const modsOn = () => { const m = String(window.ZHK && window.ZHK.project() ? window.ZHK.project().modules || "" : "").split(" "); return MODS.filter(([g]) => m.indexOf(g) >= 0); };
 const VIEWS = {
@@ -7190,6 +7260,7 @@ const VIEWS = {
   blocks: { g: "obj", t: "Блоки проекта", cnt: () => window.ZHK ? window.ZHK.list("blocks").length || "" : "", r: viewBlocks },
   equip: { g: "obj", t: "Спецтехника", cnt: () => "", r: viewEquip },
   acts: { g: "obj", t: "Акты и предписания", cnt: () => window.ZHK ? window.ZHK.list("acts").length || "" : "", r: viewActs },
+  floors: { g: "obj", t: "Этажная шахматка", cnt: () => window.ZHK ? (n => n || "")(window.ZHK.floors().tot.by[4]) : "", alert: true, r: viewFloors },
   plans: { g: "obj", t: "Планировки", cnt: () => window.ZHK ? window.ZHK.plans().length || "" : "", r: viewPlans },
   chess: { g: "obj", t: "Шахматка", cnt: () => "", r: viewChess },
   data: { g: "obj", t: "Данные проекта", cnt: () => "", r: viewData },
@@ -7214,7 +7285,7 @@ const VIEWS = {
 
 // Состав групп по порядку вкладок; первый раздел группы открывается из меню. Шахматка и планировки — на паузе (без вкладки).
 const GV = { home: ["home", "today", "kpi"], map: ["roadmap", "gantt", "calendar", "deadlines"], data: ["data"],
-  fin: ["model", "whatif", "budget", "smeta"], ors: ["pnr", "b0"], build: ["equip", "acts", "standards"], pk: ["pk"], co: ["projects"] };
+  fin: ["model", "whatif", "budget", "smeta"], ors: ["pnr", "b0"], build: ["equip", "acts", "floors", "standards"], pk: ["pk"], co: ["projects"] };
 Object.entries(GV).forEach(([g, ks]) => ks.forEach(k => { VIEWS[k].g = g; }));
 ["chess", "plans"].forEach(k => { VIEWS[k].g = "build"; VIEWS[k].off = true; });
 VIEWS.scheme.g = "map"; VIEWS.scheme.off = true; // «Схема связей» — вид вкладки «Этапы»
@@ -7223,7 +7294,7 @@ VIEWS.scheme.g = "map"; VIEWS.scheme.off = true; // «Схема связей» 
 // Шаги этапов: этап дорожной карты → что сделать по порядку и в каком разделе портала. Одно место связи: из него
 // строятся «Шаги этапа» в дорожной карте, отметка «На дорожной карте» и подсказка «Дальше» на странице раздела.
 // Перед ПК Start: чек-лист B0 и калькулятор ПНР (ОРС) → по их итогам уточняется финмодель → сценарии → база → презентация.
-const ST_BUILD = [["acts", "Акты скрытых работ и приёмки конструкций"], ["equip", "Спецтехника этапа по графику"], ["budget", "Факт затрат по этапу"], ["standards", "Стандарты на работы этапа"]];
+const ST_BUILD = [["acts", "Акты скрытых работ и приёмки конструкций"], ["equip", "Спецтехника этапа по графику"], ["budget", "Факт затрат по этапу"], ["standards", "Стандарты на работы этапа"], ["floors", "Этажная шахматка: статус работ по этажам и отчёт"]];
 const STAGE_STEPS = {
   idea: [["card", "Паспорт проекта: участок, класс, город"], ["model", "Предварительная финмодель: выручка, затраты, IRR"], ["whatif", "Чувствительность: цена, затраты, срок"]],
   land: [["card", "Участок: адрес, кадастр, площадь, застройщик"], ["deadlines", "Сроки документов на землю"]],
@@ -7258,6 +7329,7 @@ window.STEP_STATE = (k, sid) => {
     if (k === "partners") { const L = Z.list("partners"), n = L.filter(m => m.org).length; return n ? { s: n === L.length ? "done" : "part", t: "с организацией: " + n + " из " + L.length } : { s: "", t: "нет партнёров" }; }
     if (k === "smeta") return Z.smeta() ? { s: "done", t: "загружена" } : { s: "", t: "не загружена" };
     if (k === "acts") { const n = Z.list("acts").filter(a => a.stage === sid).length; return n ? { s: "part", t: "документов: " + n } : null; }
+    if (k === "floors") { const T = Z.floors().tot; return T.cells ? { s: T.done ? T.done === T.cells ? "done" : "part" : "", t: "готово: " + Math.round(T.done / T.cells * 100) + "%" } : null; }
     if (k === "data") { const V = Z.vars().filter(v => !v.calc), a = V.filter(v => v.st === "approved").length; return { s: a === V.length ? "done" : a ? "part" : "", t: "утверждено: " + a + " из " + V.length }; }
   } catch (e) {}
   return null;
@@ -8148,6 +8220,126 @@ function viewChess() {
   <p class="muted">Факт продаж и СМР пока вносится здесь. Когда подключим CRM продаж и журналы технадзора, он будет приходить оттуда, без повторного ввода.</p>`;
 }
 
+// ---------- Этажная шахматка работ ----------
+// Этажи — из «Блоков проекта» (то же поле, что в блоках: ввод в одном месте), работы — список проекта, статус — нажатием на ячейку.
+// Отчёт PDF собирается из тех же отметок: ничего не вводится повторно.
+const floUI = { block: "", msg: "" };
+const flPct = (a, b) => b ? Math.round(a / b * 100) + "%" : "—";
+// Этажи списком: «1–5, 7, 9–12» (по возрастанию, подземные — со знаком минус).
+function flRanges(fs) {
+  const a = fs.slice().sort((x, y) => x - y), out = [];
+  for (let i = 0; i < a.length; i++) { let j = i; while (j + 1 < a.length && a[j + 1] === a[j] + 1 && a[j + 1] !== 0) j++; out.push(i === j ? String(a[i]) : a[i] + "–" + a[j]); i = j; }
+  return out.join(", ");
+}
+function viewFloors() {
+  const Z = window.ZHK, X = Z.floors(), ro = Z.readOnly(), dis = ro ? " disabled" : "", FS = window.DICTS.floorStatus.items;
+  const top = head("Этажная шахматка", "Статус работ по этажам блока. Количество этажей — из «Блоков проекта»: введите его здесь или там, добавьте работы и нажмите на ячейку, чтобы выбрать статус. Отчёт PDF собирается из этих же отметок.");
+  if (!X.blocks.length) return top + `<section class="panel stack">${ro ? '<div class="empty">Блоков пока нет.</div>' : `<h2 class="h2">Сколько этажей в доме?</h2>
+    <div class="row" style="align-items:flex-end"><label class="field" style="margin:0"><span class="label">Количество этажей</span><input type="text" inputmode="numeric" class="vin num" id="fl-new-n" style="width:150px" maxlength="3" placeholder="например, 12"></label>
+    <label class="field" style="margin:0"><span class="label">Подземных этажей</span><input type="text" inputmode="numeric" class="vin num" id="fl-new-u" style="width:150px" maxlength="2" placeholder="0"></label>
+    <button class="btn primary" id="fl-new" type="button">Построить шахматку</button></div>
+    <p class="muted" style="margin:0">Создаётся «Блок 1» в «Блоках проекта»: этажность вводится один раз и дальше используется в чек-листе B0, ПНР и отчётах. Другие блоки добавляются там же.</p>`}</section>`;
+  const B = X.blocks.find(b => b.id === floUI.block) || X.blocks[0], T = B.tot, W = B.works;
+  const tabs = X.blocks.length > 1 ? `<div class="row" role="group" aria-label="Блок">${X.blocks.map(b => `<button class="btn${b.id === B.id ? " primary" : ""}" data-fl-block="${b.id}" aria-pressed="${b.id === B.id}">${esc(b.name)}</button>`).join("")}</div>` : "";
+  const K = [["Готово", flPct(T.done, T.cells), "выполнено и принято"], ["Принято технадзором", String(T.by[3]), "ячеек этаж × работа"], ["В работе", String(T.by[1]), "ячеек этаж × работа"], ["Замечания", String(T.by[4]), "ячеек этаж × работа"]];
+  const opts = c => FS.map(x => `<option value="${x.c}"${x.c === c ? " selected" : ""}>${esc(x.v)}</option>`).join("");
+  const cell = (w, f) => {
+    const c = B.cells[w.id][f], t = (w.name || "Работа") + ", этаж " + f + ": " + FS[c].v;
+    return `<td><span class="fl-c s${c}" title="${esc(t)}"><span>${esc(FS[c].a)}</span>${ro ? "" : `<select data-fl-cell="${B.id}.${w.id}.${f}" aria-label="${esc(t)}">${opts(c)}</select>`}</span></td>`;
+  };
+  const grid = !W.length ? `<div class="empty">Добавьте первую работу — например, «Монолит», «Кладка», «Электромонтаж». Столбец появится для всех этажей.</div>`
+    : !B.floors.length ? `<div class="empty">Введите количество этажей блока выше.</div>`
+    : `<div class="tbl fl-tbl"><table class="fl-t"><thead><tr><th class="fl-f">Этаж</th>${W.map(w => `<th><div class="fl-h">${ro ? `<b>${esc(w.name || "Работа")}</b>` : `<input type="text" class="vin" data-item="floorWorks:${w.id}:name" value="${esc(w.name)}" title="${esc(w.name)}" maxlength="60" aria-label="Название работы"><button class="btn ghost mini" data-fl-del="${w.id}" title="Удалить работу и её статусы (можно отменить кнопкой «Отменить»)" aria-label="Удалить работу">×</button>`}</div>
+        ${ro ? "" : `<select class="fl-all" data-fl-col="${w.id}" aria-label="Статус на всех этажах"><option value="">Всем этажам…</option>${opts(-1)}</select>`}</th>`).join("")}</tr></thead>
+      <tbody>${B.floors.map(f => `<tr><th class="fl-f">${f}${ro ? "" : `<select class="fl-row" data-fl-row="${f}" title="Статус всех работ на этаже ${f}" aria-label="Статус всех работ на этаже ${f}"><option value="">…</option>${opts(-1)}</select>`}</th>${W.map(w => cell(w, f)).join("")}</tr>`).join("")}</tbody>
+      <tfoot><tr><th class="fl-f">Готово</th>${W.map(w => `<td class="num"><b>${flPct(w.done, w.n)}</b><div class="muted">${w.done} из ${w.n}</div></td>`).join("")}</tr></tfoot></table></div>`;
+  return top + tabs + `<div class="grid ch-k">${K.map(([l, v, d]) => `<div class="panel kpi"><span class="label">${l}</span><div class="big num">${esc(v)}</div><div class="muted" style="font-size:.85rem">${esc(d)}</div></div>`).join("")}</div>
+  <section class="panel stack">
+    <div class="row" style="justify-content:space-between;align-items:flex-end">
+      <div class="row" style="align-items:flex-end">
+        <label class="field" style="margin:0"><span class="label">Этажей</span><input type="text" inputmode="numeric" class="vin num" style="width:80px" data-fl-blk="${B.id}:floors" value="${B.fl || ""}" maxlength="3"${dis}></label>
+        <label class="field" style="margin:0"><span class="label">Подземных</span><input type="text" inputmode="numeric" class="vin num" style="width:80px" data-fl-blk="${B.id}:under" value="${B.un || ""}" maxlength="2" placeholder="0"${dis}></label>
+        ${ro ? "" : `<label class="field" style="margin:0"><span class="label">Новая работа</span><input type="text" class="vin" id="fl-work" style="width:220px" maxlength="60" placeholder="например, Монолит"></label><button class="btn" id="fl-work-add" type="button">Добавить работу</button>`}
+      </div>
+      <div class="row" style="align-items:center"><span class="muted" id="fl-msg" role="status">${esc(floUI.msg)}</span><button class="btn primary" id="fl-report" type="button"${W.length && T.cells ? "" : " disabled"}>Сформировать отчёт</button></div>
+    </div>
+    <div class="row ch-legend">${FS.map(x => `<span><span class="fl-sw s${x.c}"></span>${esc(x.v)}</span>`).join("")}</div>
+    <p class="muted" style="margin:0">Нажмите на ячейку и выберите статус. «Всем этажам…» под названием работы ставит статус на весь столбец, «…» у номера этажа — на все работы этажа. Это то же поле, что и этажность в разделе <a href="#blocks">«Блоки проекта»</a>.</p>
+  </section>
+  <section class="panel stack"><div class="row" style="justify-content:space-between"><h3>${esc(B.name)}</h3><span class="muted">работ: ${W.length} · этажей: ${B.floors.length}</span></div>${grid}</section>`;
+}
+
+// Отчёт PDF: страницы A4 альбомом собираются из тех же данных, рисуются html2canvas и складываются в jsPDF.
+function floorsReportPages() {
+  const Z = window.ZHK, X = Z.floors(), FS = window.DICTS.floorStatus.items, P = Z.project() || {};
+  const name = P.name || card.name || "Проект", d = new Date(), day = String(d.getDate()).padStart(2, "0") + "." + String(d.getMonth() + 1).padStart(2, "0") + "." + d.getFullYear();
+  const BL = X.blocks.filter(b => b.floors.length && b.works.length), pages = [];
+  const bar = (a, b) => `<div class="r-bar"><i style="width:${b ? Math.round(a / b * 100) : 0}%"></i></div>`;
+  const legend = `<div class="r-leg">${FS.map(x => `<span><i class="s${x.c}"></i>${esc(x.v)}</span>`).join("")}</div>`;
+  // Сводка: итог по проекту и таблица «блок — работа», не больше 16 строк на страницу.
+  const rows = []; BL.forEach(b => b.works.forEach((w, i) => rows.push({ b, w, first: i === 0 })));
+  const sumHead = `<tr><th>Блок</th><th>Работа</th><th>Этажей</th>${FS.slice(1).map(x => `<th>${esc(x.v)}</th>`).join("")}<th>Не начато</th><th style="width:190px">Готовность</th></tr>`;
+  const sumRow = r => `<tr><td>${r.first ? `<b>${esc(r.b.name)}</b>` : ""}</td><td>${esc(r.w.name || "Работа")}</td><td class="n">${r.w.n}</td>${FS.slice(1).map(x => `<td class="n${x.c === 4 && r.w.by[4] ? " bad" : ""}">${r.w.by[x.c] || "—"}</td>`).join("")}<td class="n">${r.w.by[0] || "—"}</td><td><div class="r-pc">${bar(r.w.done, r.w.n)}<b>${flPct(r.w.done, r.w.n)}</b></div></td></tr>`;
+  const T = X.tot, k = (l, v, s) => `<div class="r-k"><span>${l}</span><b>${v}</b><small>${s}</small></div>`;
+  for (let i = 0; i < Math.max(rows.length, 1); i += 16) pages.push(`${i ? "" : `<div class="r-k4">${k("Готовность", flPct(T.done, T.cells), "выполнено и принято: " + T.done + " из " + T.cells)}${k("Принято технадзором", T.by[3], "ячеек этаж × работа")}${k("В работе", T.by[1], "ячеек этаж × работа")}${k("Замечания", T.by[4], T.by[4] ? "требуют устранения" : "нет")}</div>`}
+    <h2>Сводка по работам${i ? " (продолжение)" : ""}</h2><table class="r-t">${sumHead}${rows.slice(i, i + 16).map(sumRow).join("")}</table>`);
+  // Шахматка блока: до 24 этажей и 10 работ на странице.
+  BL.forEach(b => {
+    for (let fi = 0; fi < b.floors.length; fi += 24) for (let wi = 0; wi < b.works.length; wi += 10) {
+      const F = b.floors.slice(fi, fi + 24), W = b.works.slice(wi, wi + 10);
+      pages.push(`<h2>${esc(b.name)}: шахматка работ${b.floors.length > 24 || b.works.length > 10 ? ` (этажи ${F[0]}…${F[F.length - 1]})` : ""}</h2>
+        <table class="r-g"><tr><th>Этаж</th>${W.map(w => `<th>${esc(w.name || "Работа")}</th>`).join("")}</tr>
+        ${F.map(f => `<tr><th>${f}</th>${W.map(w => { const c = b.cells[w.id][f]; return `<td class="s${c}">${esc(FS[c].a)}</td>`; }).join("")}</tr>`).join("")}
+        <tr class="r-tot"><th>Готово</th>${W.map(w => `<td>${flPct(w.done, w.n)}</td>`).join("")}</tr></table>${legend}`);
+    }
+  });
+  // Что требует внимания: замечания и работы в процессе по этажам.
+  const att = []; BL.forEach(b => b.works.forEach(w => [4, 1].forEach(c => { const fs = b.floors.filter(f => b.cells[w.id][f] === c); if (fs.length) att.push({ b, w, c, fs }); })));
+  att.sort((a, b) => b.c - a.c);
+  for (let i = 0; i < att.length; i += 18) pages.push(`<h2>Требует внимания${i ? " (продолжение)" : ""}</h2><table class="r-t"><tr><th>Статус</th><th>Блок</th><th>Работа</th><th>Этажи</th><th>Этажей</th></tr>
+    ${att.slice(i, i + 18).map(a => `<tr><td><span class="r-chip s${a.c}">${esc(FS[a.c].v)}</span></td><td>${esc(a.b.name)}</td><td>${esc(a.w.name || "Работа")}</td><td>${esc(flRanges(a.fs))}</td><td class="n">${a.fs.length}</td></tr>`).join("")}</table>`);
+  if (!att.length) pages.push(`<h2>Требует внимания</h2><p>Замечаний и незавершённых работ нет.</p>`);
+  const n = pages.length;
+  return pages.map((h, i) => `<header class="r-hd"><div><div class="r-tt">Отчёт о ходе работ по этажам</div><div class="r-sub">${esc(name)}</div></div><div class="r-dt">по состоянию на ${day}</div></header><main>${h}</main><footer class="r-ft"><span>Сформировано в портале проекта из данных этажной шахматки</span><span>Стр. ${i + 1} из ${n}</span></footer>`);
+}
+const FL_PDF_CSS = `.r-pg{position:relative;width:1123px;height:794px;box-sizing:border-box;padding:34px 42px 50px;background:#fff;color:#1b1f24;font:14px/1.35 Arial,Helvetica,sans-serif;overflow:hidden}
+.r-pg *{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif;letter-spacing:0;text-transform:none}.r-hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #1f6feb;padding-bottom:10px;margin-bottom:16px}
+.r-tt{font-size:22px;font-weight:700}.r-sub{font-size:15px;color:#4a5462;margin-top:2px}.r-dt{font-size:13px;color:#4a5462}
+.r-pg h2{font-size:17px;margin:4px 0 10px}.r-ft{position:absolute;left:42px;right:42px;bottom:18px;display:flex;justify-content:space-between;font-size:11px;color:#7a8390;border-top:1px solid #dde1e6;padding-top:6px}
+.r-k4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.r-k{border:1px solid #dde1e6;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column}
+.r-k span{font-size:12px;color:#4a5462}.r-k b{font-size:26px;margin:2px 0}.r-k small{font-size:11px;color:#7a8390}
+.r-t{width:100%;border-collapse:collapse;font-size:13px}.r-t th{background:#f1f3f6;text-align:left;font-weight:600;padding:6px 8px;border-bottom:1px solid #cfd5dc}
+.r-t td{padding:6px 8px;border-bottom:1px solid #e6e9ed;vertical-align:middle}.r-t .n{text-align:right}.r-t .bad{color:#c2382f;font-weight:700}
+.r-pc{display:flex;align-items:center;gap:8px}.r-bar{flex:1;height:9px;background:#e6e9ed;border-radius:5px;overflow:hidden}.r-bar i{display:block;height:100%;background:#1f8a54}
+.r-g{border-collapse:separate;border-spacing:2px;font-size:11px;table-layout:fixed}.r-g th{font-weight:600;color:#4a5462;padding:2px 4px;text-align:center;max-width:92px;word-wrap:break-word}
+.r-g tr th:first-child{text-align:right;width:64px;white-space:nowrap;vertical-align:middle;padding-right:6px}.r-g td{width:92px;height:20px;text-align:center;border:1px solid #d5dae0;border-radius:3px;background:#f6f7f9;font-weight:600}
+.r-g .r-tot td{border:0;background:none;font-weight:700}.r-leg{display:flex;gap:16px;margin-top:10px;font-size:12px;color:#4a5462}.r-leg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px;border:1px solid #d5dae0;background:#f6f7f9}
+.r-chip{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:600}
+.r-pg .s1{background:#fbf0dc;border-color:#d39b2a;color:#7a5410}.r-pg .s2{background:#e0f3e8;border-color:#1f8a54;color:#145c38}
+.r-pg .s3{background:#1f8a54;border-color:#1f8a54;color:#fff}.r-pg .s4{background:#fbe4e2;border-color:#c2382f;color:#9b2a22}`;
+async function floorsPdf() {
+  const say = m => { floUI.msg = m; const el = document.getElementById("fl-msg"); if (el) el.textContent = m; };
+  say("Готовлю PDF…");
+  try { await Promise.all([loadLib("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"), loadLib("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js")]); }
+  catch (e) { say("Не удалось собрать PDF: нет доступа к библиотеке. Проверьте интернет и повторите."); return; }
+  const host = document.createElement("div");
+  host.setAttribute("style", "position:fixed;left:-12000px;top:0;z-index:-1"); host.setAttribute("aria-hidden", "true");
+  host.innerHTML = `<style>${FL_PDF_CSS}</style>` + floorsReportPages().map(h => `<div class="r-pg">${h}</div>`).join("");
+  document.body.appendChild(host);
+  try {
+    const pdf = new window.jspdf.jsPDF({ orientation: "landscape", unit: "px", format: [1123, 794], hotfixes: ["px_scaling"] }), els = host.querySelectorAll(".r-pg");
+    for (let i = 0; i < els.length; i++) {
+      const c = await window.html2canvas(els[i], { scale: 2, backgroundColor: "#ffffff" });
+      if (i) pdf.addPage([1123, 794], "landscape");
+      pdf.addImage(c.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, 1123, 794);
+    }
+    const P = window.ZHK.project() || {}, d = new Date().toISOString().slice(0, 10);
+    await window.ZHK.save(("Этажная шахматка " + (P.name || card.name || "проект") + " " + d).replace(/[^\p{L}\p{N}\s-]/gu, "").trim().replace(/\s+/g, "_") + ".pdf", pdf.output("blob"));
+    say("Отчёт готов.");
+  } catch (e) { say("Не удалось собрать PDF. Повторите ещё раз."); }
+  finally { host.remove(); }
+}
+
 // ---------- Чек-лист B0 ----------
 // Анкета для сметы ОРС на стадии эскиза. Что уже есть в данных проекта, подставляется само и вручную не вводится.
 function b0Ctx(lite) {
@@ -8329,7 +8521,7 @@ const ROLES = {
   fin: { t: "Финансы", views: ["model", "whatif", "budget", "smeta", "kpi"], owners: ["Финансы", "ФМ проекта"], hrefs: ["budget", "model", "data", "pnr"] },
   ors: { t: "ОРС", views: ["pnr", "b0", "smeta", "blocks", "plans"], owners: ["ОРС", "ОРС Общестрой", "ОРС Сети"], hrefs: ["pnr", "b0"] },
   sales: { t: "Продажи", views: ["chess", "plans", "whatif", "pk"], owners: ["Продажи"], hrefs: ["chess", "data"] },
-  build: { t: "Стройка и ПТО", views: ["roadmap", "chess", "equip", "gantt", "budget", "standards", "deadlines"], owners: ["Команда проекта"], hrefs: ["roadmap", "chess", "equip", "gantt", "deadlines", "budget"] },
+  build: { t: "Стройка и ПТО", views: ["roadmap", "floors", "chess", "equip", "gantt", "budget", "standards", "deadlines"], owners: ["Команда проекта"], hrefs: ["roadmap", "floors", "chess", "equip", "gantt", "deadlines", "budget"] },
   dev: { t: "Развитие и юристы", views: ["card", "deadlines", "partners", "data"], owners: ["Развитие", "Юристы"], hrefs: ["deadlines", "data"] }
 };
 let myRole = "";
@@ -8382,6 +8574,7 @@ function todayItems() {
   const X = Z.chess();
   if (X.tot.late) out.push({ lvl: "warn", what: "Стройка отстаёт", text: "этажей подъездов ниже плановой стадии: " + X.tot.late, href: "chess" });
   if (X.tot.flats && X.tot.sold < X.tot.soldPlan) out.push({ lvl: "warn", what: "Продажи ниже плана", text: "продано " + X.tot.sold + " квартир из плана " + X.tot.soldPlan, href: "chess" });
+  const FL = Z.floors(); if (FL.tot.by[4]) out.push({ lvl: "warn", what: "Замечания по этажам", text: "ячеек этажной шахматки с замечаниями: " + FL.tot.by[4], href: "floors" });
   const B = Z.budget(); if (B.over) out.push({ lvl: "warn", what: "Перерасход бюджета", text: "этапов с фактом выше плана: " + B.over, href: "budget" });
   const inp = Object.values(V).filter(v => !v.calc), dr = inp.filter(v => v.st === "draft").length, ag = inp.filter(v => v.st === "agreed").length;
   if (!Z.baseline()) out.push({ lvl: "info", what: "Базовая версия ПК Start", text: "не зафиксирована: отклонения не с чем сравнивать", href: "data" });
@@ -9040,7 +9233,7 @@ function bind(m) {
     window.ZHK.setItem(k, id, { [f]: el.value });
     if (el.tagName === "SELECT") route();
     // Сценарии «что если»: итоги пересчитываются сразу, курсор остаётся в поле, куда перешёл пользователь.
-    else if (k === "scenarios" || k === "plans" || k === "planRooms" || k === "equipPlan" || k === "acts" || k === "actItems") setTimeout(() => { const a = document.activeElement, sel = a && a.dataset ? a.dataset.item : null; route(); const nx = sel && document.querySelector(`[data-item="${sel}"]`); if (nx) nx.focus(); }, 0);
+    else if (k === "scenarios" || k === "plans" || k === "planRooms" || k === "equipPlan" || k === "acts" || k === "actItems" || k === "floorWorks") setTimeout(() => { const a = document.activeElement, sel = a && a.dataset ? a.dataset.item : null; route(); const nx = sel && document.querySelector(`[data-item="${sel}"]`); if (nx) nx.focus(); }, 0);
   });
   m.querySelectorAll("[data-item-del]").forEach(b => b.onclick = () => { const [k, id] = b.dataset.itemDel.split(":"); window.ZHK.setItem(k, id, null) });
   m.querySelectorAll("[data-item-add]").forEach(b => b.onclick = () => {
@@ -9109,6 +9302,28 @@ function bind(m) {
   m.querySelectorAll("[data-ch-f]").forEach(b => b.onclick = () => { const [g, v] = b.dataset.chF.split(":"); chUI.f[g] = v; route(); });
   const cft = m.querySelector("[data-ch-ft]"); if (cft) cft.onchange = () => { chUI.f.t = cft.value; route(); };
   const cpr = m.querySelector("#ch-print"); if (cpr) cpr.onclick = () => window.print();
+  // Этажная шахматка работ
+  const fln = m.querySelector("#fl-new"); if (fln) fln.onclick = () => {
+    const n = parseInt(m.querySelector("#fl-new-n").value, 10), u = parseInt(m.querySelector("#fl-new-u").value, 10) || 0;
+    if (!(n >= 1 && n <= 150)) { const el = m.querySelector("#fl-new-n"); el.setCustomValidity("Введите количество этажей: от 1 до 150"); el.reportValidity(); el.oninput = () => el.setCustomValidity(""); return; }
+    floUI.block = window.ZHK.setItem("blocks", null, { name: "Блок 1", kind: "res", floors: String(n), under: u > 0 ? String(Math.min(u, 10)) : "" }) || "";
+  };
+  m.querySelectorAll("[data-fl-block]").forEach(b => b.onclick = () => { floUI.block = b.dataset.flBlock; route(); });
+  m.querySelectorAll("[data-fl-blk]").forEach(el => el.onchange = () => {
+    const [id, f] = el.dataset.flBlk.split(":"), v = parseInt(el.value, 10), max = f === "floors" ? 150 : 10;
+    if (el.value.trim() && !(v >= 0 && v <= max)) { route(); return; }
+    window.ZHK.setItem("blocks", id, { [f]: el.value.trim() ? String(v) : "" });
+    setTimeout(route, 0);
+  });
+  const flAdd = () => { const el = m.querySelector("#fl-work"), v = (el.value || "").trim(); if (!v) { el.focus(); return; } window.ZHK.setItem("floorWorks", null, { name: v }); route(); const nx = document.getElementById("fl-work"); if (nx) nx.focus(); };
+  const fwa = m.querySelector("#fl-work-add"); if (fwa) fwa.onclick = flAdd;
+  const fw = m.querySelector("#fl-work"); if (fw) fw.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); flAdd(); } };
+  m.querySelectorAll("[data-fl-del]").forEach(b => b.onclick = () => { const X = window.ZHK.floors(), w = X.works.find(x => x.id === b.dataset.flDel); if (w) window.ZHK.delFloorWork(w.id); });
+  m.querySelectorAll("[data-fl-cell]").forEach(s => s.onchange = () => { const k = s.dataset.flCell; window.ZHK.setFloors({ [k]: s.value }); route(); const nx = document.querySelector(`[data-fl-cell="${k}"]`); if (nx) nx.focus(); });
+  const flBlock = () => { const X = window.ZHK.floors(); return X.blocks.find(b => b.id === floUI.block) || X.blocks[0]; };
+  m.querySelectorAll("[data-fl-col]").forEach(s => s.onchange = () => { if (s.value === "") return; const B = flBlock(), d = {}; B.floors.forEach(f => { d[B.id + "." + s.dataset.flCol + "." + f] = s.value; }); window.ZHK.setFloors(d); route(); });
+  m.querySelectorAll("[data-fl-row]").forEach(s => s.onchange = () => { if (s.value === "") return; const B = flBlock(), d = {}; B.works.forEach(w => { d[B.id + "." + w.id + "." + s.dataset.flRow] = s.value; }); window.ZHK.setFloors(d); route(); });
+  const flr = m.querySelector("#fl-report"); if (flr) flr.onclick = floorsPdf;
   m.querySelectorAll("[data-ch-sel]").forEach(b => b.onclick = () => { chUI.sel = b.dataset.chSel; route() });
   m.querySelectorAll("[data-ch-all]").forEach(sel => sel.onchange = () => {
     if (sel.value === "") return;
