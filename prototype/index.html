@@ -2417,7 +2417,7 @@ window.MODEL_DEFAULTS = {
   area_sale: 32000, area_comm: 2000, parking: 250, area_total: 45000,
   price: 550000, price_comm: 700000, price_park: 4000000, growth: 5,
   land: 2000000000, design: 12000, smr: 260000, nets: 25000,
-  supervision: 2, marketing: 3, admin: 2, reserve: 7, pnr: 0,
+  supervision: 2, marketing: 3, admin: 2, reserve: 7, pnr: 0, delay_overhead: 0,
   land_m: 1, design_start: 2, design_dur: 8, build_start: 10, build_dur: 26, sales_start: 12, sales_dur: 30,
   equity: 1500000000, rate: 21, discount: 18,
   vat: 16, vat_exempt: 1, cit: 20
@@ -2451,14 +2451,16 @@ window.runModel = function (p, f) {
     smr: bell(p.build_start, p.build_dur, p.smr * kS * p.area_total),
     nets: even(p.build_start, p.build_dur, p.nets * p.area_total),
     // ПНР — производственно-накладные расходы по калькулятору ОРС: сумма с НДС, равномерно по месяцам СМР.
-    pnr: even(p.build_start, p.build_dur, p.pnr || 0)
+    pnr: even(p.build_start, p.build_dur, p.pnr || 0),
+    // Накладные за месяцы, на которые прогноз графика сдвинул конец стройки (delay_m считает params(true)); в плане их нет.
+    delay: even(p.build_start + p.build_dur - (p.delay_m || 0), p.delay_m || 0, (p.delay_overhead || 0) * (p.delay_m || 0))
   };
   cat.land[p.land_m] = p.land;
   cat.supervision = cat.smr.map(x => x * p.supervision / 100);
   cat.reserve = cat.smr.map(x => x * p.reserve / 100);
   cat.marketing = rev.map(x => x * p.marketing / 100);
   cat.admin = even(1, N, totalRev * p.admin / 100);
-  const vatable = ["design", "smr", "nets", "pnr", "supervision", "reserve", "marketing"];
+  const vatable = ["design", "smr", "nets", "pnr", "delay", "supervision", "reserve", "marketing"];
   const share = totalRev ? sum(taxRev) / totalRev : 0;
   const rate = p.rate / 100 / 12, dm = Math.pow(1 + p.discount / 100, 1 / 12) - 1;
   let cash = 0, debt = 0, eqUsed = 0, vatBal = 0, cum = 0, peakDebt = 0, peakNeed = 0, interestT = 0, vatPaidT = 0, outVatT = 0, credT = 0;
@@ -4663,6 +4665,7 @@ window.VARS = {
     { id: "marketing", name: "Маркетинг и продажи", unit: "% выручки", sec: "Затраты", owner: "Продажи", type: "num", path: "model.marketing", better: "down", used: ["Финмодель"] },
     { id: "admin", name: "Административные расходы", unit: "% выручки", sec: "Затраты", owner: "Финансы", type: "num", path: "model.admin", better: "down", used: ["Финмодель"] },
     { id: "pnr_cost", name: "ПНР по калькулятору ОРС", unit: "тг", sec: "Затраты", owner: "ОРС", calc: "Калькулятор ПНР", better: "down", used: ["Финмодель", "Бюджет"] },
+    { id: "delay_overhead", name: "Накладные за месяц задержки стройки", unit: "тг/мес", sec: "Затраты", owner: "Финансы", type: "num", path: "model.delay_overhead", better: "down", used: ["Финмодель", "Что если"] },
 
     { id: "equity", name: "Собственный капитал", unit: "тг", sec: "Финансирование и налоги", owner: "Финансы", type: "num", path: "model.equity", used: ["Финмодель"] },
     { id: "rate", name: "Ставка кредита", unit: "% год.", sec: "Финансирование и налоги", owner: "Финансы", type: "num", path: "model.rate", better: "down", used: ["Финмодель"] },
@@ -4687,6 +4690,9 @@ window.VARS = {
     { id: "fin_irr", name: "IRR на собственный капитал", unit: "%", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", better: "up", used: ["ПК Start"] },
     { id: "fin_npv", name: "NPV", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", better: "up", used: ["ПК Start"] },
     { id: "fin_peak_debt", name: "Пиковый долг банку", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", better: "down", used: ["ПК Start"] },
+    { id: "fin_fc_margin", name: "Маржа по прогнозу графика", unit: "%", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", better: "up", used: ["Что если", "Обзор"] },
+    { id: "fin_fc_peak_debt", name: "Пиковый долг по прогнозу графика", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", better: "down", used: ["Что если", "Обзор"] },
+    { id: "fin_delay_loss", name: "Потеря прибыли от отставания графика", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", better: "down", used: ["Что если", "Обзор"] },
 
     { id: "cur_stage", name: "Текущий этап", sec: "Ход проекта", owner: "Команда проекта", calc: "Дорожная карта", used: ["Карточка", "Стандарты", "Портфель"] },
     { id: "stages_done", name: "Пройдено этапов", unit: "шт", sec: "Ход проекта", owner: "Команда проекта", calc: "Дорожная карта", better: "up", used: ["Портфель", "Отчёты"] },
@@ -4795,6 +4801,7 @@ window.I18N = (function () {
     ["Технадзор, инжиниринг", "Техқадағалау, инжиниринг"], ["Резерв", "Резерв"], ["Маркетинг и продажи", "Маркетинг және сату"], ["Административные", "Әкімшілік"],
     ["Сроки из графика, месяц от старта", "Кестедегі мерзімдер, бастаудан бергі ай"], ["Меняются в разделе «График»: старт проекта и длительности этапов.", "«Кесте» бөлімінде өзгертіледі: жобаның басталуы және кезеңдердің ұзақтығы."], ["Открыть график", "Кестені ашу"], ["Покупка земли", "Жерді сатып алу"], ["Начало проектирования", "Жобалаудың басталуы"], ["Длительность проектирования", "Жобалаудың ұзақтығы"],
     ["Начало стройки", "Құрылыстың басталуы"], ["Длительность стройки", "Құрылыстың ұзақтығы"], ["Начало продаж", "Сатудың басталуы"], ["Длительность продаж", "Сатудың ұзақтығы"],
+    ["Отставание в деньгах", "Кешігудің ақшалай шығыны"], ["в графике", "кестеде"], ["прогноз совпадает с планом", "болжам жоспармен сәйкес"], ["Накладные за месяц задержки стройки", "Құрылыс кешіккен айдағы үстеме шығындар"], ["Маржа по прогнозу графика", "Кесте болжамы бойынша маржа"], ["Пиковый долг по прогнозу графика", "Кесте болжамы бойынша ең жоғары қарыз"], ["Потеря прибыли от отставания графика", "Кесте кешіккендегі пайда шығыны"], ["По прогнозу графика", "Кесте болжамы бойынша"],
     ["Финансирование", "Қаржыландыру"], ["Собственный капитал", "Меншікті капитал"], ["Ставка кредита", "Несие мөлшерлемесі"], ["Ставка дисконтирования", "Дисконттау мөлшерлемесі"],
     ["Налоги", "Салықтар"], ["НДС", "ҚҚС"], ["Продажа жилья освобождена от НДС", "Тұрғын үйді сату ҚҚС-тан босатылған"], ["КПН", "КТС"],
     ["шт", "дана"], ["тг/шт", "тг/дана"], ["% в год", "% жылына"], ["% СМР", "% ҚМЖ"], ["% выручки", "% түсім"], ["мес.", "ай"], ["% год.", "% жыл."],
@@ -5947,7 +5954,7 @@ window.ZHK_BOOT = function (document) {
   const MODEL_GROUPS = [
     { title: "Объект", items: [["area_sale", "Продаваемая жилая площадь", "м²"], ["area_comm", "Коммерция", "м²"], ["parking", "Машино-места", "шт"], ["area_total", "Общая площадь здания (карточка)", "м²"]] },
     { title: "Цены продажи (с НДС)", items: [["price", "Жильё", "тг/м²"], ["price_comm", "Коммерция", "тг/м²"], ["price_park", "Машино-место", "тг/шт"], ["growth", "Рост цен", "% в год"]] },
-    { title: "Затраты (с НДС)", items: [["land", "Земля", "тг"], ["design", "ИРД, изыскания, проект", "тг/м²"], ["smr", "СМР", "тг/м²"], ["nets", "Внешние сети и подключение", "тг/м²"], ["supervision", "Технадзор, инжиниринг", "% СМР"], ["reserve", "Резерв", "% СМР"], ["marketing", "Маркетинг и продажи", "% выручки"], ["admin", "Административные", "% выручки"]] },
+    { title: "Затраты (с НДС)", items: [["land", "Земля", "тг"], ["design", "ИРД, изыскания, проект", "тг/м²"], ["smr", "СМР", "тг/м²"], ["nets", "Внешние сети и подключение", "тг/м²"], ["supervision", "Технадзор, инжиниринг", "% СМР"], ["reserve", "Резерв", "% СМР"], ["marketing", "Маркетинг и продажи", "% выручки"], ["admin", "Административные", "% выручки"], ["delay_overhead", "Накладные за месяц задержки стройки", "тг/мес"]] },
     { title: "Сроки из графика, месяц от старта", items: [["land_m", "Покупка земли", "мес."], ["design_start", "Начало проектирования", "мес."], ["design_dur", "Длительность проектирования", "мес."], ["build_start", "Начало стройки", "мес."], ["build_dur", "Длительность стройки", "мес."], ["sales_start", "Начало продаж", "мес."], ["sales_dur", "Длительность продаж", "мес."]] },
     { title: "Финансирование", items: [["equity", "Собственный капитал", "тг"], ["rate", "Ставка кредита", "% год."], ["discount", "Ставка дисконтирования", "% год."]] },
     { title: "Налоги", items: [["vat", "НДС", "%"], ["vat_exempt", "Продажа жилья освобождена от НДС", "flag"], ["cit", "КПН", "%"]] }
@@ -5955,15 +5962,16 @@ window.ZHK_BOOT = function (document) {
   const INT_KEYS = ["land_m", "design_start", "design_dur", "build_start", "build_dur", "sales_start", "sales_dur"];
   // Сроки финмодели не вводятся отдельно: они берутся из плана графика (одни сроки на весь проект).
   // Месяцы финмодели целые и начинаются с 1; в графике месяцы от старта проекта начинаются с 0.
-  function schedMonths() {
-    const P = schedule().P, first = t => Math.floor(t) + 1, last = t => Math.max(1, Math.ceil(t));
+  // fc — по прогнозу графика (fs/fe: факт завершённых этапов и сдвиг просроченных), иначе по плану (es/ef).
+  function schedMonths(fc) {
+    const P = schedule().P, first = t => Math.floor(t) + 1, last = t => Math.max(1, Math.ceil(t)), A = k => fc ? P[k].fs : P[k].es, E = k => fc ? P[k].fe : P[k].ef;
     const span = (a, b) => ({ start: first(a), dur: Math.max(1, last(b) - first(a) + 1) });
-    const d = span(Math.min(P.ird.es, P.survey.es), P.expert.ef), b = span(P.start.es, P.commission.ef), s = span(P.dolevka.es, P.handover.ef);
-    return { land_m: last(P.land.ef), design_start: d.start, design_dur: d.dur, build_start: b.start, build_dur: b.dur, sales_start: s.start, sales_dur: s.dur };
+    const d = span(Math.min(A("ird"), A("survey")), E("expert")), b = span(A("start"), E("commission")), s = span(A("dolevka"), E("handover"));
+    return { land_m: last(E("land")), design_start: d.start, design_dur: d.dur, build_start: b.start, build_dur: b.dur, sales_start: s.start, sales_dur: s.dur };
   }
   const modelForm = document.getElementById("model-form");
   const modelOut = document.getElementById("model-out");
-  const params = () => {
+  const params = fc => {
     const p = Object.assign({}, window.MODEL_DEFAULTS);
     Object.keys(S.model).forEach(k => { if (typeof S.model[k] === "number") p[k] = S.model[k]; });
     const sm = smetaModel(S); if (sm) Object.assign(p, sm);
@@ -5971,7 +5979,9 @@ window.ZHK_BOOT = function (document) {
     const aa = aptsArea(S); if (aa) p.area_sale = aa; // площадь квартир по шахматке
     const at = parseNum(S.project.area_total); // общая площадь — одна на карточку и финмодель
     if (at > 0) p.area_total = at;
-    return Object.assign(p, schedMonths());
+    Object.assign(p, schedMonths(fc));
+    if (fc) { const pl = schedMonths(); p.delay_m = Math.max(0, p.build_start + p.build_dur - pl.build_start - pl.build_dur); } // на сколько месяцев прогноз сдвинул конец стройки
+    return p;
   };
 
   function buildModelForm() {
@@ -6983,7 +6993,9 @@ window.ZHK_BOOT = function (document) {
   }
   function calcAll() {
     const R = window.runModel(params()), t = R.t, G = schedule(), cur = byId[firstQuest()], M = schedMonths(), B = blockTotals(), X = chessCalc(null, R), ch = X.blocks.length > 0;
+    const Tf = window.runModel(params(true)).t; // та же финмодель на сроках прогноза графика
     return {
+      fin_fc_margin: Tf.margin * 100, fin_fc_peak_debt: Tf.peakDebt, fin_delay_loss: t.pbt - Tf.pbt,
       blocks: B.blocks, floors: B.floors, flats: B.flats,
       ...(EQ => ({ eq_crane_m: EQ.blocks.length ? EQ.crane : null, eq_lift_m: EQ.blocks.length ? EQ.lift : null, eq_pump_m: EQ.blocks.length ? EQ.pump : null, eq_sum: EQ.sumFile }))(equipCalc()), eq_plan_sum: equipPlanCalc().sumPlan,
       smr_ready: ch ? X.tot.fw / X.tot.cells * 100 : null, smr_fact: ch ? X.tot.fact : null, sold_flats: ch ? X.tot.sold : null,
@@ -7197,12 +7209,13 @@ window.ZHK_BOOT = function (document) {
     // «Что если»: пересчёт финмодели с изменёнными допущениями; данные проекта не меняются.
     whatIf: sc => {
       sc = sc || {};
-      const p = params(), G = schedule(), x = k => { const v = parseNum(sc[k]); return v == null ? 0 : v; }, d = Math.round(x("delay"));
+      // sc.forecast — сроки по прогнозу графика (с накладными за месяцы задержки); иначе плановые сроки плюс «задержка» из сценария.
+      const fc = !!sc.forecast, p = params(fc), G = schedule(), x = k => { const v = parseNum(sc[k]); return v == null ? 0 : v; }, d = fc ? 0 : Math.round(x("delay"));
       p.build_start += d; p.sales_start += d;
       if (x("sales")) p.sales_dur = Math.max(1, Math.round(p.sales_dur * (1 + x("sales") / 100)));
       if (x("rate")) p.rate = Math.max(0, p.rate + x("rate"));
       const t = window.runModel(p, { price: 1 + x("price") / 100, smr: 1 + x("smr") / 100 }).t;
-      return { rev: t.rev, cost: t.costT, net: t.net, margin: t.margin * 100, irr: t.irr == null ? null : t.irr * 100, npv: t.npv, peakDebt: t.peakDebt, keys: ymAdd(G.start, G.end + d) };
+      return { rev: t.rev, cost: t.costT, net: t.net, margin: t.margin * 100, irr: t.irr == null ? null : t.irr * 100, npv: t.npv, peakDebt: t.peakDebt, keys: ymAdd(G.start, fc ? G.fend : G.end + d) };
     },
     // Шахматка: сетка этажей и подъездов из блоков проекта; at — месяц «ГГГГ-ММ» для плана (по умолчанию текущий).
     chess: at => chessCalc(at),
@@ -8023,7 +8036,9 @@ const WI_PRESETS = [
   { name: "Пессимистичный", price: "-5", smr: "10", delay: "3", sales: "20", rate: "2" },
   { name: "Оптимистичный", price: "5", smr: "-3", delay: "0", sales: "-10", rate: "-1" },
   { name: "Стресс-тест банка", price: "-10", smr: "15", delay: "6", sales: "30", rate: "4" }];
-const wiAssume = sc => WI_PARAMS.filter(([f]) => +String(sc[f] || "").replace(",", ".")).map(([f, l, u]) => { const v = +String(sc[f]).replace(",", "."); return l.split(" ")[0] + " " + (v > 0 ? "+" : "−") + Math.abs(v).toLocaleString("ru-RU") + (u === "%" ? "%" : " " + u); }).join(", ") || "как в базовом";
+// Автосценарий «По прогнозу графика»: считается на лету, в проекте не хранится; нужен, когда прогноз ключей отстаёт от плана.
+const wiDelay = () => { const v = window.ZHK.vars().find(x => x.id === "delay"); return v && v.raw > 0.25 ? v : null; };
+const wiAssume = sc => sc.forecast ? "сроки по прогнозу графика" : WI_PARAMS.filter(([f]) => +String(sc[f] || "").replace(",", ".")).map(([f, l, u]) => { const v = +String(sc[f]).replace(",", "."); return l.split(" ")[0] + " " + (v > 0 ? "+" : "−") + Math.abs(v).toLocaleString("ru-RU") + (u === "%" ? "%" : " " + u); }).join(", ") || "как в базовом";
 const WI_OUT = [["net", "Чистая прибыль", "m", 1], ["margin", "Маржа", "%", 1], ["irr", "IRR", "%", 1], ["npv", "NPV", "m", 1], ["peakDebt", "Пиковый долг", "m", -1], ["keys", "Ключи", "ym", -1]];
 const wiFmt = (v, k) => v == null || (typeof v === "number" && !isFinite(v)) ? "—" : k === "m" ? bln(v) + " млрд" : k === "%" ? v.toLocaleString("ru-RU", { maximumFractionDigits: 1 }) + "%" : k === "ym" ? v.slice(5, 7) + "." + v.slice(0, 4) : String(v);
 function wiDelta(b, v, k, better) {
@@ -8035,6 +8050,8 @@ function wiDelta(b, v, k, better) {
 function viewWhatIf() {
   const list = window.ZHK.list("scenarios"), ro = window.ZHK.readOnly() ? " disabled" : "", B = window.ZHK.whatIf({});
   const cells = R => WI_OUT.map(([k, , f, better]) => `<td class="num">${wiFmt(R[k], f)}${R === B ? "" : wiDelta(B[k], R[k], f, better)}</td>`).join("");
+  const dly = wiDelay(), ovh = window.ZHK.vars().find(v => v.id === "delay_overhead");
+  const fcRow = `<tr class="wi-base"><td><b>По прогнозу графика</b><div class="muted vsrc">${dly ? "отставание " + esc(dly.text) + ": сроки стройки и продаж сдвинуты по факту этапов" + (ovh && ovh.raw > 0 ? ", накладные за месяцы задержки включены" : ", накладные за месяц задержки не заданы — введите их в «Финмодели»") : "проект в графике, прогноз совпадает с планом"}</div></td>${cells(window.ZHK.whatIf({ forecast: true }))}</tr>`;
   const rows = list.map(sc => { const R = window.ZHK.whatIf(sc); return `<tr><td><input type="text" class="vin" data-item="scenarios:${sc.id}:name" value="${esc(sc.name || "")}" aria-label="Название сценария" placeholder="Сценарий" maxlength="60"${ro}>
       <div class="wi-params">${WI_PARAMS.map(([f, l, u]) => `<label title="${l}"><span>${l}, ${u}</span><input type="text" inputmode="decimal" class="vin num" data-item="scenarios:${sc.id}:${f}" value="${esc(sc[f] || "")}" placeholder="0"${ro}></label>`).join("")}</div>
       ${ro ? "" : `<button class="btn ghost mini" data-item-del="scenarios:${sc.id}" aria-label="Удалить сценарий">Удалить</button>`}</td>${cells(R)}</tr>`; }).join("");
@@ -8042,7 +8059,7 @@ function viewWhatIf() {
   <section class="panel stack">
     ${ro ? "" : `<div class="row"><span class="muted">Добавить:</span>${WI_PRESETS.map((x, i) => `<button class="btn" data-wi-preset="${i}">${x.name}</button>`).join("")}<button class="btn ghost" data-item-add="scenarios">Свой сценарий</button></div>`}
     <div class="tbl"><table class="wi-table"><thead><tr><th>Сценарий и изменения к базовому</th>${WI_OUT.map(([, l]) => `<th class="num">${l}</th>`).join("")}</tr></thead><tbody>
-      <tr class="wi-base"><td><b>Базовый</b><div class="muted vsrc">текущие данные проекта и финмодели</div></td>${cells(B)}</tr>${rows}</tbody></table></div>
+      <tr class="wi-base"><td><b>Базовый</b><div class="muted vsrc">текущие данные проекта и финмодели</div></td>${cells(B)}</tr>${fcRow}${rows}</tbody></table></div>
     ${list.length ? "" : '<p class="muted" style="margin:0">Сценариев пока нет. Добавьте типовой или свой: цена, СМР и длительность продаж — в процентах к базовым, задержка — в месяцах, ставка — в процентных пунктах.</p>'}
     <p class="muted" style="margin:0">Сценарии сохраняются в проекте и попадают в презентацию ПК Start отдельным слайдом. Задержка сдвигает старт СМР, продажи и ключи; проектирование и покупка земли остаются как в графике.</p>
   </section>`;
@@ -8758,7 +8775,8 @@ const HM_DRILL = {
   budget: { t: "Бюджет", href: "budget", link: "Бюджет", note: "План по этапам — из финмодели, факт вносит команда в модуле «Финансы».", inp: ["land", "design", "smr", "nets"], out: ["pnr_cost", "fin_cost", "fin_cost_m2"] },
   margin: { t: "Маржа", href: "model", link: "Финмодель", note: "Маржа к себестоимости = (выручка − затраты) / затраты по финмодели.", inp: ["price", "area_sale", "smr", "land", "design", "nets"], out: ["fin_margin", "fin_irr", "fin_npv", "fin_rev", "fin_cost"] },
   debt: { t: "Пиковый долг банку", href: "model", link: "Финмодель", note: "Наибольший долг банку в помесячном потоке: затраты, которые идут раньше выручки, покрываются кредитом.", inp: ["equity", "rate", "smr"], out: ["fin_peak_debt", "build_start", "build_dur", "sales_start", "fin_irr"] },
-  equip: { t: "Спецтехника", href: "equip", link: "Спецтехника", note: "Сумма по плану ГПР — строки плана техники по этапам графика × цены строк файла ЦДС/ПТО.", inp: ["eq_mono", "eq_mas"], out: ["eq_plan_sum", "eq_crane_m", "eq_lift_m", "eq_pump_m", "eq_sum"] }
+  equip: { t: "Спецтехника", href: "equip", link: "Спецтехника", note: "Сумма по плану ГПР — строки плана техники по этапам графика × цены строк файла ЦДС/ПТО.", inp: ["eq_mono", "eq_mas"], out: ["eq_plan_sum", "eq_crane_m", "eq_lift_m", "eq_pump_m", "eq_sum"] },
+  delaym: { t: "Отставание в деньгах", href: "whatif", link: "Что если", note: "Финмодель пересчитана на сроках прогноза графика: стройка и продажи сдвигаются по факту этапов, растут проценты по кредиту и накладные за месяцы задержки. Потеря = прибыль до налога по плану минус по прогнозу.", inp: ["delay_overhead", "rate"], out: ["delay", "fin_delay_loss", "fin_margin", "fin_fc_margin", "fin_peak_debt", "fin_fc_peak_debt"] }
 };
 let hmOpen = "";
 function viewHome() {
@@ -8796,7 +8814,14 @@ function viewHome() {
     tile("budget", "Бюджет освоен", bud == null ? "—" : bud + "%", bud == null ? "нет плана" : mln(B.fact) + " из " + mln(B.plan) + (B.over ? " · перерасход: " + B.over : ""), bud == null ? "" : !B.over ? "ok" : B.over <= 2 ? "warn" : "bad", bud == null ? null : [bud, null]),
     tile("margin", "Маржа", t("fin_margin"), (bM == null ? "нет базы ПК Start" : "база " + V.fin_margin.base) + " · IRR " + t("fin_irr"), mS, null),
     tile("debt", "Пиковый долг банку", t("fin_peak_debt"), bD == null ? "нет базы ПК Start" : "база " + V.fin_peak_debt.base, dS, null),
-    tile("equip", "Спецтехника", mln(Ep.sumPlan), eqD >= 1e6 ? "+" + mln(eqD) + " из-за отставания" : Ep.sumPlan == null ? "нет цен из файла ЦДС/ПТО" : "по плану ГПР", eqD >= 1e6 ? "warn" : Ep.sumPlan == null ? "" : "ok", null)
+    tile("equip", "Спецтехника", mln(Ep.sumPlan), eqD >= 1e6 ? "+" + mln(eqD) + " из-за отставания" : Ep.sumPlan == null ? "нет цен из файла ЦДС/ПТО" : "по плану ГПР", eqD >= 1e6 ? "warn" : Ep.sumPlan == null ? "" : "ok", null),
+    // Отставание в деньгах: та же финмодель на сроках прогноза графика против плана; без отставания — «в графике».
+    (() => {
+      if (!(dly > 0.25)) return tile("delaym", "Отставание в деньгах", "в графике", "прогноз совпадает с планом", "ok", null);
+      const loss = raw("fin_delay_loss"), fM = raw("fin_fc_margin"), dMg = cM == null || fM == null ? null : fM - cM, fD = raw("fin_fc_peak_debt"), dD = cD == null || fD == null ? null : fD - cD;
+      const pp = dMg == null ? "" : (dMg > 0 ? "+" : "−") + Math.abs(dMg).toLocaleString("ru-RU", { maximumFractionDigits: 1 }) + " п.п. маржи";
+      return tile("delaym", "Отставание в деньгах", loss == null ? "—" : (loss > 0 ? "−" : "+") + mln(Math.abs(loss)), t("delay") + " · " + pp + (dD == null ? "" : " · долг " + (dD > 0 ? "+" : "−") + mln(Math.abs(dD))) + (loss != null && loss > 0 && !(V.delay_overhead && V.delay_overhead.raw > 0) ? " · без накладных" : ""), dMg == null ? "warn" : dMg >= -0.05 ? "ok" : dMg >= -2 ? "warn" : "bad", null);
+    })()
   ];
   // Панель показателя: вводимые данные — полями (меняются здесь же), расчётные — значением и отклонением от базы ПК Start.
   const ro = Z.readOnly();
@@ -9059,7 +9084,8 @@ function deckData() {
   const rooms = [1, 2, 3, 4, 5].map(k => ({ k, n: blocks.reduce((s, b) => s + nb(A["b." + b.id + ".r" + k]), 0) })).filter(r => r.n > 0);
   const tech = [["Профиль окон", A["o.win.profile"]], ["Тип труб", A["n.pipes"]], ["Магистрали ГВС/ХВС", A["n.mains"]], ["Радиаторы", A["n.radiator"]], ["Кабели в квартире", A["n.cable"]], ["Вентиляция", A["n.vent"]], ["Домофон", A["n.intercom"]]].filter(x => x[1]);
   const partners = window.ZHK.list("partners").filter(x => x.role || x.org), smeta = window.ZHK.smeta();
-  const scen = window.ZHK.list("scenarios").map(sc => ({ sc, R: window.ZHK.whatIf(sc) })), scenBase = window.ZHK.whatIf({});
+  const fcSc = { name: "По прогнозу графика", forecast: true };
+  const scen = (wiDelay() ? [fcSc] : []).concat(window.ZHK.list("scenarios")).map(sc => ({ sc, R: window.ZHK.whatIf(sc) })), scenBase = window.ZHK.whatIf({});
   return { V, t, d: window.ZHK.deck(), base: window.ZHK.baseline(), title: projTitle(), risks, team, pm: pm && pm.name ? pm.name : "[ФИО]", scen, scenBase,
     facade, rooms, tech, partners, materials: smeta && smeta.materials ? smeta.materials : null };
 }
