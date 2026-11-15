@@ -246,6 +246,9 @@ ul.q-list { list-style: none; padding-left: 0 }
 .q-task input { margin-top: 3px; flex: none }
 .q-demo { display: flex; gap: 10px; align-items: flex-start; background: var(--warn-soft); border-radius: var(--r); padding: 10px 14px; font-size: .9rem }
 @media (max-width: 640px) { .q-row { grid-template-columns: 1fr } }
+.q-stage { display: grid; gap: 8px }
+.q-stage .q-row { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px }
+.q-stage .q-l { grid-column: 1 / -1 }
 .st-miss { list-style: none; margin: 4px 0 6px 0; padding: 0 0 0 14px; display: grid; gap: 4px; border-left: 1px solid var(--line) }
 .st-miss li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px }
 .st-res { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px }
@@ -970,6 +973,28 @@ dialog.viewer::backdrop { background: rgba(10, 20, 35, .55); }
 .eq-stage { list-style: none; margin: 0 0 6px; padding: 0; display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; }
 .eq-stage li { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; } .eq-stage .mono { margin-left: auto; font-size: 11.5px; color: var(--muted); }
 @media (max-width: 640px) { .mrow { grid-template-columns: 30px minmax(0, 1fr); } .mrow .mp { grid-column: 2; text-align: left; } }
+/* Вопросы этапа (опросник на странице этапа): ответ на месте, состояние, действие. */
+.q-stage { display: grid; gap: 8px; }
+.q-list { margin: 0; padding-left: 22px; display: grid; gap: 10px; }
+ul.q-list { list-style: none; padding-left: 0; }
+.q-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; }
+.q-l { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
+.q-l b { font-weight: 600; }
+.q-c { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.q-c .vin, .q-c select { font: inherit; font-size: 14px; color: var(--ink); background: var(--surface); width: 100%;
+  border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; min-width: 0; }
+.q-c .vin.num { text-align: right; }
+.q-c textarea.vin { resize: vertical; min-height: 54px; }
+.q-c .vin:focus, .q-c select:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+.q-c .unit { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.q-a .chip, .q-c .chip { font-size: 11px; }
+.st-sub { color: var(--muted); font-size: 12px; }
+.s-new { background: var(--warn-soft); border-color: transparent; color: var(--signal); }
+.s-done { background: var(--done-soft); border-color: transparent; color: var(--done); }
+.s-agreed { background: var(--accent-soft); border-color: transparent; color: var(--accent-ink); }
+.btn.mini { padding: 4px 10px; font-size: 12px; }
+.btn.ghost { background: transparent; }
+.q-demo { display: flex; gap: 10px; align-items: flex-start; background: var(--warn-soft); border-radius: 8px; padding: 8px 12px; font-size: 13px; }
 </style>
 <div class="zhk">
 <div class="wrap">
@@ -4836,8 +4861,7 @@ window.STAGE_NEEDS = {
   commission: ["ge", "address", "cadastre", "area_total", "director"],
   handover: ["list:chess"]
 };
-// У этапа с вопросами первый шаг — «Опросник».
-Object.keys(window.STAGE_NEEDS).forEach(id => { if (window.STAGE_NEEDS[id].length) window.STAGE_STEPS[id] = [["structure", "Опросник: ответить на вопросы этапа"]].concat(window.STAGE_STEPS[id] || []); });
+// Вопросы этапа — на странице этапа (панель «Этапов»), отдельным шагом они не идут.
 })();
 </script>
 
@@ -5232,7 +5256,11 @@ window.I18N = (function () {
     ["Структура: что ещё не утверждено и что затронет изменение", "Құрылым: әлі не бекітілмеген және өзгеріс неге әсер етеді"],
     ["Найти в структуре", "Құрылымнан іздеу"],
     // опросник
-    ["Опросник", "Сауалнама"], ["Опросник: ответить на вопросы этапа", "Сауалнама: кезең сұрақтарына жауап беру"],
+    ["Опросник", "Сауалнама"], ["Вопросы этапа", "Кезең сұрақтары"], ["Этапы проекта", "Жоба кезеңдері"],
+    ["Этапы проекта по фазам — от анализа рынка до гарантии. Нажмите на этап: вопросы этапа, чек-лист перехода, шаги, документы и бюджет — на одной странице.",
+      "Жоба кезеңдері фазалар бойынша — нарықты талдаудан кепілдікке дейін. Кезеңді басыңыз: кезең сұрақтары, өту чек-парағы, қадамдар, құжаттар және бюджет — бір бетте."], ["Схема данных", "Деректер сызбасы"], ["Этапы", "Кезеңдер"], ["список", "тізім"],
+    ["Из чего собран проект: значение → расчёт → раздел → отдел → этап → проект (в концепции — «от кирпича до ЖК»). Поиск показывает, что затронет изменение значения.",
+      "Жоба неден құралған: мән → есеп → бөлім → бөлімше → кезең → жоба (тұжырымдамада — «кірпіштен ТҮК-ке дейін»). Іздеу мәннің өзгерісі неге әсер ететінін көрсетеді."], ["Опросник: ответить на вопросы этапа", "Сауалнама: кезең сұрақтарына жауап беру"],
     ["Ответьте на вопросы этапа по порядку. Ответ сразу попадает в финмодель, документы и презентацию — второй раз его вводить не нужно.",
       "Кезең сұрақтарына ретімен жауап беріңіз. Жауап бірден қаржы моделіне, құжаттарға және презентацияға түседі — оны қайта енгізудің қажеті жоқ."],
     ["Вопросы", "Сұрақтар"], ["Списки", "Тізімдер"], ["Чек-лист этапа", "Кезеңнің чек-парағы"], ["Где ещё работать на этапе", "Кезеңде тағы қайда жұмыс істеу керек"],
@@ -5341,7 +5369,7 @@ window.I18N = (function () {
     [/^(\d\d)\. (.+) — (готово|—|\d+%)$/, m => m[1] + ". " + (D.get(m[2]) || m[2]) + " — " + (m[3] === "готово" ? "дайын" : m[3])],
     [/^строк: (\d+)$/, m => "жолдар: " + m[1]],
     [/^Показаны вопросы отдела «(.+)»\.$/, m => "«" + (D.get(m[1]) || m[1]) + "» бөлімшесінің сұрақтары көрсетілген."],
-    [/^Опросник не собран: (.+)$/, m => "Сауалнама жиналмады: " + m[1]],
+    [/^Схема не собрана: (.+)$/, m => "Сызба жиналмады: " + m[1]],
     [/^не хватает (\d+)$/, m => "жетпейді: " + m[1]],
     [/^отмечено (\d+) из (\d+)$/, m => "белгіленді: " + m[2] + " ішінен " + m[1]],
     [/^Раздел «(.+)»$/, m => "«" + (D.get(m[1]) || m[1]) + "» бөлімі"],
@@ -6117,13 +6145,15 @@ window.ZHK_BOOT = function (document) {
       '<div class="panel-head"><div class="eyebrow">Этап ' + n.code + " · " + esc(n.phase) + "</div>" +
       "<h2>" + esc(n.name) + '</h2><div class="chips"><span class="chip status" data-state="' + st + '">' + STATUS[st] + '</span><span class="chip">Срок: ' + esc(n.dur) + "</span>" +
       (late ? '<span class="chip" style="background:var(--late);color:var(--surface);border-color:var(--late)">Просрочено: ' + late + "</span>" : "") + "</div></div>" +
-      '<p class="desc">' + esc(n.desc) + "</p>" + toolsHtml(n) +
+      '<p class="desc">' + esc(n.desc) + "</p>" +
+      (window.stageQuestionsHtml ? window.stageQuestionsHtml(n.id) : "") +
       '<dl class="facts">' +
         (n.req.length ? '<dt>Требует</dt><dd class="chips">' + n.req.map(chip).join("") + "</dd>" : "<dt>Требует</dt><dd>Стартовый этап</dd>") +
         (children[n.id].length ? '<dt>Открывает</dt><dd class="chips">' + children[n.id].map(chip).join("") + "</dd>" : "") +
       "</dl>" +
       '<div><div class="section-title"><h3 class="eyebrow">Условия перехода</h3><span class="mono" style="font-size:12px;color:var(--muted)">' + dc + " / " + n.tasks.length + "</span></div>" +
         gateHtml(n, st, dc) + '<ul class="tasks" style="margin-top:8px">' + n.tasks.map((t, i) => taskHtml(n, t, i)).join("") + "</ul></div>" +
+      toolsHtml(n) +
       budgetMiniHtml(n) +
       deadlinesMiniHtml(n) +
       refsHtml(n) +
@@ -6150,6 +6180,12 @@ window.ZHK_BOOT = function (document) {
   inner.addEventListener("change", e => {
     const el = e.target;
     if (el.dataset && el.dataset.b) { onBudgetInput(el); return; }
+    // Вопросы этапа: ответ пишется в то же место, что и в разделе ввода (setVar), копий нет.
+    if (el.dataset && el.dataset.var) {
+      const r = setVar(el.dataset.var, el.type === "checkbox" ? el.checked : el.value);
+      if (typeof r === "string") { el.setCustomValidity(r); el.reportValidity(); setTimeout(() => el.setCustomValidity(""), 2000); }
+      return;
+    }
     const k = el.dataset && el.dataset.k;
     if (!k) return;
     if (el.dataset.meta) {
@@ -6173,6 +6209,9 @@ window.ZHK_BOOT = function (document) {
     }
   });
   inner.addEventListener("click", e => {
+    const vs = e.target.closest("[data-vst]");
+    if (vs) { const [id, st2] = vs.dataset.vst.split(":"), err = window.ZHK.setVarStatus(id, st2); if (err) { vs.title = err; vs.disabled = true; } else renderPanel(true); return; }
+    if (e.target.closest("[data-qdemo]")) { createDemo(); return; }
     const go = e.target.closest("[data-go]");
     if (go) { select(go.dataset.go, true); return; }
     const d = e.target.closest("[data-doc]");
@@ -7513,7 +7552,7 @@ window.ZHK_BOOT = function (document) {
     // Этапы дорожной карты со статусом, выполнением и сроками по графику (план и прогноз).
     stages: () => { const G = schedule(), P = G.P, ym = t => ymFmt(ymAdd(G.start, Math.max(0, t)));
       return T.nodes.map(n => { const p = P[n.id]; return { id: n.id, code: n.code, name: n.name, phase: n.phase, state: stateOf(n), done: doneCount(n), total: n.tasks.length, late: lateCount(n), from: ym(p.es), to: ym(Math.max(p.es, p.ef - 0.01)), fto: ym(Math.max(p.fs, p.fe - 0.01)), slip: p.fe - p.ef }; }); },
-    redraw: () => { renderTree(); renderMap(); },
+    redraw: () => { renderTree(); renderMap(); renderPanel(); },
     project: () => S.project,
     setProject: patch => { if (!readOnly) commit({ project: patch }); },
     readOnly: () => readOnly,
@@ -7808,7 +7847,7 @@ const Z = (t, sub) => () => head(t, sub);
 // Основа портала — дорожная карта: этапы проекта. Остальные разделы — шаги этапов (связь в STAGE_STEPS).
 // Портал — три экрана: Обзор, Дорожная карта, Данные. Остальное — модули отделов: по умолчанию выключены,
 // включаются в «Данных» (project.modules — коды модулей через пробел). Разделы группы — вкладки внутри экрана.
-const NAV_G = [["home", "Обзор"], ["q", "Опросник"], ["map", "Дорожная карта"], ["data", "Данные"]];
+const NAV_G = [["home", "Обзор"], ["map", "Этапы"], ["data", "Данные"]];
 const MODS = [["fin", "Финансы", "финмодель, «что если», бюджет, смета 1С"], ["ors", "ОРС", "показатели ПНР, чек-лист B0"], ["build", "Стройка", "спецтехника, акты и предписания, стандарты"], ["pk", "Комитет", "презентация ПК Start"], ["co", "Портфель", "все ЖК компании"]];
 const GROUPS = NAV_G.concat(MODS);
 const modsOn = () => { const m = String(window.ZHK && window.ZHK.project() ? window.ZHK.project().modules || "" : "").split(" "); return MODS.filter(([g]) => m.indexOf(g) >= 0); };
@@ -7822,9 +7861,9 @@ const VIEWS = {
   plans: { g: "obj", t: "Планировки", cnt: () => window.ZHK ? window.ZHK.plans().length || "" : "", r: viewPlans },
   chess: { g: "obj", t: "Шахматка", cnt: () => "", r: viewChess },
   data: { g: "obj", t: "Данные проекта", cnt: () => "", r: viewData },
-  structure: { g: "obj", t: "Опросник", cnt: () => "", r: viewStructure },
+  structure: { g: "obj", t: "Схема данных", cnt: () => "", r: viewStructure },
   standards: { g: "obj", t: "Стандарты", cnt: () => relevant().length, r: viewStandards },
-  roadmap: { g: "map", z: "tree", mode: "map", t: "Этапы", cnt: () => "", r: Z("Дорожная карта", "Этапы проекта по фазам — от анализа рынка до гарантии: сроки по графику, выполнение пунктов и инструменты каждого этапа. Нажмите на этап, чтобы открыть его пункты, документы, бюджет и сроки.") },
+  roadmap: { g: "map", z: "tree", mode: "map", t: "Этапы", cnt: () => "", r: Z("Этапы проекта", "Этапы проекта по фазам — от анализа рынка до гарантии. Нажмите на этап: вопросы этапа, чек-лист перехода, шаги, документы и бюджет — на одной странице.") },
   scheme: { g: "map", z: "tree", mode: "scheme", t: "Схема связей", cnt: () => "", r: Z("Схема связей этапов", "Какой этап открывает следующий. Этап открывается, когда закрыты условия перехода на предыдущих.") },
   gantt: { g: "map", z: "gantt", t: "График", cnt: () => "", r: Z("График строительства", "Диаграмма Ганта из связей этапов, критический путь и прогноз даты ключей.") },
   calendar: { g: "map", t: "Календарь событий", cnt: () => calEvents().filter(e => e.kind !== "hol" && new Date(e.date) >= TODAY).length || "", r: viewCal },
@@ -7843,7 +7882,7 @@ const VIEWS = {
 };
 
 // Состав групп по порядку вкладок; первый раздел группы открывается из меню. Шахматка и планировки — на паузе (без вкладки).
-const GV = { home: ["home", "today", "kpi"], map: ["roadmap", "gantt", "calendar", "deadlines"], q: ["structure"], data: ["data"],
+const GV = { home: ["home", "today", "kpi"], map: ["roadmap", "gantt", "calendar", "deadlines"], data: ["data", "structure"],
   fin: ["model", "whatif", "budget", "smeta"], ors: ["pnr", "b0"], build: ["equip", "acts", "standards"], pk: ["pk"], co: ["projects"] };
 Object.entries(GV).forEach(([g, ks]) => ks.forEach(k => { VIEWS[k].g = g; }));
 ["chess", "plans"].forEach(k => { VIEWS[k].g = "build"; VIEWS[k].off = true; });
@@ -9391,7 +9430,6 @@ document.addEventListener("input", e => { if (e.target.matches && e.target.match
 // что наполняет базу (docs/db/structure-seed.sql); готовность — как v_element_status: значение утверждено, список
 // заполнен (не меньше need строк), чек-лист отмечен. Главное на странице — «Что мешает этапу» по отделам с действием;
 // полная схема (значение → расчёт → раздел → отдел → этап) — свёрнута, для аналитиков. Ничего не хранит.
-let qStage = "";
 const ST_LV = { a: "Значение", l: "Список", o: "Расчёт", p: "Раздел", f: "Отдел", s: "Этап" };
 function structModel() {
   const Z = window.ZHK, VT = Object.fromEntries(Object.keys(VIEWS).map(k => [k, VIEWS[k].t]));
@@ -9493,14 +9531,6 @@ function structBind(root) {
     box.innerHTML = structKids(structM, k);
     structBind(box);
   });
-  const qs = root.querySelector("#q-stage"); if (qs) qs.onchange = () => { qStage = qs.value; route(); };
-  root.querySelectorAll("[data-qdemo]").forEach(b => b.onclick = async () => { b.disabled = true; await window.ZHK.createDemo(); qStage = ""; route(); });
-  root.querySelectorAll("[data-qgo]").forEach(b => b.onclick = () => { qStage = b.dataset.qgo; route(); window.scrollTo(0, 0); });
-  root.querySelectorAll("[data-qtask]").forEach(el => el.onchange = () => {
-    const [id, i] = el.dataset.qtask.split(":"), err = window.ZHK.setTask(id, +i, el.checked);
-    if (err) { el.checked = !el.checked; el.title = err; return; }
-    setTimeout(route, 0);
-  });
   const sq = root.querySelector("#st-q");
   if (sq) sq.oninput = () => { structQ = sq.value; clearTimeout(window.stqT); window.stqT = setTimeout(() => { const r = document.getElementById("st-res"); if (r && structM) r.innerHTML = structResults(structM, structQ); }, 200); };
 }
@@ -9525,42 +9555,36 @@ function qAct(v, ro) {
   if (v.st === "agreed") return '<span class="chip s-agreed">ждёт утверждения</span>';
   return ro ? '<span class="chip">черновик</span>' : `<button class="btn ghost mini" type="button" data-vst="${v.id}:agreed">На согласование</button>`;
 }
-function viewStructure() {
-  const h = head("Опросник", "Ответьте на вопросы этапа по порядку. Ответ сразу попадает в финмодель, документы и презентацию — второй раз его вводить не нужно.");
-  try { structM = structModel(); } catch (e) { structM = null; return h + `<section class="panel"><div class="empty">Опросник не собран: ${esc(e.message)}</div></section>`; }
-  const M = structM, Z = window.ZHK, ro = Z.readOnly(), dis = ro ? " disabled" : "", N = window.TREE.nodes;
-  if (!N.some(n => n.id === qStage)) qStage = Z.current();
-  const sid = qStage, i0 = N.findIndex(n => n.id === sid), n = N[i0], R = role(), mine = R && R.owners;
-  const need = M.B.needs.filter(x => x[0] === sid);
-  const qs = need.filter(x => x[1] === "a").map(x => M.V[x[2]]).filter(Boolean), shown = mine ? qs.filter(v => mine.indexOf(v.owner) >= 0) : qs;
-  const lsts = need.filter(x => x[1] === "l").map(x => M.L[x[2]]);
-  const tasks = Z.stageTasks(sid), locked = Z.stageLocked(sid);
-  const steps = (window.STAGE_STEPS[sid] || []).filter(([k]) => k !== "structure" && VIEWS[k]);
-  const pct = r => !r.n ? "—" : r.ok === r.n ? "готово" : Math.floor(r.ok / r.n * 100) + "%";
+// Вопросы этапа — на странице этапа (панель «Этапов»): данные, которые нужны этапу (STAGE_NEEDS), с вводом
+// и утверждением на месте; ответ пишется через setVar в то же место, что и в разделе ввода. Фильтр «Я — отдел».
+window.stageQuestionsHtml = sid => {
+  const Z = window.ZHK, need = (window.STAGE_NEEDS || {})[sid] || [];
+  if (!Z || !need.length) return "";
+  const ro = Z.readOnly(), dis = ro ? " disabled" : "", all = Z.vars(), V = Object.fromEntries(all.map(v => [v.id, v])), R = role(), mine = R && R.owners;
+  const qs = need.filter(x => x.indexOf("list:") !== 0).map(id => V[id]).filter(Boolean), shown = mine ? qs.filter(v => mine.indexOf(v.owner) >= 0) : qs;
+  const LS = need.filter(x => x.indexOf("list:") === 0).map(x => (window.VARS.lists || []).find(l => l.id === x.slice(5))).filter(Boolean);
+  const done = qs.filter(v => v.st === "approved").length + LS.filter(l => Z.listRows(l.id) > 0).length, tot = qs.length + LS.length;
   const row = (l, c, a) => `<li class="q-row"><div class="q-l">${l}</div><div class="q-c">${c}</div><div class="q-a">${a}</div></li>`;
-  const go = (x, t) => x ? `<button class="btn ghost" type="button" data-qgo="${x.id}">${t}</button>` : "";
-  return h + `<section class="panel stack">
-    <div class="row" style="flex-wrap:wrap;gap:10px;align-items:center"><label class="row" style="gap:8px;align-items:center"><span class="label">Этап</span>
-      <select id="q-stage">${N.map(x => `<option value="${x.id}"${x.id === sid ? " selected" : ""}>${esc(x.code + ". " + x.name)} — ${pct(M.ready("s:" + x.id))}</option>`).join("")}</select></label>${structChip(M.ready("s:" + sid))}</div>
-    ${(window.ZHK.project() || {}).demo ? '<div class="q-demo"><span aria-hidden="true">ⓘ</span><div>Это демо-проект: все данные — вымышленный пример. Ваш проект — в списке проектов вверху.</div></div>'
-      : ro ? "" : '<div class="row" style="gap:8px;align-items:center;flex-wrap:wrap"><span class="st-sub">Хотите посмотреть, как выглядит заполненный проект?</span><button class="btn ghost mini" type="button" data-qdemo>Открыть демо-проект</button></div>'}
+  const P = Z.project() || {}, empty = !all.some(v => !v.calc && v.set);
+  return `<div class="q-stage"><div class="section-title"><h3 class="eyebrow">Вопросы этапа</h3><span class="mono" style="font-size:12px;color:var(--muted)">${done} / ${tot}</span></div>
+    ${P.demo ? '<div class="q-demo"><span aria-hidden="true">ⓘ</span><div>Это демо-проект: все данные — вымышленный пример. Ваш проект — в списке проектов вверху.</div></div>'
+      : empty && !ro ? '<div class="row" style="gap:8px;align-items:center;flex-wrap:wrap"><span class="st-sub">Хотите посмотреть, как выглядит заполненный проект?</span><button class="btn ghost mini" type="button" data-qdemo>Открыть демо-проект</button></div>' : ""}
     ${mine ? `<div class="st-sub"><span>Показаны вопросы отдела «${esc(R.t)}».</span> <span>Все вопросы — выберите «Я — все разделы» вверху.</span></div>` : ""}
-    <h2 class="h2">Вопросы</h2>
     ${shown.length ? `<ol class="q-list">${shown.map(v => row(`<b>${esc(v.name)}</b><span class="st-sub">${esc(v.owner)}</span>`, qCtl(v, dis), qAct(v, ro))).join("")}</ol>`
-      : `<div class="st-sub">${qs.length ? "У вашего отдела на этом этапе вопросов нет." : "На этом этапе вопросов по данным нет — только чек-лист."}</div>`}
-    ${lsts.length ? `<h2 class="h2">Списки</h2><ul class="q-list">${lsts.map(l => { const c = Z.listRows(l.id);
-      return row(`<b>${esc(l.name.replace(/^Список: /, ""))}</b><span class="st-sub">${esc(l.owner)}</span>`, c ? `<span>строк: ${c}</span>` : '<span class="chip s-new">пусто</span>', `<a class="btn ghost mini" href="#${l.view}">${c ? "Открыть" : "Заполнить"}</a>`); }).join("")}</ul>` : ""}
-    <h2 class="h2">Чек-лист этапа</h2>
-    ${locked ? '<div class="st-sub">Этап ещё закрыт: пункты отмечаются, когда пройдены предыдущие этапы.</div>' : ""}
-    <ul class="q-tasks">${tasks.map((t, i) => `<li><label class="q-task"><input type="checkbox" data-qtask="${sid}:${i}"${t.done ? " checked" : ""}${ro || locked ? " disabled" : ""}><span>${esc(t.t)}</span></label></li>`).join("")}</ul>
-    ${steps.length ? `<h2 class="h2">Где ещё работать на этапе</h2><div class="row" style="flex-wrap:wrap;gap:6px">${steps.map(([k, t]) => `<a class="btn ghost mini" href="#${k}" title="${esc(t)}">${esc(VIEWS[k].t)}</a>`).join("")}</div>` : ""}
-    <div class="row between" style="flex-wrap:wrap;gap:8px">${go(N[i0 - 1], "← Предыдущий этап")}${go(N[i0 + 1], "Следующий этап →")}</div>
-  </section>
-  <section class="panel"><details><summary class="st-sub">Поиск и схема данных — для аналитиков</summary><div class="stack" style="margin-top:8px">
-    <p class="st-sub">Как устроено: значение → расчёт → раздел → отдел → этап → проект. В концепции это «от кирпича до ЖК».</p>
+      : qs.length ? '<div class="st-sub">У вашего отдела на этом этапе вопросов нет.</div>' : ""}
+    ${LS.length ? `<ul class="q-list">${LS.map(l => { const c = Z.listRows(l.id);
+      return row(`<b>${esc(l.name || VIEWS[l.view].t)}</b><span class="st-sub">список</span>`, c ? `<span>строк: ${c}</span>` : '<span class="chip s-new">пусто</span>', `<a class="btn ghost mini" href="#${l.view}">${c ? "Открыть" : "Заполнить"}</a>`); }).join("")}</ul>` : ""}
+  </div>`;
+};
+// «Данные → Схема данных» — для аналитиков: поиск по названию и коду (что затронет изменение) и схема структуры.
+function viewStructure() {
+  const h = head("Схема данных", "Из чего собран проект: значение → расчёт → раздел → отдел → этап → проект (в концепции — «от кирпича до ЖК»). Поиск показывает, что затронет изменение значения.");
+  try { structM = structModel(); } catch (e) { structM = null; return h + `<section class="panel"><div class="empty">Схема не собрана: ${esc(e.message)}</div></section>`; }
+  const M = structM;
+  return h + `<section class="panel stack">
     <label class="stack" style="gap:4px"><span class="label">Найти</span><input type="search" id="st-q" class="vin" style="max-width:420px;width:100%" value="${esc(structQ)}" placeholder="значение, раздел, отдел или этап" autocomplete="off"></label>
     <div id="st-res" class="stack" style="gap:6px" aria-live="polite">${structResults(M, structQ)}</div>
-    <div class="st-tree"><ul>${N.map(x => structNode(M, "s:" + x.id, "")).join("")}</ul></div></div></details></section>`;
+    <div class="st-tree"><ul>${window.TREE.nodes.map(x => structNode(M, "s:" + x.id, "")).join("")}</ul></div></section>`;
 }
 function route() {
   let v = location.hash.slice(1);
