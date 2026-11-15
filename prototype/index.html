@@ -184,6 +184,28 @@ body.nohints .topbar .muted, body.nohints .hint { display: none }
 .hm-m b { position: absolute; top: -3px; width: 2px; height: 14px; margin-left: -1px; background: var(--fg) }
 .hm-sub { display: flex; align-items: center; gap: 6px; font-size: .86rem; color: var(--muted) }
 .hm-ic { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; font-size: .72rem; font-weight: 700; border: 1.5px solid currentColor; flex: none }
+body.focus .side, body.focus .gbar { display: none }
+body.focus .app { grid-template-columns: minmax(0, 1fr) }
+.step-wrap { max-width: 640px; margin: 0 auto; padding: 24px 16px 48px; display: grid; gap: 14px }
+.step-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px }
+.step-all { font-weight: 600 }
+.step-stage { display: grid; grid-template-columns: 40px minmax(0, 1fr) 40px; align-items: center; text-align: center; gap: 8px }
+.step-name { font-size: 1.35rem; font-weight: 700 }
+.step-arr { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); font-size: 1.4rem; cursor: pointer; color: var(--fg) }
+span.step-arr { border: 0; background: none; cursor: default }
+.step-bar { height: 10px; border-radius: 5px; background: var(--line); overflow: hidden }
+.step-bar i { display: block; height: 100%; background: var(--ok) }
+.step-pc { text-align: center; font-size: .9rem }
+.step-card { display: grid; gap: 12px; padding: 22px }
+.step-q { margin: 0; font-size: 1.5rem; line-height: 1.25 }
+.step-in .vin, .step-in select { width: 100%; font-size: 1.1rem; padding: 12px 14px }
+.step-in { display: flex; align-items: center; gap: 8px }
+.step-btns { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px }
+.step-btns .btn { padding: 10px 18px; font-size: 1rem }
+.step-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px }
+.step-list li { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding: 4px 0 }
+.step-msg { color: var(--bad); min-height: 1em }
+.step-foot { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px }
 .hm-go { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; border-left: 4px solid var(--accent) }
 .hm-more { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px }
 .hm-mini { display: flex; flex-direction: column; gap: 2px; text-decoration: none; color: inherit }
@@ -5261,7 +5283,15 @@ window.I18N = (function () {
     ["Структура: что ещё не утверждено и что затронет изменение", "Құрылым: әлі не бекітілмеген және өзгеріс неге әсер етеді"],
     ["Найти в структуре", "Құрылымнан іздеу"],
     // опросник
-    ["Опросник", "Сауалнама"], ["Вопросы этапа", "Кезең сұрақтары"], ["Главная", "Басты бет"], ["Значения", "Мәндер"],
+    ["Опросник", "Сауалнама"], ["Вопросы этапа", "Кезең сұрақтары"], ["Главная", "Басты бет"], ["Шаг за шагом", "Қадам бойынша"], ["Все разделы ▸", "Барлық бөлімдер ▸"], ["Пропустить", "Өткізіп жіберу"], ["Далее →", "Әрі қарай →"],
+    ["Ответ сразу попадёт в финмодель, документы и презентацию.", "Жауап бірден қаржы моделіне, құжаттарға және презентацияға түседі."], ["Да", "Иә"], ["Нет", "Жоқ"],
+    ["Проверьте ответы", "Жауаптарды тексеріңіз"], ["Утвердите ответы этапа", "Кезең жауаптарын бекітіңіз"], ["Ждёт утверждения отделом-владельцем.", "Иесі бөлімшенің бекітуін күтуде."],
+    ["Это таблица: она заполняется в своём разделе. Потом вернитесь сюда.", "Бұл кесте: ол өз бөлімінде толтырылады. Содан кейін осында оралыңыз."],
+    ["Чек-лист этапа", "Кезеңнің чек-парағы"], ["Это сделано?", "Бұл орындалды ма?"], ["Да, сделано ✓", "Иә, орындалды ✓"], ["Готово", "Дайын"],
+    ["Все вопросы утверждены, пункты чек-листа отмечены.", "Барлық сұрақтар бекітілді, чек-парақ тармақтары белгіленді."], ["Вернуться к пропущенным", "Өткізілгендерге оралу"],
+    ["Следующий этап →", "Келесі кезең →"], ["Введите ответ или нажмите «Пропустить».", "Жауапты енгізіңіз немесе «Өткізіп жіберу» басыңыз."],
+    ["Посмотреть на примере: открыть демо-проект", "Мысалда қарау: демо-жобаны ашу"], ["Это демо-проект: все данные — вымышленный пример.", "Бұл демо-жоба: барлық деректер — ойдан шығарылған мысал."],
+    ["Предыдущий этап", "Алдыңғы кезең"], ["Следующий этап", "Келесі кезең"], ["Список", "Тізім"], ["Значения", "Мәндер"],
     ["Справочник проекта: все значения со статусами, списки и реквизиты. Вводить данные удобнее на странице этапа — в «Вопросах этапа»; здесь — проверить, поправить, утвердить и найти.",
       "Жоба анықтамалығы: мәртебелері бар барлық мәндер, тізімдер мен деректемелер. Деректерді кезең бетінде — «Кезең сұрақтарында» енгізген ыңғайлы; мұнда — тексеру, түзету, бекіту және іздеу."], ["Инструменты", "Құралдар"], ["Продолжить", "Жалғастыру"], ["Открыть этап →", "Кезеңді ашу →"],
     ["всё готово — можно переходить к следующему этапу", "бәрі дайын — келесі кезеңге өтуге болады"], ["Требует внимания", "Назар аударуды қажет етеді"],
@@ -5377,6 +5407,16 @@ window.I18N = (function () {
     [/^(\d\d)\. (.+)$/, m => D.has(m[2]) ? m[1] + ". " + D.get(m[2]) : null],
     [/^Структура не собрана: (.+)$/, m => "Құрылым жиналмады: " + m[1]],
     [/^Найдено: (\d+)$/, m => "Табылды: " + m[1]],
+    [/^Этап (\d+) из (\d+)$/, m => m[2] + " кезеңнің " + m[1] + "-сі"],
+    [/^Готово (\d+)%: сделано (\d+) из (\d+)$/, m => "Дайын " + m[1] + "%: " + m[3] + " ішінен " + m[2] + " орындалды"],
+    [/^Вопрос · (.+)$/, m => "Сұрақ · " + (D.get(m[1]) || m[1])],
+    [/^Утвердить все \((\d+)\)$/, m => "Барлығын бекіту (" + m[1] + ")"],
+    [/^Отправить на согласование \((\d+)\)$/, m => "Келісуге жіберу (" + m[1] + ")"],
+    [/^Осталось пропущенных дел: (\d+)$/, m => "Өткізілген істер: " + m[1]],
+    [/^Этап «(.+)» готов$/, m => "«" + (D.get(m[1]) || m[1]) + "» кезеңі дайын"],
+    [/^Заполните «(.+)»$/, m => "«" + (D.get(m[1]) || m[1]) + "» толтырыңыз"],
+    [/^Открыть «(.+)» →$/, m => "«" + (D.get(m[1]) || m[1]) + "» ашу →"],
+    [/^Следующий этап: (.+) →$/, m => "Келесі кезең: " + (D.get(m[1]) || m[1]) + " →"],
     [/^вопросов: (\d+)(?: · пунктов чек-листа: (\d+))?$/, m => "сұрақтар: " + m[1] + (m[2] ? " · чек-парақ тармақтары: " + m[2] : "")],
     [/^пунктов чек-листа: (\d+)$/, m => "чек-парақ тармақтары: " + m[1]],
     [/^не утверждено: (\d+)(, база ПК Start зафиксирована)?$/, m => "бекітілмеген: " + m[1] + (m[2] ? ", ПК Start базасы бекітілді" : "")],
@@ -7861,12 +7901,13 @@ const Z = (t, sub) => () => head(t, sub);
 // Основа портала — дорожная карта: этапы проекта. Остальные разделы — шаги этапов (связь в STAGE_STEPS).
 // Портал — три экрана: Обзор, Дорожная карта, Данные. Остальное — модули отделов: по умолчанию выключены,
 // включаются в «Данных» (project.modules — коды модулей через пробел). Разделы группы — вкладки внутри экрана.
-const NAV_G = [["home", "Главная"], ["map", "Этапы"], ["data", "Данные"]];
+const NAV_G = [["go", "Шаг за шагом"], ["home", "Главная"], ["map", "Этапы"], ["data", "Данные"]];
 const MODS = [["fin", "Финансы", "финмодель, «что если», бюджет, смета 1С"], ["ors", "ОРС", "показатели ПНР, чек-лист B0"], ["build", "Стройка", "спецтехника, акты и предписания, стандарты"], ["pk", "Комитет", "презентация ПК Start"], ["co", "Портфель", "все ЖК компании"]];
 const GROUPS = NAV_G.concat(MODS);
 // Инструменты отделов видны всегда (раньше — «модули», которые включали в «Данных»).
 const modsOn = () => MODS;
 const VIEWS = {
+  step: { g: "go", t: "Шаг за шагом", cnt: () => "", r: viewStep },
   home: { g: "today", t: "Главная", cnt: () => window.ZHK ? todayItems().filter(x => x.lvl === "bad").length || "" : "", alert: true, r: viewHome },
   today: { g: "today", t: "Сегодня", cnt: () => "", r: viewHome },  // «Сегодня» и «Показатели» вошли в «Главную»; старые ссылки ведут туда
   card: { g: "obj", t: "Карточка проекта", cnt: () => "", r: viewCard },
@@ -7897,7 +7938,7 @@ const VIEWS = {
 };
 
 // Состав групп по порядку вкладок; первый раздел группы открывается из меню. Шахматка и планировки — на паузе (без вкладки).
-const GV = { home: ["home", "today", "kpi"], map: ["roadmap", "gantt", "calendar", "deadlines"], data: ["data", "structure"],
+const GV = { go: ["step"], home: ["home", "today", "kpi"], map: ["roadmap", "gantt", "calendar", "deadlines"], data: ["data", "structure"],
   fin: ["model", "whatif", "budget", "smeta"], ors: ["pnr", "b0"], build: ["equip", "acts", "standards"], pk: ["pk"], co: ["projects"] };
 Object.entries(GV).forEach(([g, ks]) => ks.forEach(k => { VIEWS[k].g = g; }));
 ["today", "kpi"].forEach(k => { VIEWS[k].off = true; }); // вошли в «Главную»
@@ -9574,14 +9615,94 @@ function viewStructure() {
     <div id="st-res" class="stack" style="gap:6px" aria-live="polite">${structResults(M, structQ)}</div>
     <div class="st-tree"><ul>${window.TREE.nodes.map(x => structNode(M, "s:" + x.id, "")).join("")}</ul></div></section>`;
 }
+// «Шаг за шагом» — экран по умолчанию (для руководителя проекта): одно дело текущего этапа на экране — вопрос,
+// «утвердите ответы», пустой список или пункт чек-листа — и кнопка «Далее». Ответ пишется через ZHK.setVar туда же,
+// что и в разделах; меню и панели скрыты, всё остальное — по ссылке «Все разделы».
+let stepStage = "";
+const stepSkip = new Set();
+function stepQueue(Z, sid) {
+  const need = (window.STAGE_NEEDS || {})[sid] || [], V = Object.fromEntries(Z.vars().map(v => [v.id, v])), q = [], ap = [];
+  need.forEach(x => {
+    if (x.indexOf("list:") === 0) { const l = (window.VARS.lists || []).find(y => y.id === x.slice(5)); if (l && !(Z.listRows(l.id) > 0)) q.push({ k: x, type: "list", l }); return; }
+    const v = V[x]; if (!v) return;
+    if (!v.set) q.push({ k: "q:" + x, type: "q", v }); else if (v.st !== "approved") ap.push(v);
+  });
+  if (ap.length) q.push({ k: "approve", type: "approve", vars: ap });
+  Z.stageTasks(sid).forEach((t, i) => { if (!t.done) q.push({ k: "t:" + i, type: "task", i, t: t.t }); });
+  return q;
+}
+function viewStep() {
+  const Z = window.ZHK, N = window.TREE.nodes, ro = Z.readOnly(), P = Z.project() || {};
+  if (!N.some(n => n.id === stepStage)) stepStage = Z.current();
+  const sid = stepStage, i0 = N.findIndex(n => n.id === sid), n = N[i0], st = Z.stages().find(x => x.id === sid) || {};
+  const all = stepQueue(Z, sid), Q = all.filter(x => !stepSkip.has(sid + "|" + x.k)), t = Q[0], locked = Z.stageLocked(sid);
+  const total = ((window.STAGE_NEEDS || {})[sid] || []).length + (st.total || 0);
+  const left = all.reduce((a, x) => a + (x.type === "approve" ? x.vars.length : 1), 0), done = Math.max(0, total - left), pc = total ? Math.round(done / total * 100) : 100;
+  const skip = t ? `<button class="btn ghost" type="button" data-step-skip="${sid}|${t.k}">Пропустить</button>` : "";
+  const next = N[i0 + 1], prev = N[i0 - 1];
+  let card;
+  if (!t && all.length) card = `<h2 class="step-q">Осталось пропущенных дел: ${all.length}</h2><div class="step-btns"><button class="btn ghost" type="button" data-step-unskip>Вернуться к пропущенным</button>${next ? `<button class="btn primary" type="button" data-step-go="${next.id}">Следующий этап →</button>` : ""}</div>`;
+  else if (!t) card = `<span class="label">Готово</span><h2 class="step-q">Этап «${esc(n.name)}» готов</h2><p class="muted">Все вопросы утверждены, пункты чек-листа отмечены.</p><div class="step-btns">${next ? `<button class="btn primary" type="button" data-step-go="${next.id}">Следующий этап: ${esc(next.name)} →</button>` : ""}</div>`;
+  else if (t.type === "q") {
+    const v = t.v, ctl = v.type === "flag" ? `<div class="step-btns"><button class="btn" type="button" data-step-flag="${v.id}:1">Да</button><button class="btn" type="button" data-step-flag="${v.id}:0">Нет</button></div>`
+      : qCtl(v, ro ? " disabled" : "").replace(/data-var=/g, "data-sv=").replace(/<textarea /, '<textarea rows="3" ');
+    card = `<span class="label">Вопрос · ${esc(v.owner)}</span><h2 class="step-q">${esc(v.name)}</h2><div class="step-in">${ctl}</div><p class="muted">Ответ сразу попадёт в финмодель, документы и презентацию.</p>
+      <div class="step-btns">${skip}${v.type === "flag" ? "" : '<button class="btn primary" type="button" data-step-next>Далее →</button>'}</div>`;
+  } else if (t.type === "approve") {
+    const can = t.vars.every(v => Z.canApprove(v.id)), drafts = t.vars.filter(v => v.st === "draft");
+    card = `<span class="label">Проверьте ответы</span><h2 class="step-q">Утвердите ответы этапа</h2><ul class="step-list">${t.vars.map(v => `<li><span>${esc(v.name)}</span><b>${esc(v.text)}</b></li>`).join("")}</ul>
+      <div class="step-btns">${skip}${ro ? "" : can ? `<button class="btn primary" type="button" data-step-approve="approved" data-ids="${t.vars.map(v => v.id).join(",")}">Утвердить все (${t.vars.length})</button>`
+        : drafts.length ? `<button class="btn primary" type="button" data-step-approve="agreed" data-ids="${drafts.map(v => v.id).join(",")}">Отправить на согласование (${drafts.length})</button>` : '<span class="muted">Ждёт утверждения отделом-владельцем.</span>'}</div>`;
+  } else if (t.type === "list") {
+    const nm = t.l.name || VIEWS[t.l.view].t;
+    card = `<span class="label">Список</span><h2 class="step-q">Заполните «${esc(nm)}»</h2><p class="muted">Это таблица: она заполняется в своём разделе. Потом вернитесь сюда.</p>
+      <div class="step-btns">${skip}<a class="btn primary" href="#${t.l.view}">Открыть «${esc(nm)}» →</a></div>`;
+  } else card = `<span class="label">Чек-лист этапа</span><h2 class="step-q">${esc(t.t)}</h2>${locked ? '<p class="muted">Этап ещё закрыт: пункты отмечаются, когда пройдены предыдущие этапы.</p>' : '<p class="muted">Это сделано?</p>'}
+      <div class="step-btns">${skip}${locked || ro ? "" : `<button class="btn primary" type="button" data-step-task="${sid}:${t.i}">Да, сделано ✓</button>`}</div>`;
+  const empty = !Z.vars().some(v => !v.calc && v.set);
+  return `<div class="step-wrap">
+    <div class="step-top"><b>${esc(P.name || projTitle())}</b><a class="step-all" href="#home">Все разделы ▸</a></div>
+    ${P.demo ? '<div class="q-demo"><span aria-hidden="true">ⓘ</span><div>Это демо-проект: все данные — вымышленный пример.</div></div>' : ""}
+    <div class="step-stage">${prev ? `<button class="step-arr" type="button" data-step-go="${prev.id}" aria-label="Предыдущий этап">‹</button>` : '<span class="step-arr"></span>'}
+      <div><span class="label"><span>Этап ${i0 + 1} из ${N.length}</span></span><div class="step-name">${esc(n.name)}</div></div>
+      ${next ? `<button class="step-arr" type="button" data-step-go="${next.id}" aria-label="Следующий этап">›</button>` : '<span class="step-arr"></span>'}</div>
+    <div class="step-bar" aria-hidden="true"><i style="width:${pc}%"></i></div><div class="muted step-pc"><span>Готово ${pc}%: сделано ${done} из ${total}</span></div>
+    <section class="panel step-card">${card}<div id="step-msg" class="step-msg" role="status"></div></section>
+    <div class="step-foot">${empty && !ro ? '<button class="btn ghost mini" type="button" data-step-demo>Посмотреть на примере: открыть демо-проект</button>' : ""}
+      <button class="btn ghost mini" type="button" data-step-lang>${window.I18N && window.I18N.lang() === "kk" ? "Русский" : "Қазақша"}</button></div>
+  </div>`;
+}
+function stepBind(m) {
+  if (cur !== "step") return;
+  const Z = window.ZHK, msg = t => { const h = m.querySelector("#step-msg"); if (h) h.textContent = t; };
+  const save = () => {
+    const el = m.querySelector("[data-sv]"); if (!el) return true;
+    if (String(el.value).trim() === "") { msg("Введите ответ или нажмите «Пропустить»."); el.focus(); return false; }
+    const r = Z.setVar(el.dataset.sv, el.value);
+    if (typeof r === "string") { msg(r); el.focus(); return false; }
+    return true;
+  };
+  m.querySelectorAll("[data-step-next]").forEach(b => b.onclick = () => { if (save()) route(); });
+  const inp = m.querySelector("input[data-sv], select[data-sv], textarea[data-sv]");
+  if (inp) { if (inp.tagName === "INPUT") inp.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); if (save()) route(); } }; setTimeout(() => inp.focus(), 0); }
+  m.querySelectorAll("[data-step-flag]").forEach(b => b.onclick = () => { const [id, v] = b.dataset.stepFlag.split(":"); Z.setVar(id, v === "1"); route(); });
+  m.querySelectorAll("[data-step-skip]").forEach(b => b.onclick = () => { stepSkip.add(b.dataset.stepSkip); route(); });
+  m.querySelectorAll("[data-step-unskip]").forEach(b => b.onclick = () => { [...stepSkip].filter(k => k.indexOf(stepStage + "|") === 0).forEach(k => stepSkip.delete(k)); route(); });
+  m.querySelectorAll("[data-step-go]").forEach(b => b.onclick = () => { stepStage = b.dataset.stepGo; route(); window.scrollTo(0, 0); });
+  m.querySelectorAll("[data-step-task]").forEach(b => b.onclick = () => { const [id, i] = b.dataset.stepTask.split(":"), err = Z.setTask(id, +i, true); if (err) { msg(err); return; } route(); });
+  m.querySelectorAll("[data-step-approve]").forEach(b => b.onclick = () => { b.dataset.ids.split(",").forEach(id => Z.setVarStatus(id, b.dataset.stepApprove)); route(); });
+  m.querySelectorAll("[data-step-demo]").forEach(b => b.onclick = async () => { b.disabled = true; await Z.createDemo(); stepStage = ""; stepSkip.clear(); route(); });
+  m.querySelectorAll("[data-step-lang]").forEach(b => b.onclick = () => { window.I18N.set(window.I18N.lang() === "kk" ? "ru" : "kk"); route(); });
+}
 function route() {
   let v = location.hash.slice(1);
   if (!navBack && navHist[navHist.length - 1] !== v) { navHist.push(v); if (navHist.length > 50) navHist.shift(); }
   navBack = false;
-  if (!VIEWS[v]) v = window.TREE && TREE.nodes.some(n => n.id === v) ? "roadmap" : "home";
+  if (!VIEWS[v]) v = window.TREE && TREE.nodes.some(n => n.id === v) ? "roadmap" : "step";
   const DSEC = { card: "about", blocks: "blocks", team: "team", partners: "team" };
   if (DSEC[v]) { dataJump = DSEC[v]; if (v === "card") dataOpen.about = true; v = "data"; }
   cur = v;
+  document.body.classList.toggle("focus", v === "step"); // «Шаг за шагом»: без меню и панелей
   document.getElementById("nav").innerHTML = navHtml(v);
   const main = document.getElementById("main");
   main.innerHTML = gbarHtml() + VIEWS[v].r();
@@ -9999,6 +10120,7 @@ window.ZHK_onBadges = () => {
 };
 
 function bind(m) {
+  stepBind(m);
   m.querySelectorAll("[data-pk]").forEach(el => el.onchange = () => window.ZHK.setProject({ [el.dataset.pk]: el.value.trim() }));
   m.querySelectorAll("[data-var]").forEach(el => el.onchange = () => {
     const r = window.ZHK.setVar(el.dataset.var, el.type === "checkbox" ? el.checked : el.value);
