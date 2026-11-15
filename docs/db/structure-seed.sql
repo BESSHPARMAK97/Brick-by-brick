@@ -1,8 +1,8 @@
 -- СГЕНЕРИРОВАНО scripts/export-structure.js из prototype/index.html. Не править руками:
 -- после изменений портала запустите node scripts/export-skill-tree.js.
--- Структура «от кирпича до ЖК» (docs/concept.md). Кирпичи: 308, стены-расчёты: 38, комнаты-разделы: 22,
--- кирпичи-списки: 24 (из них чек-листов этапов: 21), входы стен: 612 + из списков 60, вводимые кирпичи в комнатах: 270, этажи-этапы: 21, шаги этапов: 57, нужные этапам данные: 78,
--- квартиры-направления: 5 (разделов за отделами: 22 из 22).
+-- Структура «от кирпича до ЖК» (docs/concept.md). Кирпичи: 308, стены-расчёты: 38, комнаты-разделы: 21,
+-- кирпичи-списки: 24 (из них чек-листов этапов: 21), входы стен: 612 + из списков 60, вводимые кирпичи в комнатах: 270, этажи-этапы: 21, шаги этапов: 56, нужные этапам данные: 78,
+-- квартиры-направления: 5 (разделов за отделами: 21 из 21).
 -- Запуск: psql -v ON_ERROR_STOP=1 -f docs/db/project-data.sql -f docs/db/structure-seed.sql -f docs/db/structure-seed-check.sql
 
 -- Отделы-владельцы переменных
@@ -346,7 +346,6 @@ insert into tools (name) values
   ('Сроки документов'),
   ('Спецтехника'),
   ('График'),
-  ('Показатели'),
   ('Финмодель'),
   ('Партнёры'),
   ('Презентация ПК Start'),
@@ -410,7 +409,6 @@ from (values
   ('deadlines', 'Сроки документов'),
   ('equip', 'Спецтехника'),
   ('gantt', 'График'),
-  ('kpi', 'Показатели'),
   ('model', 'Финмодель'),
   ('partners', 'Партнёры'),
   ('pk', 'Презентация ПК Start'),
@@ -1516,7 +1514,6 @@ from (values
   ('area.team', 'proc.team'),
   ('area.team', 'proc.partners'),
   ('area.team', 'proc.plans'),
-  ('area.team', 'proc.kpi'),
   ('area.team', 'proc.pk'),
   ('area.sales', 'proc.chess'),
   ('area.build', 'proc.acts'),
@@ -1689,8 +1686,7 @@ from (values
   ('stage.pkstart', 'proc.model', 3, 'Уточнить финмодель по итогам B0 и ПНР'),
   ('stage.pkstart', 'proc.whatif', 4, 'Сценарии «что если» для комитета'),
   ('stage.pkstart', 'proc.data', 5, 'Проверить и утвердить данные, зафиксировать базу ПК Start'),
-  ('stage.pkstart', 'proc.kpi', 6, 'Ключевые показатели: срок, маржа, IRR, долг'),
-  ('stage.pkstart', 'proc.pk', 7, 'Собрать презентацию для комитета'),
+  ('stage.pkstart', 'proc.pk', 6, 'Собрать презентацию для комитета'),
   ('stage.dolevka', 'proc.chess', 1, 'Шахматка: квартиры и статусы продаж'),
   ('stage.dolevka', 'proc.deadlines', 2, 'Сроки по долевому участию'),
   ('stage.start', 'proc.team', 1, 'Команда проекта'),
@@ -1734,14 +1730,14 @@ do $$ begin
   if (select count(*) from elements where level_id = 1) <> 332 then raise exception 'structure-seed: кирпичей не 332'; end if;
   if (select count(*) from lists) <> 24 then raise exception 'structure-seed: списков не 24'; end if;
   if (select count(*) from elements where level_id = 2) <> 38 then raise exception 'structure-seed: стен не 38'; end if;
-  if (select count(*) from elements where level_id = 3) <> 22 then raise exception 'structure-seed: комнат не 22'; end if;
+  if (select count(*) from elements where level_id = 3) <> 21 then raise exception 'structure-seed: комнат не 21'; end if;
   if (select count(*) from elements where level_id = 4) <> 5 then raise exception 'structure-seed: квартир не 5'; end if;
   if (select count(*) from elements where level_id = 5) <> 21 then raise exception 'structure-seed: этажей не 21'; end if;
   if (select count(*) from element_links where role = 'input') <> 672 then raise exception 'structure-seed: входов стен не 672'; end if;
   if (select count(*) from element_links where role = 'output') <> 38 then raise exception 'structure-seed: результатов стен не 38'; end if;
   if (select count(*) from element_links l join elements c on c.id = l.child_id and c.level_id = 2 where l.role = 'part') <> 38 then raise exception 'structure-seed: связей «стена в комнате» не 38'; end if;
   if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 3 join elements c on c.id = l.child_id and c.level_id = 1) <> 294 then raise exception 'structure-seed: вводимых кирпичей в комнатах не 294'; end if;
-  if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 4) <> 22 then raise exception 'structure-seed: разделов у отделов не 22'; end if;
-  if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 5 join elements c on c.id = l.child_id and c.level_id = 3) <> 57 then raise exception 'structure-seed: шагов этапов не 57'; end if;
+  if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 4) <> 21 then raise exception 'structure-seed: разделов у отделов не 21'; end if;
+  if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 5 join elements c on c.id = l.child_id and c.level_id = 3) <> 56 then raise exception 'structure-seed: шагов этапов не 56'; end if;
   if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 5 join elements c on c.id = l.child_id and c.level_id = 1) <> 99 then raise exception 'structure-seed: данных и чек-листов в этапах не 99'; end if;
 end $$;
