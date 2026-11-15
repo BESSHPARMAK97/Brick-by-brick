@@ -28,3 +28,7 @@ jobs:
         run: |
           sudo systemctl start postgresql
           cat docs/db/project-data.sql docs/db/project-data-check.sql | sudo -u postgres psql -v ON_ERROR_STOP=1 -q
+      - name: Structure from the portal
+        run: |
+          sudo -u postgres createdb structure
+          cat docs/db/project-data.sql docs/db/structure-seed.sql docs/db/structure-seed-check.sql | sudo -u postgres psql -d structure -v ON_ERROR_STOP=1 -q

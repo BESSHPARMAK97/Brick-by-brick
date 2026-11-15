@@ -202,3 +202,172 @@ from baselines b
 join baseline_values bv on bv.baseline_id = b.id
 join variables var on var.id = bv.variable_id and var.value_type = 'num'
 join variable_values vv on vv.project_id = b.project_id and vv.variable_id = bv.variable_id;
+
+-- ============================================================================
+-- Структура «от кирпича до ЖК» (docs/concept.md, раздел «Структура»).
+-- Каждый уровень собран из элементов уровней ниже и добавляет то, чего не было у частей:
+-- кирпич — значение, стена — действие, комната — результат, квартира — владельца,
+-- этаж — порядок, дом — паспорт, ЖК — общее для всех проектов.
+-- Таблица называется elements, а не blocks: «блоки» в портале — корпуса ЖК.
+-- ============================================================================
+
+-- Уровни: метафора — для людей, code — для кода. Число и названия уровней — данные, а не схема.
+create table levels (
+  id           smallint primary key,                -- чем больше, тем выше уровень
+  code         text not null unique,                -- atom, operation, process, area, stage, project, portfolio
+  name         text not null unique,                -- «Кирпич», «Стена»…
+  name_kk      text not null unique,                -- казахское название
+  stored_in    text not null check (stored_in in ('elements', 'projects', 'companies')),
+  needs_owner  boolean not null default false       -- с этого уровня у элемента есть отдел-владелец
+);
+
+insert into levels (id, code, name, name_kk, stored_in, needs_owner) values
+  (1, 'atom',      'Кирпич',          'Кірпіш',                'elements',  false), -- переменная словаря или список проекта
+  (2, 'operation', 'Стена',           'Қабырға',               'elements',  false), -- расчёт или действие
+  (3, 'process',   'Комната',         'Бөлме',                 'elements',  false), -- раздел или инструмент
+  (4, 'area',      'Квартира',        'Пәтер',                 'elements',  true),  -- направление отдела
+  (5, 'stage',     'Этаж',            'Қабат',                 'elements',  false), -- этап дорожной карты
+  (6, 'project',   'Дом',             'Үй',                    'projects',  false), -- таблица projects
+  (7, 'portfolio', 'Жилой комплекс',  'Тұрғын үй кешені',      'companies', false); -- таблица companies
+
+-- Списки проекта (блоки, шахматка…): у проекта их переменное число строк. Справочник один на холдинг, как variables;
+-- строки списка проекта — в list_rows. Владелец списка — отдел направления, где список вводится.
+create table lists (
+  id             uuid primary key default gen_random_uuid(),
+  code           text not null unique,              -- blocks, chess
+  name           text not null,
+  owner_dept_id  uuid not null references departments(id),
+  need_rows      int not null default 1 check (need_rows > 0)  -- сколько строк нужно для готовности: 1 — «есть строки»,
+                                                               -- у чек-листа этапа — число пунктов (отмечены все)
+);
+
+-- Строки списков проекта: row_id — id строки в портале, data — поля строки. Ссылки между списками — по id в data
+-- (квартира шахматки → блок), не копией текста.
+create table list_rows (
+  project_id  uuid not null references projects(id),
+  list_id     uuid not null references lists(id),
+  row_id      text not null,
+  data        jsonb not null default '{}',
+  updated_at  timestamptz not null default now(),
+  primary key (project_id, list_id, row_id)
+);
+
+-- Элементы уровней 1–5: шаблон, один на холдинг, как словарь переменных. Проект — экземпляр шаблона:
+-- значения кирпичей лежат в variable_values, состояние остальных уровней считается (v_element_status).
+create table elements (
+  id             uuid primary key default gen_random_uuid(),
+  level_id       smallint not null references levels(id),
+  code           text not null unique,
+  name           text not null,
+  variable_id    uuid unique references variables(id),   -- только у кирпича: кирпич = переменная…
+  list_id        uuid unique references lists(id),       -- …или список проекта
+  tool_id        uuid references tools(id),              -- комната может быть инструментом портала
+  owner_dept_id  uuid references departments(id),
+  calc           text,                                   -- у стены: формула или правило
+  sort           int not null default 0                  -- порядок этажей (этапов)
+);
+
+-- Сборка: из чего состоит элемент. Граф, а не дерево: одна стена может стоять в двух комнатах,
+-- один кирпич — в десяти стенах. Кирпич не копируется, на него ссылаются.
+create table element_links (
+  parent_id  uuid not null references elements(id) on delete cascade,
+  child_id   uuid not null references elements(id) on delete cascade,
+  role       text not null default 'part' check (role in ('part', 'input', 'output')),
+  ord        int,                                        -- порядок шагов этапа
+  task       text,                                       -- что сделать на шаге: «Собрать презентацию для комитета»
+  primary key (parent_id, child_id)
+);
+
+-- Расчётную переменную считает ровно одна стена
+create unique index one_operation_per_output on element_links (child_id) where role = 'output';
+
+create function check_element() returns trigger language plpgsql as $$
+declare
+  l levels;
+begin
+  select * into l from levels where id = new.level_id;
+  if l.stored_in <> 'elements' then
+    raise exception 'Уровень «%» хранится в таблице %, а не в elements', l.name, l.stored_in;
+  end if;
+  if (l.code = 'atom') <> (num_nonnulls(new.variable_id, new.list_id) = 1)
+     or (l.code <> 'atom' and num_nonnulls(new.variable_id, new.list_id) > 0) then
+    raise exception 'Элемент %: кирпич — это одна переменная или один список; у других уровней их нет', new.code;
+  end if;
+  if l.needs_owner and new.owner_dept_id is null then
+    raise exception 'Элементу % уровня «%» нужен отдел-владелец', new.code, l.name;
+  end if;
+  if new.calc is not null and l.code <> 'operation' then
+    raise exception 'Элемент %: формула бывает только у стены', new.code;
+  end if;
+  return new;
+end $$;
+
+create trigger element_check before insert or update on elements
+  for each row execute function check_element();
+
+-- Элемент собирается только из элементов уровней ниже: так в сборке не бывает циклов.
+-- Входы и результат — только у стены и только кирпичи; результат — расчётная переменная.
+create function check_link() returns trigger language plpgsql as $$
+declare
+  p elements; c elements; pl levels; cl levels; src text;
+begin
+  select * into p from elements where id = new.parent_id;
+  select * into c from elements where id = new.child_id;
+  select * into pl from levels where id = p.level_id;
+  select * into cl from levels where id = c.level_id;
+  if cl.id >= pl.id then
+    raise exception '% («%») не может входить в % («%»): часть должна быть уровнем ниже', c.code, cl.name, p.code, pl.name;
+  end if;
+  if new.role <> 'part' and not (pl.code = 'operation' and cl.code = 'atom') then
+    raise exception 'Связь % → %: вход и результат бывают только у стены и только кирпичи', p.code, c.code;
+  end if;
+  if new.role = 'output' then
+    select source into src from variables where id = c.variable_id;
+    if src is distinct from 'calc' then                     -- список или вводимая переменная
+      raise exception 'Кирпич % вводится вручную: стена не может его считать', c.code;
+    end if;
+  end if;
+  return new;
+end $$;
+
+create trigger element_link_check before insert or update on element_links
+  for each row execute function check_link();
+
+-- Из каких кирпичей (переменных) собран каждый элемент, на всю глубину.
+-- Обратное чтение отвечает «что затронет изменение переменной»: изменения идут вверх.
+-- Цепочка расчётов учитывается: если вход стены — расчётный кирпич, дальше идут входы стены, которая его считает
+-- (прибыль ← сроки продаж ← старт графика).
+create view v_element_atoms as
+with recursive edges (parent_id, child_id) as (
+  select parent_id, child_id from element_links
+  union all
+  select child_id, parent_id from element_links where role = 'output'   -- расчётный кирпич → его стена
+), down (element_id, child_id) as (
+  select parent_id, child_id from edges
+  union
+  select d.element_id, e.child_id from down d join edges e on e.parent_id = d.child_id
+)
+select distinct d.element_id, a.variable_id, a.list_id
+from down d join elements a on a.id = d.child_id
+where a.level_id = 1;
+
+-- Готовность элемента по проекту: готов, когда все вводимые кирпичи внутри готовы — переменная утверждена,
+-- в списке не меньше need_rows строк (есть строки; у чек-листа этапа — отмечены все пункты). Расчётные кирпичи не утверждают — они следуют за входами. Если входы не размечены, готовность пустая (null):
+-- считать её не из чего, и «готово» было бы неправдой.
+create view v_element_status as
+select p.id as project_id, e.id as element_id, e.code, lv.name as level,
+       count(*) filter (where v.source = 'input' or ea.list_id is not null) as inputs,
+       count(*) filter (where (v.source = 'input' and vv.status = 'approved') or lr.n >= li.need_rows) as approved,
+       case when count(*) filter (where v.source = 'input' or ea.list_id is not null) > 0 then
+         count(*) filter (where (v.source = 'input' and vv.status = 'approved') or lr.n >= li.need_rows)
+           = count(*) filter (where v.source = 'input' or ea.list_id is not null) end as ready
+from projects p
+cross join elements e
+join levels lv on lv.id = e.level_id
+left join v_element_atoms ea on ea.element_id = e.id                  -- элемент без кирпичей тоже виден: готовность пустая
+left join variables v on v.id = ea.variable_id
+left join variable_values vv on vv.project_id = p.id and vv.variable_id = v.id
+left join lists li on li.id = ea.list_id
+left join (select project_id, list_id, count(*) as n from list_rows group by project_id, list_id) lr
+  on lr.project_id = p.id and lr.list_id = ea.list_id
+group by p.id, e.id, e.code, lv.name;

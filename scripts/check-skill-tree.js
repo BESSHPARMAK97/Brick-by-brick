@@ -71,6 +71,51 @@ V.items.forEach(v => {
   else if (!["model", "project", "sched", "pnr", "equip"].includes(root)) fail(`variable ${v.id}: bad path ${v.path}`);
   if (v.type === "sel" && v.dict && !ctx.window.DICTS[v.dict]) fail(`variable ${v.id}: unknown dictionary ${v.dict}`);
 });
+// Входы расчётов (from): у каждого calc — список переменных, без ссылок в никуда и без циклов; у вводимых from нет.
+const VB = Object.fromEntries(V.items.map(v => [v.id, v]));
+V.items.forEach(v => {
+  if (!v.calc) { if (v.from) fail(`variable ${v.id}: from is only for calc variables`); return; }
+  if (!Array.isArray(v.from)) { fail(`variable ${v.id}: calc without from (inputs of the calculation)`); return; }
+  v.from.forEach(x => { if (!VB[x]) fail(`variable ${v.id}: unknown input ${x}`); else if (x === v.id) fail(`variable ${v.id}: input of itself`); });
+});
+const vstate = {};
+const visit = (id, chain) => {
+  if (vstate[id] === 2) return;
+  if (vstate[id] === 1) { fail(`variable inputs cycle: ${chain.concat(id).join(" → ")}`); return; }
+  vstate[id] = 1;
+  ((VB[id] && VB[id].from) || []).forEach(x => visit(x, chain.concat(id)));
+  vstate[id] = 2;
+};
+V.items.forEach(v => visit(v.id, []));
+// Где вводится: у каждого начала path есть раздел портала
+const VIEW_T = require("./portal-views")(html);
+Object.entries(V.homes || {}).forEach(([r, k]) => { if (!VIEW_T[k]) fail(`homes ${r}: unknown view ${k}`); });
+V.items.forEach(v => { if (!v.calc && !(V.homes || {})[(v.path || "").split(".")[0]]) fail(`variable ${v.id}: no home view for ${v.path}`); });
+// Списки проекта: уникальный id, раздел ввода существует; fromLists — только у расчёта и только известные списки.
+const LIDS = new Set();
+(V.lists || []).forEach(l => {
+  if (!l.id || LIDS.has(l.id)) fail(`list ${l.id}: missing or duplicate id`);
+  LIDS.add(l.id);
+  if (!VIEW_T[l.view]) fail(`list ${l.id}: unknown view ${l.view}`);
+});
+V.items.forEach(v => {
+  if (!v.fromLists) return;
+  if (!v.calc) fail(`variable ${v.id}: fromLists is only for calc variables`);
+  v.fromLists.forEach(x => { if (!LIDS.has(x)) fail(`variable ${v.id}: unknown list ${x}`); });
+});
+// Направления отделов: известный отдел, существующие разделы, у раздела не больше одного отдела.
+const aview = {}, aids = new Set();
+(V.areas || []).forEach(a => {
+  if (!a.id || aids.has(a.id)) fail(`area ${a.id}: missing or duplicate id`);
+  aids.add(a.id);
+  if (!V.owners.includes(a.owner)) fail(`area ${a.id}: unknown owner ${a.owner}`);
+  if (!(a.views || []).length) fail(`area ${a.id}: no views`);
+  (a.views || []).forEach(k => {
+    if (!VIEW_T[k]) fail(`area ${a.id}: unknown view ${k}`);
+    if (aview[k]) fail(`view ${k}: in two areas, ${aview[k]} and ${a.id}`);
+    aview[k] = a.id;
+  });
+});
 // Листы калькулятора ПНР: уникальные ключи и ячейки, известные справочники.
 const PS = ctx.window.PNR_SHEETS || [], pkeys = new Set(), pcells = new Set();
 PS.forEach(g => g.rows.forEach(([key, cell, , , src]) => {
