@@ -18,66 +18,21 @@ const root = path.join(__dirname, "..");
 const html = fs.readFileSync(path.join(root, "prototype/index.html"), "utf8");
 const pick = id => html.match(new RegExp('<script id="' + id + '">([\\s\\S]*?)<\\/script>'))[1];
 const ctx = { window: {} };
-vm.runInNewContext(["tree-data", "dicts", "pnr-data", "model-lib", "vars-data", "stage-steps"].map(pick).join("\n"), ctx);
+vm.runInNewContext(["tree-data", "dicts", "pnr-data", "model-lib", "vars-data", "stage-steps", "structure"].map(pick).join("\n"), ctx);
 const { VARS, TREE, STAGE_STEPS } = ctx.window;
 
 // Названия разделов — из VIEWS основного скрипта портала
 const VIEW_T = require("./portal-views")(html);
 
-// calc у переменной называет раздел, который её считает. Обычно это название раздела; два исключения — старые имена.
-const CALC_VIEW = { "Калькулятор ПНР": "pnr", "Дорожная карта": "roadmap" };
-const calcView = name => {
-  const k = CALC_VIEW[name] || Object.keys(VIEW_T).find(k => VIEW_T[k] === name);
-  if (!k || !VIEW_T[k]) throw new Error(`export-structure: calc «${name}» не совпадает ни с одним разделом портала`);
-  return k;
-};
 // Тип переменной без type — то же правило, что vType в портале
 const vType = v => v.type || (v.id.indexOf("keys_") === 0 ? "month" : v.id === "cur_stage" ? "text" : "num");
 
 const q = s => s == null ? "null" : "'" + String(s).replace(/'/g, "''") + "'";
 const rows = (list, f) => list.map(x => "  (" + f(x).join(", ") + ")").join(",\n");
 
+// Структура считается тем же кодом, что и дерево на странице «Структура» портала (<script id="structure">)
 const items = VARS.items;
-const owners = [...new Set(VARS.owners.concat(items.map(v => v.owner)))]; // и отделы без своих переменных (Стройка)
-const calcs = items.filter(v => v.calc).map(v => [v.id, calcView(v.calc)]);
-const inputs = [];
-items.filter(v => v.calc).forEach(v => (v.from || []).forEach(x => inputs.push([v.id, x])));
-
-// Шаги этапов: как в портале, только разделы, которые есть в VIEWS
-const steps = [];
-TREE.nodes.forEach(n => {
-  const seen = new Set();
-  (STAGE_STEPS[n.id] || []).filter(([k]) => VIEW_T[k]).forEach(([k, task], i) => {
-    if (seen.has(k)) throw new Error(`export-structure: раздел ${k} дважды в шагах этапа ${n.id}`);
-    seen.add(k);
-    steps.push([n.id, k, i + 1, task]);
-  });
-});
-Object.keys(STAGE_STEPS).forEach(id => {
-  if (!TREE.nodes.some(n => n.id === id)) throw new Error(`export-structure: этап ${id} из STAGE_STEPS нет в дорожной карте`);
-});
-const areas = VARS.areas || [];
-areas.forEach(a => a.views.forEach(k => { if (!VIEW_T[k]) throw new Error(`export-structure: раздела ${k} направления ${a.id} нет в портале`); }));
-const areaViews = [].concat(...areas.map(a => a.views.map(k => [a.id, k])));
-// Где вводится: начало path → раздел (window.VARS.homes)
-const homeOf = v => { const k = VARS.homes[v.path.split(".")[0]]; if (!VIEW_T[k]) throw new Error(`export-structure: у ${v.id} нет раздела ввода для ${v.path}`); return k; };
-const entered = items.filter(v => !v.calc).map(v => [homeOf(v), v.id]);
-const procs = [...new Set(steps.map(s => s[1]).concat(calcs.map(c => c[1]), areaViews.map(x => x[1]), entered.map(x => x[0])))].sort();
-// Списки проекта: название — от раздела, владелец — отдел направления этого раздела
-// perStage — у каждого этапа с пунктами свой список (чек-лист): готов, когда отмечены все пункты (need = число пунктов)
-const lists = [].concat(...(VARS.lists || []).map(l => {
-  const a = areas.find(x => x.views.includes(l.view));
-  if (!VIEW_T[l.view] || !a) throw new Error(`export-structure: у списка ${l.id} нет раздела ${l.view} или его отдела`);
-  const base = { group: l.id, view: l.view, owner: a.owner };
-  return l.perStage
-    ? TREE.nodes.filter(n => n.tasks.length).map(n => Object.assign({ id: l.id + "." + n.id, stage: n.id, name: "Чек-лист: " + n.code + ". " + n.name, need: n.tasks.length }, base))
-    : [Object.assign({ id: l.id, name: "Список: " + (l.name || VIEW_T[l.view]), need: 1 }, base)];
-}));
-const listInputs = [];
-items.filter(v => v.calc).forEach(v => (v.fromLists || []).forEach(x => lists.filter(l => l.group === x).forEach(l => listInputs.push([v.id, l.id]))));
-const stageLists = lists.filter(l => l.stage);
-const noArea = procs.filter(k => !areaViews.some(x => x[1] === k));
-if (noArea.length) throw new Error(`export-structure: разделы без отдела (добавьте в window.VARS.areas): ${noArea.join(", ")}`);
+const { owners, calcs, inputs, steps, areas, areaViews, entered, procs, lists, listInputs, stageLists } = ctx.window.buildStructure(VARS, TREE, STAGE_STEPS, VIEW_T);
 
 const out = `-- СГЕНЕРИРОВАНО scripts/export-structure.js из prototype/index.html. Не править руками:
 -- после изменений портала запустите node scripts/export-skill-tree.js.
