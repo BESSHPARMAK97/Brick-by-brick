@@ -272,7 +272,7 @@ create table elements (
 create table element_links (
   parent_id  uuid not null references elements(id) on delete cascade,
   child_id   uuid not null references elements(id) on delete cascade,
-  role       text not null default 'part' check (role in ('part', 'input', 'output')),
+  role       text not null default 'part' check (role in ('part', 'input', 'output', 'step')),  -- step — шаг этапа: где работать, не состав
   ord        int,                                        -- порядок шагов этапа
   task       text,                                       -- что сделать на шаге: «Собрать презентацию для комитета»
   primary key (parent_id, child_id)
@@ -318,7 +318,10 @@ begin
   if cl.id >= pl.id then
     raise exception '% («%») не может входить в % («%»): часть должна быть уровнем ниже', c.code, cl.name, p.code, pl.name;
   end if;
-  if new.role <> 'part' and not (pl.code = 'operation' and cl.code = 'atom') then
+  if new.role = 'step' and not (pl.code = 'stage' and cl.code = 'process') then
+    raise exception 'Связь % → %: шаг бывает только у этапа и ведёт в раздел', p.code, c.code;
+  end if;
+  if new.role in ('input', 'output') and not (pl.code = 'operation' and cl.code = 'atom') then
     raise exception 'Связь % → %: вход и результат бывают только у стены и только кирпичи', p.code, c.code;
   end if;
   if new.role = 'output' then
@@ -339,7 +342,7 @@ create trigger element_link_check before insert or update on element_links
 -- (прибыль ← сроки продаж ← старт графика).
 create view v_element_atoms as
 with recursive edges (parent_id, child_id) as (
-  select parent_id, child_id from element_links
+  select parent_id, child_id from element_links where role <> 'step'   -- шаг этапа — где работать, не состав
   union all
   select child_id, parent_id from element_links where role = 'output'   -- расчётный кирпич → его стена
 ), down (element_id, child_id) as (

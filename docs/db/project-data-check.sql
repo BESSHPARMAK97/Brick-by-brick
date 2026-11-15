@@ -270,4 +270,18 @@ do $$ begin
   if not (select ready from v_element_status where code = 'stage_check') then raise exception '19: этап не готов, хотя отмечены все пункты'; end if;
 end $$;
 
+-- 20. Шаг этапа — где работать, а не состав: раздел-шаг не входит в готовность этапа; шаг ведёт только из этапа в раздел
+insert into elements (level_id, code, name, sort) values (5, 'stage_steps_only', 'Этап только с шагом', 3);
+insert into element_links (parent_id, child_id, role, ord, task)
+  select s.id, p.id, 'step', 1, 'Финмодель' from elements s, elements p where s.code = 'stage_steps_only' and p.code = 'proc_finmodel';
+do $$ begin
+  if (select inputs from v_element_status where code = 'stage_steps_only') <> 0 then raise exception '20: шаг этапа попал в готовность'; end if;
+  begin
+    insert into element_links (parent_id, child_id, role) select o.id, a.id, 'step' from elements o, elements a where o.code = 'op_profit' and a.code = 'atom_smr';
+    raise exception '20: шаг из стены';
+  exception when raise_exception then
+    if sqlerrm like '20:%' then raise; end if;
+  end;
+end $$;
+
 select 'project-data: все проверки пройдены' as result;

@@ -235,6 +235,14 @@ body.nohints .topbar .muted, body.nohints .hint { display: none }
 .st-box { padding: 4px 0 8px 18px; display: grid; gap: 4px }
 .st-bar { display: inline-block; width: 90px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; vertical-align: middle }
 .st-bar i { display: block; height: 100%; background: var(--ok) }
+.q-list { margin: 0; padding-left: 22px; display: grid; gap: 10px }
+ul.q-list { list-style: none; padding-left: 0 }
+.q-row { display: grid; grid-template-columns: minmax(180px, 1.2fr) minmax(180px, 1.4fr) auto; gap: 8px 14px; align-items: center }
+.q-l { display: flex; flex-direction: column; gap: 2px }
+.q-c { display: flex; align-items: center; gap: 6px; min-width: 0 }
+.q-c .vin, .q-c select { width: 100%; max-width: 360px }
+.q-tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px }
+@media (max-width: 640px) { .q-row { grid-template-columns: 1fr } }
 .st-miss { list-style: none; margin: 4px 0 6px 0; padding: 0 0 0 14px; display: grid; gap: 4px; border-left: 1px solid var(--line) }
 .st-miss li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px }
 .st-res { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px }
@@ -4799,7 +4807,7 @@ window.STAGE_STEPS = {
   expert: [["deadlines", "Срок заключения экспертизы"]],
   tender: [["smeta", "Сравнить предложения подрядчиков со сметой"], ["partners", "Генподрядчик, технадзор, проектировщик"]],
   pkstart: [["b0", "Чек-лист B0: анкета проекта для сметы ОРС"], ["pnr", "Калькулятор ПНР: показатели для расчёта ОРС"], ["model", "Уточнить финмодель по итогам B0 и ПНР"],
-    ["whatif", "Сценарии «что если» для комитета"], ["structure", "Структура: что ещё не утверждено и что затронет изменение"],
+    ["whatif", "Сценарии «что если» для комитета"],
     ["data", "Проверить и утвердить данные, зафиксировать базу ПК Start"], ["kpi", "Ключевые показатели: срок, маржа, IRR, долг"], ["pk", "Собрать презентацию для комитета"]],
   dolevka: [["chess", "Шахматка: квартиры и статусы продаж"], ["deadlines", "Сроки по долевому участию"]],
   start: [["team", "Команда проекта"], ["partners", "Подписанты: генподряд, технадзор, авторнадзор"], ["budget", "Бюджет: план из финмодели"], ["equip", "План спецтехники на весь цикл"], ["standards", "Стандарты на работы"], ["deadlines", "Уведомление о начале СМР"]],
@@ -4807,6 +4815,26 @@ window.STAGE_STEPS = {
   commission: [["acts", "Акты испытаний, заключения надзоров, декларация и акт приёмки"], ["deadlines", "Сроки ввода в эксплуатацию"]],
   handover: [["chess", "Передача квартир"]]
 };
+// Что нужно этапу: данные проекта (коды window.VARS) и списки (window.VARS.lists), по смыслу пунктов его чек-листа.
+// Из этого — вопросы «Опросника», готовность этапа и что затронет изменение. Этап готов, когда эти данные утверждены,
+// списки заполнены, а чек-лист отмечен. Шаги этапа (STAGE_STEPS) — где работать, в готовность не входят.
+window.STAGE_NEEDS = {
+  idea: ["name", "city", "klass", "building", "client_text", "loc_text", "area_total", "area_sale", "area_comm", "parking",
+    "price", "price_comm", "price_park", "growth", "land", "smr", "equity", "sched_start"],
+  land: ["address", "area_land", "cadastre", "company", "bin", "director", "zone"],
+  ird: ["regcode", "nets"],
+  sketch: ["area_total", "area_sale", "area_comm", "parking", "list:blocks"],
+  finance: ["equity", "rate", "discount", "vat", "vat_exempt", "cit", "admin"],
+  psd: ["design", "smr", "nets", "supervision", "reserve", "construct", "list:blocks"],
+  expert: ["ge"],
+  pkstart: ["mission", "kpi_nps", "kpi_engagement", "loc_text", "facade_text", "client_text", "marketing", "delay_overhead", "sales"],
+  dolevka: ["sales", "price", "marketing", "list:chess"],
+  start: ["sched_start", "regcode", "stage", "work", "construct", "eq_mono", "eq_mas", "eq_lift", "eq_crane_tail", "eq_abn", "eq_stagger", "list:equipPlan"],
+  commission: ["ge", "address", "cadastre", "area_total", "director"],
+  handover: ["list:chess"]
+};
+// У этапа с вопросами первый шаг — «Опросник».
+Object.keys(window.STAGE_NEEDS).forEach(id => { if (window.STAGE_NEEDS[id].length) window.STAGE_STEPS[id] = [["structure", "Опросник: ответить на вопросы этапа"]].concat(window.STAGE_STEPS[id] || []); });
 })();
 </script>
 
@@ -4864,7 +4892,26 @@ window.buildStructure = function (VARS, TREE, STAGE_STEPS, VIEW_T) {
   const stageLists = lists.filter(l => l.stage);
   const noArea = procs.filter(k => !areaViews.some(x => x[1] === k));
   if (noArea.length) throw new Error(`structure: разделы без отдела (добавьте в window.VARS.areas): ${noArea.join(", ")}`);
-  return { owners, calcs, inputs, steps, areas, areaViews, entered, procs, lists, listInputs, stageLists };
+  // Что нужно этапу (window.STAGE_NEEDS): [этап, "a" — переменная | "l" — список, код]. Только вводимые данные.
+  const needs = [];
+  Object.keys(window.STAGE_NEEDS || {}).forEach(sid => {
+    if (!TREE.nodes.some(n => n.id === sid)) throw new Error(`structure: этап ${sid} из STAGE_NEEDS нет в дорожной карте`);
+    const seen = new Set();
+    window.STAGE_NEEDS[sid].forEach(x => {
+      if (seen.has(x)) throw new Error(`structure: ${x} дважды в STAGE_NEEDS.${sid}`);
+      seen.add(x);
+      if (x.indexOf("list:") === 0) {
+        const l = lists.find(y => y.id === x.slice(5) && !y.stage);
+        if (!l) throw new Error(`structure: списка ${x.slice(5)} из STAGE_NEEDS.${sid} нет в VARS.lists`);
+        needs.push([sid, "l", l.id]);
+      } else {
+        const v = items.find(y => y.id === x);
+        if (!v || v.calc) throw new Error(`structure: в STAGE_NEEDS.${sid} — ${x}: нет такой вводимой переменной`);
+        needs.push([sid, "a", x]);
+      }
+    });
+  });
+  return { owners, calcs, inputs, steps, areas, areaViews, entered, procs, lists, listInputs, stageLists, needs };
 };
 </script>
 
@@ -5094,6 +5141,18 @@ window.I18N = (function () {
     ["нет входов", "кірістер жоқ"], ["готово", "дайын"],
     ["Структура: что ещё не утверждено и что затронет изменение", "Құрылым: әлі не бекітілмеген және өзгеріс неге әсер етеді"],
     ["Найти в структуре", "Құрылымнан іздеу"],
+    // опросник
+    ["Опросник", "Сауалнама"], ["Опросник: ответить на вопросы этапа", "Сауалнама: кезең сұрақтарына жауап беру"],
+    ["Ответьте на вопросы этапа по порядку. Ответ сразу попадает в финмодель, документы и презентацию — второй раз его вводить не нужно.",
+      "Кезең сұрақтарына ретімен жауап беріңіз. Жауап бірден қаржы моделіне, құжаттарға және презентацияға түседі — оны қайта енгізудің қажеті жоқ."],
+    ["Вопросы", "Сұрақтар"], ["Списки", "Тізімдер"], ["Чек-лист этапа", "Кезеңнің чек-парағы"], ["Где ещё работать на этапе", "Кезеңде тағы қайда жұмыс істеу керек"],
+    ["← Предыдущий этап", "← Алдыңғы кезең"], ["Следующий этап →", "Келесі кезең →"], ["Заполнить", "Толтыру"], ["да", "иә"],
+    ["На согласование", "Келісуге"], ["утверждено", "бекітілді"],
+    ["У вашего отдела на этом этапе вопросов нет.", "Бұл кезеңде сіздің бөлімшеңізге сұрақ жоқ."],
+    ["На этом этапе вопросов по данным нет — только чек-лист.", "Бұл кезеңде деректер бойынша сұрақ жоқ — тек чек-парақ."],
+    ["Этап ещё закрыт: пункты отмечаются, когда пройдены предыдущие этапы.", "Кезең әлі жабық: алдыңғы кезеңдер өткенде тармақтар белгіленеді."],
+    ["Поиск и схема данных — для аналитиков", "Деректерді іздеу және сызба — талдаушыларға"],
+    ["Все вопросы — выберите «Я — все разделы» вверху.", "Барлық сұрақтар — жоғарыдан «Мен — барлық бөлімдер» таңдаңыз."],
     ["Что готово к каждому этапу и чего не хватает. Этап готов, когда все нужные ему данные введены и утверждены, списки заполнены, а чек-лист отмечен.",
       "Әр кезеңге не дайын және не жетпейді. Кезеңге қажетті барлық деректер енгізіліп, бекітілгенде, тізімдер толтырылып, чек-парақ белгіленгенде кезең дайын."],
     ["Как это устроено: значение → расчёт → раздел → отдел → этап → проект. В концепции это «от кирпича до ЖК».", "Қалай құрылған: мән → есеп → бөлім → бөлімше → кезең → жоба. Тұжырымдамада бұл «кірпіштен ТҮК-ке дейін»."],
@@ -5186,6 +5245,10 @@ window.I18N = (function () {
     [/^(\d\d)\. (.+)$/, m => D.has(m[2]) ? m[1] + ". " + D.get(m[2]) : null],
     [/^Структура не собрана: (.+)$/, m => "Құрылым жиналмады: " + m[1]],
     [/^Найдено: (\d+)$/, m => "Табылды: " + m[1]],
+    [/^(\d\d)\. (.+) — (готово|—|\d+%)$/, m => m[1] + ". " + (D.get(m[2]) || m[2]) + " — " + (m[3] === "готово" ? "дайын" : m[3])],
+    [/^строк: (\d+)$/, m => "жолдар: " + m[1]],
+    [/^Показаны вопросы отдела «(.+)»\.$/, m => "«" + (D.get(m[1]) || m[1]) + "» бөлімшесінің сұрақтары көрсетілген."],
+    [/^Опросник не собран: (.+)$/, m => "Сауалнама жиналмады: " + m[1]],
     [/^не хватает (\d+)$/, m => "жетпейді: " + m[1]],
     [/^отмечено (\d+) из (\d+)$/, m => "белгіленді: " + m[2] + " ішінен " + m[1]],
     [/^Раздел «(.+)»$/, m => "«" + (D.get(m[1]) || m[1]) + "» бөлімі"],
@@ -7405,6 +7468,16 @@ window.ZHK_BOOT = function (document) {
       if (id === "chess") return Object.keys(S.chess || {}).filter(k => S.chess[k] != null && S.chess[k] !== "").length;
       return listOf(id).length;
     },
+    // Пункты чек-листа этапа с отметками; setTask — отметить пункт (как на дорожной карте: закрытый этап не отмечается).
+    stageTasks: id => { const n = byId[id]; return n ? n.tasks.map((t, i) => ({ t, done: !!S.checked[key(n, i)] })) : []; },
+    stageLocked: id => !!byId[id] && stateOf(byId[id]) === "locked",
+    setTask: (id, i, on) => {
+      const n = byId[id]; if (readOnly || !n || !n.tasks[i]) return "Только просмотр";
+      if (stateOf(n) === "locked") return "Этап ещё закрыт: сначала пройдите предыдущие";
+      const k = key(n, i), was = isDone(n);
+      commit({ checked: { [k]: !!on }, meta: { [k]: { doneAt: on ? today() : "", doneBy: on ? (meId || "") : "" } } });
+      if (!was && isDone(n)) { const op = children[id].filter(c => isUnlocked(byId[c])).map(c => byId[c].name); toast(op.length ? "Этап пройден! Открыто: " + op.join(", ") : "Этап пройден!"); }
+    },
     blockTotals: () => blockTotals(),
     // «Что если»: пересчёт финмодели с изменёнными допущениями; данные проекта не меняются.
     whatIf: sc => {
@@ -7640,7 +7713,7 @@ const VIEWS = {
   plans: { g: "obj", t: "Планировки", cnt: () => window.ZHK ? window.ZHK.plans().length || "" : "", r: viewPlans },
   chess: { g: "obj", t: "Шахматка", cnt: () => "", r: viewChess },
   data: { g: "obj", t: "Данные проекта", cnt: () => "", r: viewData },
-  structure: { g: "obj", t: "Структура", cnt: () => "", r: viewStructure },
+  structure: { g: "obj", t: "Опросник", cnt: () => "", r: viewStructure },
   standards: { g: "obj", t: "Стандарты", cnt: () => relevant().length, r: viewStandards },
   roadmap: { g: "map", z: "tree", mode: "map", t: "Этапы", cnt: () => "", r: Z("Дорожная карта", "Этапы проекта по фазам — от анализа рынка до гарантии: сроки по графику, выполнение пунктов и инструменты каждого этапа. Нажмите на этап, чтобы открыть его пункты, документы, бюджет и сроки.") },
   scheme: { g: "map", z: "tree", mode: "scheme", t: "Схема связей", cnt: () => "", r: Z("Схема связей этапов", "Какой этап открывает следующий. Этап открывается, когда закрыты условия перехода на предыдущих.") },
@@ -9203,11 +9276,13 @@ function polish(root) {
 const fit = t => { t.style.height = "auto"; t.style.height = t.scrollHeight + 2 + "px"; };
 document.addEventListener("input", e => { if (e.target.matches && e.target.matches("textarea.auto") && !(CSS.supports && CSS.supports("field-sizing", "content"))) fit(e.target); });
 
-// Страница «Структура»: что готово к каждому этапу и чего не хватает. Считает window.buildStructure — тот же код,
+// «Опросник» (вкладка «Данные → Опросник»): вопросы этапа по порядку с вводом на месте, списки и чек-лист этапа.
+// Ответ пишется в то же место, что и в разделе ввода (data-var → ZHK.setVar), копий нет. Ниже — для аналитиков —
+// поиск и схема структуры. Раньше страница называлась «Структура»: что готово к каждому этапу и чего не хватает. Считает window.buildStructure — тот же код,
 // что наполняет базу (docs/db/structure-seed.sql); готовность — как v_element_status: значение утверждено, список
 // заполнен (не меньше need строк), чек-лист отмечен. Главное на странице — «Что мешает этапу» по отделам с действием;
 // полная схема (значение → расчёт → раздел → отдел → этап) — свёрнута, для аналитиков. Ничего не хранит.
-let structMode = "stage";
+let qStage = "";
 const ST_LV = { a: "Значение", l: "Список", o: "Расчёт", p: "Раздел", f: "Отдел", s: "Этап" };
 function structModel() {
   const Z = window.ZHK, VT = Object.fromEntries(Object.keys(VIEWS).map(k => [k, VIEWS[k].t]));
@@ -9219,7 +9294,9 @@ function structModel() {
   B.listInputs.forEach(([id, x]) => add("o:" + id, "l:" + x));
   B.lists.forEach(l => { add("p:" + l.view, "l:" + l.id); if (l.stage) add("s:" + l.stage, "l:" + l.id); });
   B.entered.forEach(([k, id]) => add("p:" + k, "a:" + id));
-  B.steps.forEach(([sid, k, ord, task]) => add("s:" + sid, "p:" + k));
+  // Этап состоит из нужных ему данных (STAGE_NEEDS) и чек-листа; шаги — где работать, в состав не входят.
+  B.needs.forEach(([sid, k, id]) => add("s:" + sid, k + ":" + id));
+  const steps = {}; B.steps.forEach(([sid, k]) => { (steps["s:" + sid] = steps["s:" + sid] || []).push("p:" + k); });
   B.areaViews.forEach(([a, k]) => add("f:" + a, "p:" + k));
   const task = {}; B.steps.forEach(([sid, k, ord, t]) => { task[sid + "|" + k] = t; });
   const isIn = k => k[0] === "l" || (k[0] === "a" && V[k.slice(2)] && !V[k.slice(2)].calc);
@@ -9254,7 +9331,7 @@ function structModel() {
   };
   const keys = [].concat(window.VARS.items.map(v => "a:" + v.id), B.lists.map(l => "l:" + l.id), B.calcs.map(([id]) => "o:" + id), B.procs.map(k => "p:" + k),
     B.areas.map(a => "f:" + a.id), window.TREE.nodes.map(n => "s:" + n.id));
-  return { B, V, L, ch, task, isIn, ok, ready, name, bricks, up, keys };
+  return { B, V, L, ch, steps, task, isIn, ok, ready, name, bricks, up, keys };
 }
 // Готовность: «готово», «нечего проверять» или процент и сколько не хватает.
 function structChip(r) {
@@ -9262,26 +9339,6 @@ function structChip(r) {
   if (r.ok === r.n) return '<span class="chip s-done">готово</span>';
   const pc = Math.floor(r.ok / r.n * 100);
   return `<span class="st-bar" aria-hidden="true"><i style="width:${pc}%"></i></span><span class="chip s-new"><span>${pc}%</span> · <span>не хватает ${r.n - r.ok}</span></span>`;
-}
-// Неготовый вводимый элемент: кто отвечает, в каком он состоянии и что сделать.
-function structMiss(M, k) {
-  const t = k.slice(2);
-  if (k[0] === "l") {
-    const L = M.L[t], n = window.ZHK.listRows(t);
-    return { owner: L.owner, name: L.stage ? "Чек-лист этапа" : L.name.replace(/^Список: /, ""), state: L.stage ? `отмечено ${n} из ${L.need}` : "пусто",
-      act: "Открыть", go: "#" + (L.stage || L.view) };
-  }
-  const v = M.V[t], home = (window.VARS.homes || {})[(v.path || "").split(".")[0]];
-  return v.set ? { owner: v.owner, name: v.name, state: v.st === "agreed" ? "ждёт утверждения" : "черновик", act: "Утвердить", data: v.name }
-    : { owner: v.owner, name: v.name, state: "не введено", act: "Ввести", go: "#" + (home || "data") };
-}
-function structMissHtml(M, key, groupBy) {
-  const miss = [...M.bricks(key)].filter(k => !M.ok(k)).map(k => Object.assign(structMiss(M, k), groupBy === "where" ? { where: M.where(k) } : {}));
-  if (!miss.length) return M.bricks(key).size ? '<div class="st-sub">Всё готово.</div>' : '<div class="st-sub">Этапу не нужны данные проекта — проверять нечего.</div>';
-  const G = {}; miss.forEach(x => { const g = x[groupBy]; (G[g] = G[g] || []).push(x); });
-  const btn = x => x.data ? `<button class="btn ghost mini" type="button" data-sgo-data="${esc(x.data)}">${x.act}</button>` : `<a class="btn ghost mini" href="${esc(x.go)}">${x.act}</a>`;
-  return Object.keys(G).sort((x, y) => G[y].length - G[x].length).map(g => `<details class="st-grp"><summary><b>${esc(g)}</b><span class="st-sub">не хватает ${G[g].length}</span></summary>
-    <ul class="st-miss">${G[g].map(x => `<li><span>${esc(x.name)}</span><span class="st-sub">${x.state}</span>${btn(x)}</li>`).join("")}</ul></details>`).join("");
 }
 // Подробная схема — дерево элементов (раскрытие по уровням).
 function structNode(M, key, parent) {
@@ -9296,7 +9353,7 @@ function structNode(M, key, parent) {
   return `<li><details data-lazy="tree" data-sk="${key}"><summary>${lv}<span>${esc(M.name(key))}</span>${structChip(M.ready(key))}${tk ? `<span class="st-sub">${esc(tk)}</span>` : ""}</summary><ul></ul></details></li>`;
 }
 function structKids(M, key) {
-  const k = (M.ch[key] || []).slice(), rank = x => ({ l: 0, o: 1, a: 2, p: 3 })[x[0]];
+  const k = (M.ch[key] || []).concat(key[0] === "s" ? M.steps[key] || [] : []), rank = x => ({ l: 0, o: 1, a: 2, p: 3 })[x[0]];
   if (key[0] !== "s") k.sort((x, y) => rank(x) - rank(y));
   if (key[0] === "o") { const r = "a:" + key.slice(2); k.splice(k.indexOf(r), 1); k.unshift(r); }
   return k.map(c => structNode(M, c, key)).join("");
@@ -9324,39 +9381,71 @@ function structBind(root) {
     const box = d.querySelector(":scope > ul, :scope > .st-box");
     if (!d.open || box.childElementCount || !structM) return;
     const k = d.dataset.sk;
-    box.innerHTML = d.dataset.lazy === "tree" ? structKids(structM, k) : structMissHtml(structM, k, d.dataset.lazy === "miss-area" ? "where" : "owner");
+    box.innerHTML = structKids(structM, k);
     structBind(box);
   });
-  root.querySelectorAll("[data-sgo-data]").forEach(b => b.onclick = () => { dataF = { sec: "", owner: "", st: "", q: b.dataset.sgoData }; goHash("data"); });
-  root.querySelectorAll("[data-smode]").forEach(b => b.onclick = () => { structMode = b.dataset.smode; route(); });
+  const qs = root.querySelector("#q-stage"); if (qs) qs.onchange = () => { qStage = qs.value; route(); };
+  root.querySelectorAll("[data-qgo]").forEach(b => b.onclick = () => { qStage = b.dataset.qgo; route(); window.scrollTo(0, 0); });
+  root.querySelectorAll("[data-qtask]").forEach(el => el.onchange = () => {
+    const [id, i] = el.dataset.qtask.split(":"), err = window.ZHK.setTask(id, +i, el.checked);
+    if (err) { el.checked = !el.checked; el.title = err; return; }
+    setTimeout(route, 0);
+  });
   const sq = root.querySelector("#st-q");
   if (sq) sq.oninput = () => { structQ = sq.value; clearTimeout(window.stqT); window.stqT = setTimeout(() => { const r = document.getElementById("st-res"); if (r && structM) r.innerHTML = structResults(structM, structQ); }, 200); };
 }
+// Поле ответа по типу переменной; пока ответа нет — пусто (примерные значения финмодели не подставляются).
+function qCtl(v, dis) {
+  const D = v.type === "sel" ? window.DICTS[v.dict || v.id] : null;
+  if (D) return `<select data-var="${v.id}" aria-label="${esc(v.name)}"${dis}><option value="">—</option>${D.items.map(i => `<option${v.set && i.v === v.raw ? " selected" : ""}>${esc(i.v)}</option>`).join("")}</select>`;
+  if (v.type === "flag") return `<label class="row" style="gap:6px"><input type="checkbox" data-var="${v.id}"${v.set && v.raw ? " checked" : ""}${dis}> да</label>`;
+  if (v.type === "month") return `<input type="month" class="vin" data-var="${v.id}" value="${v.set ? esc(v.raw || "") : ""}" aria-label="${esc(v.name)}"${dis}>`;
+  const val = !v.set ? "" : v.type === "num" && typeof v.raw === "number" ? String(v.raw).replace(".", ",") : v.raw == null ? "" : String(v.raw);
+  if (v.type === "text" && (val.length > 40 || /_text$|^mission$|^sales$/.test(v.id))) return `<textarea class="vin auto" data-var="${v.id}" rows="2" placeholder="не введено" aria-label="${esc(v.name)}"${dis}>${esc(val)}</textarea>`;
+  return `<input type="text" class="vin${v.type === "num" ? " num" : ""}" data-var="${v.id}" value="${esc(val)}" placeholder="не введено" aria-label="${esc(v.name)}"${dis}>${v.unit ? `<span class="muted unit">${esc(v.unit)}</span>` : ""}`;
+}
+// Состояние ответа и следующее действие: ввести → на согласование → утвердить (утверждает отдел-владелец).
+function qAct(v, ro) {
+  if (!v.set) return '<span class="chip s-new">не введено</span>';
+  if (v.st === "approved") return '<span class="chip s-done">утверждено</span>';
+  if (!ro && window.ZHK.canApprove(v.id)) return `<button class="btn mini" type="button" data-vst="${v.id}:approved">Утвердить</button>`;
+  if (v.st === "agreed") return '<span class="chip s-agreed">ждёт утверждения</span>';
+  return ro ? '<span class="chip">черновик</span>' : `<button class="btn ghost mini" type="button" data-vst="${v.id}:agreed">На согласование</button>`;
+}
 function viewStructure() {
-  const h = head("Структура проекта", "Что готово к каждому этапу и чего не хватает. Этап готов, когда все нужные ему данные введены и утверждены, списки заполнены, а чек-лист отмечен.");
-  try { structM = structModel(); } catch (e) { structM = null; return h + `<section class="panel"><div class="empty">Структура не собрана: ${esc(e.message)}</div></section>`; }
-  const M = structM, P = window.ZHK.project() || {};
-  const hb = new Set(); window.TREE.nodes.forEach(n => M.bricks("s:" + n.id).forEach(b => hb.add(b)));
-  const home = { n: hb.size, ok: [...hb].filter(M.ok).length };
-  // У отдела — разделы, где не готовы его данные; для группировки «где ввести» — раздел ввода или этап чек-листа.
-  M.where = k => { const x = structMiss(M, k); return x.data ? "Утвердить в «Данных проекта»" : x.go.slice(1) && VIEWS[x.go.slice(1)] ? "Раздел «" + VIEWS[x.go.slice(1)].t + "»" : "Чек-листы этапов"; };
-  const rows = structMode === "area"
-    ? M.B.areas.map(a => [a.owner, "f:" + a.id, "miss-area"])
-    : window.TREE.nodes.map(n => [n.code + ". " + n.name, "s:" + n.id, "miss"]);
+  const h = head("Опросник", "Ответьте на вопросы этапа по порядку. Ответ сразу попадает в финмодель, документы и презентацию — второй раз его вводить не нужно.");
+  try { structM = structModel(); } catch (e) { structM = null; return h + `<section class="panel"><div class="empty">Опросник не собран: ${esc(e.message)}</div></section>`; }
+  const M = structM, Z = window.ZHK, ro = Z.readOnly(), dis = ro ? " disabled" : "", N = window.TREE.nodes;
+  if (!N.some(n => n.id === qStage)) qStage = Z.current();
+  const sid = qStage, i0 = N.findIndex(n => n.id === sid), n = N[i0], R = role(), mine = R && R.owners;
+  const need = M.B.needs.filter(x => x[0] === sid);
+  const qs = need.filter(x => x[1] === "a").map(x => M.V[x[2]]).filter(Boolean), shown = mine ? qs.filter(v => mine.indexOf(v.owner) >= 0) : qs;
+  const lsts = need.filter(x => x[1] === "l").map(x => M.L[x[2]]);
+  const tasks = Z.stageTasks(sid), locked = Z.stageLocked(sid);
+  const steps = (window.STAGE_STEPS[sid] || []).filter(([k]) => k !== "structure" && VIEWS[k]);
+  const pct = r => !r.n ? "—" : r.ok === r.n ? "готово" : Math.floor(r.ok / r.n * 100) + "%";
+  const row = (l, c, a) => `<li class="q-row"><div class="q-l">${l}</div><div class="q-c">${c}</div><div class="q-a">${a}</div></li>`;
+  const go = (x, t) => x ? `<button class="btn ghost" type="button" data-qgo="${x.id}">${t}</button>` : "";
   return h + `<section class="panel stack">
-    <div class="row between" style="flex-wrap:wrap;gap:8px"><div class="row" style="gap:8px;flex-wrap:wrap"><b>${esc(P.name || projTitle())}</b>${structChip(home)}</div>
-      <div class="st-mode row" role="group" aria-label="Как показать">
-      <button class="chip" type="button" data-smode="stage" aria-pressed="${structMode === "stage"}">По этапам</button>
-      <button class="chip" type="button" data-smode="area" aria-pressed="${structMode === "area"}">По отделам</button></div></div>
-    <div class="st-list">${rows.map(([t, k, kind]) => `<details data-lazy="${kind}" data-sk="${k}"><summary><span class="st-name">${esc(t)}</span>${structChip(M.ready(k))}</summary><div class="st-box"></div></details>`).join("")}</div>
+    <div class="row" style="flex-wrap:wrap;gap:10px;align-items:center"><label class="row" style="gap:8px;align-items:center"><span class="label">Этап</span>
+      <select id="q-stage">${N.map(x => `<option value="${x.id}"${x.id === sid ? " selected" : ""}>${esc(x.code + ". " + x.name)} — ${pct(M.ready("s:" + x.id))}</option>`).join("")}</select></label>${structChip(M.ready("s:" + sid))}</div>
+    ${mine ? `<div class="st-sub"><span>Показаны вопросы отдела «${esc(R.t)}».</span> <span>Все вопросы — выберите «Я — все разделы» вверху.</span></div>` : ""}
+    <h2 class="h2">Вопросы</h2>
+    ${shown.length ? `<ol class="q-list">${shown.map(v => row(`<b>${esc(v.name)}</b><span class="st-sub">${esc(v.owner)}</span>`, qCtl(v, dis), qAct(v, ro))).join("")}</ol>`
+      : `<div class="st-sub">${qs.length ? "У вашего отдела на этом этапе вопросов нет." : "На этом этапе вопросов по данным нет — только чек-лист."}</div>`}
+    ${lsts.length ? `<h2 class="h2">Списки</h2><ul class="q-list">${lsts.map(l => { const c = Z.listRows(l.id);
+      return row(`<b>${esc(l.name.replace(/^Список: /, ""))}</b><span class="st-sub">${esc(l.owner)}</span>`, c ? `<span>строк: ${c}</span>` : '<span class="chip s-new">пусто</span>', `<a class="btn ghost mini" href="#${l.view}">${c ? "Открыть" : "Заполнить"}</a>`); }).join("")}</ul>` : ""}
+    <h2 class="h2">Чек-лист этапа</h2>
+    ${locked ? '<div class="st-sub">Этап ещё закрыт: пункты отмечаются, когда пройдены предыдущие этапы.</div>' : ""}
+    <ul class="q-tasks">${tasks.map((t, i) => `<li><label class="row" style="gap:8px;align-items:flex-start"><input type="checkbox" data-qtask="${sid}:${i}"${t.done ? " checked" : ""}${ro || locked ? " disabled" : ""}><span>${esc(t.t)}</span></label></li>`).join("")}</ul>
+    ${steps.length ? `<h2 class="h2">Где ещё работать на этапе</h2><div class="row" style="flex-wrap:wrap;gap:6px">${steps.map(([k, t]) => `<a class="btn ghost mini" href="#${k}" title="${esc(t)}">${esc(VIEWS[k].t)}</a>`).join("")}</div>` : ""}
+    <div class="row between" style="flex-wrap:wrap;gap:8px">${go(N[i0 - 1], "← Предыдущий этап")}${go(N[i0 + 1], "Следующий этап →")}</div>
   </section>
-  <section class="panel stack">
+  <section class="panel"><details><summary class="st-sub">Поиск и схема данных — для аналитиков</summary><div class="stack" style="margin-top:8px">
+    <p class="st-sub">Как устроено: значение → расчёт → раздел → отдел → этап → проект. В концепции это «от кирпича до ЖК».</p>
     <label class="stack" style="gap:4px"><span class="label">Найти</span><input type="search" id="st-q" class="vin" style="max-width:420px;width:100%" value="${esc(structQ)}" placeholder="значение, раздел, отдел или этап" autocomplete="off"></label>
     <div id="st-res" class="stack" style="gap:6px" aria-live="polite">${structResults(M, structQ)}</div>
-    <details><summary class="st-sub">Подробная схема — для аналитиков</summary>
-      <p class="st-sub">Как устроено: значение → расчёт → раздел → отдел → этап → проект. В концепции это «от кирпича до ЖК».</p>
-      <div class="st-tree"><ul>${(structMode === "area" ? M.B.areas.map(a => "f:" + a.id) : window.TREE.nodes.map(n => "s:" + n.id)).map(r => structNode(M, r, "")).join("")}</ul></div></details>
-  </section>`;
+    <div class="st-tree"><ul>${N.map(x => structNode(M, "s:" + x.id, "")).join("")}</ul></div></div></details></section>`;
 }
 function route() {
   let v = location.hash.slice(1);
@@ -9805,7 +9894,7 @@ function bind(m) {
     const r = window.ZHK.setVar(el.dataset.var, el.type === "checkbox" ? el.checked : el.value);
     if (typeof r === "string") { el.setCustomValidity(r); el.reportValidity(); setTimeout(() => el.setCustomValidity(""), 2000); return; }
     // Нормы спецтехники и ключевые данные сразу пересчитывают таблицы, даже если фокус ушёл в соседнее поле.
-    if (cur === "equip" || cur === "data" || cur === "home") setTimeout(() => { const a = document.activeElement, id = a && a.dataset ? a.dataset.var : null; route(); const nx = id && document.querySelector(`[data-var="${id}"]`); if (nx) nx.focus(); }, 0);
+    if (cur === "equip" || cur === "data" || cur === "home" || cur === "structure") setTimeout(() => { const a = document.activeElement, id = a && a.dataset ? a.dataset.var : null; route(); const nx = id && document.querySelector(`[data-var="${id}"]`); if (nx) nx.focus(); }, 0);
   });
   m.querySelectorAll("[data-vst]").forEach(b => b.onclick = () => { const [id, st] = b.dataset.vst.split(":"), err = window.ZHK.setVarStatus(id, st); if (err) { b.title = err; b.disabled = true; } });
   renderBackups(m);

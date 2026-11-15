@@ -32,12 +32,12 @@ const rows = (list, f) => list.map(x => "  (" + f(x).join(", ") + ")").join(",\n
 
 // Структура считается тем же кодом, что и дерево на странице «Структура» портала (<script id="structure">)
 const items = VARS.items;
-const { owners, calcs, inputs, steps, areas, areaViews, entered, procs, lists, listInputs, stageLists } = ctx.window.buildStructure(VARS, TREE, STAGE_STEPS, VIEW_T);
+const { owners, calcs, inputs, steps, areas, areaViews, entered, procs, lists, listInputs, stageLists, needs } = ctx.window.buildStructure(VARS, TREE, STAGE_STEPS, VIEW_T);
 
 const out = `-- СГЕНЕРИРОВАНО scripts/export-structure.js из prototype/index.html. Не править руками:
 -- после изменений портала запустите node scripts/export-skill-tree.js.
 -- Структура «от кирпича до ЖК» (docs/concept.md). Кирпичи: ${items.length}, стены-расчёты: ${calcs.length}, комнаты-разделы: ${procs.length},
--- кирпичи-списки: ${lists.length} (из них чек-листов этапов: ${stageLists.length}), входы стен: ${inputs.length} + из списков ${listInputs.length}, вводимые кирпичи в комнатах: ${entered.length}, этажи-этапы: ${TREE.nodes.length}, шаги этапов: ${steps.length},
+-- кирпичи-списки: ${lists.length} (из них чек-листов этапов: ${stageLists.length}), входы стен: ${inputs.length} + из списков ${listInputs.length}, вводимые кирпичи в комнатах: ${entered.length}, этажи-этапы: ${TREE.nodes.length}, шаги этапов: ${steps.length}, нужные этапам данные: ${needs.length},
 -- квартиры-направления: ${areas.length} (разделов за отделами: ${areaViews.length} из ${procs.length}).
 -- Запуск: psql -v ON_ERROR_STOP=1 -f docs/db/project-data.sql -f docs/db/structure-seed.sql -f docs/db/structure-seed-check.sql
 
@@ -169,9 +169,18 @@ ${rows(stageLists, l => [q("stage." + l.stage), q("list." + l.id)])}
 join elements s on s.code = x.stage
 join elements a on a.code = x.list;
 
--- Шаги этапов (window.STAGE_STEPS): этап → раздел, порядок, что сделать
-insert into element_links (parent_id, child_id, ord, task)
-select s.id, p.id, x.ord, x.task
+-- Что нужно этапу (window.STAGE_NEEDS): данные и списки — состав этапа, из них его готовность
+insert into element_links (parent_id, child_id)
+select s.id, a.id
+from (values
+${rows(needs, ([sid, k, id]) => [q("stage." + sid), q((k === "l" ? "list." : "atom.") + id)])}
+) as x (stage, atom)
+join elements s on s.code = x.stage
+join elements a on a.code = x.atom;
+
+-- Шаги этапов (window.STAGE_STEPS): этап → раздел, порядок, что сделать. Шаг — где работать, не состав (role step)
+insert into element_links (parent_id, child_id, role, ord, task)
+select s.id, p.id, 'step', x.ord, x.task
 from (values
 ${rows(steps, ([sid, k, ord, task]) => [q("stage." + sid), q("proc." + k), String(ord), q(task)])}
 ) as x (stage, proc, ord, task)
@@ -192,7 +201,7 @@ ${[["кирпичей", "select count(*) from elements where level_id = 1", item
    ["вводимых кирпичей в комнатах", "select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 3 join elements c on c.id = l.child_id and c.level_id = 1", entered.length + lists.length],
    ["разделов у отделов", "select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 4", areaViews.length],
    ["шагов этапов", "select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 5 join elements c on c.id = l.child_id and c.level_id = 3", steps.length],
-   ["чек-листов в этапах", "select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 5 join elements c on c.id = l.child_id and c.level_id = 1", stageLists.length]
+   ["данных и чек-листов в этапах", "select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 5 join elements c on c.id = l.child_id and c.level_id = 1", stageLists.length + needs.length]
   ].map(([t, sql, n]) => `  if (${sql}) <> ${n} then raise exception 'structure-seed: ${t} не ${n}'; end if;`).join("\n")}
 end $$;
 `;
