@@ -236,7 +236,9 @@ create table lists (
   id             uuid primary key default gen_random_uuid(),
   code           text not null unique,              -- blocks, chess
   name           text not null,
-  owner_dept_id  uuid not null references departments(id)
+  owner_dept_id  uuid not null references departments(id),
+  need_rows      int not null default 1 check (need_rows > 0)  -- сколько строк нужно для готовности: 1 — «есть строки»,
+                                                               -- у чек-листа этапа — число пунктов (отмечены все)
 );
 
 -- Строки списков проекта: row_id — id строки в портале, data — поля строки. Ссылки между списками — по id в data
@@ -350,14 +352,14 @@ from down d join elements a on a.id = d.child_id
 where a.level_id = 1;
 
 -- Готовность элемента по проекту: готов, когда все вводимые кирпичи внутри готовы — переменная утверждена,
--- список заполнен (есть строки). Расчётные кирпичи не утверждают — они следуют за входами. Если входы не размечены, готовность пустая (null):
+-- в списке не меньше need_rows строк (есть строки; у чек-листа этапа — отмечены все пункты). Расчётные кирпичи не утверждают — они следуют за входами. Если входы не размечены, готовность пустая (null):
 -- считать её не из чего, и «готово» было бы неправдой.
 create view v_element_status as
 select p.id as project_id, e.id as element_id, e.code, lv.name as level,
        count(*) filter (where v.source = 'input' or ea.list_id is not null) as inputs,
-       count(*) filter (where (v.source = 'input' and vv.status = 'approved') or lr.n > 0) as approved,
+       count(*) filter (where (v.source = 'input' and vv.status = 'approved') or lr.n >= li.need_rows) as approved,
        case when count(*) filter (where v.source = 'input' or ea.list_id is not null) > 0 then
-         count(*) filter (where (v.source = 'input' and vv.status = 'approved') or lr.n > 0)
+         count(*) filter (where (v.source = 'input' and vv.status = 'approved') or lr.n >= li.need_rows)
            = count(*) filter (where v.source = 'input' or ea.list_id is not null) end as ready
 from projects p
 cross join elements e
@@ -365,6 +367,7 @@ join levels lv on lv.id = e.level_id
 left join v_element_atoms ea on ea.element_id = e.id                  -- элемент без кирпичей тоже виден: готовность пустая
 left join variables v on v.id = ea.variable_id
 left join variable_values vv on vv.project_id = p.id and vv.variable_id = v.id
+left join lists li on li.id = ea.list_id
 left join (select project_id, list_id, count(*) as n from list_rows group by project_id, list_id) lr
   on lr.project_id = p.id and lr.list_id = ea.list_id
 group by p.id, e.id, e.code, lv.name;

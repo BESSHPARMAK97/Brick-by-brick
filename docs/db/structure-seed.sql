@@ -1,7 +1,7 @@
 -- СГЕНЕРИРОВАНО scripts/export-structure.js из prototype/index.html. Не править руками:
 -- после изменений портала запустите node scripts/export-skill-tree.js.
 -- Структура «от кирпича до ЖК» (docs/concept.md). Кирпичи: 308, стены-расчёты: 38, комнаты-разделы: 21,
--- кирпичи-списки: 2, входы стен: 606 + из списков 16, вводимые кирпичи в комнатах: 270, этажи-этапы: 21, шаги этапов: 57,
+-- кирпичи-списки: 24 (из них чек-листов этапов: 21), входы стен: 612 + из списков 60, вводимые кирпичи в комнатах: 270, этажи-этапы: 21, шаги этапов: 57,
 -- квартиры-направления: 5 (разделов за отделами: 21 из 21).
 -- Запуск: psql -v ON_ERROR_STOP=1 -f docs/db/project-data.sql -f docs/db/structure-seed.sql -f docs/db/structure-seed-check.sql
 
@@ -363,15 +363,37 @@ insert into elements (level_id, code, name, variable_id)
 select 1, 'atom.' || code, name, id from variables;
 
 -- Списки проекта (window.VARS.lists) и их кирпичи
-insert into lists (code, name, owner_dept_id)
-select x.code, x.name, (select d.id from departments d where d.name = x.owner)
+insert into lists (code, name, owner_dept_id, need_rows)
+select x.code, x.name, (select d.id from departments d where d.name = x.owner), x.need
 from (values
-  ('blocks', 'Блоки проекта', 'Команда проекта'),
-  ('chess', 'Шахматка', 'Продажи')
-) as x (code, name, owner);
+  ('blocks', 'Список: Блоки проекта', 'Команда проекта', 1),
+  ('chess', 'Список: Шахматка', 'Продажи', 1),
+  ('equipPlan', 'Список: План спецтехники', 'Стройка', 1),
+  ('checked.idea', 'Чек-лист: 01. Анализ и концепция', 'Команда проекта', 7),
+  ('checked.land', 'Чек-лист: 02. Земельный участок', 'Команда проекта', 7),
+  ('checked.ird', 'Чек-лист: 03. АПЗ и техусловия', 'Команда проекта', 8),
+  ('checked.survey', 'Чек-лист: 04. Инженерные изыскания', 'Команда проекта', 6),
+  ('checked.sketch', 'Чек-лист: 05. Эскизный проект', 'Команда проекта', 6),
+  ('checked.finance', 'Чек-лист: 06. Финансирование', 'Команда проекта', 6),
+  ('checked.psd', 'Чек-лист: 07. Рабочий проект (ПСД)', 'Команда проекта', 6),
+  ('checked.expert', 'Чек-лист: 08. Экспертиза', 'Команда проекта', 5),
+  ('checked.tender', 'Чек-лист: 09. Тендер и подрядчики', 'Команда проекта', 6),
+  ('checked.pkstart', 'Чек-лист: 10. Проектный комитет «Start»', 'Команда проекта', 11),
+  ('checked.dolevka', 'Чек-лист: 11. Долевое участие и продажи', 'Команда проекта', 7),
+  ('checked.start', 'Чек-лист: 12. Старт СМР', 'Команда проекта', 6),
+  ('checked.zero', 'Чек-лист: 13. Нулевой цикл', 'Команда проекта', 6),
+  ('checked.nets', 'Чек-лист: 14. Внешние сети', 'Команда проекта', 6),
+  ('checked.frame', 'Чек-лист: 15. Каркас', 'Команда проекта', 6),
+  ('checked.envelope', 'Чек-лист: 16. Контур здания', 'Команда проекта', 6),
+  ('checked.mep', 'Чек-лист: 17. Инженерные системы', 'Команда проекта', 7),
+  ('checked.finish', 'Чек-лист: 18. Отделка и благоустройство', 'Команда проекта', 6),
+  ('checked.commission', 'Чек-лист: 19. Ввод в эксплуатацию', 'Команда проекта', 6),
+  ('checked.handover', 'Чек-лист: 20. Передача квартир и ОСИ', 'Команда проекта', 6),
+  ('checked.warranty', 'Чек-лист: 21. Гарантия и закрытие', 'Команда проекта', 5)
+) as x (code, name, owner, need);
 
 insert into elements (level_id, code, name, list_id)
-select 1, 'list.' || code, 'Список: ' || name, id from lists;
+select 1, 'list.' || code, name, id from lists;
 
 -- Комнаты: разделы портала
 insert into elements (level_id, code, name, tool_id)
@@ -691,7 +713,29 @@ insert into element_links (parent_id, child_id)
 select p.id, a.id
 from (values
   ('proc.blocks', 'list.blocks'),
-  ('proc.chess', 'list.chess')
+  ('proc.chess', 'list.chess'),
+  ('proc.equip', 'list.equipPlan'),
+  ('proc.roadmap', 'list.checked.idea'),
+  ('proc.roadmap', 'list.checked.land'),
+  ('proc.roadmap', 'list.checked.ird'),
+  ('proc.roadmap', 'list.checked.survey'),
+  ('proc.roadmap', 'list.checked.sketch'),
+  ('proc.roadmap', 'list.checked.finance'),
+  ('proc.roadmap', 'list.checked.psd'),
+  ('proc.roadmap', 'list.checked.expert'),
+  ('proc.roadmap', 'list.checked.tender'),
+  ('proc.roadmap', 'list.checked.pkstart'),
+  ('proc.roadmap', 'list.checked.dolevka'),
+  ('proc.roadmap', 'list.checked.start'),
+  ('proc.roadmap', 'list.checked.zero'),
+  ('proc.roadmap', 'list.checked.nets'),
+  ('proc.roadmap', 'list.checked.frame'),
+  ('proc.roadmap', 'list.checked.envelope'),
+  ('proc.roadmap', 'list.checked.mep'),
+  ('proc.roadmap', 'list.checked.finish'),
+  ('proc.roadmap', 'list.checked.commission'),
+  ('proc.roadmap', 'list.checked.handover'),
+  ('proc.roadmap', 'list.checked.warranty')
 ) as x (proc, list)
 join elements p on p.code = x.proc
 join elements a on a.code = x.list;
@@ -710,6 +754,12 @@ select o.id, a.id, 'input'
 from (values
   ('op.sales_start', 'atom.sched_start'),
   ('op.sales_dur', 'atom.sched_start'),
+  ('op.eq_plan_sum', 'atom.eq_mono'),
+  ('op.eq_plan_sum', 'atom.eq_mas'),
+  ('op.eq_plan_sum', 'atom.eq_lift'),
+  ('op.eq_plan_sum', 'atom.eq_crane_tail'),
+  ('op.eq_plan_sum', 'atom.eq_abn'),
+  ('op.eq_plan_sum', 'atom.eq_stagger'),
   ('op.eq_crane_m', 'atom.eq_mono'),
   ('op.eq_crane_m', 'atom.eq_crane_tail'),
   ('op.eq_crane_m', 'atom.eq_stagger'),
@@ -1331,9 +1381,53 @@ from (values
   ('op.reserved_flats', 'list.blocks'),
   ('op.apts_area', 'list.chess'),
   ('op.apts_area', 'list.blocks'),
+  ('op.eq_plan_sum', 'list.equipPlan'),
+  ('op.eq_plan_sum', 'list.blocks'),
   ('op.eq_crane_m', 'list.blocks'),
   ('op.eq_lift_m', 'list.blocks'),
   ('op.eq_pump_m', 'list.blocks'),
+  ('op.cur_stage', 'list.checked.idea'),
+  ('op.cur_stage', 'list.checked.land'),
+  ('op.cur_stage', 'list.checked.ird'),
+  ('op.cur_stage', 'list.checked.survey'),
+  ('op.cur_stage', 'list.checked.sketch'),
+  ('op.cur_stage', 'list.checked.finance'),
+  ('op.cur_stage', 'list.checked.psd'),
+  ('op.cur_stage', 'list.checked.expert'),
+  ('op.cur_stage', 'list.checked.tender'),
+  ('op.cur_stage', 'list.checked.pkstart'),
+  ('op.cur_stage', 'list.checked.dolevka'),
+  ('op.cur_stage', 'list.checked.start'),
+  ('op.cur_stage', 'list.checked.zero'),
+  ('op.cur_stage', 'list.checked.nets'),
+  ('op.cur_stage', 'list.checked.frame'),
+  ('op.cur_stage', 'list.checked.envelope'),
+  ('op.cur_stage', 'list.checked.mep'),
+  ('op.cur_stage', 'list.checked.finish'),
+  ('op.cur_stage', 'list.checked.commission'),
+  ('op.cur_stage', 'list.checked.handover'),
+  ('op.cur_stage', 'list.checked.warranty'),
+  ('op.stages_done', 'list.checked.idea'),
+  ('op.stages_done', 'list.checked.land'),
+  ('op.stages_done', 'list.checked.ird'),
+  ('op.stages_done', 'list.checked.survey'),
+  ('op.stages_done', 'list.checked.sketch'),
+  ('op.stages_done', 'list.checked.finance'),
+  ('op.stages_done', 'list.checked.psd'),
+  ('op.stages_done', 'list.checked.expert'),
+  ('op.stages_done', 'list.checked.tender'),
+  ('op.stages_done', 'list.checked.pkstart'),
+  ('op.stages_done', 'list.checked.dolevka'),
+  ('op.stages_done', 'list.checked.start'),
+  ('op.stages_done', 'list.checked.zero'),
+  ('op.stages_done', 'list.checked.nets'),
+  ('op.stages_done', 'list.checked.frame'),
+  ('op.stages_done', 'list.checked.envelope'),
+  ('op.stages_done', 'list.checked.mep'),
+  ('op.stages_done', 'list.checked.finish'),
+  ('op.stages_done', 'list.checked.commission'),
+  ('op.stages_done', 'list.checked.handover'),
+  ('op.stages_done', 'list.checked.warranty'),
   ('op.smr_ready', 'list.chess'),
   ('op.smr_ready', 'list.blocks'),
   ('op.smr_fact', 'list.chess'),
@@ -1452,6 +1546,35 @@ insert into elements (level_id, code, name, sort) values
   (5, 'stage.handover', '20. Передача квартир и ОСИ', 20),
   (5, 'stage.warranty', '21. Гарантия и закрытие', 21);
 
+-- Чек-лист этапа входит в свой этап: этаж готов, когда отмечены все его пункты
+insert into element_links (parent_id, child_id)
+select s.id, a.id
+from (values
+  ('stage.idea', 'list.checked.idea'),
+  ('stage.land', 'list.checked.land'),
+  ('stage.ird', 'list.checked.ird'),
+  ('stage.survey', 'list.checked.survey'),
+  ('stage.sketch', 'list.checked.sketch'),
+  ('stage.finance', 'list.checked.finance'),
+  ('stage.psd', 'list.checked.psd'),
+  ('stage.expert', 'list.checked.expert'),
+  ('stage.tender', 'list.checked.tender'),
+  ('stage.pkstart', 'list.checked.pkstart'),
+  ('stage.dolevka', 'list.checked.dolevka'),
+  ('stage.start', 'list.checked.start'),
+  ('stage.zero', 'list.checked.zero'),
+  ('stage.nets', 'list.checked.nets'),
+  ('stage.frame', 'list.checked.frame'),
+  ('stage.envelope', 'list.checked.envelope'),
+  ('stage.mep', 'list.checked.mep'),
+  ('stage.finish', 'list.checked.finish'),
+  ('stage.commission', 'list.checked.commission'),
+  ('stage.handover', 'list.checked.handover'),
+  ('stage.warranty', 'list.checked.warranty')
+) as x (stage, list)
+join elements s on s.code = x.stage
+join elements a on a.code = x.list;
+
 -- Шаги этапов (window.STAGE_STEPS): этап → раздел, порядок, что сделать
 insert into element_links (parent_id, child_id, ord, task)
 select s.id, p.id, x.ord, x.task
@@ -1519,16 +1642,17 @@ join elements p on p.code = x.proc;
 
 -- Самопроверка: в базу попало ровно столько, сколько в портале (соединение не отбросило строку молча)
 do $$ begin
-  if (select count(*) from elements where level_id = 1) <> 310 then raise exception 'structure-seed: кирпичей не 310'; end if;
-  if (select count(*) from lists) <> 2 then raise exception 'structure-seed: списков не 2'; end if;
+  if (select count(*) from elements where level_id = 1) <> 332 then raise exception 'structure-seed: кирпичей не 332'; end if;
+  if (select count(*) from lists) <> 24 then raise exception 'structure-seed: списков не 24'; end if;
   if (select count(*) from elements where level_id = 2) <> 38 then raise exception 'structure-seed: стен не 38'; end if;
   if (select count(*) from elements where level_id = 3) <> 21 then raise exception 'structure-seed: комнат не 21'; end if;
   if (select count(*) from elements where level_id = 4) <> 5 then raise exception 'structure-seed: квартир не 5'; end if;
   if (select count(*) from elements where level_id = 5) <> 21 then raise exception 'structure-seed: этажей не 21'; end if;
-  if (select count(*) from element_links where role = 'input') <> 622 then raise exception 'structure-seed: входов стен не 622'; end if;
+  if (select count(*) from element_links where role = 'input') <> 672 then raise exception 'structure-seed: входов стен не 672'; end if;
   if (select count(*) from element_links where role = 'output') <> 38 then raise exception 'structure-seed: результатов стен не 38'; end if;
   if (select count(*) from element_links l join elements c on c.id = l.child_id and c.level_id = 2 where l.role = 'part') <> 38 then raise exception 'structure-seed: связей «стена в комнате» не 38'; end if;
-  if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 3 join elements c on c.id = l.child_id and c.level_id = 1) <> 272 then raise exception 'structure-seed: вводимых кирпичей в комнатах не 272'; end if;
+  if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 3 join elements c on c.id = l.child_id and c.level_id = 1) <> 294 then raise exception 'structure-seed: вводимых кирпичей в комнатах не 294'; end if;
   if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 4) <> 21 then raise exception 'structure-seed: разделов у отделов не 21'; end if;
-  if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 5) <> 57 then raise exception 'structure-seed: шагов этапов не 57'; end if;
+  if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 5 join elements c on c.id = l.child_id and c.level_id = 3) <> 57 then raise exception 'structure-seed: шагов этапов не 57'; end if;
+  if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 5 join elements c on c.id = l.child_id and c.level_id = 1) <> 21 then raise exception 'structure-seed: чек-листов в этапах не 21'; end if;
 end $$;

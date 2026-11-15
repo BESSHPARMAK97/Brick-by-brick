@@ -123,11 +123,11 @@ const vd = ["# Словарь данных проекта", "",
   "Источник: `window.VARS` в [prototype/index.html](../prototype/index.html). Файл собирается скриптом `node scripts/export-skill-tree.js`. Владельцы — черновик, отделы холдинга уточняются.", "",
   `Всего переменных: ${V.items.length}, из них расчётных: ${V.items.filter(v => v.calc).length}.`, ""];
 // Входы расчёта (from): коды переменных; длинный список — числом, пустой — расчёт не из переменных
-const LIST_T = Object.fromEntries((V.lists || []).map(l => [l.id, VIEW_T[l.view]]));
+const LIST_T = Object.fromEntries((V.lists || []).map(l => [l.id, l.perStage ? "Чек-листы этапов" : l.name || VIEW_T[l.view]]));
 const fromText = v => {
   const a = !v.from.length ? "" : v.from.length > 12 ? `${v.from.length} переменных` : v.from.map(x => "`" + x + "`").join(", ");
   const L = (v.fromLists || []).map(x => "«" + LIST_T[x] + "»"), b = !L.length ? "" : (L.length === 1 ? "списка " : "списков ") + L.join(", ");
-  return a || b ? "из " + [a, b].filter(Boolean).join(" и ") : "не из переменных и списков: чек-листы, план или файл раздела";
+  return a || b ? "из " + [a, b].filter(Boolean).join(" и ") : "не из переменных и списков: файл раздела";
 };
 V.sections.forEach(sec => {
   vd.push(`## ${sec}`, "", "| Код | Переменная | Ед. | Тип | Владелец | Где вводится | Где используется |", "|---|---|---|---|---|---|---|");

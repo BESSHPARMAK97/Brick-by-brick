@@ -26,16 +26,18 @@ do $$ begin
   end if;
 end $$;
 
--- 3. Этапы идут по порядку, шаги каждого этапа пронумерованы 1, 2, 3… без пропусков, у шага есть «что сделать»
+-- 3. Этапы идут по порядку, шаги (разделы) каждого этапа пронумерованы 1, 2, 3… без пропусков, у шага есть «что сделать»
 do $$ begin
   if (select count(distinct sort) from elements where level_id = 5) <> (select count(*) from elements where level_id = 5) then
     raise exception '3: у двух этапов один порядковый номер';
   end if;
   if exists (select 1 from element_links l join elements s on s.id = l.parent_id and s.level_id = 5
+             join elements c on c.id = l.child_id and c.level_id = 3
              group by l.parent_id having max(l.ord) <> count(*) or min(l.ord) <> 1) then
     raise exception '3: шаги этапа пронумерованы с пропуском';
   end if;
   if exists (select 1 from element_links l join elements s on s.id = l.parent_id and s.level_id = 5
+             join elements c on c.id = l.child_id and c.level_id = 3
              where coalesce(l.task, '') = '') then
     raise exception '3: у шага этапа нет описания';
   end if;
@@ -123,8 +125,8 @@ do $$ begin
   if not exists (select 1 from v_element_status where inputs > 0) then raise exception '8: ни у одного элемента нет входов'; end if;
 end $$;
 
--- 9. Заполненные списки: элемент, все вводимые кирпичи которого — списки, готов, когда списки заполнены
-insert into list_rows (project_id, list_id, row_id) select p.id, l.id, 'r1' from projects p, lists l;
+-- 9. Заполненные списки: элемент, все вводимые кирпичи которого — списки, готов, когда в каждом need_rows строк
+insert into list_rows (project_id, list_id, row_id) select p.id, l.id, 'r' || i from projects p, lists l, generate_series(1, l.need_rows) i;
 do $$ begin
   if not exists (select 1 from element_links l join elements a on a.id = l.child_id and a.list_id is not null where l.role = 'input') then
     raise exception '9: ни одна стена не считается из списка';
@@ -135,6 +137,16 @@ do $$ begin
       and not exists (select 1 from v_element_atoms ea join variables v on v.id = ea.variable_id and v.source = 'input'
                       where ea.element_id = st.element_id)) then
     raise exception '9: элемент только из заполненных списков не готов';
+  end if;
+end $$;
+
+-- 10. Чек-лист этапа: у каждого этапа с пунктами свой чек-лист, нужно отметить все пункты (need_rows > 1 бывает)
+do $$ begin
+  if not exists (select 1 from lists where need_rows > 1) then raise exception '10: нет чек-листа с несколькими пунктами'; end if;
+  if exists (select 1 from lists l join elements a on a.list_id = l.id
+             where l.code like 'checked.%'
+               and not exists (select 1 from element_links x join elements s on s.id = x.parent_id and s.level_id = 5 where x.child_id = a.id)) then
+    raise exception '10: чек-лист не входит в свой этап';
   end if;
 end $$;
 

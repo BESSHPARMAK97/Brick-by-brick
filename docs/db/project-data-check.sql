@@ -255,4 +255,19 @@ do $$ begin
   if not (select ready from v_element_status where code = 'proc_blocks') then raise exception '18: заполненный список не готов'; end if;
 end $$;
 
+-- 19. Чек-лист этапа — список из трёх пунктов: этап готов, когда отмечены все три, а не первый
+insert into lists (code, name, owner_dept_id, need_rows)
+  select 'checked_pk', 'Чек-лист ПК Start', id, 3 from departments where name = 'Команда проекта';
+insert into elements (level_id, code, name, list_id) select 1, 'list_checked_pk', name, id from lists where code = 'checked_pk';
+insert into elements (level_id, code, name, sort) values (5, 'stage_check', 'Этап с чек-листом', 2);
+insert into element_links (parent_id, child_id) select p.id, c.id from elements p, elements c where p.code = 'stage_check' and c.code = 'list_checked_pk';
+insert into list_rows (project_id, list_id, row_id) select p.id, l.id, 'pk.0' from projects p, lists l where l.code = 'checked_pk';
+do $$ begin
+  if (select ready from v_element_status where code = 'stage_check') then raise exception '19: этап готов с одним пунктом из трёх'; end if;
+end $$;
+insert into list_rows (project_id, list_id, row_id) select p.id, l.id, x from projects p, lists l, unnest(array['pk.1', 'pk.2']) x where l.code = 'checked_pk';
+do $$ begin
+  if not (select ready from v_element_status where code = 'stage_check') then raise exception '19: этап не готов, хотя отмечены все пункты'; end if;
+end $$;
+
 select 'project-data: все проверки пройдены' as result;

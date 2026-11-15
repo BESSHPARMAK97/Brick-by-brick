@@ -4603,11 +4603,15 @@ window.VARS = {
   // и связь комнаты с переменными, которые в ней вводятся (docs/db/structure-seed.sql).
   homes: { project: "card", model: "model", sched: "gantt", pnr: "pnr", equip: "equip" },
   // Списки проекта — тоже кирпичи структуры: у проекта их переменное число строк. id — ключ списка в данных проекта,
-  // view — раздел, где список вводится (название и отдел — от раздела). Расчёт из списка указывает его в fromLists.
+  // view — раздел, где список вводится (отдел и, если нет name, название — от раздела). Расчёт из списка указывает его в fromLists.
   // Список готов, когда в нём есть строки (как шаг «Блоки проекта» на дорожной карте).
+  // perStage — у каждого этапа свой список: отметки пунктов чек-листа (data.checked, ключ «этап.пункт»); он входит
+  // в свой этап и готов, когда отмечены все пункты, как этап на дорожной карте.
   lists: [
     { id: "blocks", view: "blocks" },
-    { id: "chess", view: "chess" }
+    { id: "chess", view: "chess" },
+    { id: "equipPlan", view: "equip", name: "План спецтехники" },
+    { id: "checked", view: "roadmap", perStage: true }
   ],
   // Направления отделов («квартиры» структуры, docs/concept.md): какие разделы портала (ключи VIEWS) ведёт отдел.
   // У раздела не больше одного отдела; каждый раздел структуры закреплён за отделом (docs/db/structure-seed-check.sql).
@@ -4664,7 +4668,7 @@ window.VARS = {
     { id: "sales", name: "Условия продаж", sec: "Продажи", owner: "Продажи", type: "text", path: "project.sales", used: ["Карточка", "ПК Start"] },
 
     // Спецтехника: нормы ГПР «этаж в месяц» (меняются под проект) и итоги потребности по блокам и графику
-    { id: "eq_plan_sum", name: "Спецтехника по плану ГПР", unit: "тг", sec: "Спецтехника", owner: "Команда проекта", calc: "Спецтехника", from: [], better: "down", used: ["Спецтехника"] },
+    { id: "eq_plan_sum", name: "Спецтехника по плану ГПР", unit: "тг", sec: "Спецтехника", owner: "Команда проекта", calc: "Спецтехника", from: ["eq_mono", "eq_mas", "eq_lift", "eq_crane_tail", "eq_abn", "eq_stagger"], fromLists: ["equipPlan", "blocks"], better: "down", used: ["Спецтехника"] },
     { id: "eq_mono", name: "Скорость монолита", unit: "эт./мес", sec: "Спецтехника", owner: "Команда проекта", type: "num", path: "equip.mono", dflt: 3, used: ["Спецтехника"] },
     { id: "eq_mas", name: "Скорость кладки", unit: "эт./мес", sec: "Спецтехника", owner: "Команда проекта", type: "num", path: "equip.mas", dflt: 3, used: ["Спецтехника"] },
     { id: "eq_lift", name: "Подъёмник нужен с этажа монолита", unit: "эт.", sec: "Спецтехника", owner: "Команда проекта", type: "num", path: "equip.lift", dflt: 12, used: ["Спецтехника"] },
@@ -4713,8 +4717,8 @@ window.VARS = {
     { id: "fin_fc_peak_debt", name: "Пиковый долг по прогнозу графика", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", from: ["@model", "apts_area", "pnr_cost", "delay"], better: "down", used: ["Что если", "Обзор"] },
     { id: "fin_delay_loss", name: "Потеря прибыли от отставания графика", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", from: ["@model", "apts_area", "pnr_cost", "delay", "fin_pbt"], better: "down", used: ["Что если", "Обзор"] },
 
-    { id: "cur_stage", name: "Текущий этап", sec: "Ход проекта", owner: "Команда проекта", calc: "Дорожная карта", from: [], used: ["Карточка", "Стандарты", "Портфель"] },
-    { id: "stages_done", name: "Пройдено этапов", unit: "шт", sec: "Ход проекта", owner: "Команда проекта", calc: "Дорожная карта", from: [], better: "up", used: ["Портфель", "Отчёты"] },
+    { id: "cur_stage", name: "Текущий этап", sec: "Ход проекта", owner: "Команда проекта", calc: "Дорожная карта", from: [], fromLists: ["checked"], used: ["Карточка", "Стандарты", "Портфель"] },
+    { id: "stages_done", name: "Пройдено этапов", unit: "шт", sec: "Ход проекта", owner: "Команда проекта", calc: "Дорожная карта", from: [], fromLists: ["checked"], better: "up", used: ["Портфель", "Отчёты"] },
     { id: "keys_plan", name: "Ключи по плану", sec: "Ход проекта", owner: "Команда проекта", calc: "График", from: ["sched_start"], used: ["Карточка", "ПК Start"] },
     { id: "keys_fc", name: "Ключи по прогнозу", sec: "Ход проекта", owner: "Команда проекта", calc: "График", from: ["sched_start"], better: "down", used: ["Карточка", "Портфель", "Отчёты"] },
     { id: "delay", name: "Отставание от плана", unit: "мес.", sec: "Ход проекта", owner: "Команда проекта", calc: "График", from: ["sched_start"], better: "down", used: ["Портфель", "Отчёты"] },
@@ -4741,8 +4745,8 @@ window.VARS = {
       type: src === "num" ? "num" : src === "flag" ? "flag" : src === "text" ? "text" : "sel", dict: src.indexOf("sel:") === 0 ? src.slice(4) : undefined, path: "pnr." + key, used: ["Калькулятор ПНР"] }));
   });
   // Входы расчётов (from): из каких переменных calc считает значение. Отсюда — «что затронет изменение» и готовность
-  // в базе (docs/db/structure-seed.sql). Из списков проекта (блоки, шахматка) — fromLists;
-  // пустые оба — расчёт идёт из чек-листов дорожной карты, плана спецтехники или файла отдела. Группы вычисляются, а не переписываются:
+  // в базе (docs/db/structure-seed.sql). Из списков проекта (блоки, шахматка, план спецтехники,
+  // чек-листы этапов) — fromLists; пустые оба — расчёт идёт из файла отдела (ЦДС/ПТО). Группы вычисляются, а не переписываются:
   //   @model — все исходные данные финмодели: переменные с кодом из window.MODEL_DEFAULTS (window.runModel);
   //   @pnr — все вводимые показатели калькулятора ПНР (path pnr.*).
   const V = window.VARS, ids = new Set(V.items.map(v => v.id));

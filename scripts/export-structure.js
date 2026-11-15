@@ -6,7 +6,8 @@
 // Портал — единственный источник: файл не правится руками, CI сверяет его с порталом.
 //   входы стен — from у переменной (window.VARS: из каких переменных считается calc);
 //   комната и вводимые в ней кирпичи — window.VARS.homes (начало path → раздел);
-//   кирпичи-списки — window.VARS.lists (блоки, шахматка): вводятся в своём разделе, расчёты указывают их в fromLists;
+//   кирпичи-списки — window.VARS.lists (блоки, шахматка, план спецтехники, чек-листы этапов): вводятся в своём разделе,
+//   расчёты указывают их в fromLists; чек-лист этапа входит и в свой этап;
 //   квартиры — направления отделов (window.VARS.areas): отдел и разделы, которые он ведёт.
 // Чего в портале нет, того нет и в базе: разделы без отдела ни в какую квартиру не входят.
 const fs = require("fs");
@@ -63,20 +64,25 @@ const homeOf = v => { const k = VARS.homes[v.path.split(".")[0]]; if (!VIEW_T[k]
 const entered = items.filter(v => !v.calc).map(v => [homeOf(v), v.id]);
 const procs = [...new Set(steps.map(s => s[1]).concat(calcs.map(c => c[1]), areaViews.map(x => x[1]), entered.map(x => x[0])))].sort();
 // Списки проекта: название — от раздела, владелец — отдел направления этого раздела
-const lists = (VARS.lists || []).map(l => {
+// perStage — у каждого этапа с пунктами свой список (чек-лист): готов, когда отмечены все пункты (need = число пунктов)
+const lists = [].concat(...(VARS.lists || []).map(l => {
   const a = areas.find(x => x.views.includes(l.view));
   if (!VIEW_T[l.view] || !a) throw new Error(`export-structure: у списка ${l.id} нет раздела ${l.view} или его отдела`);
-  return { id: l.id, view: l.view, name: VIEW_T[l.view], owner: a.owner };
-});
+  const base = { group: l.id, view: l.view, owner: a.owner };
+  return l.perStage
+    ? TREE.nodes.filter(n => n.tasks.length).map(n => Object.assign({ id: l.id + "." + n.id, stage: n.id, name: "Чек-лист: " + n.code + ". " + n.name, need: n.tasks.length }, base))
+    : [Object.assign({ id: l.id, name: "Список: " + (l.name || VIEW_T[l.view]), need: 1 }, base)];
+}));
 const listInputs = [];
-items.filter(v => v.calc).forEach(v => (v.fromLists || []).forEach(x => listInputs.push([v.id, x])));
+items.filter(v => v.calc).forEach(v => (v.fromLists || []).forEach(x => lists.filter(l => l.group === x).forEach(l => listInputs.push([v.id, l.id]))));
+const stageLists = lists.filter(l => l.stage);
 const noArea = procs.filter(k => !areaViews.some(x => x[1] === k));
 if (noArea.length) throw new Error(`export-structure: разделы без отдела (добавьте в window.VARS.areas): ${noArea.join(", ")}`);
 
 const out = `-- СГЕНЕРИРОВАНО scripts/export-structure.js из prototype/index.html. Не править руками:
 -- после изменений портала запустите node scripts/export-skill-tree.js.
 -- Структура «от кирпича до ЖК» (docs/concept.md). Кирпичи: ${items.length}, стены-расчёты: ${calcs.length}, комнаты-разделы: ${procs.length},
--- кирпичи-списки: ${lists.length}, входы стен: ${inputs.length} + из списков ${listInputs.length}, вводимые кирпичи в комнатах: ${entered.length}, этажи-этапы: ${TREE.nodes.length}, шаги этапов: ${steps.length},
+-- кирпичи-списки: ${lists.length} (из них чек-листов этапов: ${stageLists.length}), входы стен: ${inputs.length} + из списков ${listInputs.length}, вводимые кирпичи в комнатах: ${entered.length}, этажи-этапы: ${TREE.nodes.length}, шаги этапов: ${steps.length},
 -- квартиры-направления: ${areas.length} (разделов за отделами: ${areaViews.length} из ${procs.length}).
 -- Запуск: psql -v ON_ERROR_STOP=1 -f docs/db/project-data.sql -f docs/db/structure-seed.sql -f docs/db/structure-seed-check.sql
 
@@ -102,14 +108,14 @@ insert into elements (level_id, code, name, variable_id)
 select 1, 'atom.' || code, name, id from variables;
 
 -- Списки проекта (window.VARS.lists) и их кирпичи
-insert into lists (code, name, owner_dept_id)
-select x.code, x.name, (select d.id from departments d where d.name = x.owner)
+insert into lists (code, name, owner_dept_id, need_rows)
+select x.code, x.name, (select d.id from departments d where d.name = x.owner), x.need
 from (values
-${rows(lists, l => [q(l.id), q(l.name), q(l.owner)])}
-) as x (code, name, owner);
+${rows(lists, l => [q(l.id), q(l.name), q(l.owner), String(l.need)])}
+) as x (code, name, owner, need);
 
 insert into elements (level_id, code, name, list_id)
-select 1, 'list.' || code, 'Список: ' || name, id from lists;
+select 1, 'list.' || code, name, id from lists;
 
 -- Комнаты: разделы портала
 insert into elements (level_id, code, name, tool_id)
@@ -199,6 +205,15 @@ join elements p on p.code = x.proc;
 insert into elements (level_id, code, name, sort) values
 ${rows(TREE.nodes, n => ["5", q("stage." + n.id), q(n.code + ". " + n.name), String(TREE.nodes.indexOf(n) + 1)])};
 
+-- Чек-лист этапа входит в свой этап: этаж готов, когда отмечены все его пункты
+insert into element_links (parent_id, child_id)
+select s.id, a.id
+from (values
+${rows(stageLists, l => [q("stage." + l.stage), q("list." + l.id)])}
+) as x (stage, list)
+join elements s on s.code = x.stage
+join elements a on a.code = x.list;
+
 -- Шаги этапов (window.STAGE_STEPS): этап → раздел, порядок, что сделать
 insert into element_links (parent_id, child_id, ord, task)
 select s.id, p.id, x.ord, x.task
@@ -221,7 +236,8 @@ ${[["кирпичей", "select count(*) from elements where level_id = 1", item
    ["связей «стена в комнате»", "select count(*) from element_links l join elements c on c.id = l.child_id and c.level_id = 2 where l.role = 'part'", calcs.length],
    ["вводимых кирпичей в комнатах", "select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 3 join elements c on c.id = l.child_id and c.level_id = 1", entered.length + lists.length],
    ["разделов у отделов", "select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 4", areaViews.length],
-   ["шагов этапов", "select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 5", steps.length]
+   ["шагов этапов", "select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 5 join elements c on c.id = l.child_id and c.level_id = 3", steps.length],
+   ["чек-листов в этапах", "select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 5 join elements c on c.id = l.child_id and c.level_id = 1", stageLists.length]
   ].map(([t, sql, n]) => `  if (${sql}) <> ${n} then raise exception 'structure-seed: ${t} не ${n}'; end if;`).join("\n")}
 end $$;
 `;
