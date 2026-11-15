@@ -1637,7 +1637,7 @@ from (values
   ('stage.finish', 'proc.equip', 2, 'Спецтехника этапа по графику'),
   ('stage.finish', 'proc.budget', 3, 'Факт затрат по этапу'),
   ('stage.finish', 'proc.standards', 4, 'Стандарты на работы этапа'),
-  ('stage.commission', 'proc.acts', 1, 'Акты испытаний систем'),
+  ('stage.commission', 'proc.acts', 1, 'Акты испытаний, заключения надзоров, декларация и акт приёмки'),
   ('stage.commission', 'proc.deadlines', 2, 'Сроки ввода в эксплуатацию'),
   ('stage.handover', 'proc.chess', 1, 'Передача квартир')
 ) as x (stage, proc, ord, task)
