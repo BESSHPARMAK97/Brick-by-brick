@@ -69,7 +69,7 @@ do $$ begin
   end if;
 end $$;
 
--- 6. Квартира-направление: есть отдел-владелец и хотя бы один раздел; раздел не закреплён за двумя отделами
+-- 6. Квартира-направление: есть отдел-владелец и хотя бы один раздел; каждый раздел — ровно у одного отдела
 do $$ begin
   if exists (select 1 from elements a where a.level_id = 4
              and (a.owner_dept_id is null or not exists (select 1 from element_links l join elements p on p.id = l.child_id and p.level_id = 3 where l.parent_id = a.id))) then
@@ -78,6 +78,10 @@ do $$ begin
   if exists (select 1 from element_links l join elements a on a.id = l.parent_id and a.level_id = 4
              group by l.child_id having count(*) > 1) then
     raise exception '6: раздел закреплён за двумя отделами';
+  end if;
+  if exists (select 1 from elements p where p.level_id = 3
+             and not exists (select 1 from element_links l join elements a on a.id = l.parent_id and a.level_id = 4 where l.child_id = p.id)) then
+    raise exception '6: раздел не закреплён ни за одним отделом';
   end if;
 end $$;
 

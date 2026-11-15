@@ -61,6 +61,8 @@ const areaViews = [].concat(...areas.map(a => a.views.map(k => [a.id, k])));
 const homeOf = v => { const k = VARS.homes[v.path.split(".")[0]]; if (!VIEW_T[k]) throw new Error(`export-structure: у ${v.id} нет раздела ввода для ${v.path}`); return k; };
 const entered = items.filter(v => !v.calc).map(v => [homeOf(v), v.id]);
 const procs = [...new Set(steps.map(s => s[1]).concat(calcs.map(c => c[1]), areaViews.map(x => x[1]), entered.map(x => x[0])))].sort();
+const noArea = procs.filter(k => !areaViews.some(x => x[1] === k));
+if (noArea.length) throw new Error(`export-structure: разделы без отдела (добавьте в window.VARS.areas): ${noArea.join(", ")}`);
 
 const out = `-- СГЕНЕРИРОВАНО scripts/export-structure.js из prototype/index.html. Не править руками:
 -- после изменений портала запустите node scripts/export-skill-tree.js.
