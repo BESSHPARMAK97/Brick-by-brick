@@ -242,6 +242,9 @@ ul.q-list { list-style: none; padding-left: 0 }
 .q-c { display: flex; align-items: center; gap: 6px; min-width: 0 }
 .q-c .vin, .q-c select { width: 100%; max-width: 360px }
 .q-tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px }
+.q-task { display: flex; gap: 8px; align-items: flex-start }
+.q-task input { margin-top: 3px; flex: none }
+.q-demo { display: flex; gap: 10px; align-items: flex-start; background: var(--warn-soft); border-radius: var(--r); padding: 10px 14px; font-size: .9rem }
 @media (max-width: 640px) { .q-row { grid-template-columns: 1fr } }
 .st-miss { list-style: none; margin: 4px 0 6px 0; padding: 0 0 0 14px; display: grid; gap: 4px; border-left: 1px solid var(--line) }
 .st-miss li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px }
@@ -4915,6 +4918,93 @@ window.buildStructure = function (VARS, TREE, STAGE_STEPS, VIEW_T) {
 };
 </script>
 
+<script id="demo-data">
+// Демо-проект «ЖК «Пример» (демо)»: все данные — вымышленный пример, чтобы посмотреть портал заполненным.
+// Загружается только кнопкой «Открыть демо-проект» в отдельный новый проект (ZHK.createDemo) и никуда больше
+// не подставляется: в настоящих проектах примерных цифр нет. Значения справочников берутся из window.DICTS и VARS.
+window.DEMO_PROJECT = {
+  name: "ЖК «Пример» (демо)",
+  doneStages: 14,          // пройдены этапы 01–14, идёт «15. Каркас»
+  activeDone: 3,           // отмечено пунктов текущего этапа
+  draft: ["facade_text", "kpi_engagement", "delay_overhead"],  // оставлены черновиками — видно, что мешает этапу
+  build(W) {
+    const D = W.DICTS, opt = (d, want) => { const I = (D[d] || { items: [] }).items.map(i => typeof i === "object" ? i.v : i); return I.indexOf(want) >= 0 ? want : I[0]; };
+    const B = ["b1", "b2", "b3"].map((id, i) => ({ id: "demo_" + id, name: "Блок " + (i + 1), kind: "res", floors: "12", under: "1", entrances: "2", lifts: "4", flats: "144",
+      frame: opt("frame"), design: opt("design"), area_sale: "10 600", area: "15 000", mop: "1 800", idesign: opt("interiorKind"), cab_p: opt("liftCabin"), cab_c: opt("liftCabin") }));
+    const blocks = Object.fromEntries(B.map(b => [b.id, b]));
+    blocks.demo_park = { name: "Паркинг", kind: "parking", floors: "0", under: "2", entrances: "1", lifts: "2", flats: "0", area: "8 500" };
+    const team = {
+      demo_t1: { role: "Руководитель проекта", name: "Демо Р. П.", zone: "Сроки, бюджет, команда", dept: "Команда проекта" },
+      demo_t2: { role: "Начальник участка", name: "Демо Н. У.", zone: "Стройплощадка, СМР", dept: "Стройка" },
+      demo_t3: { role: "Инженер технадзора", name: "Демо И. Т.", zone: "Качество и скрытые работы", dept: "Стройка" },
+      demo_t4: { role: "Экономист ОРС", name: "Демо Э. О.", zone: "Сметы, себестоимость", dept: "ОРС" },
+      demo_t5: { role: "Финансовый менеджер", name: "Демо Ф. М.", zone: "Финмодель, банк", dept: "Финансы" },
+      demo_t6: { role: "Руководитель продаж", name: "Демо Р. С.", zone: "Цены, шахматка", dept: "Продажи" },
+      demo_t7: { role: "Юрист", name: "Демо Ю. Р.", zone: "Земля, договоры", dept: "Юристы" } };
+    const partners = {
+      demo_p1: { role: "Генподрядчик", org: "ТОО «Демо Строй»", subject: "СМР по договору генподряда", status: "contract" },
+      demo_p2: { role: "Технический надзор", org: "ТОО «Демо Инжиниринг»", subject: "Технадзор заказчика", status: "contract" },
+      demo_p3: { role: "Проектный институт (авторский надзор)", org: "ТОО «Демо Проект»", subject: "ПСД и авторский надзор", status: "contract" },
+      demo_p4: { role: "Банк", org: "АО «Демо Банк»", subject: "Проектное финансирование", status: "contract" },
+      demo_p5: { role: "Поставщик лифтов", org: "ТОО «Демо Лифт»", subject: "Лифты, 12 шт", status: "tender" } };
+    const risks = {
+      demo_r1: { kind: "risk", level: "high", title: "Рост цен на арматуру и бетон", measure: "Фиксированная цена в договоре, закуп на 3 месяца вперёд", who: "demo_t4" },
+      demo_r2: { kind: "risk", level: "mid", title: "Отставание каркаса из-за зимы", measure: "Противоморозные добавки, тепляки, вторая смена", who: "demo_t2" },
+      demo_r3: { kind: "opportunity", level: "mid", title: "Спрос на 1-комнатные выше плана", measure: "Пересмотреть квартирографию блока 3", who: "demo_t6" } };
+    // Шахматка: каркас готов на 1–6 этажах блоков 1–2, продано по 4 квартиры на этаже 1–8.
+    const chess = {};
+    B.slice(0, 2).forEach(b => { for (let e = 1; e <= 2; e++) for (let f = 1; f <= 12; f++) {
+      if (f <= 6) chess[b.id + "." + e + "." + f + ".st"] = 1;
+      if (f <= 8) chess[b.id + "." + e + "." + f + ".s"] = 4; } });
+    const ek = (D.equipKind || { items: [] }).items.filter(i => !i.calc);
+    const equipPlan = Object.fromEntries(ek.slice(0, 3).map((k, i) => ["demo_e" + i, { kind: k.v, unit: k.u || "мес", stage: k.st || "zero", stage2: k.st2 || "frame", units: "1", load: "" }]));
+    const acts = {
+      demo_a1: { kind: "hidden", no: "1", date: "2026-09-10", block: "demo_b1", stage: "frame", place: "5 этаж, оси 1–8 / А–Г", work: "армирование плиты перекрытия 5 этажа",
+        docs: "КЖ-1 л. 12–14", mats: "арматура А500С, паспорта партий", dev: "нет", d1: "2026-09-01", d2: "2026-09-09", next: "бетонирование плиты 5 этажа" },
+      demo_a2: { kind: "resp", no: "1", date: "2026-10-05", block: "demo_b1", stage: "frame", place: "1–3 этажи", work: "колонны и плиты 1–3 этажей",
+        docs: "КЖ-2 л. 4", mats: "протоколы испытаний бетона", dev: "нет", d1: "2026-07-01", d2: "2026-09-30", next: "каркас 4–6 этажей" } };
+    const deadlines = {
+      demo_d1: { title: "АПЗ", num: "KZ00-ДЕМО-0001", issued: "2024-04-10", expires: "2027-04-10", owner: "Команда проекта", stage: "ird", note: "пример" },
+      demo_d2: { title: "ТУ на электроснабжение", num: "ДЕМО-ТУ-17", issued: "2024-05-20", expires: "2027-05-20", owner: "Команда проекта", stage: "ird", note: "пример" },
+      demo_d3: { title: "Разрешение на привлечение денег дольщиков", num: "ДЕМО-ДДУ-3", issued: "2025-11-01", expires: "2028-11-01", owner: "Юристы", stage: "dolevka", note: "пример" } };
+    const scenarios = { demo_s1: { name: "Пессимистичный", price: "-10", smr: "10", delay: "3", sales: "-20", rate: "2" } };
+    // Показатели калькулятора ПНР и других листов — по типу: число по единице, выбор — первый вариант, да/нет — «нет».
+    const pnr = {};
+    W.VARS.items.filter(v => /^pnr\./.test(v.path || "")).forEach(v => {
+      const k = v.path.slice(4), u = v.unit || "";
+      pnr[k] = v.type === "sel" ? opt(v.dict) : v.type === "flag" ? 0 : v.type === "text" ? "пример" :
+        /м²|м2/.test(u) ? "500" : /мес/.test(u) ? "24" : /шт|ед|чел/.test(u) ? "2" : /%/.test(u) ? "10" : /тг/.test(u) ? "100 000" : /км|м/.test(u) ? "100" : "1";
+    });
+    // Чек-лист B0: проект, блоки, паркинг, проёмы и сети — по типу поля.
+    const b0 = {}, B0 = W.B0, val = f => f.d ? String(opt(f.d)) : f.t === "flag" ? "1" : /^h_/.test(f.id) ? "3,0" : /len|wid/.test(f.id) ? "60" : f.unit === "м²" ? "500" : "2";
+    B0.project.filter(f => !f.auto).forEach(f => { b0["p." + f.id] = val(f); });
+    Object.keys(blocks).forEach(id => { const res = blocks[id].kind === "res";
+      B0.block.filter(f => !f.auto).forEach(f => { b0["b." + id + "." + f.id] = f.rooms ? (res && { r1: "48", r2: "60", r3: "36" }[f.id]) || "0" : f.lift ? (res ? "2" : "1") : val(f); }); });
+    B0.parking.forEach(f => { b0["k." + f.id] = val(f); });
+    B0.openings.forEach(o => { b0["o." + o.id + ".profile"] = String(opt("profile")); });
+    (B0.nets || []).filter(f => !f.auto).forEach(f => { b0["n." + f.id] = val(f); });
+    return {
+      project: { name: this.name, demo: "1", modules: "fin ors build pk co", city: opt("city", "Астана"), klass: opt("klass", "Комфорт"),
+        address: "г. Астана, р-н Есиль, ул. Демонстрационная, участок 1", building: "Многоквартирный жилой комплекс: 3 блока по 12 этажей и паркинг",
+        area_total: "45 000", area_land: "2,5", cadastre: "21-000-000-001 (пример)", company: "ТОО «Демо Девелопмент»", bin: "000000000001 (пример)", director: "Демо Д. Д.",
+        ge: "Положительное заключение № ДЕМО-0001 от 15.05.2025 (пример)", regcode: "C2 North", region: Object.keys(W.REGIONS || {})[1] || "", stage: "frame",
+        work: "Железобетонный каркас", construct: "Каркас здания",
+        mission: "Комфортный дом для молодых семей рядом с парком: сдать в срок и в бюджете.", kpi_nps: "70", kpi_engagement: "80",
+        loc_text: "Пять минут до парка и школы, остановка у въезда, вид на реку с верхних этажей.",
+        facade_text: "Клинкерный кирпич и алюминиевые кассеты; сложные узлы — витражи угловых квартир.",
+        client_text: "Молодые семьи 25–40 лет с ипотекой: планировки 1–3 комнаты, кладовые, двор без машин.",
+        sales: "Ипотека с банками-партнёрами, рассрочка до ввода, скидка 3% при 100% оплате." },
+      model: { area_sale: 32000, area_comm: 2000, parking: 250, price: 650000, price_comm: 800000, price_park: 4500000, growth: 6,
+        land: 2500000000, design: 14000, smr: 280000, nets: 25000, supervision: 2, marketing: 3, admin: 2, reserve: 6, delay_overhead: 25000000,
+        equity: 3000000000, rate: 19, discount: 17, vat: 16, vat_exempt: 1, cit: 20 },
+      sched: { start: "2024-03" },
+      equip: { mono: "3", mas: "3", lift: "12", craneTail: "2", abn: "4", stagger: "1" },
+      blocks, team, partners, risks, chess, equipPlan, acts, deadlines, scenarios, pnr, b0
+    };
+  }
+};
+</script>
+
 <script id="i18n">
 // Казахский слой перевода. Код страницы строит русский текст, слой подменяет его по словарю и шаблонам.
 // Пользовательские данные не переводятся: совпадения ищутся только для известных фраз.
@@ -5152,6 +5242,9 @@ window.I18N = (function () {
     ["На этом этапе вопросов по данным нет — только чек-лист.", "Бұл кезеңде деректер бойынша сұрақ жоқ — тек чек-парақ."],
     ["Этап ещё закрыт: пункты отмечаются, когда пройдены предыдущие этапы.", "Кезең әлі жабық: алдыңғы кезеңдер өткенде тармақтар белгіленеді."],
     ["Поиск и схема данных — для аналитиков", "Деректерді іздеу және сызба — талдаушыларға"],
+    ["Хотите посмотреть, как выглядит заполненный проект?", "Толтырылған жоба қалай көрінетінін көргіңіз келе ме?"], ["Открыть демо-проект", "Демо-жобаны ашу"],
+    ["Это демо-проект: все данные — вымышленный пример. Ваш проект — в списке проектов вверху.", "Бұл демо-жоба: барлық деректер — ойдан шығарылған мысал. Сіздің жобаңыз — жоғарыдағы жобалар тізімінде."],
+    ["Открыт демо-проект: все данные — пример, не реальные", "Демо-жоба ашылды: барлық деректер — мысал, нақты емес"],
     ["Все вопросы — выберите «Я — все разделы» вверху.", "Барлық сұрақтар — жоғарыдан «Мен — барлық бөлімдер» таңдаңыз."],
     ["Что готово к каждому этапу и чего не хватает. Этап готов, когда все нужные ему данные введены и утверждены, списки заполнены, а чек-лист отмечен.",
       "Әр кезеңге не дайын және не жетпейді. Кезеңге қажетті барлық деректер енгізіліп, бекітілгенде, тізімдер толтырылып, чек-парақ белгіленгенде кезең дайын."],
@@ -6753,6 +6846,20 @@ window.ZHK_BOOT = function (document) {
     }
     switchProject(id);
   }
+  // Демо-проект (window.DEMO_PROJECT): новый отдельный проект с примером всех данных, статусов и отметок этапов.
+  async function createDemo() {
+    const D = window.DEMO_PROJECT; if (!D || readOnly) return;
+    await createProject(D.name);
+    commit(D.build(window));
+    const vars = {}, checked = {}, meta = {}, at = new Date().toISOString();
+    VARS.forEach(v => { if (!v.calc && D.draft.indexOf(v.id) < 0) vars[v.id] = { st: "approved", sby: meId || "", sat: at }; });
+    T.nodes.forEach((n, ni) => n.tasks.forEach((t, i) => { if (ni < D.doneStages || (ni === D.doneStages && i < D.activeDone)) { const k = key(n, i); checked[k] = true; meta[k] = { doneAt: today(), doneBy: meId || "" }; } }));
+    commit({ vars, checked, meta });
+    const P = planAll(), budget = {};
+    T.nodes.slice(0, D.doneStages).forEach(n => { if (P[n.id]) budget[n.id] = { fact: Math.round(P[n.id] * 0.97) }; });
+    if (Object.keys(budget).length) commit({ budget });
+    toast("Открыт демо-проект: все данные — пример, не реальные");
+  }
   async function deleteProject(id) {
     if (id === "main") { toast("Основной проект удалить нельзя."); return; }
     if (!canAdmin) { toast("Удалять проекты могут только редакторы страницы"); return; }
@@ -6804,7 +6911,7 @@ window.ZHK_BOOT = function (document) {
       "</div>" +
       '<div class="card"><div class="section-title"><h2 class="view-title">Портфель проектов</h2></div>' +
         '<p class="muted">Каждый проект хранит свои этапы, график, финмодель, бюджет и реестр сроков. Переключайтесь между проектами в шапке или здесь.</p>' +
-        (readOnly ? "" : '<form class="row" id="proj-form" style="margin:10px 0" autocomplete="off"><input type="text" id="proj-name" class="sel" maxlength="80" placeholder="Название нового ЖК" aria-label="Название нового ЖК" style="flex:1;min-width:180px"><button class="btn primary" type="submit">Новый проект</button></form>') +
+        (readOnly ? "" : '<form class="row" id="proj-form" style="margin:10px 0" autocomplete="off"><input type="text" id="proj-name" class="sel" maxlength="80" placeholder="Название нового ЖК" aria-label="Название нового ЖК" style="flex:1;min-width:180px"><button class="btn primary" type="submit">Новый проект</button><button class="btn ghost" type="button" data-proj-demo>Открыть демо-проект</button></form>') +
         '<div class="tablewrap"><table class="t"><tr><th>Проект</th><th>Регион</th><th>Готовность</th><th class="num">Этапов</th><th class="num">Ключи (прогноз)</th><th class="num">Отставание</th><th class="num">Бюджет</th><th></th></tr>' + tr + "</table></div></div>";
   });
   portEl.addEventListener("submit", e => {
@@ -6815,6 +6922,7 @@ window.ZHK_BOOT = function (document) {
     createProject(name);
   });
   portEl.addEventListener("click", e => {
+    if (e.target.closest("[data-proj-demo]")) { createDemo(); return; }
     const o = e.target.closest("[data-proj-open]");
     if (o) { switchProject(o.dataset.projOpen); setView("tree", true); return; }
     const d = e.target.closest("[data-proj-del]");
@@ -7463,6 +7571,7 @@ window.ZHK_BOOT = function (document) {
     list: k => listOf(k),
     // Сколько строк в списке структуры (window.VARS.lists): записи списка; у шахматки — внесённые ячейки;
     // у чек-листа этапа (checked.<этап>) — отмеченные пункты. Готовность списка — не меньше need строк.
+    createDemo: () => createDemo(),
     listRows: id => {
       if (id.indexOf("checked.") === 0) { const n = byId[id.slice(8)]; return n ? doneCount(n) : 0; }
       if (id === "chess") return Object.keys(S.chess || {}).filter(k => S.chess[k] != null && S.chess[k] !== "").length;
@@ -7699,7 +7808,7 @@ const Z = (t, sub) => () => head(t, sub);
 // Основа портала — дорожная карта: этапы проекта. Остальные разделы — шаги этапов (связь в STAGE_STEPS).
 // Портал — три экрана: Обзор, Дорожная карта, Данные. Остальное — модули отделов: по умолчанию выключены,
 // включаются в «Данных» (project.modules — коды модулей через пробел). Разделы группы — вкладки внутри экрана.
-const NAV_G = [["home", "Обзор"], ["map", "Дорожная карта"], ["data", "Данные"]];
+const NAV_G = [["home", "Обзор"], ["q", "Опросник"], ["map", "Дорожная карта"], ["data", "Данные"]];
 const MODS = [["fin", "Финансы", "финмодель, «что если», бюджет, смета 1С"], ["ors", "ОРС", "показатели ПНР, чек-лист B0"], ["build", "Стройка", "спецтехника, акты и предписания, стандарты"], ["pk", "Комитет", "презентация ПК Start"], ["co", "Портфель", "все ЖК компании"]];
 const GROUPS = NAV_G.concat(MODS);
 const modsOn = () => { const m = String(window.ZHK && window.ZHK.project() ? window.ZHK.project().modules || "" : "").split(" "); return MODS.filter(([g]) => m.indexOf(g) >= 0); };
@@ -7734,7 +7843,7 @@ const VIEWS = {
 };
 
 // Состав групп по порядку вкладок; первый раздел группы открывается из меню. Шахматка и планировки — на паузе (без вкладки).
-const GV = { home: ["home", "today", "kpi"], map: ["roadmap", "gantt", "calendar", "deadlines"], data: ["data", "structure"],
+const GV = { home: ["home", "today", "kpi"], map: ["roadmap", "gantt", "calendar", "deadlines"], q: ["structure"], data: ["data"],
   fin: ["model", "whatif", "budget", "smeta"], ors: ["pnr", "b0"], build: ["equip", "acts", "standards"], pk: ["pk"], co: ["projects"] };
 Object.entries(GV).forEach(([g, ks]) => ks.forEach(k => { VIEWS[k].g = g; }));
 ["chess", "plans"].forEach(k => { VIEWS[k].g = "build"; VIEWS[k].off = true; });
@@ -7766,7 +7875,7 @@ window.STEP_STATE = (k, sid) => {
   return null;
 };
 function stageChips(v) {
-  const st = TOOL_STAGES[v]; if (!st || !window.TREE) return "";
+  const st = TOOL_STAGES[v]; if (!st || !window.TREE || v === "structure") return ""; // у опросника свой выбор этапа
   const S = window.ZHK && window.ZHK.stages ? Object.fromEntries(window.ZHK.stages().map(x => [x.id, x])) : {};
   // «Дальше»: следующий шаг этапа, который сейчас идёт (или первого, где раздел — шаг).
   const sid = st.find(id => S[id] && S[id].state !== "done" && S[id].state !== "locked") || st[0], L = window.STAGE_TOOLS[sid] || [], i = L.findIndex(x => x[0] === v), n = TREE.nodes.find(x => x.id === sid);
@@ -9385,6 +9494,7 @@ function structBind(root) {
     structBind(box);
   });
   const qs = root.querySelector("#q-stage"); if (qs) qs.onchange = () => { qStage = qs.value; route(); };
+  root.querySelectorAll("[data-qdemo]").forEach(b => b.onclick = async () => { b.disabled = true; await window.ZHK.createDemo(); qStage = ""; route(); });
   root.querySelectorAll("[data-qgo]").forEach(b => b.onclick = () => { qStage = b.dataset.qgo; route(); window.scrollTo(0, 0); });
   root.querySelectorAll("[data-qtask]").forEach(el => el.onchange = () => {
     const [id, i] = el.dataset.qtask.split(":"), err = window.ZHK.setTask(id, +i, el.checked);
@@ -9395,9 +9505,12 @@ function structBind(root) {
   if (sq) sq.oninput = () => { structQ = sq.value; clearTimeout(window.stqT); window.stqT = setTimeout(() => { const r = document.getElementById("st-res"); if (r && structM) r.innerHTML = structResults(structM, structQ); }, 200); };
 }
 // Поле ответа по типу переменной; пока ответа нет — пусто (примерные значения финмодели не подставляются).
+// Варианты выбора: общий справочник или те же списки, что в карточке проекта (подбор стандартов, климат и сейсмика).
+const Q_OPT = { regcode: () => OPTIONS.region.map(o => [o, o]), stage: () => OPTIONS.stage.map(o => [o, STAGE[o]]), work: () => OPTIONS.work.map(o => [o, o]),
+  construct: () => OPTIONS.construct.map(o => [o, o]), zone: () => Object.keys(window.REGIONS || {}).map(k => [k, window.REGIONS[k].ru.name]) };
 function qCtl(v, dis) {
-  const D = v.type === "sel" ? window.DICTS[v.dict || v.id] : null;
-  if (D) return `<select data-var="${v.id}" aria-label="${esc(v.name)}"${dis}><option value="">—</option>${D.items.map(i => `<option${v.set && i.v === v.raw ? " selected" : ""}>${esc(i.v)}</option>`).join("")}</select>`;
+  const D = v.type === "sel" ? window.DICTS[v.dict || v.id] : null, O = D ? D.items.map(i => [i.v, i.t || i.v]) : v.type === "sel" && Q_OPT[v.id] ? Q_OPT[v.id]() : null;
+  if (O) return `<select data-var="${v.id}" aria-label="${esc(v.name)}"${dis}><option value="">—</option>${O.map(([x, t]) => `<option value="${esc(x)}"${v.set && x === v.raw ? " selected" : ""}>${esc(t)}</option>`).join("")}</select>`;
   if (v.type === "flag") return `<label class="row" style="gap:6px"><input type="checkbox" data-var="${v.id}"${v.set && v.raw ? " checked" : ""}${dis}> да</label>`;
   if (v.type === "month") return `<input type="month" class="vin" data-var="${v.id}" value="${v.set ? esc(v.raw || "") : ""}" aria-label="${esc(v.name)}"${dis}>`;
   const val = !v.set ? "" : v.type === "num" && typeof v.raw === "number" ? String(v.raw).replace(".", ",") : v.raw == null ? "" : String(v.raw);
@@ -9429,6 +9542,8 @@ function viewStructure() {
   return h + `<section class="panel stack">
     <div class="row" style="flex-wrap:wrap;gap:10px;align-items:center"><label class="row" style="gap:8px;align-items:center"><span class="label">Этап</span>
       <select id="q-stage">${N.map(x => `<option value="${x.id}"${x.id === sid ? " selected" : ""}>${esc(x.code + ". " + x.name)} — ${pct(M.ready("s:" + x.id))}</option>`).join("")}</select></label>${structChip(M.ready("s:" + sid))}</div>
+    ${(window.ZHK.project() || {}).demo ? '<div class="q-demo"><span aria-hidden="true">ⓘ</span><div>Это демо-проект: все данные — вымышленный пример. Ваш проект — в списке проектов вверху.</div></div>'
+      : ro ? "" : '<div class="row" style="gap:8px;align-items:center;flex-wrap:wrap"><span class="st-sub">Хотите посмотреть, как выглядит заполненный проект?</span><button class="btn ghost mini" type="button" data-qdemo>Открыть демо-проект</button></div>'}
     ${mine ? `<div class="st-sub"><span>Показаны вопросы отдела «${esc(R.t)}».</span> <span>Все вопросы — выберите «Я — все разделы» вверху.</span></div>` : ""}
     <h2 class="h2">Вопросы</h2>
     ${shown.length ? `<ol class="q-list">${shown.map(v => row(`<b>${esc(v.name)}</b><span class="st-sub">${esc(v.owner)}</span>`, qCtl(v, dis), qAct(v, ro))).join("")}</ol>`
@@ -9437,7 +9552,7 @@ function viewStructure() {
       return row(`<b>${esc(l.name.replace(/^Список: /, ""))}</b><span class="st-sub">${esc(l.owner)}</span>`, c ? `<span>строк: ${c}</span>` : '<span class="chip s-new">пусто</span>', `<a class="btn ghost mini" href="#${l.view}">${c ? "Открыть" : "Заполнить"}</a>`); }).join("")}</ul>` : ""}
     <h2 class="h2">Чек-лист этапа</h2>
     ${locked ? '<div class="st-sub">Этап ещё закрыт: пункты отмечаются, когда пройдены предыдущие этапы.</div>' : ""}
-    <ul class="q-tasks">${tasks.map((t, i) => `<li><label class="row" style="gap:8px;align-items:flex-start"><input type="checkbox" data-qtask="${sid}:${i}"${t.done ? " checked" : ""}${ro || locked ? " disabled" : ""}><span>${esc(t.t)}</span></label></li>`).join("")}</ul>
+    <ul class="q-tasks">${tasks.map((t, i) => `<li><label class="q-task"><input type="checkbox" data-qtask="${sid}:${i}"${t.done ? " checked" : ""}${ro || locked ? " disabled" : ""}><span>${esc(t.t)}</span></label></li>`).join("")}</ul>
     ${steps.length ? `<h2 class="h2">Где ещё работать на этапе</h2><div class="row" style="flex-wrap:wrap;gap:6px">${steps.map(([k, t]) => `<a class="btn ghost mini" href="#${k}" title="${esc(t)}">${esc(VIEWS[k].t)}</a>`).join("")}</div>` : ""}
     <div class="row between" style="flex-wrap:wrap;gap:8px">${go(N[i0 - 1], "← Предыдущий этап")}${go(N[i0 + 1], "Следующий этап →")}</div>
   </section>
