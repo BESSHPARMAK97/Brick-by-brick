@@ -43,19 +43,20 @@ do $$ begin
   end if;
 end $$;
 
--- 4. Изменения идут вверх: расчётная переменная затрагивает свою стену, комнату и этапы, где комната — шаг
-do $$
-declare v text;
-begin
-  select a.code into v from elements a join element_links l on l.child_id = a.id and l.role = 'output'
-    join element_links pl on pl.child_id = l.parent_id
-    join element_links sl on sl.child_id = pl.parent_id
-    join elements s on s.id = sl.parent_id and s.level_id = 5
-  limit 1;
-  if v is null then raise exception '4: ни одна расчётная переменная не доходит до этапа'; end if;
-  if not exists (select 1 from v_element_atoms ea join elements a on a.variable_id = ea.variable_id
-                 join elements s on s.id = ea.element_id and s.level_id = 5 where a.code = v) then
-    raise exception '4: v_element_atoms не поднимает % до этапа', v;
+-- 4. Изменения идут вверх: данные, которые нужны этапу, затрагивают этап; шаги этапа (где работать) — не затрагивают
+do $$ begin
+  if not exists (select 1 from element_links l join elements s on s.id = l.parent_id and s.level_id = 5
+                 join elements a on a.id = l.child_id and a.variable_id is not null) then
+    raise exception '4: этапам не нужны данные';
+  end if;
+  if exists (select 1 from element_links l join elements s on s.id = l.parent_id and s.level_id = 5
+             join elements a on a.id = l.child_id and a.variable_id is not null
+             where not exists (select 1 from v_element_atoms ea where ea.element_id = s.id and ea.variable_id = a.variable_id)) then
+    raise exception '4: v_element_atoms не поднимает нужные этапу данные до этапа';
+  end if;
+  if exists (select 1 from element_links l join elements s on s.id = l.parent_id and s.level_id = 5
+             join elements p on p.id = l.child_id and p.level_id = 3 where l.role <> 'step') then
+    raise exception '4: раздел входит в этап не шагом';
   end if;
 end $$;
 

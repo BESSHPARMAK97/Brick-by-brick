@@ -1,7 +1,7 @@
 -- СГЕНЕРИРОВАНО scripts/export-structure.js из prototype/index.html. Не править руками:
 -- после изменений портала запустите node scripts/export-skill-tree.js.
 -- Структура «от кирпича до ЖК» (docs/concept.md). Кирпичи: 308, стены-расчёты: 38, комнаты-разделы: 22,
--- кирпичи-списки: 24 (из них чек-листов этапов: 21), входы стен: 612 + из списков 60, вводимые кирпичи в комнатах: 270, этажи-этапы: 21, шаги этапов: 58,
+-- кирпичи-списки: 24 (из них чек-листов этапов: 21), входы стен: 612 + из списков 60, вводимые кирпичи в комнатах: 270, этажи-этапы: 21, шаги этапов: 69, нужные этапам данные: 78,
 -- квартиры-направления: 5 (разделов за отделами: 22 из 22).
 -- Запуск: psql -v ON_ERROR_STOP=1 -f docs/db/project-data.sql -f docs/db/structure-seed.sql -f docs/db/structure-seed-check.sql
 
@@ -355,7 +355,7 @@ insert into tools (name) values
   ('Этапы'),
   ('Смета из 1С'),
   ('Стандарты'),
-  ('Структура'),
+  ('Опросник'),
   ('Команда проекта'),
   ('Что если');
 
@@ -419,7 +419,7 @@ from (values
   ('roadmap', 'Этапы'),
   ('smeta', 'Смета из 1С'),
   ('standards', 'Стандарты'),
-  ('structure', 'Структура'),
+  ('structure', 'Опросник'),
   ('team', 'Команда проекта'),
   ('whatif', 'Что если')
 ) as x (view, title)
@@ -1578,42 +1578,137 @@ from (values
 join elements s on s.code = x.stage
 join elements a on a.code = x.list;
 
--- Шаги этапов (window.STAGE_STEPS): этап → раздел, порядок, что сделать
-insert into element_links (parent_id, child_id, ord, task)
-select s.id, p.id, x.ord, x.task
+-- Что нужно этапу (window.STAGE_NEEDS): данные и списки — состав этапа, из них его готовность
+insert into element_links (parent_id, child_id)
+select s.id, a.id
 from (values
-  ('stage.idea', 'proc.card', 1, 'Паспорт проекта: участок, класс, город'),
-  ('stage.idea', 'proc.model', 2, 'Предварительная финмодель: выручка, затраты, IRR'),
-  ('stage.idea', 'proc.whatif', 3, 'Чувствительность: цена, затраты, срок'),
-  ('stage.land', 'proc.card', 1, 'Участок: адрес, кадастр, площадь, застройщик'),
-  ('stage.land', 'proc.deadlines', 2, 'Сроки документов на землю'),
-  ('stage.ird', 'proc.deadlines', 1, 'Сроки АПЗ и техусловий'),
-  ('stage.sketch', 'proc.blocks', 1, 'Блоки из эскиза: этажность, квартиры, каркас'),
-  ('stage.sketch', 'proc.plans', 2, 'Планировки и квартирография'),
-  ('stage.sketch', 'proc.model', 3, 'Финмодель по ТЭП эскиза'),
-  ('stage.finance', 'proc.model', 1, 'Финмодель и график финансирования для банка'),
-  ('stage.finance', 'proc.whatif', 2, 'Сценарии для банка: продажи медленнее, ставка выше'),
-  ('stage.psd', 'proc.blocks', 1, 'Сверить блоки с ПСД'),
-  ('stage.psd', 'proc.smeta', 2, 'Смета из 1С'),
-  ('stage.expert', 'proc.deadlines', 1, 'Срок заключения экспертизы'),
+  ('stage.idea', 'atom.name'),
+  ('stage.idea', 'atom.city'),
+  ('stage.idea', 'atom.klass'),
+  ('stage.idea', 'atom.building'),
+  ('stage.idea', 'atom.client_text'),
+  ('stage.idea', 'atom.loc_text'),
+  ('stage.idea', 'atom.area_total'),
+  ('stage.idea', 'atom.area_sale'),
+  ('stage.idea', 'atom.area_comm'),
+  ('stage.idea', 'atom.parking'),
+  ('stage.idea', 'atom.price'),
+  ('stage.idea', 'atom.price_comm'),
+  ('stage.idea', 'atom.price_park'),
+  ('stage.idea', 'atom.growth'),
+  ('stage.idea', 'atom.land'),
+  ('stage.idea', 'atom.smr'),
+  ('stage.idea', 'atom.equity'),
+  ('stage.idea', 'atom.sched_start'),
+  ('stage.land', 'atom.address'),
+  ('stage.land', 'atom.area_land'),
+  ('stage.land', 'atom.cadastre'),
+  ('stage.land', 'atom.company'),
+  ('stage.land', 'atom.bin'),
+  ('stage.land', 'atom.director'),
+  ('stage.land', 'atom.zone'),
+  ('stage.ird', 'atom.regcode'),
+  ('stage.ird', 'atom.nets'),
+  ('stage.sketch', 'atom.area_total'),
+  ('stage.sketch', 'atom.area_sale'),
+  ('stage.sketch', 'atom.area_comm'),
+  ('stage.sketch', 'atom.parking'),
+  ('stage.sketch', 'list.blocks'),
+  ('stage.finance', 'atom.equity'),
+  ('stage.finance', 'atom.rate'),
+  ('stage.finance', 'atom.discount'),
+  ('stage.finance', 'atom.vat'),
+  ('stage.finance', 'atom.vat_exempt'),
+  ('stage.finance', 'atom.cit'),
+  ('stage.finance', 'atom.admin'),
+  ('stage.psd', 'atom.design'),
+  ('stage.psd', 'atom.smr'),
+  ('stage.psd', 'atom.nets'),
+  ('stage.psd', 'atom.supervision'),
+  ('stage.psd', 'atom.reserve'),
+  ('stage.psd', 'atom.construct'),
+  ('stage.psd', 'list.blocks'),
+  ('stage.expert', 'atom.ge'),
+  ('stage.pkstart', 'atom.mission'),
+  ('stage.pkstart', 'atom.kpi_nps'),
+  ('stage.pkstart', 'atom.kpi_engagement'),
+  ('stage.pkstart', 'atom.loc_text'),
+  ('stage.pkstart', 'atom.facade_text'),
+  ('stage.pkstart', 'atom.client_text'),
+  ('stage.pkstart', 'atom.marketing'),
+  ('stage.pkstart', 'atom.delay_overhead'),
+  ('stage.pkstart', 'atom.sales'),
+  ('stage.dolevka', 'atom.sales'),
+  ('stage.dolevka', 'atom.price'),
+  ('stage.dolevka', 'atom.marketing'),
+  ('stage.dolevka', 'list.chess'),
+  ('stage.start', 'atom.sched_start'),
+  ('stage.start', 'atom.regcode'),
+  ('stage.start', 'atom.stage'),
+  ('stage.start', 'atom.work'),
+  ('stage.start', 'atom.construct'),
+  ('stage.start', 'atom.eq_mono'),
+  ('stage.start', 'atom.eq_mas'),
+  ('stage.start', 'atom.eq_lift'),
+  ('stage.start', 'atom.eq_crane_tail'),
+  ('stage.start', 'atom.eq_abn'),
+  ('stage.start', 'atom.eq_stagger'),
+  ('stage.start', 'list.equipPlan'),
+  ('stage.commission', 'atom.ge'),
+  ('stage.commission', 'atom.address'),
+  ('stage.commission', 'atom.cadastre'),
+  ('stage.commission', 'atom.area_total'),
+  ('stage.commission', 'atom.director'),
+  ('stage.handover', 'list.chess')
+) as x (stage, atom)
+join elements s on s.code = x.stage
+join elements a on a.code = x.atom;
+
+-- Шаги этапов (window.STAGE_STEPS): этап → раздел, порядок, что сделать. Шаг — где работать, не состав (role step)
+insert into element_links (parent_id, child_id, role, ord, task)
+select s.id, p.id, 'step', x.ord, x.task
+from (values
+  ('stage.idea', 'proc.structure', 1, 'Опросник: ответить на вопросы этапа'),
+  ('stage.idea', 'proc.card', 2, 'Паспорт проекта: участок, класс, город'),
+  ('stage.idea', 'proc.model', 3, 'Предварительная финмодель: выручка, затраты, IRR'),
+  ('stage.idea', 'proc.whatif', 4, 'Чувствительность: цена, затраты, срок'),
+  ('stage.land', 'proc.structure', 1, 'Опросник: ответить на вопросы этапа'),
+  ('stage.land', 'proc.card', 2, 'Участок: адрес, кадастр, площадь, застройщик'),
+  ('stage.land', 'proc.deadlines', 3, 'Сроки документов на землю'),
+  ('stage.ird', 'proc.structure', 1, 'Опросник: ответить на вопросы этапа'),
+  ('stage.ird', 'proc.deadlines', 2, 'Сроки АПЗ и техусловий'),
+  ('stage.sketch', 'proc.structure', 1, 'Опросник: ответить на вопросы этапа'),
+  ('stage.sketch', 'proc.blocks', 2, 'Блоки из эскиза: этажность, квартиры, каркас'),
+  ('stage.sketch', 'proc.plans', 3, 'Планировки и квартирография'),
+  ('stage.sketch', 'proc.model', 4, 'Финмодель по ТЭП эскиза'),
+  ('stage.finance', 'proc.structure', 1, 'Опросник: ответить на вопросы этапа'),
+  ('stage.finance', 'proc.model', 2, 'Финмодель и график финансирования для банка'),
+  ('stage.finance', 'proc.whatif', 3, 'Сценарии для банка: продажи медленнее, ставка выше'),
+  ('stage.psd', 'proc.structure', 1, 'Опросник: ответить на вопросы этапа'),
+  ('stage.psd', 'proc.blocks', 2, 'Сверить блоки с ПСД'),
+  ('stage.psd', 'proc.smeta', 3, 'Смета из 1С'),
+  ('stage.expert', 'proc.structure', 1, 'Опросник: ответить на вопросы этапа'),
+  ('stage.expert', 'proc.deadlines', 2, 'Срок заключения экспертизы'),
   ('stage.tender', 'proc.smeta', 1, 'Сравнить предложения подрядчиков со сметой'),
   ('stage.tender', 'proc.partners', 2, 'Генподрядчик, технадзор, проектировщик'),
-  ('stage.pkstart', 'proc.b0', 1, 'Чек-лист B0: анкета проекта для сметы ОРС'),
-  ('stage.pkstart', 'proc.pnr', 2, 'Калькулятор ПНР: показатели для расчёта ОРС'),
-  ('stage.pkstart', 'proc.model', 3, 'Уточнить финмодель по итогам B0 и ПНР'),
-  ('stage.pkstart', 'proc.whatif', 4, 'Сценарии «что если» для комитета'),
-  ('stage.pkstart', 'proc.structure', 5, 'Структура: что ещё не утверждено и что затронет изменение'),
+  ('stage.pkstart', 'proc.structure', 1, 'Опросник: ответить на вопросы этапа'),
+  ('stage.pkstart', 'proc.b0', 2, 'Чек-лист B0: анкета проекта для сметы ОРС'),
+  ('stage.pkstart', 'proc.pnr', 3, 'Калькулятор ПНР: показатели для расчёта ОРС'),
+  ('stage.pkstart', 'proc.model', 4, 'Уточнить финмодель по итогам B0 и ПНР'),
+  ('stage.pkstart', 'proc.whatif', 5, 'Сценарии «что если» для комитета'),
   ('stage.pkstart', 'proc.data', 6, 'Проверить и утвердить данные, зафиксировать базу ПК Start'),
   ('stage.pkstart', 'proc.kpi', 7, 'Ключевые показатели: срок, маржа, IRR, долг'),
   ('stage.pkstart', 'proc.pk', 8, 'Собрать презентацию для комитета'),
-  ('stage.dolevka', 'proc.chess', 1, 'Шахматка: квартиры и статусы продаж'),
-  ('stage.dolevka', 'proc.deadlines', 2, 'Сроки по долевому участию'),
-  ('stage.start', 'proc.team', 1, 'Команда проекта'),
-  ('stage.start', 'proc.partners', 2, 'Подписанты: генподряд, технадзор, авторнадзор'),
-  ('stage.start', 'proc.budget', 3, 'Бюджет: план из финмодели'),
-  ('stage.start', 'proc.equip', 4, 'План спецтехники на весь цикл'),
-  ('stage.start', 'proc.standards', 5, 'Стандарты на работы'),
-  ('stage.start', 'proc.deadlines', 6, 'Уведомление о начале СМР'),
+  ('stage.dolevka', 'proc.structure', 1, 'Опросник: ответить на вопросы этапа'),
+  ('stage.dolevka', 'proc.chess', 2, 'Шахматка: квартиры и статусы продаж'),
+  ('stage.dolevka', 'proc.deadlines', 3, 'Сроки по долевому участию'),
+  ('stage.start', 'proc.structure', 1, 'Опросник: ответить на вопросы этапа'),
+  ('stage.start', 'proc.team', 2, 'Команда проекта'),
+  ('stage.start', 'proc.partners', 3, 'Подписанты: генподряд, технадзор, авторнадзор'),
+  ('stage.start', 'proc.budget', 4, 'Бюджет: план из финмодели'),
+  ('stage.start', 'proc.equip', 5, 'План спецтехники на весь цикл'),
+  ('stage.start', 'proc.standards', 6, 'Стандарты на работы'),
+  ('stage.start', 'proc.deadlines', 7, 'Уведомление о начале СМР'),
   ('stage.zero', 'proc.acts', 1, 'Акты скрытых работ и приёмки конструкций'),
   ('stage.zero', 'proc.equip', 2, 'Спецтехника этапа по графику'),
   ('stage.zero', 'proc.budget', 3, 'Факт затрат по этапу'),
@@ -1637,9 +1732,11 @@ from (values
   ('stage.finish', 'proc.equip', 2, 'Спецтехника этапа по графику'),
   ('stage.finish', 'proc.budget', 3, 'Факт затрат по этапу'),
   ('stage.finish', 'proc.standards', 4, 'Стандарты на работы этапа'),
-  ('stage.commission', 'proc.acts', 1, 'Акты испытаний, заключения надзоров, декларация и акт приёмки'),
-  ('stage.commission', 'proc.deadlines', 2, 'Сроки ввода в эксплуатацию'),
-  ('stage.handover', 'proc.chess', 1, 'Передача квартир')
+  ('stage.commission', 'proc.structure', 1, 'Опросник: ответить на вопросы этапа'),
+  ('stage.commission', 'proc.acts', 2, 'Акты испытаний, заключения надзоров, декларация и акт приёмки'),
+  ('stage.commission', 'proc.deadlines', 3, 'Сроки ввода в эксплуатацию'),
+  ('stage.handover', 'proc.structure', 1, 'Опросник: ответить на вопросы этапа'),
+  ('stage.handover', 'proc.chess', 2, 'Передача квартир')
 ) as x (stage, proc, ord, task)
 join elements s on s.code = x.stage
 join elements p on p.code = x.proc;
@@ -1657,6 +1754,6 @@ do $$ begin
   if (select count(*) from element_links l join elements c on c.id = l.child_id and c.level_id = 2 where l.role = 'part') <> 38 then raise exception 'structure-seed: связей «стена в комнате» не 38'; end if;
   if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 3 join elements c on c.id = l.child_id and c.level_id = 1) <> 294 then raise exception 'structure-seed: вводимых кирпичей в комнатах не 294'; end if;
   if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 4) <> 22 then raise exception 'structure-seed: разделов у отделов не 22'; end if;
-  if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 5 join elements c on c.id = l.child_id and c.level_id = 3) <> 58 then raise exception 'structure-seed: шагов этапов не 58'; end if;
-  if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 5 join elements c on c.id = l.child_id and c.level_id = 1) <> 21 then raise exception 'structure-seed: чек-листов в этапах не 21'; end if;
+  if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 5 join elements c on c.id = l.child_id and c.level_id = 3) <> 69 then raise exception 'structure-seed: шагов этапов не 69'; end if;
+  if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 5 join elements c on c.id = l.child_id and c.level_id = 1) <> 99 then raise exception 'structure-seed: данных и чек-листов в этапах не 99'; end if;
 end $$;
