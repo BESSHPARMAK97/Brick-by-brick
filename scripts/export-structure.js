@@ -4,7 +4,8 @@
 //   комнаты — разделы портала (VIEWS): шаги этапов и разделы, которые считают переменные;
 //   этажи — этапы дорожной карты (window.TREE) с шагами по порядку из window.STAGE_STEPS.
 // Портал — единственный источник: файл не правится руками, CI сверяет его с порталом.
-// Чего в портале нет, того нет и в базе: входы расчётов и направления отделов (квартиры) не размечены.
+//   входы стен — from у переменной (window.VARS: из каких переменных считается calc).
+// Чего в портале нет, того нет и в базе: направления отделов (квартиры) не размечены.
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
@@ -13,7 +14,7 @@ const root = path.join(__dirname, "..");
 const html = fs.readFileSync(path.join(root, "prototype/index.html"), "utf8");
 const pick = id => html.match(new RegExp('<script id="' + id + '">([\\s\\S]*?)<\\/script>'))[1];
 const ctx = { window: {} };
-vm.runInNewContext(["tree-data", "dicts", "pnr-data", "vars-data", "stage-steps"].map(pick).join("\n"), ctx);
+vm.runInNewContext(["tree-data", "dicts", "pnr-data", "model-lib", "vars-data", "stage-steps"].map(pick).join("\n"), ctx);
 const { VARS, TREE, STAGE_STEPS } = ctx.window;
 
 // Названия разделов — из VIEWS основного скрипта портала
@@ -38,6 +39,8 @@ const rows = (list, f) => list.map(x => "  (" + f(x).join(", ") + ")").join(",\n
 const items = VARS.items;
 const owners = [...new Set(items.map(v => v.owner))];
 const calcs = items.filter(v => v.calc).map(v => [v.id, calcView(v.calc)]);
+const inputs = [];
+items.filter(v => v.calc).forEach(v => (v.from || []).forEach(x => inputs.push([v.id, x])));
 
 // Шаги этапов: как в портале, только разделы, которые есть в VIEWS
 const steps = [];
@@ -57,7 +60,7 @@ const procs = [...new Set(steps.map(s => s[1]).concat(calcs.map(c => c[1])))].so
 const out = `-- СГЕНЕРИРОВАНО scripts/export-structure.js из prototype/index.html. Не править руками:
 -- после изменений портала запустите node scripts/export-skill-tree.js.
 -- Структура «от кирпича до ЖК» (docs/concept.md). Кирпичи: ${items.length}, стены-расчёты: ${calcs.length}, комнаты-разделы: ${procs.length},
--- этажи-этапы: ${TREE.nodes.length}, шаги этапов: ${steps.length}. Входы расчётов и направления отделов в портале пока не размечены.
+-- входы стен: ${inputs.length}, этажи-этапы: ${TREE.nodes.length}, шаги этапов: ${steps.length}. Направления отделов в портале пока не размечены.
 -- Запуск: psql -v ON_ERROR_STOP=1 -f docs/db/project-data.sql -f docs/db/structure-seed.sql -f docs/db/structure-seed-check.sql
 
 -- Отделы-владельцы переменных
@@ -96,6 +99,15 @@ select 2, 'op.' || code, 'Расчёт: ' || name from variables where source = 
 insert into element_links (parent_id, child_id, role)
 select o.id, a.id, 'output' from elements o join elements a on a.code = 'atom.' || substr(o.code, 4)
 where o.code like 'op.%';
+
+-- Входы стен: из каких переменных считается расчёт (from в window.VARS)
+insert into element_links (parent_id, child_id, role)
+select o.id, a.id, 'input'
+from (values
+${rows(inputs, ([id, x]) => [q("op." + id), q("atom." + x)])}
+) as x (op, atom)
+join elements o on o.code = x.op
+join elements a on a.code = x.atom;
 
 -- Стена стоит в комнате раздела, который считает переменную (calc)
 insert into element_links (parent_id, child_id)

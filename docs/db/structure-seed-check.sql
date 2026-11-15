@@ -54,13 +54,32 @@ begin
   end if;
 end $$;
 
--- 5. Входы расчётов в портале не размечены, поэтому готовность честно пустая, а не «готово»
+-- 5. Цепочка расчётов: если вход стены — расчётный кирпич, элемент видит и входы стены, которая его считает
+do $$ begin
+  if not exists (select 1 from element_links where role = 'input') then raise exception '5: у стен нет входов'; end if;
+  if exists (
+    select 1 from element_links i
+    join elements a on a.id = i.child_id join variables v on v.id = a.variable_id and v.source = 'calc'
+    join element_links o on o.child_id = a.id and o.role = 'output'
+    join element_links pi on pi.parent_id = o.parent_id and pi.role = 'input'
+    join elements b on b.id = pi.child_id
+    where i.role = 'input'
+      and not exists (select 1 from v_element_atoms ea where ea.element_id = i.parent_id and ea.variable_id = b.variable_id)) then
+    raise exception '5: v_element_atoms не идёт по цепочке расчётов';
+  end if;
+end $$;
+
+-- 6. Готовность: без значений элементы с входами не готовы; без входов (расчёт из списков, графика, файла) — пусто
 insert into companies (name) values ('Проверка');
 insert into projects (company_id, name) select id, 'Проверка' from companies;
 do $$ begin
   if exists (select 1 from v_element_status where inputs = 0 and ready is not null) then
-    raise exception '5: готовность без входов не пустая';
+    raise exception '6: готовность без входов не пустая';
   end if;
+  if exists (select 1 from v_element_status where inputs > 0 and ready) then
+    raise exception '6: элемент готов без утверждённых значений';
+  end if;
+  if not exists (select 1 from v_element_status where inputs > 0) then raise exception '6: ни у одного элемента нет входов'; end if;
 end $$;
 
 select 'structure-seed: все проверки пройдены' as result;

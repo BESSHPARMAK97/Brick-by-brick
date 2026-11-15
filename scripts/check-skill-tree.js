@@ -71,6 +71,22 @@ V.items.forEach(v => {
   else if (!["model", "project", "sched", "pnr", "equip"].includes(root)) fail(`variable ${v.id}: bad path ${v.path}`);
   if (v.type === "sel" && v.dict && !ctx.window.DICTS[v.dict]) fail(`variable ${v.id}: unknown dictionary ${v.dict}`);
 });
+// Входы расчётов (from): у каждого calc — список переменных, без ссылок в никуда и без циклов; у вводимых from нет.
+const VB = Object.fromEntries(V.items.map(v => [v.id, v]));
+V.items.forEach(v => {
+  if (!v.calc) { if (v.from) fail(`variable ${v.id}: from is only for calc variables`); return; }
+  if (!Array.isArray(v.from)) { fail(`variable ${v.id}: calc without from (inputs of the calculation)`); return; }
+  v.from.forEach(x => { if (!VB[x]) fail(`variable ${v.id}: unknown input ${x}`); else if (x === v.id) fail(`variable ${v.id}: input of itself`); });
+});
+const vstate = {};
+const visit = (id, chain) => {
+  if (vstate[id] === 2) return;
+  if (vstate[id] === 1) { fail(`variable inputs cycle: ${chain.concat(id).join(" → ")}`); return; }
+  vstate[id] = 1;
+  ((VB[id] && VB[id].from) || []).forEach(x => visit(x, chain.concat(id)));
+  vstate[id] = 2;
+};
+V.items.forEach(v => visit(v.id, []));
 // Листы калькулятора ПНР: уникальные ключи и ячейки, известные справочники.
 const PS = ctx.window.PNR_SHEETS || [], pkeys = new Set(), pcells = new Set();
 PS.forEach(g => g.rows.forEach(([key, cell, , , src]) => {

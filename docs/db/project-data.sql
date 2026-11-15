@@ -311,11 +311,17 @@ create trigger element_link_check before insert or update on element_links
 
 -- Из каких кирпичей (переменных) собран каждый элемент, на всю глубину.
 -- Обратное чтение отвечает «что затронет изменение переменной»: изменения идут вверх.
+-- Цепочка расчётов учитывается: если вход стены — расчётный кирпич, дальше идут входы стены, которая его считает
+-- (прибыль ← сроки продаж ← старт графика).
 create view v_element_atoms as
-with recursive down (element_id, child_id) as (
+with recursive edges (parent_id, child_id) as (
   select parent_id, child_id from element_links
+  union all
+  select child_id, parent_id from element_links where role = 'output'   -- расчётный кирпич → его стена
+), down (element_id, child_id) as (
+  select parent_id, child_id from edges
   union
-  select d.element_id, l.child_id from down d join element_links l on l.parent_id = d.child_id
+  select d.element_id, e.child_id from down d join edges e on e.parent_id = d.child_id
 )
 select distinct d.element_id, a.variable_id
 from down d join elements a on a.id = d.child_id
@@ -334,7 +340,7 @@ select p.id as project_id, e.id as element_id, e.code, lv.name as level,
 from projects p
 cross join elements e
 join levels lv on lv.id = e.level_id
-join v_element_atoms ea on ea.element_id = e.id
-join variables v on v.id = ea.variable_id
+left join v_element_atoms ea on ea.element_id = e.id                  -- элемент без кирпичей тоже виден: готовность пустая
+left join variables v on v.id = ea.variable_id
 left join variable_values vv on vv.project_id = p.id and vv.variable_id = v.id
 group by p.id, e.id, e.code, lv.name;

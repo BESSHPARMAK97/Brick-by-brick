@@ -4612,9 +4612,9 @@ window.VARS = {
     { id: "klass", name: "Класс жилья", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "sel", path: "project.klass", used: ["Стандарты", "Образцы документов", "ПК Start"] },
     { id: "city", name: "Город", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "sel", path: "project.city", used: ["Стандарты", "Образцы документов", "Портфель"] },
     { id: "address", name: "Адрес участка", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "text", path: "project.address", used: ["Образцы документов"] },
-    { id: "blocks", name: "Количество жилых блоков", unit: "шт", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "num", calc: "Блоки проекта", used: ["Образцы документов", "ПК Start"] },
-    { id: "floors", name: "Этажность", unit: "эт.", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "num", calc: "Блоки проекта", used: ["Образцы документов", "ПК Start"] },
-    { id: "flats", name: "Количество квартир", unit: "шт", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "num", calc: "Блоки проекта", used: ["Образцы документов", "ПК Start"] },
+    { id: "blocks", name: "Количество жилых блоков", unit: "шт", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "num", calc: "Блоки проекта", from: [], used: ["Образцы документов", "ПК Start"] },
+    { id: "floors", name: "Этажность", unit: "эт.", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "num", calc: "Блоки проекта", from: [], used: ["Образцы документов", "ПК Start"] },
+    { id: "flats", name: "Количество квартир", unit: "шт", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "num", calc: "Блоки проекта", from: [], used: ["Образцы документов", "ПК Start"] },
     { id: "area_total", name: "Общая площадь здания", unit: "м²", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "num", path: "project.area_total", def: "model.area_total", used: ["Финмодель", "Образцы документов", "ПК Start"] },
     { id: "area_sale", name: "Продаваемая жилая площадь", unit: "м²", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "num", path: "model.area_sale", used: ["Финмодель", "ПК Start"] },
     { id: "area_comm", name: "Коммерческая площадь", unit: "м²", sec: "Паспорт и ТЭП", owner: "Команда проекта", type: "num", path: "model.area_comm", used: ["Финмодель", "ПК Start"] },
@@ -4637,25 +4637,25 @@ window.VARS = {
     { id: "price_comm", name: "Цена коммерции с НДС", unit: "тг/м²", sec: "Продажи", owner: "Продажи", type: "num", path: "model.price_comm", better: "up", used: ["Финмодель"] },
     { id: "price_park", name: "Цена машино-места с НДС", unit: "тг/шт", sec: "Продажи", owner: "Продажи", type: "num", path: "model.price_park", better: "up", used: ["Финмодель"] },
     { id: "growth", name: "Рост цен", unit: "% в год", sec: "Продажи", owner: "Продажи", type: "num", path: "model.growth", better: "up", used: ["Финмодель"] },
-    { id: "sales_start", name: "Начало продаж", unit: "мес. от старта", sec: "Продажи", owner: "Продажи", calc: "График", better: "down", used: ["Финмодель", "ПК Start"] },
-    { id: "sales_dur", name: "Длительность продаж", unit: "мес.", sec: "Продажи", owner: "Продажи", calc: "График", better: "down", used: ["Финмодель", "ПК Start"] },
-    { id: "sold_flats", name: "Продано квартир", unit: "шт", sec: "Продажи", owner: "Продажи", calc: "Шахматка", better: "up", used: ["Шахматка"] },
-    { id: "reserved_flats", name: "Квартир в брони", unit: "шт", sec: "Продажи", owner: "Продажи", calc: "Шахматка", used: ["Шахматка"] },
-    { id: "apts_area", name: "Площадь квартир по шахматке", unit: "м²", sec: "Продажи", owner: "Продажи", calc: "Шахматка", used: ["Шахматка"] },
+    { id: "sales_start", name: "Начало продаж", unit: "мес. от старта", sec: "Продажи", owner: "Продажи", calc: "График", from: ["sched_start"], better: "down", used: ["Финмодель", "ПК Start"] },
+    { id: "sales_dur", name: "Длительность продаж", unit: "мес.", sec: "Продажи", owner: "Продажи", calc: "График", from: ["sched_start"], better: "down", used: ["Финмодель", "ПК Start"] },
+    { id: "sold_flats", name: "Продано квартир", unit: "шт", sec: "Продажи", owner: "Продажи", calc: "Шахматка", from: [], better: "up", used: ["Шахматка"] },
+    { id: "reserved_flats", name: "Квартир в брони", unit: "шт", sec: "Продажи", owner: "Продажи", calc: "Шахматка", from: [], used: ["Шахматка"] },
+    { id: "apts_area", name: "Площадь квартир по шахматке", unit: "м²", sec: "Продажи", owner: "Продажи", calc: "Шахматка", from: [], used: ["Шахматка"] },
     { id: "sales", name: "Условия продаж", sec: "Продажи", owner: "Продажи", type: "text", path: "project.sales", used: ["Карточка", "ПК Start"] },
 
     // Спецтехника: нормы ГПР «этаж в месяц» (меняются под проект) и итоги потребности по блокам и графику
-    { id: "eq_plan_sum", name: "Спецтехника по плану ГПР", unit: "тг", sec: "Спецтехника", owner: "Команда проекта", calc: "Спецтехника", better: "down", used: ["Спецтехника"] },
+    { id: "eq_plan_sum", name: "Спецтехника по плану ГПР", unit: "тг", sec: "Спецтехника", owner: "Команда проекта", calc: "Спецтехника", from: [], better: "down", used: ["Спецтехника"] },
     { id: "eq_mono", name: "Скорость монолита", unit: "эт./мес", sec: "Спецтехника", owner: "Команда проекта", type: "num", path: "equip.mono", dflt: 3, used: ["Спецтехника"] },
     { id: "eq_mas", name: "Скорость кладки", unit: "эт./мес", sec: "Спецтехника", owner: "Команда проекта", type: "num", path: "equip.mas", dflt: 3, used: ["Спецтехника"] },
     { id: "eq_lift", name: "Подъёмник нужен с этажа монолита", unit: "эт.", sec: "Спецтехника", owner: "Команда проекта", type: "num", path: "equip.lift", dflt: 12, used: ["Спецтехника"] },
     { id: "eq_crane_tail", name: "Кран после монолита (кровля и кладка)", unit: "мес.", sec: "Спецтехника", owner: "Команда проекта", type: "num", path: "equip.craneTail", dflt: 2, used: ["Спецтехника"] },
     { id: "eq_abn", name: "Плит перекрытий на автобетононасосе", unit: "шт", sec: "Спецтехника", owner: "Команда проекта", type: "num", path: "equip.abn", dflt: 4, used: ["Спецтехника"] },
     { id: "eq_stagger", name: "Сдвиг старта следующего блока", unit: "мес.", sec: "Спецтехника", owner: "Команда проекта", type: "num", path: "equip.stagger", dflt: 0, used: ["Спецтехника"] },
-    { id: "eq_crane_m", name: "Башенные краны, потребность", unit: "кран-мес", sec: "Спецтехника", owner: "Команда проекта", calc: "Спецтехника", used: ["Спецтехника"] },
-    { id: "eq_lift_m", name: "Подъёмники, потребность", unit: "мес.", sec: "Спецтехника", owner: "Команда проекта", calc: "Спецтехника", used: ["Спецтехника"] },
-    { id: "eq_pump_m", name: "Стационарный бетононасос, потребность", unit: "мес.", sec: "Спецтехника", owner: "Команда проекта", calc: "Спецтехника", used: ["Спецтехника"] },
-    { id: "eq_sum", name: "Спецтехника по плану (файл), с НДС", unit: "тг", sec: "Спецтехника", owner: "Команда проекта", calc: "Спецтехника", used: ["Спецтехника"] },
+    { id: "eq_crane_m", name: "Башенные краны, потребность", unit: "кран-мес", sec: "Спецтехника", owner: "Команда проекта", calc: "Спецтехника", from: ["eq_mono", "eq_crane_tail", "eq_stagger"], used: ["Спецтехника"] },
+    { id: "eq_lift_m", name: "Подъёмники, потребность", unit: "мес.", sec: "Спецтехника", owner: "Команда проекта", calc: "Спецтехника", from: ["eq_lift", "eq_mono", "eq_mas", "eq_stagger"], used: ["Спецтехника"] },
+    { id: "eq_pump_m", name: "Стационарный бетононасос, потребность", unit: "мес.", sec: "Спецтехника", owner: "Команда проекта", calc: "Спецтехника", from: ["eq_abn", "eq_mono", "eq_stagger"], used: ["Спецтехника"] },
+    { id: "eq_sum", name: "Спецтехника по плану (файл), с НДС", unit: "тг", sec: "Спецтехника", owner: "Команда проекта", calc: "Спецтехника", from: [], used: ["Спецтехника"] },
     { id: "land", name: "Стоимость земли", unit: "тг", sec: "Затраты", owner: "Развитие", type: "num", path: "model.land", better: "down", used: ["Финмодель", "Бюджет"] },
     { id: "design", name: "ИРД, изыскания, проект", unit: "тг/м²", sec: "Затраты", owner: "ОРС", type: "num", path: "model.design", better: "down", used: ["Финмодель", "Бюджет"] },
     { id: "smr", name: "СМР", unit: "тг/м²", sec: "Затраты", owner: "ОРС", type: "num", path: "model.smr", better: "down", used: ["Финмодель", "Бюджет", "ПК Start"] },
@@ -4664,7 +4664,7 @@ window.VARS = {
     { id: "reserve", name: "Резерв", unit: "% СМР", sec: "Затраты", owner: "ОРС", type: "num", path: "model.reserve", used: ["Финмодель"] },
     { id: "marketing", name: "Маркетинг и продажи", unit: "% выручки", sec: "Затраты", owner: "Продажи", type: "num", path: "model.marketing", better: "down", used: ["Финмодель"] },
     { id: "admin", name: "Административные расходы", unit: "% выручки", sec: "Затраты", owner: "Финансы", type: "num", path: "model.admin", better: "down", used: ["Финмодель"] },
-    { id: "pnr_cost", name: "ПНР по калькулятору ОРС", unit: "тг", sec: "Затраты", owner: "ОРС", calc: "Калькулятор ПНР", better: "down", used: ["Финмодель", "Бюджет"] },
+    { id: "pnr_cost", name: "ПНР по калькулятору ОРС", unit: "тг", sec: "Затраты", owner: "ОРС", calc: "Калькулятор ПНР", from: ["@pnr", "vat"], better: "down", used: ["Финмодель", "Бюджет"] },
     { id: "delay_overhead", name: "Накладные за месяц задержки стройки", unit: "тг/мес", sec: "Затраты", owner: "Финансы", type: "num", path: "model.delay_overhead", better: "down", used: ["Финмодель", "Что если"] },
 
     { id: "equity", name: "Собственный капитал", unit: "тг", sec: "Финансирование и налоги", owner: "Финансы", type: "num", path: "model.equity", used: ["Финмодель"] },
@@ -4675,32 +4675,32 @@ window.VARS = {
     { id: "cit", name: "КПН", unit: "%", sec: "Финансирование и налоги", owner: "Финансы", type: "num", path: "model.cit", used: ["Финмодель"] },
 
     { id: "sched_start", name: "Старт проекта", sec: "Сроки", owner: "Команда проекта", type: "month", path: "sched.start", used: ["График", "Отчёты"] },
-    { id: "land_m", name: "Покупка земли", unit: "мес. от старта", sec: "Сроки", owner: "Команда проекта", calc: "График", used: ["Финмодель", "ПК Start"] },
-    { id: "design_start", name: "Начало проектирования", unit: "мес. от старта", sec: "Сроки", owner: "Команда проекта", calc: "График", used: ["Финмодель", "ПК Start"] },
-    { id: "design_dur", name: "Длительность проектирования", unit: "мес.", sec: "Сроки", owner: "Команда проекта", calc: "График", better: "down", used: ["Финмодель", "ПК Start"] },
-    { id: "build_start", name: "Начало стройки", unit: "мес. от старта", sec: "Сроки", owner: "Команда проекта", calc: "График", better: "down", used: ["Финмодель", "ПК Start"] },
-    { id: "build_dur", name: "Длительность стройки", unit: "мес.", sec: "Сроки", owner: "Команда проекта", calc: "График", better: "down", used: ["Финмодель", "ПК Start"] },
+    { id: "land_m", name: "Покупка земли", unit: "мес. от старта", sec: "Сроки", owner: "Команда проекта", calc: "График", from: ["sched_start"], used: ["Финмодель", "ПК Start"] },
+    { id: "design_start", name: "Начало проектирования", unit: "мес. от старта", sec: "Сроки", owner: "Команда проекта", calc: "График", from: ["sched_start"], used: ["Финмодель", "ПК Start"] },
+    { id: "design_dur", name: "Длительность проектирования", unit: "мес.", sec: "Сроки", owner: "Команда проекта", calc: "График", from: ["sched_start"], better: "down", used: ["Финмодель", "ПК Start"] },
+    { id: "build_start", name: "Начало стройки", unit: "мес. от старта", sec: "Сроки", owner: "Команда проекта", calc: "График", from: ["sched_start"], better: "down", used: ["Финмодель", "ПК Start"] },
+    { id: "build_dur", name: "Длительность стройки", unit: "мес.", sec: "Сроки", owner: "Команда проекта", calc: "График", from: ["sched_start"], better: "down", used: ["Финмодель", "ПК Start"] },
 
-    { id: "fin_rev", name: "Выручка с НДС", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", better: "up", used: ["ПК Start", "Отчёты"] },
-    { id: "fin_cost", name: "Затраты с НДС", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", better: "down", used: ["Бюджет", "ПК Start", "Карточка"] },
-    { id: "fin_cost_m2", name: "Себестоимость 1 м² с процентами", unit: "тг", sec: "Результаты финмодели", owner: "ОРС", calc: "Финмодель", better: "down", used: ["ПК Start"] },
-    { id: "fin_pbt", name: "Прибыль до налога", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", better: "up", used: ["ПК Start"] },
-    { id: "fin_net", name: "Чистая прибыль", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", better: "up", used: ["ПК Start", "Отчёты"] },
-    { id: "fin_margin", name: "Маржа к себестоимости", unit: "%", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", better: "up", used: ["ПК Start"] },
-    { id: "fin_irr", name: "IRR на собственный капитал", unit: "%", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", better: "up", used: ["ПК Start"] },
-    { id: "fin_npv", name: "NPV", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", better: "up", used: ["ПК Start"] },
-    { id: "fin_peak_debt", name: "Пиковый долг банку", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", better: "down", used: ["ПК Start"] },
-    { id: "fin_fc_margin", name: "Маржа по прогнозу графика", unit: "%", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", better: "up", used: ["Что если", "Обзор"] },
-    { id: "fin_fc_peak_debt", name: "Пиковый долг по прогнозу графика", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", better: "down", used: ["Что если", "Обзор"] },
-    { id: "fin_delay_loss", name: "Потеря прибыли от отставания графика", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", better: "down", used: ["Что если", "Обзор"] },
+    { id: "fin_rev", name: "Выручка с НДС", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", from: ["area_sale", "apts_area", "area_comm", "parking", "price", "price_comm", "price_park", "growth", "sales_start", "sales_dur"], better: "up", used: ["ПК Start", "Отчёты"] },
+    { id: "fin_cost", name: "Затраты с НДС", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", from: ["@model", "apts_area", "pnr_cost"], better: "down", used: ["Бюджет", "ПК Start", "Карточка"] },
+    { id: "fin_cost_m2", name: "Себестоимость 1 м² с процентами", unit: "тг", sec: "Результаты финмодели", owner: "ОРС", calc: "Финмодель", from: ["@model", "apts_area", "pnr_cost"], better: "down", used: ["ПК Start"] },
+    { id: "fin_pbt", name: "Прибыль до налога", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", from: ["@model", "apts_area", "pnr_cost"], better: "up", used: ["ПК Start"] },
+    { id: "fin_net", name: "Чистая прибыль", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", from: ["@model", "apts_area", "pnr_cost"], better: "up", used: ["ПК Start", "Отчёты"] },
+    { id: "fin_margin", name: "Маржа к себестоимости", unit: "%", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", from: ["@model", "apts_area", "pnr_cost"], better: "up", used: ["ПК Start"] },
+    { id: "fin_irr", name: "IRR на собственный капитал", unit: "%", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", from: ["@model", "apts_area", "pnr_cost"], better: "up", used: ["ПК Start"] },
+    { id: "fin_npv", name: "NPV", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", from: ["@model", "apts_area", "pnr_cost"], better: "up", used: ["ПК Start"] },
+    { id: "fin_peak_debt", name: "Пиковый долг банку", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", from: ["@model", "apts_area", "pnr_cost"], better: "down", used: ["ПК Start"] },
+    { id: "fin_fc_margin", name: "Маржа по прогнозу графика", unit: "%", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", from: ["@model", "apts_area", "pnr_cost", "delay"], better: "up", used: ["Что если", "Обзор"] },
+    { id: "fin_fc_peak_debt", name: "Пиковый долг по прогнозу графика", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", from: ["@model", "apts_area", "pnr_cost", "delay"], better: "down", used: ["Что если", "Обзор"] },
+    { id: "fin_delay_loss", name: "Потеря прибыли от отставания графика", unit: "тг", sec: "Результаты финмодели", owner: "Финансы", calc: "Финмодель", from: ["@model", "apts_area", "pnr_cost", "delay", "fin_pbt"], better: "down", used: ["Что если", "Обзор"] },
 
-    { id: "cur_stage", name: "Текущий этап", sec: "Ход проекта", owner: "Команда проекта", calc: "Дорожная карта", used: ["Карточка", "Стандарты", "Портфель"] },
-    { id: "stages_done", name: "Пройдено этапов", unit: "шт", sec: "Ход проекта", owner: "Команда проекта", calc: "Дорожная карта", better: "up", used: ["Портфель", "Отчёты"] },
-    { id: "keys_plan", name: "Ключи по плану", sec: "Ход проекта", owner: "Команда проекта", calc: "График", used: ["Карточка", "ПК Start"] },
-    { id: "keys_fc", name: "Ключи по прогнозу", sec: "Ход проекта", owner: "Команда проекта", calc: "График", better: "down", used: ["Карточка", "Портфель", "Отчёты"] },
-    { id: "delay", name: "Отставание от плана", unit: "мес.", sec: "Ход проекта", owner: "Команда проекта", calc: "График", better: "down", used: ["Портфель", "Отчёты"] },
-    { id: "smr_ready", name: "Готовность СМР по шахматке", unit: "%", sec: "Ход проекта", owner: "Команда проекта", calc: "Шахматка", better: "up", used: ["Шахматка"] },
-    { id: "smr_fact", name: "Выполнено СМР по шахматке", unit: "тг", sec: "Ход проекта", owner: "Команда проекта", calc: "Шахматка", better: "up", used: ["Шахматка"] }
+    { id: "cur_stage", name: "Текущий этап", sec: "Ход проекта", owner: "Команда проекта", calc: "Дорожная карта", from: [], used: ["Карточка", "Стандарты", "Портфель"] },
+    { id: "stages_done", name: "Пройдено этапов", unit: "шт", sec: "Ход проекта", owner: "Команда проекта", calc: "Дорожная карта", from: [], better: "up", used: ["Портфель", "Отчёты"] },
+    { id: "keys_plan", name: "Ключи по плану", sec: "Ход проекта", owner: "Команда проекта", calc: "График", from: ["sched_start"], used: ["Карточка", "ПК Start"] },
+    { id: "keys_fc", name: "Ключи по прогнозу", sec: "Ход проекта", owner: "Команда проекта", calc: "График", from: ["sched_start"], better: "down", used: ["Карточка", "Портфель", "Отчёты"] },
+    { id: "delay", name: "Отставание от плана", unit: "мес.", sec: "Ход проекта", owner: "Команда проекта", calc: "График", from: ["sched_start"], better: "down", used: ["Портфель", "Отчёты"] },
+    { id: "smr_ready", name: "Готовность СМР по шахматке", unit: "%", sec: "Ход проекта", owner: "Команда проекта", calc: "Шахматка", from: [], better: "up", used: ["Шахматка"] },
+    { id: "smr_fact", name: "Выполнено СМР по шахматке", unit: "тг", sec: "Ход проекта", owner: "Команда проекта", calc: "Шахматка", from: ["smr", "area_total"], better: "up", used: ["Шахматка"] }
   ]
 };
 
@@ -4721,6 +4721,15 @@ window.VARS = {
     ins.forEach(([key, , name, unit, src]) => window.VARS.items.push({ id: "pnrx_" + key, name, unit: unit || undefined, sec: "ПНР: " + g.t, owner: OWN[g.who],
       type: src === "num" ? "num" : src === "flag" ? "flag" : src === "text" ? "text" : "sel", dict: src.indexOf("sel:") === 0 ? src.slice(4) : undefined, path: "pnr." + key, used: ["Калькулятор ПНР"] }));
   });
+  // Входы расчётов (from): из каких переменных calc считает значение. Отсюда — «что затронет изменение» и готовность
+  // в базе (docs/db/structure-seed.sql). Пустой from — расчёт идёт не из переменных, а из списков проекта (блоки,
+  // шахматка, план спецтехники), чек-листов дорожной карты или файла отдела. Группы вычисляются, а не переписываются:
+  //   @model — все исходные данные финмодели: переменные с кодом из window.MODEL_DEFAULTS (window.runModel);
+  //   @pnr — все вводимые показатели калькулятора ПНР (path pnr.*).
+  const V = window.VARS, ids = new Set(V.items.map(v => v.id));
+  if (!window.MODEL_DEFAULTS) throw new Error("vars-data: входы @model считаются по window.MODEL_DEFAULTS — подключите model-lib раньше");
+  const G = { model: Object.keys(window.MODEL_DEFAULTS).filter(k => ids.has(k)), pnr: V.items.filter(v => /^pnr\./.test(v.path || "")).map(v => v.id) };
+  V.items.forEach(v => { if (v.from) v.from = [...new Set([].concat(...v.from.map(x => x[0] === "@" ? G[x.slice(1)] : [x])))]; });
 })();
 </script>
 

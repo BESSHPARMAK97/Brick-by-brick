@@ -167,11 +167,11 @@ do $$ begin
   end;
 end $$;
 
--- 13. Изменения идут вверх: СМР затрагивает стену, обе комнаты (общая стена), квартиру и этаж
+-- 13. Изменения идут вверх: СМР затрагивает расчётную прибыль, стену, обе комнаты (общая стена), квартиру и этаж
 do $$ begin
   if (select string_agg(e.code, ',' order by e.code) from v_element_atoms ea
         join elements e on e.id = ea.element_id join variables v on v.id = ea.variable_id where v.code = 'smr')
-     <> 'area_finance,op_profit,proc_finmodel,proc_pk,stage_pk_start' then
+     <> 'area_finance,atom_fin_net,op_profit,proc_finmodel,proc_pk,stage_pk_start' then
     raise exception '13: неверный список затронутых элементов';
   end if;
 end $$;
@@ -194,6 +194,26 @@ end $$;
 update variable_values set value = '310000' where variable_id = (select id from variables where code = 'smr');
 do $$ begin
   if (select ready from v_element_status where code = 'proc_pk') then raise exception '16: комната осталась готовой'; end if;
+end $$;
+
+-- 17. Цепочка расчётов: старт графика → срок продаж (расчёт) → прибыль. Изменение старта доходит до прибыли и этапа
+insert into variables (code, name, unit, section, value_type, owner_dept_id, source)
+  select 'sched_start', 'Старт проекта', null, 'Сроки', 'month', id, 'input' from departments where name = 'Команда проекта';
+insert into variables (code, name, unit, section, value_type, owner_dept_id, source)
+  select 'sales_start', 'Начало продаж', 'мес.', 'Продажи', 'num', id, 'calc' from departments where name = 'Команда проекта';
+insert into elements (level_id, code, name, variable_id) select 1, 'atom_' || code, name, id from variables where code in ('sched_start', 'sales_start');
+insert into elements (level_id, code, name) values (2, 'op_sales_start', 'Расчёт начала продаж');
+insert into element_links (parent_id, child_id, role)
+  select o.id, a.id, case a.code when 'atom_sales_start' then 'output' else 'input' end
+  from elements o, elements a where o.code = 'op_sales_start' and a.code in ('atom_sched_start', 'atom_sales_start');
+insert into element_links (parent_id, child_id, role)
+  select o.id, a.id, 'input' from elements o, elements a where o.code = 'op_profit' and a.code = 'atom_sales_start';
+do $$ begin
+  if not exists (select 1 from v_element_atoms ea join elements e on e.id = ea.element_id join variables v on v.id = ea.variable_id
+                 where e.code = 'atom_fin_net' and v.code = 'sched_start') then
+    raise exception '17: старт графика не доходит до прибыли';
+  end if;
+  if (select inputs from v_element_status where code = 'stage_pk_start') <> 3 then raise exception '17: этап не видит вход через цепочку'; end if;
 end $$;
 
 select 'project-data: все проверки пройдены' as result;
