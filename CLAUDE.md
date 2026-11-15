@@ -24,3 +24,7 @@
 - Структура из портала: `psql -v ON_ERROR_STOP=1 -f docs/db/project-data.sql -f docs/db/structure-seed.sql -f docs/db/structure-seed-check.sql` (на отдельной чистой базе).
 
 Интерфейс и документы — на русском, с казахским переводом в словаре `<script id="i18n">`.
+
+## Ответы пользователю
+
+В конце каждого ответа — ссылка на сайт портала: <https://besshparmak97.github.io/Brick-by-brick/> (если правка ещё не слита в `main`, сказать, что на сайте она появится после слияния).
