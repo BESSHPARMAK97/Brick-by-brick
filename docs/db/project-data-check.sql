@@ -95,4 +95,105 @@ do $$ begin
   if (select t.role from project_risks r join project_team t on t.id = r.owner_id) <> 'Сметчик' then raise exception '9: нет ответственного'; end if;
 end $$;
 
+-- Структура «от кирпича до ЖК»: кирпичи smr, area_total, fin_net → стена «Расчёт прибыли»
+-- → комната «Финмодель» → квартира «Финансы» → этаж «ПК Start»
+insert into variables (code, name, unit, section, value_type, owner_dept_id, source)
+  select 'area_total', 'Общая площадь здания', 'м²', 'Паспорт и ТЭП', 'num', id, 'input' from departments where name = 'Команда проекта';
+insert into elements (level_id, code, name, variable_id)
+  select 1, 'atom_' || code, name, id from variables;
+insert into elements (level_id, code, name, calc) values (2, 'op_profit', 'Расчёт прибыли', 'выручка − затраты');
+insert into elements (level_id, code, name, tool_id) select 3, 'proc_finmodel', 'Финмодель', id from tools where name = 'Финмодель';
+insert into elements (level_id, code, name) values (3, 'proc_pk', 'Презентация ПК Start');
+insert into elements (level_id, code, name, owner_dept_id) select 4, 'area_finance', 'Финансы', id from departments where name = 'Финансы';
+insert into elements (level_id, code, name, sort) values (5, 'stage_pk_start', 'ПК Start', 1);
+insert into element_links (parent_id, child_id, role)
+  select o.id, a.id, case when a.code = 'atom_fin_net' then 'output' else 'input' end
+  from elements o, elements a where o.code = 'op_profit' and a.level_id = 1;
+insert into element_links (parent_id, child_id)
+  select p.id, c.id from elements p, elements c
+  where (p.code, c.code) in (('proc_finmodel', 'op_profit'), ('proc_pk', 'op_profit'), ('area_finance', 'proc_finmodel'));
+insert into element_links (parent_id, child_id, ord)
+  select p.id, c.id, row_number() over (order by c.code desc) from elements p, elements c
+  where p.code = 'stage_pk_start' and c.code in ('proc_finmodel', 'proc_pk');
+
+-- 10. Элемент собирается только из уровней ниже: комнату нельзя вставить в стену
+do $$ begin
+  begin
+    insert into element_links (parent_id, child_id) select o.id, p.id from elements o, elements p
+      where o.code = 'op_profit' and p.code = 'proc_finmodel';
+    raise exception '10: комната вошла в стену';
+  exception when raise_exception then
+    if sqlerrm like '10:%' then raise; end if;
+  end;
+end $$;
+
+-- 11. Расчётную переменную считает одна стена; ручную переменную стена не считает
+insert into elements (level_id, code, name) values (2, 'op_other', 'Другой расчёт');
+do $$ begin
+  begin
+    insert into element_links (parent_id, child_id, role) select o.id, a.id, 'output' from elements o, elements a
+      where o.code = 'op_other' and a.code = 'atom_fin_net';
+    raise exception '11: у переменной две стены-расчёта';
+  exception when unique_violation then null;
+  end;
+  begin
+    insert into element_links (parent_id, child_id, role) select o.id, a.id, 'output' from elements o, elements a
+      where o.code = 'op_other' and a.code = 'atom_smr';
+    raise exception '11: стена считает вводимую переменную';
+  exception when raise_exception then
+    if sqlerrm like '11:%' then raise; end if;
+  end;
+end $$;
+
+-- 12. У квартиры (направления) есть владелец; переменная — только у кирпича; Дом — таблица projects
+do $$ begin
+  begin
+    insert into elements (level_id, code, name) values (4, 'area_nobody', 'Без владельца');
+    raise exception '12: квартира без владельца';
+  exception when raise_exception then
+    if sqlerrm like '12:%' then raise; end if;
+  end;
+  begin
+    insert into elements (level_id, code, name, variable_id) select 2, 'op_bad', 'Стена-переменная', id from variables where code = 'smr';
+    raise exception '12: у стены переменная';
+  exception when raise_exception then
+    if sqlerrm like '12:%' then raise; end if;
+  end;
+  begin
+    insert into elements (level_id, code, name) values (6, 'house', 'Дом');
+    raise exception '12: проект записан в elements';
+  exception when raise_exception then
+    if sqlerrm like '12:%' then raise; end if;
+  end;
+end $$;
+
+-- 13. Изменения идут вверх: СМР затрагивает стену, обе комнаты (общая стена), квартиру и этаж
+do $$ begin
+  if (select string_agg(e.code, ',' order by e.code) from v_element_atoms ea
+        join elements e on e.id = ea.element_id join variables v on v.id = ea.variable_id where v.code = 'smr')
+     <> 'area_finance,op_profit,proc_finmodel,proc_pk,stage_pk_start' then
+    raise exception '13: неверный список затронутых элементов';
+  end if;
+end $$;
+
+-- 14. Готовность собирается снизу: площади нет и СМР в черновике — этаж не готов
+do $$ begin
+  if (select ready from v_element_status where code = 'stage_pk_start') then raise exception '14: этаж готов без данных'; end if;
+  if (select inputs from v_element_status where code = 'stage_pk_start') <> 2 then raise exception '14: неверное число входов'; end if;
+end $$;
+
+-- 15. Все вводимые кирпичи утверждены — этаж готов; расчётный fin_net утверждать не нужно
+insert into variable_values (project_id, variable_id, value, status)
+  select p.id, v.id, '16806.95', 'approved' from projects p, variables v where v.code = 'area_total';
+update variable_values set status = 'approved' where variable_id = (select id from variables where code = 'smr');
+do $$ begin
+  if not (select ready from v_element_status where code = 'stage_pk_start') then raise exception '15: этаж не готов'; end if;
+end $$;
+
+-- 16. Поменяли кирпич — элемент снова не готов: утверждали другое число
+update variable_values set value = '310000' where variable_id = (select id from variables where code = 'smr');
+do $$ begin
+  if (select ready from v_element_status where code = 'proc_pk') then raise exception '16: комната осталась готовой'; end if;
+end $$;
+
 select 'project-data: все проверки пройдены' as result;
