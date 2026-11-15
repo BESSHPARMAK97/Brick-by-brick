@@ -87,15 +87,19 @@ const visit = (id, chain) => {
   vstate[id] = 2;
 };
 V.items.forEach(v => visit(v.id, []));
+// Где вводится: у каждого начала path есть раздел портала
+const VIEW_T = require("./portal-views")(html);
+Object.entries(V.homes || {}).forEach(([r, k]) => { if (!VIEW_T[k]) fail(`homes ${r}: unknown view ${k}`); });
+V.items.forEach(v => { if (!v.calc && !(V.homes || {})[(v.path || "").split(".")[0]]) fail(`variable ${v.id}: no home view for ${v.path}`); });
 // Направления отделов: известный отдел, существующие разделы, у раздела не больше одного отдела.
-const VIEWS_SRC = (html.match(/const VIEWS = \{\n([\s\S]*?)\n\};/) || ["", ""])[1], aview = {}, aids = new Set();
+const aview = {}, aids = new Set();
 (V.areas || []).forEach(a => {
   if (!a.id || aids.has(a.id)) fail(`area ${a.id}: missing or duplicate id`);
   aids.add(a.id);
   if (!V.owners.includes(a.owner)) fail(`area ${a.id}: unknown owner ${a.owner}`);
   if (!(a.views || []).length) fail(`area ${a.id}: no views`);
   (a.views || []).forEach(k => {
-    if (!new RegExp("^\\s+" + k + ": \\{", "m").test(VIEWS_SRC)) fail(`area ${a.id}: unknown view ${k}`);
+    if (!VIEW_T[k]) fail(`area ${a.id}: unknown view ${k}`);
     if (aview[k]) fail(`view ${k}: in two areas, ${aview[k]} and ${a.id}`);
     aview[k] = a.id;
   });

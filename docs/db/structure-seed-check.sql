@@ -81,17 +81,34 @@ do $$ begin
   end if;
 end $$;
 
--- 7. Готовность: без значений элементы с входами не готовы; без входов (расчёт из списков, графика, файла) — пусто
+-- 7. Один ввод: у каждой вводимой переменной ровно одна комната, где она вводится, и один инструмент-writes
+do $$ begin
+  if exists (select 1 from variables v join elements a on a.variable_id = v.id
+             where v.source = 'input'
+               and (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 3 where l.child_id = a.id) <> 1) then
+    raise exception '7: у вводимой переменной не одна комната ввода';
+  end if;
+  if (select count(*) from tool_variables where direction = 'writes') <> (select count(*) from variables where source = 'input') then
+    raise exception '7: tool_variables не совпадает с комнатами ввода';
+  end if;
+  if exists (select 1 from variables v join elements a on a.variable_id = v.id
+             join element_links l on l.child_id = a.id join elements p on p.id = l.parent_id and p.level_id = 3
+             where v.source = 'calc') then
+    raise exception '7: расчётная переменная записана как вводимая в комнате';
+  end if;
+end $$;
+
+-- 8. Готовность: без значений элементы с входами не готовы; без входов (расчёт из списков, графика, файла) — пусто
 insert into companies (name) values ('Проверка');
 insert into projects (company_id, name) select id, 'Проверка' from companies;
 do $$ begin
   if exists (select 1 from v_element_status where inputs = 0 and ready is not null) then
-    raise exception '7: готовность без входов не пустая';
+    raise exception '8: готовность без входов не пустая';
   end if;
   if exists (select 1 from v_element_status where inputs > 0 and ready) then
-    raise exception '7: элемент готов без утверждённых значений';
+    raise exception '8: элемент готов без утверждённых значений';
   end if;
-  if not exists (select 1 from v_element_status where inputs > 0) then raise exception '7: ни у одного элемента нет входов'; end if;
+  if not exists (select 1 from v_element_status where inputs > 0) then raise exception '8: ни у одного элемента нет входов'; end if;
 end $$;
 
 select 'structure-seed: все проверки пройдены' as result;

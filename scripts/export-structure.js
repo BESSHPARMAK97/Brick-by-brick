@@ -5,6 +5,7 @@
 //   этажи — этапы дорожной карты (window.TREE) с шагами по порядку из window.STAGE_STEPS.
 // Портал — единственный источник: файл не правится руками, CI сверяет его с порталом.
 //   входы стен — from у переменной (window.VARS: из каких переменных считается calc);
+//   комната и вводимые в ней кирпичи — window.VARS.homes (начало path → раздел);
 //   квартиры — направления отделов (window.VARS.areas): отдел и разделы, которые он ведёт.
 // Чего в портале нет, того нет и в базе: разделы без отдела ни в какую квартиру не входят.
 const fs = require("fs");
@@ -19,10 +20,7 @@ vm.runInNewContext(["tree-data", "dicts", "pnr-data", "model-lib", "vars-data", 
 const { VARS, TREE, STAGE_STEPS } = ctx.window;
 
 // Названия разделов — из VIEWS основного скрипта портала
-const viewsSrc = html.match(/const VIEWS = \{\n([\s\S]*?)\n\};/)[1];
-const VIEW_T = {};
-viewsSrc.split("\n").forEach(l => { const m = l.match(/^\s+(\w+): \{.*?\bt: "([^"]+)"/); if (m) VIEW_T[m[1]] = m[2]; });
-if (Object.keys(VIEW_T).length < 10) throw new Error("export-structure: не найдены разделы VIEWS в prototype/index.html");
+const VIEW_T = require("./portal-views")(html);
 
 // calc у переменной называет раздел, который её считает. Обычно это название раздела; два исключения — старые имена.
 const CALC_VIEW = { "Калькулятор ПНР": "pnr", "Дорожная карта": "roadmap" };
@@ -59,12 +57,15 @@ Object.keys(STAGE_STEPS).forEach(id => {
 const areas = VARS.areas || [];
 areas.forEach(a => a.views.forEach(k => { if (!VIEW_T[k]) throw new Error(`export-structure: раздела ${k} направления ${a.id} нет в портале`); }));
 const areaViews = [].concat(...areas.map(a => a.views.map(k => [a.id, k])));
-const procs = [...new Set(steps.map(s => s[1]).concat(calcs.map(c => c[1]), areaViews.map(x => x[1])))].sort();
+// Где вводится: начало path → раздел (window.VARS.homes)
+const homeOf = v => { const k = VARS.homes[v.path.split(".")[0]]; if (!VIEW_T[k]) throw new Error(`export-structure: у ${v.id} нет раздела ввода для ${v.path}`); return k; };
+const entered = items.filter(v => !v.calc).map(v => [homeOf(v), v.id]);
+const procs = [...new Set(steps.map(s => s[1]).concat(calcs.map(c => c[1]), areaViews.map(x => x[1]), entered.map(x => x[0])))].sort();
 
 const out = `-- СГЕНЕРИРОВАНО scripts/export-structure.js из prototype/index.html. Не править руками:
 -- после изменений портала запустите node scripts/export-skill-tree.js.
 -- Структура «от кирпича до ЖК» (docs/concept.md). Кирпичи: ${items.length}, стены-расчёты: ${calcs.length}, комнаты-разделы: ${procs.length},
--- входы стен: ${inputs.length}, этажи-этапы: ${TREE.nodes.length}, шаги этапов: ${steps.length},
+-- входы стен: ${inputs.length}, вводимые кирпичи в комнатах: ${entered.length}, этажи-этапы: ${TREE.nodes.length}, шаги этапов: ${steps.length},
 -- квартиры-направления: ${areas.length} (разделов за отделами: ${areaViews.length} из ${procs.length}).
 -- Запуск: psql -v ON_ERROR_STOP=1 -f docs/db/project-data.sql -f docs/db/structure-seed.sql -f docs/db/structure-seed-check.sql
 
@@ -96,6 +97,22 @@ from (values
 ${rows(procs, k => [q(k), q(VIEW_T[k])])}
 ) as x (view, title)
 join tools t on t.name = x.title;
+
+-- Комната и кирпичи, которые в ней вводятся (window.VARS.homes): у вводимой переменной одна комната ввода
+insert into element_links (parent_id, child_id)
+select p.id, a.id
+from (values
+${rows(entered, ([k, id]) => [q("proc." + k), q("atom." + id)])}
+) as x (proc, atom)
+join elements p on p.code = x.proc
+join elements a on a.code = x.atom;
+
+-- То же в tool_variables: раздел вводит переменную (writes), одно место ввода проверяет индекс one_writer_per_variable
+insert into tool_variables (tool_id, variable_id, direction)
+select p.tool_id, a.variable_id, 'writes'
+from element_links l
+join elements p on p.id = l.parent_id and p.level_id = 3
+join elements a on a.id = l.child_id and a.level_id = 1;
 
 -- Стены: у каждой расчётной переменной одна стена, её результат — переменная
 insert into elements (level_id, code, name)
