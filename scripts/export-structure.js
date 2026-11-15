@@ -36,7 +36,7 @@ const q = s => s == null ? "null" : "'" + String(s).replace(/'/g, "''") + "'";
 const rows = (list, f) => list.map(x => "  (" + f(x).join(", ") + ")").join(",\n");
 
 const items = VARS.items;
-const owners = [...new Set(items.map(v => v.owner))];
+const owners = [...new Set(VARS.owners.concat(items.map(v => v.owner)))]; // и отделы без своих переменных (Стройка)
 const calcs = items.filter(v => v.calc).map(v => [v.id, calcView(v.calc)]);
 const inputs = [];
 items.filter(v => v.calc).forEach(v => (v.from || []).forEach(x => inputs.push([v.id, x])));
@@ -141,12 +141,12 @@ join elements p on p.code = x.proc
 join elements o on o.code = x.op;
 
 -- Квартиры: направления отделов (window.VARS.areas) и разделы, которые отдел ведёт
+-- Отдел ищется подзапросом, а не соединением: неизвестный отдел даёт ошибку триггера, а не тихо пропадает
 insert into elements (level_id, code, name, owner_dept_id)
-select 4, 'area.' || x.id, x.owner, d.id
+select 4, 'area.' || x.id, x.owner, (select d.id from departments d where d.name = x.owner)
 from (values
 ${rows(areas, a => [q(a.id), q(a.owner)])}
-) as x (id, owner)
-join departments d on d.name = x.owner;
+) as x (id, owner);
 
 insert into element_links (parent_id, child_id)
 select a.id, p.id
@@ -168,5 +168,21 @@ ${rows(steps, ([sid, k, ord, task]) => [q("stage." + sid), q("proc." + k), Strin
 ) as x (stage, proc, ord, task)
 join elements s on s.code = x.stage
 join elements p on p.code = x.proc;
+
+-- Самопроверка: в базу попало ровно столько, сколько в портале (соединение не отбросило строку молча)
+do $$ begin
+${[["кирпичей", "select count(*) from elements where level_id = 1", items.length],
+   ["стен", "select count(*) from elements where level_id = 2", calcs.length],
+   ["комнат", "select count(*) from elements where level_id = 3", procs.length],
+   ["квартир", "select count(*) from elements where level_id = 4", areas.length],
+   ["этажей", "select count(*) from elements where level_id = 5", TREE.nodes.length],
+   ["входов стен", "select count(*) from element_links where role = 'input'", inputs.length],
+   ["результатов стен", "select count(*) from element_links where role = 'output'", calcs.length],
+   ["связей «стена в комнате»", "select count(*) from element_links l join elements c on c.id = l.child_id and c.level_id = 2 where l.role = 'part'", calcs.length],
+   ["вводимых кирпичей в комнатах", "select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 3 join elements c on c.id = l.child_id and c.level_id = 1", entered.length],
+   ["разделов у отделов", "select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 4", areaViews.length],
+   ["шагов этапов", "select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 5", steps.length]
+  ].map(([t, sql, n]) => `  if (${sql}) <> ${n} then raise exception 'structure-seed: ${t} не ${n}'; end if;`).join("\n")}
+end $$;
 `;
 fs.writeFileSync(path.join(root, "docs/db/structure-seed.sql"), out);

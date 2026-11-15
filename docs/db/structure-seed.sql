@@ -2,17 +2,18 @@
 -- после изменений портала запустите node scripts/export-skill-tree.js.
 -- Структура «от кирпича до ЖК» (docs/concept.md). Кирпичи: 308, стены-расчёты: 38, комнаты-разделы: 21,
 -- входы стен: 606, вводимые кирпичи в комнатах: 270, этажи-этапы: 21, шаги этапов: 57,
--- квартиры-направления: 4 (разделов за отделами: 7 из 21).
+-- квартиры-направления: 5 (разделов за отделами: 10 из 21).
 -- Запуск: psql -v ON_ERROR_STOP=1 -f docs/db/project-data.sql -f docs/db/structure-seed.sql -f docs/db/structure-seed-check.sql
 
 -- Отделы-владельцы переменных
 insert into departments (name) values
   ('Команда проекта'),
-  ('Продажи'),
   ('Развитие'),
   ('Юристы'),
+  ('Продажи'),
   ('ОРС'),
   ('Финансы'),
+  ('Стройка'),
   ('ФМ проекта'),
   ('ОРС Общестрой'),
   ('ОРС Сети')
@@ -1343,15 +1344,16 @@ join elements p on p.code = x.proc
 join elements o on o.code = x.op;
 
 -- Квартиры: направления отделов (window.VARS.areas) и разделы, которые отдел ведёт
+-- Отдел ищется подзапросом, а не соединением: неизвестный отдел даёт ошибку триггера, а не тихо пропадает
 insert into elements (level_id, code, name, owner_dept_id)
-select 4, 'area.' || x.id, x.owner, d.id
+select 4, 'area.' || x.id, x.owner, (select d.id from departments d where d.name = x.owner)
 from (values
   ('finance', 'Финансы'),
   ('ors', 'ОРС'),
   ('team', 'Команда проекта'),
-  ('sales', 'Продажи')
-) as x (id, owner)
-join departments d on d.name = x.owner;
+  ('sales', 'Продажи'),
+  ('build', 'Стройка')
+) as x (id, owner);
 
 insert into element_links (parent_id, child_id)
 select a.id, p.id
@@ -1362,7 +1364,10 @@ from (values
   ('area.ors', 'proc.pnr'),
   ('area.team', 'proc.card'),
   ('area.team', 'proc.gantt'),
-  ('area.sales', 'proc.chess')
+  ('area.team', 'proc.standards'),
+  ('area.sales', 'proc.chess'),
+  ('area.build', 'proc.acts'),
+  ('area.build', 'proc.equip')
 ) as x (area, proc)
 join elements a on a.code = x.area
 join elements p on p.code = x.proc;
@@ -1455,3 +1460,18 @@ from (values
 ) as x (stage, proc, ord, task)
 join elements s on s.code = x.stage
 join elements p on p.code = x.proc;
+
+-- Самопроверка: в базу попало ровно столько, сколько в портале (соединение не отбросило строку молча)
+do $$ begin
+  if (select count(*) from elements where level_id = 1) <> 308 then raise exception 'structure-seed: кирпичей не 308'; end if;
+  if (select count(*) from elements where level_id = 2) <> 38 then raise exception 'structure-seed: стен не 38'; end if;
+  if (select count(*) from elements where level_id = 3) <> 21 then raise exception 'structure-seed: комнат не 21'; end if;
+  if (select count(*) from elements where level_id = 4) <> 5 then raise exception 'structure-seed: квартир не 5'; end if;
+  if (select count(*) from elements where level_id = 5) <> 21 then raise exception 'structure-seed: этажей не 21'; end if;
+  if (select count(*) from element_links where role = 'input') <> 606 then raise exception 'structure-seed: входов стен не 606'; end if;
+  if (select count(*) from element_links where role = 'output') <> 38 then raise exception 'structure-seed: результатов стен не 38'; end if;
+  if (select count(*) from element_links l join elements c on c.id = l.child_id and c.level_id = 2 where l.role = 'part') <> 38 then raise exception 'structure-seed: связей «стена в комнате» не 38'; end if;
+  if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 3 join elements c on c.id = l.child_id and c.level_id = 1) <> 270 then raise exception 'structure-seed: вводимых кирпичей в комнатах не 270'; end if;
+  if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 4) <> 10 then raise exception 'structure-seed: разделов у отделов не 10'; end if;
+  if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 5) <> 57 then raise exception 'structure-seed: шагов этапов не 57'; end if;
+end $$;
