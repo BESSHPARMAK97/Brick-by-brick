@@ -6,6 +6,7 @@
 // Портал — единственный источник: файл не правится руками, CI сверяет его с порталом.
 //   входы стен — from у переменной (window.VARS: из каких переменных считается calc);
 //   комната и вводимые в ней кирпичи — window.VARS.homes (начало path → раздел);
+//   кирпичи-списки — window.VARS.lists (блоки, шахматка): вводятся в своём разделе, расчёты указывают их в fromLists;
 //   квартиры — направления отделов (window.VARS.areas): отдел и разделы, которые он ведёт.
 // Чего в портале нет, того нет и в базе: разделы без отдела ни в какую квартиру не входят.
 const fs = require("fs");
@@ -61,13 +62,21 @@ const areaViews = [].concat(...areas.map(a => a.views.map(k => [a.id, k])));
 const homeOf = v => { const k = VARS.homes[v.path.split(".")[0]]; if (!VIEW_T[k]) throw new Error(`export-structure: у ${v.id} нет раздела ввода для ${v.path}`); return k; };
 const entered = items.filter(v => !v.calc).map(v => [homeOf(v), v.id]);
 const procs = [...new Set(steps.map(s => s[1]).concat(calcs.map(c => c[1]), areaViews.map(x => x[1]), entered.map(x => x[0])))].sort();
+// Списки проекта: название — от раздела, владелец — отдел направления этого раздела
+const lists = (VARS.lists || []).map(l => {
+  const a = areas.find(x => x.views.includes(l.view));
+  if (!VIEW_T[l.view] || !a) throw new Error(`export-structure: у списка ${l.id} нет раздела ${l.view} или его отдела`);
+  return { id: l.id, view: l.view, name: VIEW_T[l.view], owner: a.owner };
+});
+const listInputs = [];
+items.filter(v => v.calc).forEach(v => (v.fromLists || []).forEach(x => listInputs.push([v.id, x])));
 const noArea = procs.filter(k => !areaViews.some(x => x[1] === k));
 if (noArea.length) throw new Error(`export-structure: разделы без отдела (добавьте в window.VARS.areas): ${noArea.join(", ")}`);
 
 const out = `-- СГЕНЕРИРОВАНО scripts/export-structure.js из prototype/index.html. Не править руками:
 -- после изменений портала запустите node scripts/export-skill-tree.js.
 -- Структура «от кирпича до ЖК» (docs/concept.md). Кирпичи: ${items.length}, стены-расчёты: ${calcs.length}, комнаты-разделы: ${procs.length},
--- входы стен: ${inputs.length}, вводимые кирпичи в комнатах: ${entered.length}, этажи-этапы: ${TREE.nodes.length}, шаги этапов: ${steps.length},
+-- кирпичи-списки: ${lists.length}, входы стен: ${inputs.length} + из списков ${listInputs.length}, вводимые кирпичи в комнатах: ${entered.length}, этажи-этапы: ${TREE.nodes.length}, шаги этапов: ${steps.length},
 -- квартиры-направления: ${areas.length} (разделов за отделами: ${areaViews.length} из ${procs.length}).
 -- Запуск: psql -v ON_ERROR_STOP=1 -f docs/db/project-data.sql -f docs/db/structure-seed.sql -f docs/db/structure-seed-check.sql
 
@@ -92,6 +101,16 @@ ${rows(procs, k => [q(VIEW_T[k])])};
 insert into elements (level_id, code, name, variable_id)
 select 1, 'atom.' || code, name, id from variables;
 
+-- Списки проекта (window.VARS.lists) и их кирпичи
+insert into lists (code, name, owner_dept_id)
+select x.code, x.name, (select d.id from departments d where d.name = x.owner)
+from (values
+${rows(lists, l => [q(l.id), q(l.name), q(l.owner)])}
+) as x (code, name, owner);
+
+insert into elements (level_id, code, name, list_id)
+select 1, 'list.' || code, 'Список: ' || name, id from lists;
+
 -- Комнаты: разделы портала
 insert into elements (level_id, code, name, tool_id)
 select 3, 'proc.' || x.view, t.name, t.id
@@ -114,7 +133,16 @@ insert into tool_variables (tool_id, variable_id, direction)
 select p.tool_id, a.variable_id, 'writes'
 from element_links l
 join elements p on p.id = l.parent_id and p.level_id = 3
-join elements a on a.id = l.child_id and a.level_id = 1;
+join elements a on a.id = l.child_id and a.variable_id is not null;
+
+-- Список вводится в своём разделе
+insert into element_links (parent_id, child_id)
+select p.id, a.id
+from (values
+${rows(lists, l => [q("proc." + l.view), q("list." + l.id)])}
+) as x (proc, list)
+join elements p on p.code = x.proc
+join elements a on a.code = x.list;
 
 -- Стены: у каждой расчётной переменной одна стена, её результат — переменная
 insert into elements (level_id, code, name)
@@ -132,6 +160,15 @@ ${rows(inputs, ([id, x]) => [q("op." + id), q("atom." + x)])}
 ) as x (op, atom)
 join elements o on o.code = x.op
 join elements a on a.code = x.atom;
+
+-- Входы стен из списков (fromLists): число блоков — из списка блоков, продажи — из шахматки
+insert into element_links (parent_id, child_id, role)
+select o.id, a.id, 'input'
+from (values
+${rows(listInputs, ([id, x]) => [q("op." + id), q("list." + x)])}
+) as x (op, list)
+join elements o on o.code = x.op
+join elements a on a.code = x.list;
 
 -- Стена стоит в комнате раздела, который считает переменную (calc)
 insert into element_links (parent_id, child_id)
@@ -173,15 +210,16 @@ join elements p on p.code = x.proc;
 
 -- Самопроверка: в базу попало ровно столько, сколько в портале (соединение не отбросило строку молча)
 do $$ begin
-${[["кирпичей", "select count(*) from elements where level_id = 1", items.length],
+${[["кирпичей", "select count(*) from elements where level_id = 1", items.length + lists.length],
+   ["списков", "select count(*) from lists", lists.length],
    ["стен", "select count(*) from elements where level_id = 2", calcs.length],
    ["комнат", "select count(*) from elements where level_id = 3", procs.length],
    ["квартир", "select count(*) from elements where level_id = 4", areas.length],
    ["этажей", "select count(*) from elements where level_id = 5", TREE.nodes.length],
-   ["входов стен", "select count(*) from element_links where role = 'input'", inputs.length],
+   ["входов стен", "select count(*) from element_links where role = 'input'", inputs.length + listInputs.length],
    ["результатов стен", "select count(*) from element_links where role = 'output'", calcs.length],
    ["связей «стена в комнате»", "select count(*) from element_links l join elements c on c.id = l.child_id and c.level_id = 2 where l.role = 'part'", calcs.length],
-   ["вводимых кирпичей в комнатах", "select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 3 join elements c on c.id = l.child_id and c.level_id = 1", entered.length],
+   ["вводимых кирпичей в комнатах", "select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 3 join elements c on c.id = l.child_id and c.level_id = 1", entered.length + lists.length],
    ["разделов у отделов", "select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 4", areaViews.length],
    ["шагов этапов", "select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 5", steps.length]
   ].map(([t, sql, n]) => `  if (${sql}) <> ${n} then raise exception 'structure-seed: ${t} не ${n}'; end if;`).join("\n")}

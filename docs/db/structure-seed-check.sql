@@ -2,10 +2,13 @@
 --   psql -v ON_ERROR_STOP=1 -f docs/db/project-data.sql -f docs/db/structure-seed.sql -f docs/db/structure-seed-check.sql
 -- Проверяются правила, а не числа: файл не меняется, когда в портале добавляют переменную или шаг.
 
--- 1. У каждой переменной есть кирпич
+-- 1. У каждой переменной и каждого списка есть кирпич
 do $$ begin
   if exists (select 1 from variables v left join elements e on e.variable_id = v.id where e.id is null) then
     raise exception '1: у переменной нет кирпича';
+  end if;
+  if exists (select 1 from lists l left join elements e on e.list_id = l.id where e.id is null) then
+    raise exception '1: у списка нет кирпича';
   end if;
 end $$;
 
@@ -64,7 +67,8 @@ do $$ begin
     join element_links pi on pi.parent_id = o.parent_id and pi.role = 'input'
     join elements b on b.id = pi.child_id
     where i.role = 'input'
-      and not exists (select 1 from v_element_atoms ea where ea.element_id = i.parent_id and ea.variable_id = b.variable_id)) then
+      and not exists (select 1 from v_element_atoms ea where ea.element_id = i.parent_id
+                      and (ea.variable_id = b.variable_id or ea.list_id = b.list_id))) then
     raise exception '5: v_element_atoms не идёт по цепочке расчётов';
   end if;
 end $$;
@@ -85,12 +89,16 @@ do $$ begin
   end if;
 end $$;
 
--- 7. Один ввод: у каждой вводимой переменной ровно одна комната, где она вводится, и один инструмент-writes
+-- 7. Один ввод: у каждой вводимой переменной и каждого списка ровно одна комната ввода; у переменной — один writes
 do $$ begin
   if exists (select 1 from variables v join elements a on a.variable_id = v.id
              where v.source = 'input'
                and (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 3 where l.child_id = a.id) <> 1) then
     raise exception '7: у вводимой переменной не одна комната ввода';
+  end if;
+  if exists (select 1 from elements a where a.list_id is not null
+               and (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 3 where l.child_id = a.id) <> 1) then
+    raise exception '7: у списка не одна комната ввода';
   end if;
   if (select count(*) from tool_variables where direction = 'writes') <> (select count(*) from variables where source = 'input') then
     raise exception '7: tool_variables не совпадает с комнатами ввода';
@@ -113,6 +121,21 @@ do $$ begin
     raise exception '8: элемент готов без утверждённых значений';
   end if;
   if not exists (select 1 from v_element_status where inputs > 0) then raise exception '8: ни у одного элемента нет входов'; end if;
+end $$;
+
+-- 9. Заполненные списки: элемент, все вводимые кирпичи которого — списки, готов, когда списки заполнены
+insert into list_rows (project_id, list_id, row_id) select p.id, l.id, 'r1' from projects p, lists l;
+do $$ begin
+  if not exists (select 1 from element_links l join elements a on a.id = l.child_id and a.list_id is not null where l.role = 'input') then
+    raise exception '9: ни одна стена не считается из списка';
+  end if;
+  if exists (
+    select 1 from v_element_status st
+    where st.inputs > 0 and not st.ready
+      and not exists (select 1 from v_element_atoms ea join variables v on v.id = ea.variable_id and v.source = 'input'
+                      where ea.element_id = st.element_id)) then
+    raise exception '9: элемент только из заполненных списков не готов';
+  end if;
 end $$;
 
 select 'structure-seed: все проверки пройдены' as result;

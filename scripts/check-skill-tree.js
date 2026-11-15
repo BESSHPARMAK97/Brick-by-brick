@@ -91,6 +91,18 @@ V.items.forEach(v => visit(v.id, []));
 const VIEW_T = require("./portal-views")(html);
 Object.entries(V.homes || {}).forEach(([r, k]) => { if (!VIEW_T[k]) fail(`homes ${r}: unknown view ${k}`); });
 V.items.forEach(v => { if (!v.calc && !(V.homes || {})[(v.path || "").split(".")[0]]) fail(`variable ${v.id}: no home view for ${v.path}`); });
+// Списки проекта: уникальный id, раздел ввода существует; fromLists — только у расчёта и только известные списки.
+const LIDS = new Set();
+(V.lists || []).forEach(l => {
+  if (!l.id || LIDS.has(l.id)) fail(`list ${l.id}: missing or duplicate id`);
+  LIDS.add(l.id);
+  if (!VIEW_T[l.view]) fail(`list ${l.id}: unknown view ${l.view}`);
+});
+V.items.forEach(v => {
+  if (!v.fromLists) return;
+  if (!v.calc) fail(`variable ${v.id}: fromLists is only for calc variables`);
+  v.fromLists.forEach(x => { if (!LIDS.has(x)) fail(`variable ${v.id}: unknown list ${x}`); });
+});
 // Направления отделов: известный отдел, существующие разделы, у раздела не больше одного отдела.
 const aview = {}, aids = new Set();
 (V.areas || []).forEach(a => {

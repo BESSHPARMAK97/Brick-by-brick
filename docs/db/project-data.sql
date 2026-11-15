@@ -222,13 +222,33 @@ create table levels (
 );
 
 insert into levels (id, code, name, name_kk, stored_in, needs_owner) values
-  (1, 'atom',      'Кирпич',          'Кірпіш',                'elements',  false), -- переменная словаря
+  (1, 'atom',      'Кирпич',          'Кірпіш',                'elements',  false), -- переменная словаря или список проекта
   (2, 'operation', 'Стена',           'Қабырға',               'elements',  false), -- расчёт или действие
   (3, 'process',   'Комната',         'Бөлме',                 'elements',  false), -- раздел или инструмент
   (4, 'area',      'Квартира',        'Пәтер',                 'elements',  true),  -- направление отдела
   (5, 'stage',     'Этаж',            'Қабат',                 'elements',  false), -- этап дорожной карты
   (6, 'project',   'Дом',             'Үй',                    'projects',  false), -- таблица projects
   (7, 'portfolio', 'Жилой комплекс',  'Тұрғын үй кешені',      'companies', false); -- таблица companies
+
+-- Списки проекта (блоки, шахматка…): у проекта их переменное число строк. Справочник один на холдинг, как variables;
+-- строки списка проекта — в list_rows. Владелец списка — отдел направления, где список вводится.
+create table lists (
+  id             uuid primary key default gen_random_uuid(),
+  code           text not null unique,              -- blocks, chess
+  name           text not null,
+  owner_dept_id  uuid not null references departments(id)
+);
+
+-- Строки списков проекта: row_id — id строки в портале, data — поля строки. Ссылки между списками — по id в data
+-- (квартира шахматки → блок), не копией текста.
+create table list_rows (
+  project_id  uuid not null references projects(id),
+  list_id     uuid not null references lists(id),
+  row_id      text not null,
+  data        jsonb not null default '{}',
+  updated_at  timestamptz not null default now(),
+  primary key (project_id, list_id, row_id)
+);
 
 -- Элементы уровней 1–5: шаблон, один на холдинг, как словарь переменных. Проект — экземпляр шаблона:
 -- значения кирпичей лежат в variable_values, состояние остальных уровней считается (v_element_status).
@@ -237,7 +257,8 @@ create table elements (
   level_id       smallint not null references levels(id),
   code           text not null unique,
   name           text not null,
-  variable_id    uuid unique references variables(id),   -- только у кирпича: кирпич = переменная
+  variable_id    uuid unique references variables(id),   -- только у кирпича: кирпич = переменная…
+  list_id        uuid unique references lists(id),       -- …или список проекта
   tool_id        uuid references tools(id),              -- комната может быть инструментом портала
   owner_dept_id  uuid references departments(id),
   calc           text,                                   -- у стены: формула или правило
@@ -266,8 +287,9 @@ begin
   if l.stored_in <> 'elements' then
     raise exception 'Уровень «%» хранится в таблице %, а не в elements', l.name, l.stored_in;
   end if;
-  if (l.code = 'atom') <> (new.variable_id is not null) then
-    raise exception 'Элемент %: переменная указывается у кирпича, и только у него', new.code;
+  if (l.code = 'atom') <> (num_nonnulls(new.variable_id, new.list_id) = 1)
+     or (l.code <> 'atom' and num_nonnulls(new.variable_id, new.list_id) > 0) then
+    raise exception 'Элемент %: кирпич — это одна переменная или один список; у других уровней их нет', new.code;
   end if;
   if l.needs_owner and new.owner_dept_id is null then
     raise exception 'Элементу % уровня «%» нужен отдел-владелец', new.code, l.name;
@@ -299,7 +321,7 @@ begin
   end if;
   if new.role = 'output' then
     select source into src from variables where id = c.variable_id;
-    if src <> 'calc' then
+    if src is distinct from 'calc' then                     -- список или вводимая переменная
       raise exception 'Кирпич % вводится вручную: стена не может его считать', c.code;
     end if;
   end if;
@@ -323,24 +345,26 @@ with recursive edges (parent_id, child_id) as (
   union
   select d.element_id, e.child_id from down d join edges e on e.parent_id = d.child_id
 )
-select distinct d.element_id, a.variable_id
+select distinct d.element_id, a.variable_id, a.list_id
 from down d join elements a on a.id = d.child_id
-where a.variable_id is not null;
+where a.level_id = 1;
 
--- Готовность элемента по проекту: готов, когда все вводимые кирпичи внутри утверждены.
--- Расчётные кирпичи не утверждают — они следуют за входами. Если входы не размечены, готовность пустая (null):
+-- Готовность элемента по проекту: готов, когда все вводимые кирпичи внутри готовы — переменная утверждена,
+-- список заполнен (есть строки). Расчётные кирпичи не утверждают — они следуют за входами. Если входы не размечены, готовность пустая (null):
 -- считать её не из чего, и «готово» было бы неправдой.
 create view v_element_status as
 select p.id as project_id, e.id as element_id, e.code, lv.name as level,
-       count(*) filter (where v.source = 'input') as inputs,
-       count(*) filter (where v.source = 'input' and vv.status = 'approved') as approved,
-       case when count(*) filter (where v.source = 'input') > 0 then
-         count(*) filter (where v.source = 'input' and vv.status = 'approved')
-           = count(*) filter (where v.source = 'input') end as ready
+       count(*) filter (where v.source = 'input' or ea.list_id is not null) as inputs,
+       count(*) filter (where (v.source = 'input' and vv.status = 'approved') or lr.n > 0) as approved,
+       case when count(*) filter (where v.source = 'input' or ea.list_id is not null) > 0 then
+         count(*) filter (where (v.source = 'input' and vv.status = 'approved') or lr.n > 0)
+           = count(*) filter (where v.source = 'input' or ea.list_id is not null) end as ready
 from projects p
 cross join elements e
 join levels lv on lv.id = e.level_id
 left join v_element_atoms ea on ea.element_id = e.id                  -- элемент без кирпичей тоже виден: готовность пустая
 left join variables v on v.id = ea.variable_id
 left join variable_values vv on vv.project_id = p.id and vv.variable_id = v.id
+left join (select project_id, list_id, count(*) as n from list_rows group by project_id, list_id) lr
+  on lr.project_id = p.id and lr.list_id = ea.list_id
 group by p.id, e.id, e.code, lv.name;

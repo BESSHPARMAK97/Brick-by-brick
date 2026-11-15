@@ -216,4 +216,43 @@ do $$ begin
   if (select inputs from v_element_status where code = 'stage_pk_start') <> 3 then raise exception '17: этап не видит вход через цепочку'; end if;
 end $$;
 
+-- 18. Список — тоже кирпич: число блоков считается из списка блоков; готов, когда в списке есть строки
+insert into lists (code, name, owner_dept_id) select 'blocks', 'Блоки проекта', id from departments where name = 'Команда проекта';
+insert into variables (code, name, unit, section, value_type, owner_dept_id, source)
+  select 'blocks_n', 'Количество блоков', 'шт', 'Паспорт и ТЭП', 'num', id, 'calc' from departments where name = 'Команда проекта';
+insert into elements (level_id, code, name, list_id) select 1, 'list_blocks', name, id from lists where code = 'blocks';
+insert into elements (level_id, code, name, variable_id) select 1, 'atom_blocks_n', name, id from variables where code = 'blocks_n';
+insert into elements (level_id, code, name) values (2, 'op_blocks_n', 'Число блоков'), (3, 'proc_blocks', 'Блоки проекта');
+insert into element_links (parent_id, child_id, role)
+  select o.id, a.id, case a.code when 'list_blocks' then 'input' else 'output' end
+  from elements o, elements a where o.code = 'op_blocks_n' and a.code in ('list_blocks', 'atom_blocks_n');
+insert into element_links (parent_id, child_id)
+  select p.id, c.id from elements p, elements c where p.code = 'proc_blocks' and c.code in ('list_blocks', 'op_blocks_n');
+do $$ begin
+  begin
+    insert into elements (level_id, code, name, variable_id, list_id)
+      select 1, 'atom_both', 'Два в одном', v.id, l.id from variables v, lists l where v.code = 'smr' and l.code = 'blocks';
+    raise exception '18: кирпич одновременно переменная и список';
+  exception when raise_exception then
+    if sqlerrm like '18:%' then raise; end if;
+  end;
+  begin
+    insert into element_links (parent_id, child_id, role) select o.id, a.id, 'output' from elements o, elements a
+      where o.code = 'op_other' and a.code = 'list_blocks';
+    raise exception '18: стена «считает» список';
+  exception when raise_exception then
+    if sqlerrm like '18:%' then raise; end if;
+  end;
+  if (select ready from v_element_status where code = 'proc_blocks') then raise exception '18: пустой список готов'; end if;
+  if not exists (select 1 from v_element_atoms ea join elements e on e.id = ea.element_id join lists l on l.id = ea.list_id
+                 where e.code = 'atom_blocks_n' and l.code = 'blocks') then
+    raise exception '18: число блоков не зависит от списка блоков';
+  end if;
+end $$;
+insert into list_rows (project_id, list_id, row_id, data)
+  select p.id, l.id, 'b1', '{"name": "Блок 1", "floors": 12}' from projects p, lists l where l.code = 'blocks';
+do $$ begin
+  if not (select ready from v_element_status where code = 'proc_blocks') then raise exception '18: заполненный список не готов'; end if;
+end $$;
+
 select 'project-data: все проверки пройдены' as result;

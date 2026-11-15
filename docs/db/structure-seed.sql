@@ -1,7 +1,7 @@
 -- СГЕНЕРИРОВАНО scripts/export-structure.js из prototype/index.html. Не править руками:
 -- после изменений портала запустите node scripts/export-skill-tree.js.
 -- Структура «от кирпича до ЖК» (docs/concept.md). Кирпичи: 308, стены-расчёты: 38, комнаты-разделы: 21,
--- входы стен: 606, вводимые кирпичи в комнатах: 270, этажи-этапы: 21, шаги этапов: 57,
+-- кирпичи-списки: 2, входы стен: 606 + из списков 16, вводимые кирпичи в комнатах: 270, этажи-этапы: 21, шаги этапов: 57,
 -- квартиры-направления: 5 (разделов за отделами: 21 из 21).
 -- Запуск: psql -v ON_ERROR_STOP=1 -f docs/db/project-data.sql -f docs/db/structure-seed.sql -f docs/db/structure-seed-check.sql
 
@@ -362,6 +362,17 @@ insert into tools (name) values
 insert into elements (level_id, code, name, variable_id)
 select 1, 'atom.' || code, name, id from variables;
 
+-- Списки проекта (window.VARS.lists) и их кирпичи
+insert into lists (code, name, owner_dept_id)
+select x.code, x.name, (select d.id from departments d where d.name = x.owner)
+from (values
+  ('blocks', 'Блоки проекта', 'Команда проекта'),
+  ('chess', 'Шахматка', 'Продажи')
+) as x (code, name, owner);
+
+insert into elements (level_id, code, name, list_id)
+select 1, 'list.' || code, 'Список: ' || name, id from lists;
+
 -- Комнаты: разделы портала
 insert into elements (level_id, code, name, tool_id)
 select 3, 'proc.' || x.view, t.name, t.id
@@ -673,7 +684,17 @@ insert into tool_variables (tool_id, variable_id, direction)
 select p.tool_id, a.variable_id, 'writes'
 from element_links l
 join elements p on p.id = l.parent_id and p.level_id = 3
-join elements a on a.id = l.child_id and a.level_id = 1;
+join elements a on a.id = l.child_id and a.variable_id is not null;
+
+-- Список вводится в своём разделе
+insert into element_links (parent_id, child_id)
+select p.id, a.id
+from (values
+  ('proc.blocks', 'list.blocks'),
+  ('proc.chess', 'list.chess')
+) as x (proc, list)
+join elements p on p.code = x.proc
+join elements a on a.code = x.list;
 
 -- Стены: у каждой расчётной переменной одна стена, её результат — переменная
 insert into elements (level_id, code, name)
@@ -1297,6 +1318,30 @@ from (values
 join elements o on o.code = x.op
 join elements a on a.code = x.atom;
 
+-- Входы стен из списков (fromLists): число блоков — из списка блоков, продажи — из шахматки
+insert into element_links (parent_id, child_id, role)
+select o.id, a.id, 'input'
+from (values
+  ('op.blocks', 'list.blocks'),
+  ('op.floors', 'list.blocks'),
+  ('op.flats', 'list.blocks'),
+  ('op.sold_flats', 'list.chess'),
+  ('op.sold_flats', 'list.blocks'),
+  ('op.reserved_flats', 'list.chess'),
+  ('op.reserved_flats', 'list.blocks'),
+  ('op.apts_area', 'list.chess'),
+  ('op.apts_area', 'list.blocks'),
+  ('op.eq_crane_m', 'list.blocks'),
+  ('op.eq_lift_m', 'list.blocks'),
+  ('op.eq_pump_m', 'list.blocks'),
+  ('op.smr_ready', 'list.chess'),
+  ('op.smr_ready', 'list.blocks'),
+  ('op.smr_fact', 'list.chess'),
+  ('op.smr_fact', 'list.blocks')
+) as x (op, list)
+join elements o on o.code = x.op
+join elements a on a.code = x.list;
+
 -- Стена стоит в комнате раздела, который считает переменную (calc)
 insert into element_links (parent_id, child_id)
 select p.id, o.id
@@ -1474,15 +1519,16 @@ join elements p on p.code = x.proc;
 
 -- Самопроверка: в базу попало ровно столько, сколько в портале (соединение не отбросило строку молча)
 do $$ begin
-  if (select count(*) from elements where level_id = 1) <> 308 then raise exception 'structure-seed: кирпичей не 308'; end if;
+  if (select count(*) from elements where level_id = 1) <> 310 then raise exception 'structure-seed: кирпичей не 310'; end if;
+  if (select count(*) from lists) <> 2 then raise exception 'structure-seed: списков не 2'; end if;
   if (select count(*) from elements where level_id = 2) <> 38 then raise exception 'structure-seed: стен не 38'; end if;
   if (select count(*) from elements where level_id = 3) <> 21 then raise exception 'structure-seed: комнат не 21'; end if;
   if (select count(*) from elements where level_id = 4) <> 5 then raise exception 'structure-seed: квартир не 5'; end if;
   if (select count(*) from elements where level_id = 5) <> 21 then raise exception 'structure-seed: этажей не 21'; end if;
-  if (select count(*) from element_links where role = 'input') <> 606 then raise exception 'structure-seed: входов стен не 606'; end if;
+  if (select count(*) from element_links where role = 'input') <> 622 then raise exception 'structure-seed: входов стен не 622'; end if;
   if (select count(*) from element_links where role = 'output') <> 38 then raise exception 'structure-seed: результатов стен не 38'; end if;
   if (select count(*) from element_links l join elements c on c.id = l.child_id and c.level_id = 2 where l.role = 'part') <> 38 then raise exception 'structure-seed: связей «стена в комнате» не 38'; end if;
-  if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 3 join elements c on c.id = l.child_id and c.level_id = 1) <> 270 then raise exception 'structure-seed: вводимых кирпичей в комнатах не 270'; end if;
+  if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 3 join elements c on c.id = l.child_id and c.level_id = 1) <> 272 then raise exception 'structure-seed: вводимых кирпичей в комнатах не 272'; end if;
   if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 4) <> 21 then raise exception 'structure-seed: разделов у отделов не 21'; end if;
   if (select count(*) from element_links l join elements p on p.id = l.parent_id and p.level_id = 5) <> 57 then raise exception 'structure-seed: шагов этапов не 57'; end if;
 end $$;
