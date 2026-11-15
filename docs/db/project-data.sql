@@ -251,6 +251,7 @@ create table element_links (
   child_id   uuid not null references elements(id) on delete cascade,
   role       text not null default 'part' check (role in ('part', 'input', 'output')),
   ord        int,                                        -- порядок шагов этапа
+  task       text,                                       -- что сделать на шаге: «Собрать презентацию для комитета»
   primary key (parent_id, child_id)
 );
 
@@ -321,13 +322,15 @@ from down d join elements a on a.id = d.child_id
 where a.variable_id is not null;
 
 -- Готовность элемента по проекту: готов, когда все вводимые кирпичи внутри утверждены.
--- Расчётные кирпичи не утверждают — они следуют за входами.
+-- Расчётные кирпичи не утверждают — они следуют за входами. Если входы не размечены, готовность пустая (null):
+-- считать её не из чего, и «готово» было бы неправдой.
 create view v_element_status as
 select p.id as project_id, e.id as element_id, e.code, lv.name as level,
        count(*) filter (where v.source = 'input') as inputs,
        count(*) filter (where v.source = 'input' and vv.status = 'approved') as approved,
-       count(*) filter (where v.source = 'input' and vv.status = 'approved')
-         = count(*) filter (where v.source = 'input') as ready
+       case when count(*) filter (where v.source = 'input') > 0 then
+         count(*) filter (where v.source = 'input' and vv.status = 'approved')
+           = count(*) filter (where v.source = 'input') end as ready
 from projects p
 cross join elements e
 join levels lv on lv.id = e.level_id

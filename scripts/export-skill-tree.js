@@ -137,3 +137,4 @@ Object.keys(D).filter(k => typeof D[k] === "object").forEach(k => {
 });
 fs.writeFileSync(path.join(root, "docs/variables.md"), vd.join("\n"));
 console.log(`templates: ${Object.keys(T.templates).length}, stages: ${T.nodes.length}, variables: ${V.items.length}`);
+require("./export-structure");
