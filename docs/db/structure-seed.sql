@@ -1,7 +1,8 @@
 -- СГЕНЕРИРОВАНО scripts/export-structure.js из prototype/index.html. Не править руками:
 -- после изменений портала запустите node scripts/export-skill-tree.js.
 -- Структура «от кирпича до ЖК» (docs/concept.md). Кирпичи: 308, стены-расчёты: 38, комнаты-разделы: 21,
--- входы стен: 606, этажи-этапы: 21, шаги этапов: 57. Направления отделов в портале пока не размечены.
+-- входы стен: 606, этажи-этапы: 21, шаги этапов: 57,
+-- квартиры-направления: 2 (разделов за отделами: 4 из 21).
 -- Запуск: psql -v ON_ERROR_STOP=1 -f docs/db/project-data.sql -f docs/db/structure-seed.sql -f docs/db/structure-seed-check.sql
 
 -- Отделы-владельцы переменных
@@ -1055,6 +1056,26 @@ from (values
 ) as x (proc, op)
 join elements p on p.code = x.proc
 join elements o on o.code = x.op;
+
+-- Квартиры: направления отделов (window.VARS.areas) и разделы, которые отдел ведёт
+insert into elements (level_id, code, name, owner_dept_id)
+select 4, 'area.' || x.id, x.owner, d.id
+from (values
+  ('finance', 'Финансы'),
+  ('ors', 'ОРС')
+) as x (id, owner)
+join departments d on d.name = x.owner;
+
+insert into element_links (parent_id, child_id)
+select a.id, p.id
+from (values
+  ('area.finance', 'proc.model'),
+  ('area.finance', 'proc.budget'),
+  ('area.ors', 'proc.b0'),
+  ('area.ors', 'proc.pnr')
+) as x (area, proc)
+join elements a on a.code = x.area
+join elements p on p.code = x.proc;
 
 -- Этажи: этапы дорожной карты по порядку
 insert into elements (level_id, code, name, sort) values

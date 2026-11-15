@@ -69,17 +69,29 @@ do $$ begin
   end if;
 end $$;
 
--- 6. Готовность: без значений элементы с входами не готовы; без входов (расчёт из списков, графика, файла) — пусто
+-- 6. Квартира-направление: есть отдел-владелец и хотя бы один раздел; раздел не закреплён за двумя отделами
+do $$ begin
+  if exists (select 1 from elements a where a.level_id = 4
+             and (a.owner_dept_id is null or not exists (select 1 from element_links l join elements p on p.id = l.child_id and p.level_id = 3 where l.parent_id = a.id))) then
+    raise exception '6: направление без отдела или без разделов';
+  end if;
+  if exists (select 1 from element_links l join elements a on a.id = l.parent_id and a.level_id = 4
+             group by l.child_id having count(*) > 1) then
+    raise exception '6: раздел закреплён за двумя отделами';
+  end if;
+end $$;
+
+-- 7. Готовность: без значений элементы с входами не готовы; без входов (расчёт из списков, графика, файла) — пусто
 insert into companies (name) values ('Проверка');
 insert into projects (company_id, name) select id, 'Проверка' from companies;
 do $$ begin
   if exists (select 1 from v_element_status where inputs = 0 and ready is not null) then
-    raise exception '6: готовность без входов не пустая';
+    raise exception '7: готовность без входов не пустая';
   end if;
   if exists (select 1 from v_element_status where inputs > 0 and ready) then
-    raise exception '6: элемент готов без утверждённых значений';
+    raise exception '7: элемент готов без утверждённых значений';
   end if;
-  if not exists (select 1 from v_element_status where inputs > 0) then raise exception '6: ни у одного элемента нет входов'; end if;
+  if not exists (select 1 from v_element_status where inputs > 0) then raise exception '7: ни у одного элемента нет входов'; end if;
 end $$;
 
 select 'structure-seed: все проверки пройдены' as result;

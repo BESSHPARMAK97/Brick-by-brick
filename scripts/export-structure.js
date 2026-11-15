@@ -4,8 +4,9 @@
 //   комнаты — разделы портала (VIEWS): шаги этапов и разделы, которые считают переменные;
 //   этажи — этапы дорожной карты (window.TREE) с шагами по порядку из window.STAGE_STEPS.
 // Портал — единственный источник: файл не правится руками, CI сверяет его с порталом.
-//   входы стен — from у переменной (window.VARS: из каких переменных считается calc).
-// Чего в портале нет, того нет и в базе: направления отделов (квартиры) не размечены.
+//   входы стен — from у переменной (window.VARS: из каких переменных считается calc);
+//   квартиры — направления отделов (window.VARS.areas): отдел и разделы, которые он ведёт.
+// Чего в портале нет, того нет и в базе: разделы без отдела ни в какую квартиру не входят.
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
@@ -55,12 +56,16 @@ TREE.nodes.forEach(n => {
 Object.keys(STAGE_STEPS).forEach(id => {
   if (!TREE.nodes.some(n => n.id === id)) throw new Error(`export-structure: этап ${id} из STAGE_STEPS нет в дорожной карте`);
 });
-const procs = [...new Set(steps.map(s => s[1]).concat(calcs.map(c => c[1])))].sort();
+const areas = VARS.areas || [];
+areas.forEach(a => a.views.forEach(k => { if (!VIEW_T[k]) throw new Error(`export-structure: раздела ${k} направления ${a.id} нет в портале`); }));
+const areaViews = [].concat(...areas.map(a => a.views.map(k => [a.id, k])));
+const procs = [...new Set(steps.map(s => s[1]).concat(calcs.map(c => c[1]), areaViews.map(x => x[1])))].sort();
 
 const out = `-- СГЕНЕРИРОВАНО scripts/export-structure.js из prototype/index.html. Не править руками:
 -- после изменений портала запустите node scripts/export-skill-tree.js.
 -- Структура «от кирпича до ЖК» (docs/concept.md). Кирпичи: ${items.length}, стены-расчёты: ${calcs.length}, комнаты-разделы: ${procs.length},
--- входы стен: ${inputs.length}, этажи-этапы: ${TREE.nodes.length}, шаги этапов: ${steps.length}. Направления отделов в портале пока не размечены.
+-- входы стен: ${inputs.length}, этажи-этапы: ${TREE.nodes.length}, шаги этапов: ${steps.length},
+-- квартиры-направления: ${areas.length} (разделов за отделами: ${areaViews.length} из ${procs.length}).
 -- Запуск: psql -v ON_ERROR_STOP=1 -f docs/db/project-data.sql -f docs/db/structure-seed.sql -f docs/db/structure-seed-check.sql
 
 -- Отделы-владельцы переменных
@@ -117,6 +122,22 @@ ${rows(calcs, ([id, k]) => [q("proc." + k), q("op." + id)])}
 ) as x (proc, op)
 join elements p on p.code = x.proc
 join elements o on o.code = x.op;
+
+-- Квартиры: направления отделов (window.VARS.areas) и разделы, которые отдел ведёт
+insert into elements (level_id, code, name, owner_dept_id)
+select 4, 'area.' || x.id, x.owner, d.id
+from (values
+${rows(areas, a => [q(a.id), q(a.owner)])}
+) as x (id, owner)
+join departments d on d.name = x.owner;
+
+insert into element_links (parent_id, child_id)
+select a.id, p.id
+from (values
+${rows(areaViews, ([id, k]) => [q("area." + id), q("proc." + k)])}
+) as x (area, proc)
+join elements a on a.code = x.area
+join elements p on p.code = x.proc;
 
 -- Этажи: этапы дорожной карты по порядку
 insert into elements (level_id, code, name, sort) values
