@@ -5261,7 +5261,9 @@ window.I18N = (function () {
     ["Структура: что ещё не утверждено и что затронет изменение", "Құрылым: әлі не бекітілмеген және өзгеріс неге әсер етеді"],
     ["Найти в структуре", "Құрылымнан іздеу"],
     // опросник
-    ["Опросник", "Сауалнама"], ["Вопросы этапа", "Кезең сұрақтары"], ["Главная", "Басты бет"], ["Инструменты", "Құралдар"], ["Продолжить", "Жалғастыру"], ["Открыть этап →", "Кезеңді ашу →"],
+    ["Опросник", "Сауалнама"], ["Вопросы этапа", "Кезең сұрақтары"], ["Главная", "Басты бет"], ["Значения", "Мәндер"],
+    ["Справочник проекта: все значения со статусами, списки и реквизиты. Вводить данные удобнее на странице этапа — в «Вопросах этапа»; здесь — проверить, поправить, утвердить и найти.",
+      "Жоба анықтамалығы: мәртебелері бар барлық мәндер, тізімдер мен деректемелер. Деректерді кезең бетінде — «Кезең сұрақтарында» енгізген ыңғайлы; мұнда — тексеру, түзету, бекіту және іздеу."], ["Инструменты", "Құралдар"], ["Продолжить", "Жалғастыру"], ["Открыть этап →", "Кезеңді ашу →"],
     ["всё готово — можно переходить к следующему этапу", "бәрі дайын — келесі кезеңге өтуге болады"], ["Требует внимания", "Назар аударуды қажет етеді"],
     ["Всё в порядке: просрочек и отставаний нет.", "Бәрі ретінде: мерзімі өткен және артта қалған жоқ."], ["Данные утверждены", "Деректер бекітілді"], ["Документы", "Құжаттар"],
     ["сроки в порядке", "мерзімдер ретінде"], ["все утверждены", "барлығы бекітілген"],
@@ -9596,10 +9598,6 @@ const ST = { draft: ["Черновик", "s-new"], agreed: ["Согласова�
 const HOME = { project: ["Карточка проекта", "card"], model: ["Финмодель", "model"], sched: ["График", "gantt"], pnr: ["Показатели ПНР", "pnr"], equip: ["Спецтехника", "equip"] };
 let dataF = { sec: "", owner: "", st: "", q: "" }, baseAsk = false;
 // Ключевые данные проекта: вводятся формой вверху экрана «Данные»; в таблице «Все параметры» они только показываются.
-const DATA_CORE = [["passport", "Паспорт", ["name", "klass", "city", "address", "area_land", "area_total", "area_sale", "area_comm", "parking"]],
-  ["terms", "Сроки и продажи", ["sched_start", "price", "price_comm", "price_park", "growth"]],
-  ["money", "Затраты и финансирование", ["land", "design", "smr", "nets", "equity", "rate"]]];
-const DATA_CORE_SEC = Object.fromEntries(DATA_CORE.flatMap(([id, t, ids]) => ids.map(v => [v, [id, t]])));
 function viewData() {
   const all = window.ZHK.vars(), ro = window.ZHK.readOnly(), B = window.ZHK.baseline();
   const q = dataF.q.trim().toLowerCase();
@@ -9610,8 +9608,8 @@ function viewData() {
   const opt = (arr, cur, fmt = x => x) => arr.map(x => `<option value="${esc(x)}"${x === cur ? " selected" : ""}>${esc(fmt(x))}</option>`).join("");
   const dt = iso => iso ? new Date(iso).toLocaleDateString("ru-RU") : "";
   const valCell = (v, form) => {
-    if (v.calc || ro || v.type === "sel") return `<span class="v">${esc(v.text)}</span>`;
-    if (DATA_CORE_SEC[v.id] && !form) return `<span class="v">${esc(v.text)}</span> <a class="muted vsrc" href="#data" data-dsec="${DATA_CORE_SEC[v.id][0]}">ввод: ${DATA_CORE_SEC[v.id][1]}</a>`;
+    if (v.calc || ro) return `<span class="v">${esc(v.text)}</span>`;
+    if (v.type === "sel" || !v.set) return qCtl(v, ""); // выбор — из тех же списков, что на странице этапа; пусто — без примерных цифр
     if (v.type === "flag") return `<label class="row" style="gap:6px"><input type="checkbox" data-var="${v.id}"${v.raw ? " checked" : ""}> ${esc(v.text)}</label>`;
     if (v.type === "month") return `<input type="month" class="vin" data-var="${v.id}" value="${esc(v.raw || "")}" aria-label="${esc(v.name)}">`;
     const val = v.type === "num" && typeof v.raw === "number" ? String(v.raw).replace(".", ",") : (v.raw == null ? "" : v.raw);
@@ -9641,24 +9639,11 @@ function viewData() {
       : '<div class="empty">Рисков пока нет. Добавьте риски и возможности проекта: они попадут в презентацию ПК Start.</div>'}
     ${ro ? "" : '<div class="row"><button class="btn" data-item-add="risks">Добавить риск</button></div>'}
   </div></section>`;
-  // Ключевые данные проекта — формой по разделам; полная таблица переменных со статусами — ниже, в «Все параметры».
-  const VV = Object.fromEntries(all.map(v => [v.id, v]));
-  const cfCtl = v => v.calc ? `<span class="v">${esc(v.text)}</span>` : v.type === "sel" && window.DICTS[v.id]
-    ? `<select data-var="${v.id}" aria-label="${esc(v.name)}"${ro ? " disabled" : ""}><option value="">—</option>${window.DICTS[v.id].items.map(i => `<option${i.v === v.raw ? " selected" : ""}>${esc(i.v)}</option>`).join("")}</select>` : valCell(v, true);
-  const cf = id => { const v = VV[id]; return v ? `<label class="field cf"><span class="label">${esc(v.name)}</span><span class="cf-v">${cfCtl(v)}</span>${v.st === "approved" ? '<span class="cf-st ok" title="Утверждено">✓</span>' : ""}</label>` : ""; };
-  const CORE = DATA_CORE;
-  const coreSec = ([id, t, ids]) => `<section class="panel stack" id="sec-${id}"><h2 class="h2">${t}</h2><div class="fields cf-grid">${ids.map(cf).join("")}</div></section>`;
   const embedSec = (id, t, html) => `<section class="stack" id="sec-${id}"><h2 class="h2">${t}</h2>${html}</section>`;
-  const NAVS = [["passport", "Паспорт"], ["blocks", "Блоки"], ["terms", "Сроки и продажи"], ["money", "Затраты"], ["team", "Команда"], ["risks", "Риски"], ["about", "Описание"], ["all", "Все параметры"]];
-  return head("Данные проекта", "Каждая переменная вводится один раз. Финмодель, график, стандарты, образцы документов и отчёты берут её отсюда.") + `
+  const NAVS = [["all", "Значения"], ["blocks", "Блоки"], ["team", "Команда"], ["risks", "Риски"], ["about", "Описание"]];
+  return head("Данные проекта", "Справочник проекта: все значения со статусами, списки и реквизиты. Вводить данные удобнее на странице этапа — в «Вопросах этапа»; здесь — проверить, поправить, утвердить и найти.") + `
   <nav class="d-nav" aria-label="Разделы данных">${NAVS.map(([id, t]) => `<a href="#data" data-dsec="${id}">${t}</a>`).join("")}</nav>
-  ${coreSec(CORE[0])}
-  ${embedSec("blocks", "Блоки", embedView(viewBlocks))}
-  ${coreSec(CORE[1])}${coreSec(CORE[2])}
-  ${embedSec("team", "Команда и партнёры", embedView(viewTeam) + embedView(viewPartners))}
-  <div id="sec-risks">${riskHtml}</div>
-  <details class="panel d-more" id="sec-about"${dataOpen.about ? " open" : ""}><summary><h2 class="h2">Описание и реквизиты</h2><span class="muted">миссия, тексты для ПК Start, стандарты, реквизиты для документов</span></summary><div class="stack" style="margin-top:12px">${embedView(viewCard)}</div></details>
-  <details class="panel d-more" id="sec-all"${dataOpen.all ? " open" : ""}><summary><h2 class="h2">Все параметры</h2><span class="muted">${all.length} · статусы, утверждение, база ПК Start</span></summary><div class="stack" style="margin-top:12px">
+  <section class="stack" id="sec-all"><h2 class="h2">Значения</h2>
   <section class="panel stack">
     <div class="row between"><div class="row">${["draft", "agreed", "approved", "calc"].map(st => `<span class="chip ${ST[st][1]}">${ST[st][0]}: ${n(st)}</span>`).join("")}</div>
       <div class="row">${B ? `<span class="muted">Базовая версия ПК Start: ${dt(B.at)}, ${esc(B.who)}</span>` : '<span class="muted">Базовая версия ПК Start не зафиксирована</span>'}
@@ -9673,7 +9658,11 @@ function viewData() {
     <p class="muted" style="margin:0">Владельцы переменных — черновик, отделы холдинга уточняются. Изменение значения возвращает статус в «Черновик».</p>
   </section>
   ${secs.map(sec => `<section class="stack"><h2>${esc(sec)}</h2><div class="panel tbl vtable"><table><thead><tr><th>Переменная</th><th>Значение</th><th>Статус</th><th>ПК Start</th><th>Где используется</th></tr></thead><tbody>${list.filter(v => v.sec === sec).map(row).join("")}</tbody></table></div></section>`).join("") || '<div class="empty">Ничего не найдено. Сбросьте фильтры.</div>'}
-  </div></details>
+  </section>
+  ${embedSec("blocks", "Блоки", embedView(viewBlocks))}
+  ${embedSec("team", "Команда и партнёры", embedView(viewTeam) + embedView(viewPartners))}
+  <div id="sec-risks">${riskHtml}</div>
+  <details class="panel d-more" id="sec-about"${dataOpen.about ? " open" : ""}><summary><h2 class="h2">Описание и реквизиты</h2><span class="muted">миссия, тексты для ПК Start, стандарты, реквизиты для документов</span></summary><div class="stack" style="margin-top:12px">${embedView(viewCard)}</div></details>
   <section class="stack" id="backups"><h2>Резервные копии</h2><div class="panel stack">
     ${(r => r ? `<p class="hm-sub warn" style="margin:0"><span class="hm-ic" aria-hidden="true">!</span>Данные восстановлены из копии от ${esc(r.from)} — ${dt(r.at)}${r.who ? ", " + esc(r.who) : ""}</p>` : "")(window.ZHK.restored())}
     <div id="bk-list"><span class="muted">Загружаю список копий…</span></div>
@@ -10021,7 +10010,7 @@ function bind(m) {
   renderBackups(m);
   m.querySelectorAll("[data-hm]").forEach(b => b.onclick = () => { const id = b.dataset.hm; hmOpen = hmOpen === id ? "" : id; route(); const d = document.getElementById("hm-drill"); if (d && hmOpen) d.scrollIntoView({ block: "nearest" }); });
   m.querySelectorAll("details.d-more").forEach(d => d.ontoggle = () => { dataOpen[d.id.slice(4)] = d.open; saveDataOpen(); });
-  const jump = id => { if (id === "about" || id === "all") dataOpen[id] = true; const d = m.querySelector("#sec-" + id); if (d) { if (d.tagName === "DETAILS") d.open = true; d.scrollIntoView({ block: "start" }); } };
+  const jump = id => { if (id === "about") dataOpen[id] = true; const d = m.querySelector("#sec-" + id); if (d) { if (d.tagName === "DETAILS") d.open = true; d.scrollIntoView({ block: "start" }); } };
   m.querySelectorAll("[data-dsec]").forEach(a => a.onclick = e => { e.preventDefault(); jump(a.dataset.dsec); });
   if (dataJump && m.querySelector("#sec-" + dataJump)) { const j = dataJump; dataJump = ""; setTimeout(() => jump(j), 0); }
   document.querySelectorAll("[data-go-mods]").forEach(a => a.onclick = () => { dataJump = "modules"; if (location.hash === "#data") route(); });
