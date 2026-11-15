@@ -220,6 +220,17 @@ body.nohints .topbar .muted, body.nohints .hint { display: none }
 .s-fail { color: var(--bad); background: var(--bad-soft) }
 .s-agreed { color: var(--accent); background: var(--accent-soft) }
 .s-new { color: var(--signal); background: var(--warn-soft) }
+/* Структура «от кирпича до ЖК»: дерево с раскрытием по уровням */
+.st-tree ul { list-style: none; margin: 4px 0 4px 10px; padding-left: 14px; border-left: 1px solid var(--line) }
+.st-tree > ul { margin-left: 0; padding-left: 0; border-left: 0 }
+.st-tree li { margin: 3px 0 }
+.st-tree summary { cursor: pointer; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 3px 0 }
+.st-tree summary:focus-visible { outline: 2px solid var(--ring, var(--accent)); outline-offset: 2px; border-radius: 4px }
+.st-leaf { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 2px 0 2px 18px }
+.st-lv { font-size: .7rem; font-weight: 600; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 1px 7px; white-space: nowrap }
+.st-sub { color: var(--muted); font-size: .85em }
+.st-mode .chip { cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--fg) }
+.st-mode .chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent) }
 .s-changed { color: var(--info); background: var(--info-soft) }
 .tag { font-size: .75rem; border: 1px solid var(--line); border-radius: 6px; padding: 1px 7px; color: var(--muted); white-space: nowrap }
 .tag.auto { border-color: var(--accent); color: var(--accent) }
@@ -4604,7 +4615,7 @@ window.VARS = {
   homes: { project: "card", model: "model", sched: "gantt", pnr: "pnr", equip: "equip" },
   // Списки проекта — тоже кирпичи структуры: у проекта их переменное число строк. id — ключ списка в данных проекта,
   // view — раздел, где список вводится (отдел и, если нет name, название — от раздела). Расчёт из списка указывает его в fromLists.
-  // Список готов, когда в нём есть строки (как шаг «Блоки проекта» на дорожной карте).
+  // Список готов, когда в нём есть строки (как шаг «Блоки проекта» на дорожной карте); строки шахматки — внесённые ячейки.
   // perStage — у каждого этапа свой список: отметки пунктов чек-листа (data.checked, ключ «этап.пункт»); он входит
   // в свой этап и готов, когда отмечены все пункты, как этап на дорожной карте.
   lists: [
@@ -4618,7 +4629,7 @@ window.VARS = {
   areas: [
     { id: "finance", owner: "Финансы", views: ["model", "budget", "smeta", "whatif"] },
     { id: "ors", owner: "ОРС", views: ["b0", "pnr"] },
-    { id: "team", owner: "Команда проекта", views: ["card", "gantt", "standards", "roadmap", "deadlines", "data", "blocks", "team", "partners", "plans", "kpi", "pk"] },
+    { id: "team", owner: "Команда проекта", views: ["card", "gantt", "standards", "roadmap", "deadlines", "data", "structure", "blocks", "team", "partners", "plans", "kpi", "pk"] },
     { id: "sales", owner: "Продажи", views: ["chess"] },
     { id: "build", owner: "Стройка", views: ["acts", "equip"] }
   ],
@@ -4773,7 +4784,8 @@ window.STAGE_STEPS = {
   expert: [["deadlines", "Срок заключения экспертизы"]],
   tender: [["smeta", "Сравнить предложения подрядчиков со сметой"], ["partners", "Генподрядчик, технадзор, проектировщик"]],
   pkstart: [["b0", "Чек-лист B0: анкета проекта для сметы ОРС"], ["pnr", "Калькулятор ПНР: показатели для расчёта ОРС"], ["model", "Уточнить финмодель по итогам B0 и ПНР"],
-    ["whatif", "Сценарии «что если» для комитета"], ["data", "Проверить и утвердить данные, зафиксировать базу ПК Start"], ["kpi", "Ключевые показатели: срок, маржа, IRR, долг"], ["pk", "Собрать презентацию для комитета"]],
+    ["whatif", "Сценарии «что если» для комитета"], ["structure", "Структура: что ещё не утверждено и что затронет изменение"],
+    ["data", "Проверить и утвердить данные, зафиксировать базу ПК Start"], ["kpi", "Ключевые показатели: срок, маржа, IRR, долг"], ["pk", "Собрать презентацию для комитета"]],
   dolevka: [["chess", "Шахматка: квартиры и статусы продаж"], ["deadlines", "Сроки по долевому участию"]],
   start: [["team", "Команда проекта"], ["partners", "Подписанты: генподряд, технадзор, авторнадзор"], ["budget", "Бюджет: план из финмодели"], ["equip", "План спецтехники на весь цикл"], ["standards", "Стандарты на работы"], ["deadlines", "Уведомление о начале СМР"]],
   zero: ST_BUILD, nets: ST_BUILD.slice(0, 3), frame: ST_BUILD, envelope: ST_BUILD, mep: ST_BUILD, finish: ST_BUILD,
@@ -4781,6 +4793,64 @@ window.STAGE_STEPS = {
   handover: [["chess", "Передача квартир"]]
 };
 })();
+</script>
+
+<script id="structure">
+// Структура «от кирпича до ЖК» (docs/concept.md): из словаря VARS, дорожной карты TREE и шагов STAGE_STEPS.
+// Один код на страницу «Структура» портала и на базу (scripts/export-structure.js → docs/db/structure-seed.sql).
+// VIEW_T — названия разделов портала: ключ → название. Ошибка данных — исключение с понятным текстом.
+window.buildStructure = function (VARS, TREE, STAGE_STEPS, VIEW_T) {
+  const items = VARS.items;
+  // calc у переменной называет раздел, который её считает. Обычно это название раздела; два исключения — старые имена.
+  const CALC_VIEW = { "Калькулятор ПНР": "pnr", "Дорожная карта": "roadmap" };
+  const calcView = name => {
+    const k = CALC_VIEW[name] || Object.keys(VIEW_T).find(k => VIEW_T[k] === name);
+    if (!k || !VIEW_T[k]) throw new Error(`structure: calc «${name}» не совпадает ни с одним разделом портала`);
+    return k;
+  };
+
+  const owners = [...new Set(VARS.owners.concat(items.map(v => v.owner)))]; // и отделы без своих переменных (Стройка)
+  const calcs = items.filter(v => v.calc).map(v => [v.id, calcView(v.calc)]);
+  const inputs = [];
+  items.filter(v => v.calc).forEach(v => (v.from || []).forEach(x => inputs.push([v.id, x])));
+
+  // Шаги этапов: как в портале, только разделы, которые есть в VIEWS
+  const steps = [];
+  TREE.nodes.forEach(n => {
+    const seen = new Set();
+    (STAGE_STEPS[n.id] || []).filter(([k]) => VIEW_T[k]).forEach(([k, task], i) => {
+      if (seen.has(k)) throw new Error(`structure: раздел ${k} дважды в шагах этапа ${n.id}`);
+      seen.add(k);
+      steps.push([n.id, k, i + 1, task]);
+    });
+  });
+  Object.keys(STAGE_STEPS).forEach(id => {
+    if (!TREE.nodes.some(n => n.id === id)) throw new Error(`structure: этап ${id} из STAGE_STEPS нет в дорожной карте`);
+  });
+  const areas = VARS.areas || [];
+  areas.forEach(a => a.views.forEach(k => { if (!VIEW_T[k]) throw new Error(`structure: раздела ${k} направления ${a.id} нет в портале`); }));
+  const areaViews = [].concat(...areas.map(a => a.views.map(k => [a.id, k])));
+  // Где вводится: начало path → раздел (window.VARS.homes)
+  const homeOf = v => { const k = VARS.homes[v.path.split(".")[0]]; if (!VIEW_T[k]) throw new Error(`structure: у ${v.id} нет раздела ввода для ${v.path}`); return k; };
+  const entered = items.filter(v => !v.calc).map(v => [homeOf(v), v.id]);
+  const procs = [...new Set(steps.map(s => s[1]).concat(calcs.map(c => c[1]), areaViews.map(x => x[1]), entered.map(x => x[0])))].sort();
+  // Списки проекта: название — от раздела, владелец — отдел направления этого раздела
+  // perStage — у каждого этапа с пунктами свой список (чек-лист): готов, когда отмечены все пункты (need = число пунктов)
+  const lists = [].concat(...(VARS.lists || []).map(l => {
+    const a = areas.find(x => x.views.includes(l.view));
+    if (!VIEW_T[l.view] || !a) throw new Error(`structure: у списка ${l.id} нет раздела ${l.view} или его отдела`);
+    const base = { group: l.id, view: l.view, owner: a.owner };
+    return l.perStage
+      ? TREE.nodes.filter(n => n.tasks.length).map(n => Object.assign({ id: l.id + "." + n.id, stage: n.id, name: "Чек-лист: " + n.code + ". " + n.name, need: n.tasks.length }, base))
+      : [Object.assign({ id: l.id, name: "Список: " + (l.name || VIEW_T[l.view]), need: 1 }, base)];
+  }));
+  const listInputs = [];
+  items.filter(v => v.calc).forEach(v => (v.fromLists || []).forEach(x => lists.filter(l => l.group === x).forEach(l => listInputs.push([v.id, l.id]))));
+  const stageLists = lists.filter(l => l.stage);
+  const noArea = procs.filter(k => !areaViews.some(x => x[1] === k));
+  if (noArea.length) throw new Error(`structure: разделы без отдела (добавьте в window.VARS.areas): ${noArea.join(", ")}`);
+  return { owners, calcs, inputs, steps, areas, areaViews, entered, procs, lists, listInputs, stageLists };
+};
 </script>
 
 <script id="i18n">
@@ -4997,7 +5067,17 @@ window.I18N = (function () {
     ["Полный архив", "Толық мұрағат"], ["10+ вложений к пунктам чек-листов", "Чек-парақ тармақтарына 10+ тіркеме"],
     ["Командная работа", "Командалық жұмыс"], ["В журнале действия 3+ участников", "Журналда 3+ қатысушының әрекеттері"],
     ["Финансист", "Қаржыгер"], ["Финмодель заполнена своими цифрами", "Қаржы моделі өз сандарыңызбен толтырылған"],
-    ["Портфель проектов", "Жобалар портфелі"]
+    ["Портфель проектов", "Жобалар портфелі"],
+    // структура «от кирпича до ЖК»
+    ["Структура", "Құрылым"], ["Структура проекта", "Жоба құрылымы"],
+    ["От кирпича до ЖК: из чего собран проект и что готово. Кирпич — значение или список, стена — расчёт, комната — раздел портала, квартира — направление отдела, этаж — этап, дом — проект, ЖК — портфель.",
+      "Кірпіштен ТҮК-ке дейін: жоба неден құралған және не дайын. Кірпіш — мән немесе тізім, қабырға — есеп, бөлме — портал бөлімі, пәтер — бөлімше бағыты, қабат — кезең, үй — жоба, ТҮК — портфель."],
+    ["По этапам", "Кезеңдер бойынша"], ["По отделам", "Бөлімшелер бойынша"], ["Как собрать дерево", "Ағашты қалай құру"],
+    ["Готово, когда утверждены все вводимые данные внутри: значения — утверждены, списки — заполнены, чек-листы — отмечены.",
+      "Ішіндегі барлық енгізілетін деректер дайын болғанда дайын: мәндер бекітілген, тізімдер толтырылған, чек-парақтар белгіленген."],
+    ["Кирпич", "Кірпіш"], ["Стена", "Қабырға"], ["Комната", "Бөлме"], ["Квартира", "Пәтер"], ["Этаж", "Қабат"], ["Дом", "Үй"],
+    ["нет входов", "кірістер жоқ"], ["готово", "дайын"],
+    ["Структура: что ещё не утверждено и что затронет изменение", "Құрылым: әлі не бекітілмеген және өзгеріс неге әсер етеді"],
   ].forEach(p => add(p[0], p[1]));
 
   const tr = s => D.has(s) ? D.get(s) : s;
@@ -5059,6 +5139,13 @@ window.I18N = (function () {
     [/^Сбросить отметки, назначения и досрочные старты\? Карточка проекта, финмодель, бюджет и реестр сроков останутся\.$/, () => "Белгілерді, тағайындауларды және мерзімінен бұрын бастауларды тастау керек пе? Жоба карточкасы, қаржы моделі, бюджет және мерзімдер тізілімі сақталады."],
     [/^Да, сбросить$/, () => "Иә, тастау"],
     [/^\+(\d+) пунктов? для региона$/, m => "Өңір үшін +" + m[1] + " тармақ"],
+    // структура: готовность «N из M», названия элементов
+    [/^(\d+) из (\d+)$/, m => m[2] + " ішінен " + m[1]],
+    [/^Расчёт: (.+)$/, m => "Есеп: " + m[1]],
+    [/^Список: (.+)$/, m => "Тізім: " + (D.get(m[1]) || m[1])],
+    [/^Чек-лист: (\d+)\. (.+)$/, m => "Чек-парақ: " + m[1] + ". " + (D.get(m[2]) || m[2])],
+    [/^(\d\d)\. (.+)$/, m => D.has(m[2]) ? m[1] + ". " + D.get(m[2]) : null],
+    [/^Структура не собрана: (.+)$/, m => "Құрылым жиналмады: " + m[1]],
   ];
 
   const CYR = /[А-Яа-яЁё]/;
@@ -7264,6 +7351,13 @@ window.ZHK_BOOT = function (document) {
     },
     // Риски и команда проекта: общие списки для портала и презентации ПК Start.
     list: k => listOf(k),
+    // Сколько строк в списке структуры (window.VARS.lists): записи списка; у шахматки — внесённые ячейки;
+    // у чек-листа этапа (checked.<этап>) — отмеченные пункты. Готовность списка — не меньше need строк.
+    listRows: id => {
+      if (id.indexOf("checked.") === 0) { const n = byId[id.slice(8)]; return n ? doneCount(n) : 0; }
+      if (id === "chess") return Object.keys(S.chess || {}).filter(k => S.chess[k] != null && S.chess[k] !== "").length;
+      return listOf(id).length;
+    },
     blockTotals: () => blockTotals(),
     // «Что если»: пересчёт финмодели с изменёнными допущениями; данные проекта не меняются.
     whatIf: sc => {
@@ -7499,6 +7593,7 @@ const VIEWS = {
   plans: { g: "obj", t: "Планировки", cnt: () => window.ZHK ? window.ZHK.plans().length || "" : "", r: viewPlans },
   chess: { g: "obj", t: "Шахматка", cnt: () => "", r: viewChess },
   data: { g: "obj", t: "Данные проекта", cnt: () => "", r: viewData },
+  structure: { g: "obj", t: "Структура", cnt: () => "", r: viewStructure },
   standards: { g: "obj", t: "Стандарты", cnt: () => relevant().length, r: viewStandards },
   roadmap: { g: "map", z: "tree", mode: "map", t: "Этапы", cnt: () => "", r: Z("Дорожная карта", "Этапы проекта по фазам — от анализа рынка до гарантии: сроки по графику, выполнение пунктов и инструменты каждого этапа. Нажмите на этап, чтобы открыть его пункты, документы, бюджет и сроки.") },
   scheme: { g: "map", z: "tree", mode: "scheme", t: "Схема связей", cnt: () => "", r: Z("Схема связей этапов", "Какой этап открывает следующий. Этап открывается, когда закрыты условия перехода на предыдущих.") },
@@ -7519,7 +7614,7 @@ const VIEWS = {
 };
 
 // Состав групп по порядку вкладок; первый раздел группы открывается из меню. Шахматка и планировки — на паузе (без вкладки).
-const GV = { home: ["home", "today", "kpi"], map: ["roadmap", "gantt", "calendar", "deadlines"], data: ["data"],
+const GV = { home: ["home", "today", "kpi"], map: ["roadmap", "gantt", "calendar", "deadlines"], data: ["data", "structure"],
   fin: ["model", "whatif", "budget", "smeta"], ors: ["pnr", "b0"], build: ["equip", "acts", "standards"], pk: ["pk"], co: ["projects"] };
 Object.entries(GV).forEach(([g, ks]) => ks.forEach(k => { VIEWS[k].g = g; }));
 ["chess", "plans"].forEach(k => { VIEWS[k].g = "build"; VIEWS[k].off = true; });
@@ -8976,6 +9071,94 @@ function polish(root) {
 const fit = t => { t.style.height = "auto"; t.style.height = t.scrollHeight + 2 + "px"; };
 document.addEventListener("input", e => { if (e.target.matches && e.target.matches("textarea.auto") && !(CSS.supports && CSS.supports("field-sizing", "content"))) fit(e.target); });
 
+// Структура «от кирпича до ЖК»: дерево из window.buildStructure — того же кода, что наполняет базу
+// (docs/db/structure-seed.sql). Готовность — как v_element_status: кирпич готов, когда значение утверждено,
+// список — когда в нём не меньше need строк; у элемента — сколько его вводимых кирпичей готово. Ничего не хранит.
+let structMode = "stage";
+const ST_LV = { a: "Кирпич", l: "Кирпич", o: "Стена", p: "Комната", f: "Квартира", s: "Этаж" };
+function structModel() {
+  const Z = window.ZHK, VT = Object.fromEntries(Object.keys(VIEWS).map(k => [k, VIEWS[k].t]));
+  const B = window.buildStructure(window.VARS, window.TREE, window.STAGE_STEPS, VT);
+  const V = Object.fromEntries(Z.vars().map(v => [v.id, v])), L = Object.fromEntries(B.lists.map(l => [l.id, l]));
+  const ch = {}, add = (p, c) => { (ch[p] = ch[p] || []).push(c); };
+  B.calcs.forEach(([id, k]) => { add("p:" + k, "o:" + id); add("o:" + id, "a:" + id); });
+  B.inputs.forEach(([id, x]) => add("o:" + id, "a:" + x));
+  B.listInputs.forEach(([id, x]) => add("o:" + id, "l:" + x));
+  B.lists.forEach(l => { add("p:" + l.view, "l:" + l.id); if (l.stage) add("s:" + l.stage, "l:" + l.id); });
+  B.entered.forEach(([k, id]) => add("p:" + k, "a:" + id));
+  B.steps.forEach(([sid, k, ord, task]) => add("s:" + sid, "p:" + k));
+  B.areaViews.forEach(([a, k]) => add("f:" + a, "p:" + k));
+  const task = {}; B.steps.forEach(([sid, k, ord, t]) => { task[sid + "|" + k] = t; });
+  const isIn = k => k[0] === "l" || (k[0] === "a" && V[k.slice(2)] && !V[k.slice(2)].calc);
+  const ok = k => k[0] === "l" ? Z.listRows(k.slice(2)) >= L[k.slice(2)].need : V[k.slice(2)].st === "approved";
+  // Вводимые кирпичи элемента на всю глубину; расчётный кирпич ведёт к своей стене (цепочка расчётов).
+  const memo = {};
+  const bricks = key => {
+    if (memo[key]) return memo[key];
+    const out = new Set(), seen = new Set(), st = [key];
+    while (st.length) {
+      const k = st.pop(); if (seen.has(k)) continue; seen.add(k);
+      if (isIn(k)) { out.add(k); continue; }
+      if (k[0] === "a") { st.push("o:" + k.slice(2)); continue; }
+      (ch[k] || []).forEach(c => st.push(c));
+    }
+    return (memo[key] = out);
+  };
+  const ready = key => { const b = [...bricks(key)]; return { n: b.length, ok: b.filter(ok).length }; };
+  const name = k => { const t = k.slice(2);
+    return k[0] === "a" ? V[t].name : k[0] === "l" ? L[t].name : k[0] === "o" ? "Расчёт: " + V[t].name : k[0] === "p" ? VT[t]
+      : k[0] === "f" ? B.areas.find(a => a.id === t).owner : (n => n.code + ". " + n.name)(window.TREE.nodes.find(n => n.id === t)); };
+  return { B, V, L, ch, task, isIn, ok, ready, name, bricks };
+}
+function structChip(r) {
+  return !r.n ? '<span class="chip">нет входов</span>' : r.ok === r.n ? '<span class="chip s-done">готово</span>' : `<span class="chip s-new">${r.ok} из ${r.n}</span>`;
+}
+function structNode(M, key, parent) {
+  const lv = `<span class="st-lv">${ST_LV[key[0]]}</span>`;
+  if (key[0] === "a" || key[0] === "l") {
+    const t = key.slice(2), v = M.V[t];
+    const st = key[0] === "l" ? `<span class="chip ${M.ok(key) ? "s-done" : "s-new"}">${window.ZHK.listRows(t)} из ${M.L[t].need}</span>`
+      : `<span class="chip ${ST[v.calc ? "calc" : v.st][1]}">${ST[v.calc ? "calc" : v.st][0]}</span>`;
+    return `<li class="st-leaf">${lv}<span>${esc(M.name(key))}</span>${st}${v ? `<span class="st-sub">${esc(v.owner)}</span>` : ""}</li>`;
+  }
+  const tk = parent && parent[0] === "s" && key[0] === "p" ? M.task[parent.slice(2) + "|" + key.slice(2)] : "";
+  return `<li><details data-sk="${key}"><summary>${lv}<span>${esc(M.name(key))}</span>${structChip(M.ready(key))}${tk ? `<span class="st-sub">${esc(tk)}</span>` : ""}</summary><ul></ul></details></li>`;
+}
+// Дети в порядке чтения: у этажа — чек-лист и шаги по порядку, у комнаты — стены, затем вводимые кирпичи,
+// у стены — результат и входы.
+function structKids(M, key) {
+  const k = (M.ch[key] || []).slice(), rank = x => ({ l: 0, o: 1, a: 2, p: 3 })[x[0]];
+  if (key[0] !== "s") k.sort((x, y) => rank(x) - rank(y));
+  if (key[0] === "o") { const r = "a:" + key.slice(2); k.splice(k.indexOf(r), 1); k.unshift(r); }
+  return k.map(c => structNode(M, c, key)).join("");
+}
+let structM = null;
+function structBind(root) {
+  root.querySelectorAll("details[data-sk]").forEach(d => d.ontoggle = () => {
+    const ul = d.querySelector(":scope > ul");
+    if (!d.open || ul.childElementCount || !structM) return;
+    ul.innerHTML = structKids(structM, d.dataset.sk);
+    structBind(ul);
+  });
+  root.querySelectorAll("[data-smode]").forEach(b => b.onclick = () => { structMode = b.dataset.smode; route(); });
+}
+function viewStructure() {
+  const h = head("Структура проекта", "От кирпича до ЖК: из чего собран проект и что готово. Кирпич — значение или список, стена — расчёт, комната — раздел портала, квартира — направление отдела, этаж — этап, дом — проект, ЖК — портфель.");
+  try { structM = structModel(); } catch (e) { structM = null; return h + `<section class="panel"><div class="empty">Структура не собрана: ${esc(e.message)}</div></section>`; }
+  const M = structM, P = window.ZHK.project() || {};
+  const roots = structMode === "area" ? M.B.areas.map(a => "f:" + a.id) : window.TREE.nodes.map(n => "s:" + n.id);
+  // Дом готов, когда готовы вводимые кирпичи всех его этапов
+  const hb = new Set(); window.TREE.nodes.forEach(n => M.bricks("s:" + n.id).forEach(b => hb.add(b)));
+  const home = { n: hb.size, ok: [...hb].filter(M.ok).length };
+  return h + `<section class="panel stack">
+    <div class="row between"><div class="st-mode row" role="group" aria-label="Как собрать дерево">
+      <button class="chip" type="button" data-smode="stage" aria-pressed="${structMode === "stage"}">По этапам</button>
+      <button class="chip" type="button" data-smode="area" aria-pressed="${structMode === "area"}">По отделам</button></div>
+      <span class="muted">Готово, когда утверждены все вводимые данные внутри: значения — утверждены, списки — заполнены, чек-листы — отмечены.</span></div>
+    <div class="st-tree"><ul><li><details open data-sk="root"><summary><span class="st-lv">Дом</span><span>${esc(P.name || projTitle())}</span>${structChip(home)}</summary>
+      <ul>${roots.map(r => structNode(M, r, "")).join("")}</ul></details></li></ul></div>
+  </section>`;
+}
 function route() {
   let v = location.hash.slice(1);
   if (!navBack && navHist[navHist.length - 1] !== v) { navHist.push(v); if (navHist.length > 50) navHist.shift(); }
@@ -9454,6 +9637,7 @@ function bind(m) {
   const fx = m.querySelector("#f-clear"); if (fx) fx.onclick = () => { filt = { region: "", city: "", klass: "", stage: "", work: "", construct: "", dir: "", status: "" }; route() };
   m.querySelectorAll("[data-std]").forEach(b => b.onclick = () => openStd(b.dataset.std));
   m.querySelectorAll("[data-kind]").forEach(b => b.onclick = () => { const k = b.dataset.kind; evKinds.has(k) ? evKinds.delete(k) : evKinds.add(k); route() });
+  structBind(m);
   m.querySelectorAll("[data-item]").forEach(el => el.onchange = () => {
     const [k, id, f] = el.dataset.item.split(":");
     window.ZHK.setItem(k, id, { [f]: el.value });
