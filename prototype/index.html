@@ -229,6 +229,16 @@ body.nohints .topbar .muted, body.nohints .hint { display: none }
 .st-leaf { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 2px 0 2px 18px }
 .st-lv { font-size: .7rem; font-weight: 600; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 1px 7px; white-space: nowrap }
 .st-sub { color: var(--muted); font-size: .85em }
+.st-list > details { border-top: 1px solid var(--line); padding: 6px 0 }
+.st-list > details > summary, .st-grp > summary { cursor: pointer; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 4px 0 }
+.st-name { min-width: 220px; font-weight: 600 }
+.st-box { padding: 4px 0 8px 18px; display: grid; gap: 4px }
+.st-bar { display: inline-block; width: 90px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; vertical-align: middle }
+.st-bar i { display: block; height: 100%; background: var(--ok) }
+.st-miss { list-style: none; margin: 4px 0 6px 0; padding: 0 0 0 14px; display: grid; gap: 4px; border-left: 1px solid var(--line) }
+.st-miss li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px }
+.st-res { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px }
+.st-res li { border-left: 3px solid var(--line); padding-left: 10px }
 .st-mode .chip { cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--fg) }
 .st-mode .chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent) }
 .s-changed { color: var(--info); background: var(--info-soft) }
@@ -3817,7 +3827,12 @@ window.DICTS = {
     { v: "Акт промежуточной приёмки ответственных конструкций", k: "resp" },
     { v: "Акт индивидуального испытания", k: "test", tpl: "test_act" },
     { v: "Дефектный акт", k: "defect" },
-    { v: "Предписание об устранении замечаний", k: "order", tpl: "defect_order" }] },
+    { v: "Предписание об устранении замечаний", k: "order", tpl: "defect_order" },
+    // Ввод в эксплуатацию: заключения надзоров и декларация генподрядчика — приложения к акту приёмки
+    { v: "Заключение технического надзора о качестве", k: "tnq" },
+    { v: "Заключение авторского надзора о соответствии", k: "anq" },
+    { v: "Декларация о соответствии генподрядчика", k: "decl" },
+    { v: "Акт приёмки построенного объекта в эксплуатацию", k: "commission", tpl: "commission_act" }] },
   // Списки калькулятора ПНР
   interiorKind: { name: "Вид дизайн-проекта", items: [{ v: "Индивидуальная разработка" }, { v: "Дизайн-коллекция" }, { v: "Адаптация проекта" }] },
   liftCabin: { name: "Габариты кабины лифта", items: [{ v: "1100 х 1400" }, { v: "1100 х 2100" }, { v: "2100 х 1100" }, { v: "1300 х 2100" }, { v: "2100 х 1300" }] },
@@ -4789,7 +4804,7 @@ window.STAGE_STEPS = {
   dolevka: [["chess", "Шахматка: квартиры и статусы продаж"], ["deadlines", "Сроки по долевому участию"]],
   start: [["team", "Команда проекта"], ["partners", "Подписанты: генподряд, технадзор, авторнадзор"], ["budget", "Бюджет: план из финмодели"], ["equip", "План спецтехники на весь цикл"], ["standards", "Стандарты на работы"], ["deadlines", "Уведомление о начале СМР"]],
   zero: ST_BUILD, nets: ST_BUILD.slice(0, 3), frame: ST_BUILD, envelope: ST_BUILD, mep: ST_BUILD, finish: ST_BUILD,
-  commission: [["acts", "Акты испытаний систем"], ["deadlines", "Сроки ввода в эксплуатацию"]],
+  commission: [["acts", "Акты испытаний, заключения надзоров, декларация и акт приёмки"], ["deadlines", "Сроки ввода в эксплуатацию"]],
   handover: [["chess", "Передача квартир"]]
 };
 })();
@@ -5078,6 +5093,30 @@ window.I18N = (function () {
     ["Кирпич", "Кірпіш"], ["Стена", "Қабырға"], ["Комната", "Бөлме"], ["Квартира", "Пәтер"], ["Этаж", "Қабат"], ["Дом", "Үй"],
     ["нет входов", "кірістер жоқ"], ["готово", "дайын"],
     ["Структура: что ещё не утверждено и что затронет изменение", "Құрылым: әлі не бекітілмеген және өзгеріс неге әсер етеді"],
+    ["Найти в структуре", "Құрылымнан іздеу"],
+    ["Что готово к каждому этапу и чего не хватает. Этап готов, когда все нужные ему данные введены и утверждены, списки заполнены, а чек-лист отмечен.",
+      "Әр кезеңге не дайын және не жетпейді. Кезеңге қажетті барлық деректер енгізіліп, бекітілгенде, тізімдер толтырылып, чек-парақ белгіленгенде кезең дайын."],
+    ["Как это устроено: значение → расчёт → раздел → отдел → этап → проект. В концепции это «от кирпича до ЖК».", "Қалай құрылған: мән → есеп → бөлім → бөлімше → кезең → жоба. Тұжырымдамада бұл «кірпіштен ТҮК-ке дейін»."],
+    ["Как устроено: значение → расчёт → раздел → отдел → этап → проект. В концепции это «от кирпича до ЖК».", "Қалай құрылған: мән → есеп → бөлім → бөлімше → кезең → жоба. Тұжырымдамада бұл «кірпіштен ТҮК-ке дейін»."],
+    ["Как показать", "Қалай көрсету"], ["Найти", "Іздеу"], ["значение, раздел, отдел или этап", "мән, бөлім, бөлімше немесе кезең"],
+    ["Подробная схема — для аналитиков", "Толық сызба — талдаушыларға"],
+    ["Значение", "Мән"], ["Список", "Тізім"], ["Расчёт", "Есеп"], ["Раздел", "Бөлім"], ["Отдел", "Бөлімше"],
+    ["нечего проверять", "тексеретін ештеңе жоқ"], ["Всё готово.", "Бәрі дайын."], ["Этапу не нужны данные проекта — проверять нечего.", "Кезеңге жоба деректері қажет емес — тексеретін ештеңе жоқ."],
+    ["не введено", "енгізілмеген"], ["черновик", "жоба нұсқа"], ["ждёт утверждения", "бекітуді күтуде"], ["пусто", "бос"],
+    ["Ввести", "Енгізу"], ["Утвердить", "Бекіту"], ["Чек-лист этапа", "Кезеңнің чек-парағы"], ["Чек-листы этапов", "Кезеңдердің чек-парақтары"],
+    ["Утвердить в «Данных проекта»", "«Жоба деректерінде» бекіту"], ["Разделы:", "Бөлімдер:"], ["Отделы:", "Бөлімшелер:"], ["Этапы:", "Кезеңдер:"], ["кирпич, расчёт, раздел, отдел или этап; можно код: fin_net", "кірпіш, есеп, бөлім, бөлімше немесе кезең; код та болады: fin_net"],
+    ["Ничего не найдено", "Ештеңе табылмады"], ["Затронет —", "Әсер етеді —"], ["Комнаты:", "Бөлмелер:"], ["Квартиры:", "Пәтерлер:"], ["Этажи:", "Қабаттар:"],
+    ["Показаны первые 30 — уточните запрос", "Алғашқы 30 көрсетілді — сұрауды нақтылаңыз"],
+    // ввод в эксплуатацию
+    ["Заключение технического надзора о качестве", "Техникалық қадағалаудың сапа туралы қорытындысы"],
+    ["Заключение авторского надзора о соответствии", "Авторлық қадағалаудың сәйкестік туралы қорытындысы"],
+    ["Декларация о соответствии генподрядчика", "Бас мердігердің сәйкестік туралы декларациясы"],
+    ["Акт приёмки построенного объекта в эксплуатацию", "Салынған объектіні пайдалануға қабылдау актісі"],
+    ["Объект или пусковой комплекс", "Объект немесе іске қосу кешені"], ["Что проверено дополнительно", "Қосымша не тексерілді"],
+    ["Замечания и отклонения", "Ескертулер мен ауытқулар"], ["Отклонения от проекта", "Жобадан ауытқулар"], ["Уровень ответственности объекта", "Объектінің жауапкершілік деңгейі"],
+    ["Акты испытаний, заключения надзоров, декларация и акт приёмки", "Сынау актілері, қадағалау қорытындылары, декларация және қабылдау актісі"],
+    ["Документы ввода в эксплуатацию: объект, ТЭП и сроки — из данных проекта и графика, приложения — из реестра документов ниже. Оформите заключения надзоров и декларацию до акта приёмки — акт сошлётся на них.",
+      "Пайдалануға беру құжаттары: объект, ТЭК және мерзімдер — жоба деректері мен кестеден, қосымшалар — төмендегі құжаттар тізілімінен. Қадағалау қорытындылары мен декларацияны қабылдау актісіне дейін ресімдеңіз — акт оларға сілтеме жасайды."],
   ].forEach(p => add(p[0], p[1]));
 
   const tr = s => D.has(s) ? D.get(s) : s;
@@ -5146,6 +5185,10 @@ window.I18N = (function () {
     [/^Чек-лист: (\d+)\. (.+)$/, m => "Чек-парақ: " + m[1] + ". " + (D.get(m[2]) || m[2])],
     [/^(\d\d)\. (.+)$/, m => D.has(m[2]) ? m[1] + ". " + D.get(m[2]) : null],
     [/^Структура не собрана: (.+)$/, m => "Құрылым жиналмады: " + m[1]],
+    [/^Найдено: (\d+)$/, m => "Табылды: " + m[1]],
+    [/^не хватает (\d+)$/, m => "жетпейді: " + m[1]],
+    [/^отмечено (\d+) из (\d+)$/, m => "белгіленді: " + m[2] + " ішінен " + m[1]],
+    [/^Раздел «(.+)»$/, m => "«" + (D.get(m[1]) || m[1]) + "» бөлімі"],
   ];
 
   const CYR = /[А-Яа-яЁё]/;
@@ -7312,8 +7355,12 @@ window.ZHK_BOOT = function (document) {
       return VARS.map(v => {
         const raw = varRaw(v, S, C), m = S.vars[v.id] || {}, b = B ? B[v.id] : undefined;
         const calc = v.calc || (sm && SMETA_KEYS.indexOf(v.id) >= 0 ? "Смета 1С" : aa && v.id === "area_sale" ? "Шахматка" : undefined);
+        // set — значение введено (или посчитано), а не подставлено из примера финмодели или значения по умолчанию:
+        // документам нельзя показывать примерные цифры как данные проекта.
+        const x = v.path ? pathGet(S, v.path) : undefined;
+        const set = calc ? raw != null && raw !== "" : x != null && String(x).trim() !== "";
         return Object.assign({}, v, {
-          calc, type: vType(v), raw, text: fmtVar(v, raw), st: calc ? "calc" : (m.st || "draft"),
+          calc, set, type: vType(v), raw, text: fmtVar(v, raw), st: calc ? "calc" : (m.st || "draft"),
           stBy: m.sby !== undefined ? nameOf(m.sby) : "", stAt: m.sat || "",
           hist: (m.hist || []).map(h => ({ at: h.at, who: nameOf(h.by), from: fmtVar(v, h.o), to: fmtVar(v, h.v) })),
           base: b === undefined ? null : fmtVar(v, b), baseRaw: b === undefined ? null : b, delta: b === undefined ? null : fmtDelta(v, raw, b)
@@ -8331,8 +8378,14 @@ const ACT_F = {
   resp: { work: ["Конструкции: перечень и характеристика", "колонны и плита 3 этажа в осях 1–6"], docs: ["Чертежи: номер и дата", "КЖ-2 л. 4 от 10.02.2026"], mats: ["Документы об испытаниях", "протокол прочности бетона №"], dev: ["Отклонения от проекта", "нет — или: кем согласованы, № чертежей, дата"], next: ["Разрешаются последующие работы", "монтаж перекрытия 4 этажа"], dates: 1 },
   test: { work: ["Система или оборудование", "внутренний водопровод В1"], norm: ["Испытание по нормативному документу", "СП РК для этой системы"], docs: ["Чертежи: номер и дата", "ВК-1 от 10.02.2026"], mats: ["Вид и параметры испытания", "гидростатическое, 1,0 МПа, 10 мин"], next: ["Результат", "падения давления и течей нет"], dates: 1 },
   defect: { work: ["Что осматривали", "фасад блока, секция 1"], sub: 1 },
-  order: { work: ["Основание проверки", "плановый обход технадзора"], next: ["Приостановить до устранения", "можно не заполнять"], sub: 1 }
+  order: { work: ["Основание проверки", "плановый обход технадзора"], next: ["Приостановить до устранения", "можно не заполнять"], sub: 1 },
+  // Ввод в эксплуатацию. Сроки строительства — из графика, ТЭП — из данных проекта, приложения — из реестра; вводится только своё.
+  tnq: { work: ["Объект или пусковой комплекс", "ЖК целиком / блоки 1–3"], mats: ["Что проверено дополнительно", "лабораторные испытания бетона, исполнительная съёмка"], dev: ["Замечания и отклонения", "нет"] },
+  anq: { work: ["Объект или пусковой комплекс", "ЖК целиком / блоки 1–3"], dev: ["Отклонения от проекта", "нет"] },
+  decl: { work: ["Объект или пусковой комплекс", "ЖК целиком / блоки 1–3"] },
+  commission: { work: ["Объект или пусковой комплекс", "ЖК целиком / блоки 1–3"], next: ["Уровень ответственности объекта", "II (нормальный)"] }
 };
+const ACT_COMMISSION = ["tnq", "anq", "decl", "commission"];
 let actOpen = "";
 const ACT_MON = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"];
 const actIso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
@@ -8433,6 +8486,7 @@ function actText(a) {
     "Система (оборудование) выдержала индивидуальное испытание и считается готовой к комплексному опробованию.", "",
     sign("Представитель технического надзора заказчика", P.tn),
     sign("Представитель генподрядной строительно-монтажной организации", P.gp)].join("\n");
+  if (ACT_COMMISSION.indexOf(a.kind) >= 0) return actCommissionText(a, P, obj, g);
   if (a.kind === "defect") return [
     "ДЕФЕКТНЫЙ АКТ № " + actGap(a.no, "№"), "",
     "Объект: " + obj, actLong(a.date), "",
@@ -8463,6 +8517,84 @@ function actText(a) {
     "3. Письменно уведомить технический надзор о выполнении с приложением фото и исполнительной документации; сведения об устранении внести в общий журнал работ.", "",
     "Предписание получил: ____________ " + (to.name || "[расшифровка подписи]") + "   Дата: [___]",
     "Отметка об устранении: ____________ " + (P.tn.name || "[расшифровка подписи]") + "   Дата: [___]"].join("\n");
+}
+// Документы ввода в эксплуатацию. Форма акта приёмки утверждается уполномоченным органом: здесь — состав по данным
+// проекта (объект, фактические ТЭП, сроки по графику, комиссия, приложения из реестра), его сверяют с действующей формой.
+function actCommissionText(a, P, obj, g) {
+  const c = window.ZHK.project(), V = Object.fromEntries(window.ZHK.vars().map(v => [v.id, v]));
+  const val = (id, ph) => { const v = V[id]; return v && v.set ? v.text + (v.unit && v.text.indexOf(v.unit) < 0 ? " " + v.unit : "") : "[" + ph + "]"; };
+  const St = Object.fromEntries(window.ZHK.stages().map(x => [x.id, x]));
+  const term = "Сроки строительства по графику: начало СМР — " + ((St.start || {}).from || "[график]") + ", окончание СМР — " + ((St.finish || {}).to || "[график]") +
+    ", ввод в эксплуатацию — " + ((St.commission || {}).to || "[график]");
+  const A = window.ZHK.list("acts"), last = k => A.filter(x => x.kind === k).sort((x, y) => (y.date || "").localeCompare(x.date || ""))[0];
+  const ref = (k, t) => { const x = last(k); return x ? t + " № " + (x.no || "—") + " от " + actDate(x.date) : "[" + t.toLowerCase() + ": нет в реестре — оформите в «Актах и предписаниях»]"; };
+  const nums = k => A.filter(x => x.kind === k).sort((x, y) => (parseInt(x.no, 10) || 0) - (parseInt(y.no, 10) || 0));
+  const tests = nums("test"), hid = nums("hidden").length, resp = nums("resp").length;
+  const rem = A.filter(x => x.kind === "defect" || x.kind === "order"), remN = window.ZHK.list("actItems").filter(x => rem.some(r => r.id === x.act)).length;
+  const what = g("work"), sign = (t, p) => t + " ____________ " + (p.name || "[расшифровка подписи]");
+  const reg = "Реестр работ: актов освидетельствования скрытых работ — " + hid + ", актов приёмки ответственных конструкций — " + resp +
+    ", актов индивидуальных испытаний — " + tests.length + (rem.length ? "; предписаний и дефектных актов — " + rem.length + " (замечаний: " + remN + ")" : "") + ".";
+  const devTxt = ph => !a.dev ? "[" + ph + ": нет / перечень]" : /^(нет|отсутствуют|без замечаний|без отклонений)\.?$/i.test(a.dev.trim()) ? "отсутствуют" : a.dev;
+  if (a.kind === "tnq") return [
+    "ЗАКЛЮЧЕНИЕ № " + actGap(a.no, "№"), "ТЕХНИЧЕСКОГО НАДЗОРА О КАЧЕСТВЕ СТРОИТЕЛЬНО-МОНТАЖНЫХ РАБОТ", "",
+    "Объект: " + obj, "Объект (пусковой комплекс): " + what, actLong(a.date), "",
+    "Технический надзор: " + actWho(P.tn), "Заказчик: " + actGap(P.cust.org, "заказчик"), "Генеральный подрядчик: " + actGap(P.gp.org, "генподрядчик"),
+    "Проектная документация: " + actGap(P.an.org, "проектная организация") + "; заключение экспертизы: " + val("ge", "заключение экспертизы — введите в карточке"), term, "",
+    "1. Технический надзор осуществлялся в течение всего срока строительства. " + reg,
+    "2. Дополнительно проверено: " + g("mats"),
+    "3. Замечания и отклонения от проектной документации: " + devTxt("замечания") + ".", "",
+    "ЗАКЛЮЧЕНИЕ",
+    "Строительно-монтажные работы выполнены в соответствии с проектной документацией и требованиями государственных нормативов; качество работ подтверждается исполнительной документацией. Объект может быть предъявлен к приёмке в эксплуатацию.", "",
+    sign("Представитель технического надзора", P.tn)].join("\n");
+  if (a.kind === "anq") return [
+    "ЗАКЛЮЧЕНИЕ № " + actGap(a.no, "№"), "АВТОРСКОГО НАДЗОРА О СООТВЕТСТВИИ ОБЪЕКТА ПРОЕКТНОЙ ДОКУМЕНТАЦИИ", "",
+    "Объект: " + obj, "Объект (пусковой комплекс): " + what, actLong(a.date), "",
+    "Проектная организация (авторский надзор): " + actWho(P.an), "Заказчик: " + actGap(P.cust.org, "заказчик"),
+    "Заключение экспертизы: " + val("ge", "заключение экспертизы — введите в карточке"), term, "",
+    "1. Авторский надзор осуществлялся по договору в течение строительства; записи — в журнале авторского надзора.",
+    "2. Отклонения от проектной документации: " + devTxt("отклонения") + ".", "",
+    "ЗАКЛЮЧЕНИЕ",
+    "Объект построен в соответствии с проектной документацией. Авторский надзор не возражает против приёмки объекта в эксплуатацию.", "",
+    sign("Главный инженер проекта (авторский надзор)", P.an)].join("\n");
+  if (a.kind === "decl") return [
+    "ДЕКЛАРАЦИЯ № " + actGap(a.no, "№"), "О СООТВЕТСТВИИ ВЫПОЛНЕННЫХ РАБОТ ПРОЕКТНОЙ ДОКУМЕНТАЦИИ", "",
+    "Объект: " + obj, "Объект (пусковой комплекс): " + what, actLong(a.date), "",
+    "Генеральный подрядчик " + actGap(P.gp.org, "генподрядчик") + " в лице " + (P.gp.who || "[должность, фамилия, инициалы]") + " заявляет, что:",
+    "1. Строительно-монтажные работы выполнены в соответствии с проектной документацией (заключение экспертизы: " + val("ge", "заключение экспертизы") + ") и требованиями государственных нормативов в области архитектуры, градостроительства и строительства.",
+    "2. Применённые материалы, изделия и оборудование имеют документы, подтверждающие качество.",
+    "3. Исполнительная документация передана заказчику. " + reg,
+    "4. " + term + ".", "",
+    "Объект готов к приёмке в эксплуатацию.", "",
+    sign("Руководитель генподрядной организации", P.gp)].join("\n");
+  const ck = St.commission || {};
+  return [
+    "УТВЕРЖДАЮ", "Собственник (заказчик): " + actGap(c.company, "застройщик"), (V.director && V.director.set ? V.director.raw : "[директор]") + " ____________", actLong(a.date), "",
+    "АКТ № " + actGap(a.no, "№"), "ПРИЁМКИ ПОСТРОЕННОГО ОБЪЕКТА В ЭКСПЛУАТАЦИЮ",
+    "(состав по данным проекта; форма утверждается уполномоченным органом — сверьте с действующей)", "",
+    "1. СВЕДЕНИЯ ОБ ОБЪЕКТЕ",
+    "Наименование и адрес: " + obj, "Объект (пусковой комплекс): " + what,
+    "Кадастровый номер участка: " + val("cadastre", "кадастровый номер — введите в карточке") + "; площадь участка: " + val("area_land", "площадь участка"),
+    "Уровень ответственности: " + g("next"),
+    "Фактические технико-экономические показатели: общая площадь здания — " + val("area_total", "общая площадь") + ", продаваемая жилая площадь — " + val("area_sale", "жилая площадь") +
+      ", коммерческая площадь — " + val("area_comm", "коммерческая площадь") + ", жилых блоков — " + val("blocks", "блоки проекта") + ", этажность — " + val("floors", "этажность") +
+      ", квартир — " + val("flats", "квартиры") + ", машино-мест — " + val("parking", "машино-места"),
+    term, "",
+    "2. КОМИССИЯ",
+    "Собственник (заказчик) — " + actWho(P.cust), "Генеральный подрядчик — " + actWho(P.gp), "Технический надзор — " + actWho(P.tn), "Авторский надзор — " + actWho(P.an), "",
+    "3. ДОКУМЕНТЫ, ПОДТВЕРЖДАЮЩИЕ ГОТОВНОСТЬ",
+    "Положительное заключение экспертизы проектной документации: " + val("ge", "заключение экспертизы — введите в карточке"),
+    ref("decl", "Декларация о соответствии генподрядчика"),
+    ref("tnq", "Заключение технического надзора о качестве"),
+    ref("anq", "Заключение авторского надзора о соответствии"),
+    "Акты индивидуальных испытаний систем: " + (tests.length ? tests.map(x => "№ " + x.no + " от " + actDate(x.date)).join(", ") : "[в реестре нет актов испытаний]"),
+    reg,
+    "[ ] Исполнительная документация по всем разделам   [ ] Акты разграничения и справки о выполнении техусловий",
+    "[ ] Документы на лифты (освидетельствование)   [ ] Исполнительная геодезическая съёмка",
+    "Чек-лист этапа «" + (ck.code || "19") + ". " + (ck.name || "Ввод в эксплуатацию") + "»: отмечено " + (ck.done || 0) + " из " + (ck.total || 0) + " пунктов.", "",
+    "4. РЕШЕНИЕ КОМИССИИ",
+    "Объект построен в соответствии с проектной документацией и требованиями государственных нормативов и принимается в эксплуатацию.", "",
+    sign("Собственник (заказчик)", P.cust), sign("Генеральный подрядчик", P.gp), sign("Технический надзор", P.tn), sign("Авторский надзор", P.an), "",
+    "После утверждения акт регистрируется в порядке, установленном законодательством РК; дальше — присвоение адреса, техпаспорт и первичная регистрация (чек-лист этапа)."].join("\n");
 }
 // Новый документ: следующий номер по виду, сегодняшняя дата, текущий этап стройки и первый блок — остальное по месту.
 function actNew(kind) {
@@ -8514,7 +8646,7 @@ function viewActs() {
       ${items.map((x, i) => `<tr><td>${i + 1}</td><td>${ii(x, "place", 150, "блок, этаж, оси")}</td><td>${ii(x, "text", 300, "описание")}</td><td>${ii(x, "norm", 140, "СН РК, лист ПСД")}</td><td>${ii(x, "due", 140, "", "date")}</td>
         <td>${ro ? "" : `<button class="btn ghost mini" data-item-del="actItems:${x.id}" aria-label="Удалить строку">×</button>`}</td></tr>`).join("")}</tbody></table></div>
       ${ro ? "" : `<div class="row"><button class="btn" id="act-item-add">Добавить строку</button></div>`}` : ""}
-    <div class="muted">${a.kind === "hidden" || a.kind === "resp" ? "Форма СН РК 1.03-00: в комиссии исполнитель работ и технадзор заказчика, авторский надзор — по приглашению. Пока акт не подписан, последующие работы и нагружение конструкций запрещены." : a.kind === "test" ? "Порядок и параметры испытания берутся из нормативного документа на систему — укажите его в поле выше." : "Государственной формы для этого документа нет: составлен по практике технадзора. Сведения об устранении вносятся в общий журнал работ."}
+    <div class="muted">${ACT_COMMISSION.indexOf(a.kind) >= 0 ? "Документы ввода в эксплуатацию: объект, ТЭП и сроки — из данных проекта и графика, приложения — из реестра документов ниже. Оформите заключения надзоров и декларацию до акта приёмки — акт сошлётся на них. " : ""}${a.kind === "hidden" || a.kind === "resp" ? "Форма СН РК 1.03-00: в комиссии исполнитель работ и технадзор заказчика, авторский надзор — по приглашению. Пока акт не подписан, последующие работы и нагружение конструкций запрещены." : a.kind === "test" ? "Порядок и параметры испытания берутся из нормативного документа на систему — укажите его в поле выше." : "Государственной формы для этого документа нет: составлен по практике технадзора. Сведения об устранении вносятся в общий журнал работ."}
       Организации и подписанты взяты из данных проекта; в квадратных скобках — то, чего в данных пока нет.</div>
     <pre class="act-pre">${esc(actText(a))}</pre>
   </section>` : "";
@@ -9071,11 +9203,12 @@ function polish(root) {
 const fit = t => { t.style.height = "auto"; t.style.height = t.scrollHeight + 2 + "px"; };
 document.addEventListener("input", e => { if (e.target.matches && e.target.matches("textarea.auto") && !(CSS.supports && CSS.supports("field-sizing", "content"))) fit(e.target); });
 
-// Структура «от кирпича до ЖК»: дерево из window.buildStructure — того же кода, что наполняет базу
-// (docs/db/structure-seed.sql). Готовность — как v_element_status: кирпич готов, когда значение утверждено,
-// список — когда в нём не меньше need строк; у элемента — сколько его вводимых кирпичей готово. Ничего не хранит.
+// Страница «Структура»: что готово к каждому этапу и чего не хватает. Считает window.buildStructure — тот же код,
+// что наполняет базу (docs/db/structure-seed.sql); готовность — как v_element_status: значение утверждено, список
+// заполнен (не меньше need строк), чек-лист отмечен. Главное на странице — «Что мешает этапу» по отделам с действием;
+// полная схема (значение → расчёт → раздел → отдел → этап) — свёрнута, для аналитиков. Ничего не хранит.
 let structMode = "stage";
-const ST_LV = { a: "Кирпич", l: "Кирпич", o: "Стена", p: "Комната", f: "Квартира", s: "Этаж" };
+const ST_LV = { a: "Значение", l: "Список", o: "Расчёт", p: "Раздел", f: "Отдел", s: "Этап" };
 function structModel() {
   const Z = window.ZHK, VT = Object.fromEntries(Object.keys(VIEWS).map(k => [k, VIEWS[k].t]));
   const B = window.buildStructure(window.VARS, window.TREE, window.STAGE_STEPS, VT);
@@ -9108,11 +9241,49 @@ function structModel() {
   const name = k => { const t = k.slice(2);
     return k[0] === "a" ? V[t].name : k[0] === "l" ? L[t].name : k[0] === "o" ? "Расчёт: " + V[t].name : k[0] === "p" ? VT[t]
       : k[0] === "f" ? B.areas.find(a => a.id === t).owner : (n => n.code + ". " + n.name)(window.TREE.nodes.find(n => n.id === t)); };
-  return { B, V, L, ch, task, isIn, ok, ready, name, bricks };
+  // Что затронет изменение элемента: элементы выше на всю глубину; стена ведёт к своему расчётному кирпичу и дальше.
+  const rev = {}; Object.keys(ch).forEach(p => ch[p].forEach(c => { (rev[c] = rev[c] || []).push(p); }));
+  const up = key => {
+    const out = new Set(), st = [key];
+    while (st.length) {
+      const k = st.pop(); if (out.has(k)) continue; out.add(k);
+      (rev[k] || []).forEach(p => st.push(p));
+      if (k[0] === "o") st.push("a:" + k.slice(2));
+    }
+    out.delete(key); return out;
+  };
+  const keys = [].concat(window.VARS.items.map(v => "a:" + v.id), B.lists.map(l => "l:" + l.id), B.calcs.map(([id]) => "o:" + id), B.procs.map(k => "p:" + k),
+    B.areas.map(a => "f:" + a.id), window.TREE.nodes.map(n => "s:" + n.id));
+  return { B, V, L, ch, task, isIn, ok, ready, name, bricks, up, keys };
 }
+// Готовность: «готово», «нечего проверять» или процент и сколько не хватает.
 function structChip(r) {
-  return !r.n ? '<span class="chip">нет входов</span>' : r.ok === r.n ? '<span class="chip s-done">готово</span>' : `<span class="chip s-new">${r.ok} из ${r.n}</span>`;
+  if (!r.n) return '<span class="chip">нечего проверять</span>';
+  if (r.ok === r.n) return '<span class="chip s-done">готово</span>';
+  const pc = Math.floor(r.ok / r.n * 100);
+  return `<span class="st-bar" aria-hidden="true"><i style="width:${pc}%"></i></span><span class="chip s-new"><span>${pc}%</span> · <span>не хватает ${r.n - r.ok}</span></span>`;
 }
+// Неготовый вводимый элемент: кто отвечает, в каком он состоянии и что сделать.
+function structMiss(M, k) {
+  const t = k.slice(2);
+  if (k[0] === "l") {
+    const L = M.L[t], n = window.ZHK.listRows(t);
+    return { owner: L.owner, name: L.stage ? "Чек-лист этапа" : L.name.replace(/^Список: /, ""), state: L.stage ? `отмечено ${n} из ${L.need}` : "пусто",
+      act: "Открыть", go: "#" + (L.stage || L.view) };
+  }
+  const v = M.V[t], home = (window.VARS.homes || {})[(v.path || "").split(".")[0]];
+  return v.set ? { owner: v.owner, name: v.name, state: v.st === "agreed" ? "ждёт утверждения" : "черновик", act: "Утвердить", data: v.name }
+    : { owner: v.owner, name: v.name, state: "не введено", act: "Ввести", go: "#" + (home || "data") };
+}
+function structMissHtml(M, key, groupBy) {
+  const miss = [...M.bricks(key)].filter(k => !M.ok(k)).map(k => Object.assign(structMiss(M, k), groupBy === "where" ? { where: M.where(k) } : {}));
+  if (!miss.length) return M.bricks(key).size ? '<div class="st-sub">Всё готово.</div>' : '<div class="st-sub">Этапу не нужны данные проекта — проверять нечего.</div>';
+  const G = {}; miss.forEach(x => { const g = x[groupBy]; (G[g] = G[g] || []).push(x); });
+  const btn = x => x.data ? `<button class="btn ghost mini" type="button" data-sgo-data="${esc(x.data)}">${x.act}</button>` : `<a class="btn ghost mini" href="${esc(x.go)}">${x.act}</a>`;
+  return Object.keys(G).sort((x, y) => G[y].length - G[x].length).map(g => `<details class="st-grp"><summary><b>${esc(g)}</b><span class="st-sub">не хватает ${G[g].length}</span></summary>
+    <ul class="st-miss">${G[g].map(x => `<li><span>${esc(x.name)}</span><span class="st-sub">${x.state}</span>${btn(x)}</li>`).join("")}</ul></details>`).join("");
+}
+// Подробная схема — дерево элементов (раскрытие по уровням).
 function structNode(M, key, parent) {
   const lv = `<span class="st-lv">${ST_LV[key[0]]}</span>`;
   if (key[0] === "a" || key[0] === "l") {
@@ -9122,41 +9293,69 @@ function structNode(M, key, parent) {
     return `<li class="st-leaf">${lv}<span>${esc(M.name(key))}</span>${st}${v ? `<span class="st-sub">${esc(v.owner)}</span>` : ""}</li>`;
   }
   const tk = parent && parent[0] === "s" && key[0] === "p" ? M.task[parent.slice(2) + "|" + key.slice(2)] : "";
-  return `<li><details data-sk="${key}"><summary>${lv}<span>${esc(M.name(key))}</span>${structChip(M.ready(key))}${tk ? `<span class="st-sub">${esc(tk)}</span>` : ""}</summary><ul></ul></details></li>`;
+  return `<li><details data-lazy="tree" data-sk="${key}"><summary>${lv}<span>${esc(M.name(key))}</span>${structChip(M.ready(key))}${tk ? `<span class="st-sub">${esc(tk)}</span>` : ""}</summary><ul></ul></details></li>`;
 }
-// Дети в порядке чтения: у этажа — чек-лист и шаги по порядку, у комнаты — стены, затем вводимые кирпичи,
-// у стены — результат и входы.
 function structKids(M, key) {
   const k = (M.ch[key] || []).slice(), rank = x => ({ l: 0, o: 1, a: 2, p: 3 })[x[0]];
   if (key[0] !== "s") k.sort((x, y) => rank(x) - rank(y));
   if (key[0] === "o") { const r = "a:" + key.slice(2); k.splice(k.indexOf(r), 1); k.unshift(r); }
   return k.map(c => structNode(M, c, key)).join("");
 }
-let structM = null;
+let structM = null, structQ = "";
+// Поиск: по названию и коду; у находки — готовность и что затронет её изменение.
+function structResults(M, q) {
+  q = q.trim().toLowerCase(); if (!q) return "";
+  const hit = M.keys.filter(k => (M.name(k) + " " + k.slice(2)).toLowerCase().includes(q));
+  if (!hit.length) return '<div class="empty">Ничего не найдено</div>';
+  const rows = hit.slice(0, 30).map(k => {
+    const U = [...M.up(k)], by = t => U.filter(x => x[0] === t);
+    const st = k[0] === "a" ? (v => `<span class="chip ${ST[v.calc ? "calc" : v.st][1]}">${ST[v.calc ? "calc" : v.st][0]}</span>`)(M.V[k.slice(2)])
+      : k[0] === "l" ? `<span class="chip ${M.ok(k) ? "s-done" : "s-new"}">${window.ZHK.listRows(k.slice(2))} из ${M.L[k.slice(2)].need}</span>` : structChip(M.ready(k));
+    const fl = by("s").map(x => window.TREE.nodes.find(n => n.id === x.slice(2))).sort((x, y) => x.code.localeCompare(y.code));
+    const aff = [by("p").length ? `<span class="st-sub">Разделы:</span> ${by("p").map(x => esc(M.name(x))).join(", ")}` : "",
+      by("f").length ? `<span class="st-sub">Отделы:</span> ${by("f").map(x => esc(M.name(x))).join(", ")}` : "",
+      fl.length ? `<span class="st-sub">Этапы:</span> ${fl.map(n => n.code).join(", ")}` : ""].filter(Boolean).join(" · ");
+    return `<li class="stack" style="gap:2px"><div class="row" style="gap:6px;flex-wrap:wrap"><span class="st-lv">${ST_LV[k[0]]}</span><b>${esc(M.name(k))}</b>${st}</div>${aff ? `<div><span class="st-sub">Затронет —</span> ${aff}</div>` : ""}</li>`;
+  }).join("");
+  return `<div class="st-sub">Найдено: ${hit.length}</div>${hit.length > 30 ? '<div class="st-sub">Показаны первые 30 — уточните запрос</div>' : ""}<ul class="st-res">${rows}</ul>`;
+}
 function structBind(root) {
-  root.querySelectorAll("details[data-sk]").forEach(d => d.ontoggle = () => {
-    const ul = d.querySelector(":scope > ul");
-    if (!d.open || ul.childElementCount || !structM) return;
-    ul.innerHTML = structKids(structM, d.dataset.sk);
-    structBind(ul);
+  root.querySelectorAll("details[data-lazy]").forEach(d => d.ontoggle = () => {
+    const box = d.querySelector(":scope > ul, :scope > .st-box");
+    if (!d.open || box.childElementCount || !structM) return;
+    const k = d.dataset.sk;
+    box.innerHTML = d.dataset.lazy === "tree" ? structKids(structM, k) : structMissHtml(structM, k, d.dataset.lazy === "miss-area" ? "where" : "owner");
+    structBind(box);
   });
+  root.querySelectorAll("[data-sgo-data]").forEach(b => b.onclick = () => { dataF = { sec: "", owner: "", st: "", q: b.dataset.sgoData }; goHash("data"); });
   root.querySelectorAll("[data-smode]").forEach(b => b.onclick = () => { structMode = b.dataset.smode; route(); });
+  const sq = root.querySelector("#st-q");
+  if (sq) sq.oninput = () => { structQ = sq.value; clearTimeout(window.stqT); window.stqT = setTimeout(() => { const r = document.getElementById("st-res"); if (r && structM) r.innerHTML = structResults(structM, structQ); }, 200); };
 }
 function viewStructure() {
-  const h = head("Структура проекта", "От кирпича до ЖК: из чего собран проект и что готово. Кирпич — значение или список, стена — расчёт, комната — раздел портала, квартира — направление отдела, этаж — этап, дом — проект, ЖК — портфель.");
+  const h = head("Структура проекта", "Что готово к каждому этапу и чего не хватает. Этап готов, когда все нужные ему данные введены и утверждены, списки заполнены, а чек-лист отмечен.");
   try { structM = structModel(); } catch (e) { structM = null; return h + `<section class="panel"><div class="empty">Структура не собрана: ${esc(e.message)}</div></section>`; }
   const M = structM, P = window.ZHK.project() || {};
-  const roots = structMode === "area" ? M.B.areas.map(a => "f:" + a.id) : window.TREE.nodes.map(n => "s:" + n.id);
-  // Дом готов, когда готовы вводимые кирпичи всех его этапов
   const hb = new Set(); window.TREE.nodes.forEach(n => M.bricks("s:" + n.id).forEach(b => hb.add(b)));
   const home = { n: hb.size, ok: [...hb].filter(M.ok).length };
+  // У отдела — разделы, где не готовы его данные; для группировки «где ввести» — раздел ввода или этап чек-листа.
+  M.where = k => { const x = structMiss(M, k); return x.data ? "Утвердить в «Данных проекта»" : x.go.slice(1) && VIEWS[x.go.slice(1)] ? "Раздел «" + VIEWS[x.go.slice(1)].t + "»" : "Чек-листы этапов"; };
+  const rows = structMode === "area"
+    ? M.B.areas.map(a => [a.owner, "f:" + a.id, "miss-area"])
+    : window.TREE.nodes.map(n => [n.code + ". " + n.name, "s:" + n.id, "miss"]);
   return h + `<section class="panel stack">
-    <div class="row between"><div class="st-mode row" role="group" aria-label="Как собрать дерево">
+    <div class="row between" style="flex-wrap:wrap;gap:8px"><div class="row" style="gap:8px;flex-wrap:wrap"><b>${esc(P.name || projTitle())}</b>${structChip(home)}</div>
+      <div class="st-mode row" role="group" aria-label="Как показать">
       <button class="chip" type="button" data-smode="stage" aria-pressed="${structMode === "stage"}">По этапам</button>
-      <button class="chip" type="button" data-smode="area" aria-pressed="${structMode === "area"}">По отделам</button></div>
-      <span class="muted">Готово, когда утверждены все вводимые данные внутри: значения — утверждены, списки — заполнены, чек-листы — отмечены.</span></div>
-    <div class="st-tree"><ul><li><details open data-sk="root"><summary><span class="st-lv">Дом</span><span>${esc(P.name || projTitle())}</span>${structChip(home)}</summary>
-      <ul>${roots.map(r => structNode(M, r, "")).join("")}</ul></details></li></ul></div>
+      <button class="chip" type="button" data-smode="area" aria-pressed="${structMode === "area"}">По отделам</button></div></div>
+    <div class="st-list">${rows.map(([t, k, kind]) => `<details data-lazy="${kind}" data-sk="${k}"><summary><span class="st-name">${esc(t)}</span>${structChip(M.ready(k))}</summary><div class="st-box"></div></details>`).join("")}</div>
+  </section>
+  <section class="panel stack">
+    <label class="stack" style="gap:4px"><span class="label">Найти</span><input type="search" id="st-q" class="vin" style="max-width:420px;width:100%" value="${esc(structQ)}" placeholder="значение, раздел, отдел или этап" autocomplete="off"></label>
+    <div id="st-res" class="stack" style="gap:6px" aria-live="polite">${structResults(M, structQ)}</div>
+    <details><summary class="st-sub">Подробная схема — для аналитиков</summary>
+      <p class="st-sub">Как устроено: значение → расчёт → раздел → отдел → этап → проект. В концепции это «от кирпича до ЖК».</p>
+      <div class="st-tree"><ul>${(structMode === "area" ? M.B.areas.map(a => "f:" + a.id) : window.TREE.nodes.map(n => "s:" + n.id)).map(r => structNode(M, r, "")).join("")}</ul></div></details>
   </section>`;
 }
 function route() {
